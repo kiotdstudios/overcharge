@@ -55,17 +55,18 @@ export class ElectricalSource {
     // Inner glow cell
     ctx.fillStyle = `rgba(255,220,40,${0.75 * pulse})`;
     ctx.fillRect(this.x + 4, this.y + 4, this.w - 8, this.h - 8);
-    // Charge pip indicators above
-    const pipW = 6, pipH = 4, gap = 2;
-    const totalW = this.max * (pipW + gap) - gap;
-    const startX = this.cx - totalW / 2;
-    for (let i = 0; i < this.max; i++) {
-      const active = i < this.charge;
-      ctx.fillStyle = active ? '#ffe040' : '#332a00';
-      if (active) { ctx.shadowBlur = 6; ctx.shadowColor = '#ffcc00'; }
-      else { ctx.shadowBlur = 0; }
-      ctx.fillRect(startX + i * (pipW + gap), this.y - 7, pipW, pipH);
-      ctx.shadowBlur = 0;
+    // Drain bar above source — full→empty as player absorbs
+    const bW = this.w + 8, bH = 6;
+    const bX = this.x - 4, bY = this.y - 10;
+    const fill = this.max > 0 ? this.charge / this.max : 0;
+    ctx.fillStyle = '#332a00';
+    ctx.fillRect(bX, bY, bW, bH);
+    if (fill > 0) {
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = '#ffcc00';
+      ctx.fillStyle   = '#ffe040';
+      ctx.fillRect(bX, bY, Math.round(bW * fill), bH);
+      ctx.shadowBlur  = 0;
     }
     // Sparkle
     drawSparks(ctx, this.cx, this.cy, t, '#ffee66', 5, 10);
@@ -178,16 +179,16 @@ export class PowerGate {
     ctx.fillRect(barX, barY, barW * Math.min(1, this.charged / this.required), 8);
     ctx.shadowBlur = 0;
 
-    // Charge label — pinned just above ground (y=370) so it's always visible
-    // regardless of gate height
-    const labelY = 372;
-    ctx.fillStyle = '#cc88ff';
-    ctx.font      = '10px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${this.charged}/${this.required} ⚡`, this.cx, labelY);
+    // EXIT label only — no numbers, bar above conveys progress
     if (this.isExit) {
+      const labelY = Math.min(this.y + this.h + 14, 435);
       ctx.fillStyle = '#aa44ff';
-      ctx.fillText('EXIT', this.cx, labelY - 14);
+      ctx.font      = 'bold 10px monospace';
+      ctx.textAlign = 'center';
+      ctx.shadowBlur  = 6;
+      ctx.shadowColor = '#cc44ff';
+      ctx.fillText('EXIT', this.cx, labelY);
+      ctx.shadowBlur = 0;
     }
   }
 }
@@ -231,10 +232,23 @@ export class Switch {
     ctx.fillStyle = `rgba(${this.on ? '60,255,120' : '255,140,0'},${0.8 * pulse})`;
     ctx.fillRect(this.x + 4, this.y + 4, this.w - 8, this.h - 8);
 
+    // Fill bar above switch — empty→full as player charges it
+    if (!this.on) {
+      const sbW = this.w + 8, sbH = 5;
+      const sbX = this.x - 4, sbY = this.y - 9;
+      const sfill = this.required > 0 ? this.charged / this.required : 0;
+      ctx.fillStyle = '#1a0a00';
+      ctx.fillRect(sbX, sbY, sbW, sbH);
+      ctx.shadowBlur  = 6;
+      ctx.shadowColor = '#ff8800';
+      ctx.fillStyle   = '#ff8800';
+      ctx.fillRect(sbX, sbY, Math.round(sbW * sfill), sbH);
+      ctx.shadowBlur  = 0;
+    }
     ctx.fillStyle = color;
     ctx.font      = '9px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText(this.on ? 'ON' : `SW`, this.cx, this.y + this.h + 11);
+    ctx.fillText(this.on ? 'ON' : 'SW', this.cx, this.y + this.h + 11);
     if (this.label) {
       ctx.fillStyle = '#888';
       ctx.fillText(this.label, this.cx, this.y + this.h + 22);
