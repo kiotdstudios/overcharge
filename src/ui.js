@@ -98,7 +98,7 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.textAlign   = 'center';
     ctx.shadowBlur  = 8;
     ctx.shadowColor = '#ffcc00';
-    ctx.fillText(`[E] ABSORB  +${needed}⚡`, cx, cy);
+    ctx.fillText(`[E] ABSORB  +${Math.round(needed)}⚡`, cx, cy);
     ctx.restore();
   }
 
