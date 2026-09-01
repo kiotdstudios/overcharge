@@ -7,12 +7,18 @@ import { Player } from './player.js';
 import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C } from './constants.js';
 
-import { LEVEL1 } from './levels/level1.js';
-import { LEVEL2 } from './levels/level2.js';
-import { LEVEL3 } from './levels/level3.js';
-import { LEVEL4 } from './levels/level4.js';
+import { LEVEL1  } from './levels/level1.js';
+import { LEVEL2  } from './levels/level2.js';
+import { LEVEL3  } from './levels/level3.js';
+import { LEVEL4  } from './levels/level4.js';
+import { LEVEL5  } from './levels/level5.js';
+import { LEVEL6  } from './levels/level6.js';
+import { LEVEL7  } from './levels/level7.js';
+import { LEVEL8  } from './levels/level8.js';
+import { LEVEL9  } from './levels/level9.js';
+import { LEVEL10 } from './levels/level10.js';
 
-const LEVEL_DEFS = [LEVEL1, LEVEL2, LEVEL3, LEVEL4];
+const LEVEL_DEFS = [LEVEL1, LEVEL2, LEVEL3, LEVEL4, LEVEL5, LEVEL6, LEVEL7, LEVEL8, LEVEL9, LEVEL10];
 
 // ── Canvas setup ──────────────────────────────
 const canvas  = document.getElementById('game');
