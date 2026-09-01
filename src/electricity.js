@@ -142,17 +142,31 @@ export class PowerGate {
       return;
     }
 
+    const fill    = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
+    const fillH   = Math.round(this.h * fill);
+    const splitY  = this.y + this.h - fillH; // boundary: animated above, solid below
+
     const pulse = 0.55 + 0.45 * Math.sin(t * 3.8);
     ctx.save();
     ctx.shadowBlur  = 20 * pulse;
     ctx.shadowColor = '#9910dd';
-    // Animated energy bars
-    for (let yy = this.y; yy < this.y + this.h; yy += 9) {
+    // Animated strips only in the uncharged (top) portion
+    for (let yy = this.y; yy < splitY; yy += 9) {
       const alpha = 0.5 + 0.5 * Math.sin(t * 6 + yy * 0.15);
       ctx.fillStyle = `rgba(180, 55, 255, ${alpha})`;
-      ctx.fillRect(this.x, yy, this.w, 5);
+      ctx.fillRect(this.x, yy, this.w, Math.min(5, splitY - yy));
     }
     ctx.restore();
+
+    // Solid charged fill — bottom rising upward, no animation
+    if (fillH > 0) {
+      ctx.save();
+      ctx.shadowBlur  = 18;
+      ctx.shadowColor = '#cc44ff';
+      ctx.fillStyle   = '#cc44ff';
+      ctx.fillRect(this.x, splitY, this.w, fillH);
+      ctx.restore();
+    }
 
     // blockOnly barriers just show a lock — no charge bar, no player interaction
     if (this.blockOnly) {
@@ -165,18 +179,6 @@ export class PowerGate {
       ctx.fillText('LOCKED', this.cx, labelY);
       ctx.shadowBlur = 0;
       return;
-    }
-
-    // Vertical charge fill — gate lights up from bottom to top as it charges
-    const fill = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
-    if (fill > 0) {
-      const fillH = Math.round(this.h * fill);
-      ctx.save();
-      ctx.shadowBlur  = 18;
-      ctx.shadowColor = '#cc44ff';
-      ctx.fillStyle   = 'rgba(220, 100, 255, 0.55)';
-      ctx.fillRect(this.x, this.y + this.h - fillH, this.w, fillH);
-      ctx.restore();
     }
     // Horizontal progress bar pinned just above ground level — always visible
     const barW = 48, barH = 6;
