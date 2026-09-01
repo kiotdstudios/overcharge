@@ -167,17 +167,30 @@ export class PowerGate {
       return;
     }
 
-    // Charge progress bar — clamped so it stays on screen for full-height gates
-    const barW = this.w + 8;
-    const barX = this.x - 4;
-    const barY = Math.max(8, this.y - 14);
+    // Vertical charge fill — gate lights up from bottom to top as it charges
+    const fill = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
+    if (fill > 0) {
+      const fillH = Math.round(this.h * fill);
+      ctx.save();
+      ctx.shadowBlur  = 18;
+      ctx.shadowColor = '#cc44ff';
+      ctx.fillStyle   = 'rgba(220, 100, 255, 0.55)';
+      ctx.fillRect(this.x, this.y + this.h - fillH, this.w, fillH);
+      ctx.restore();
+    }
+    // Horizontal progress bar pinned just above ground level — always visible
+    const barW = 48, barH = 6;
+    const barX = this.cx - barW / 2;
+    const barY = 362;
     ctx.fillStyle = '#1a0030';
-    ctx.fillRect(barX, barY, barW, 8);
-    ctx.fillStyle = '#cc44ff';
-    ctx.shadowBlur  = 8;
-    ctx.shadowColor = '#cc44ff';
-    ctx.fillRect(barX, barY, barW * Math.min(1, this.charged / this.required), 8);
-    ctx.shadowBlur = 0;
+    ctx.fillRect(barX, barY, barW, barH);
+    if (fill > 0) {
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = '#cc44ff';
+      ctx.fillStyle   = '#cc44ff';
+      ctx.fillRect(barX, barY, Math.round(barW * fill), barH);
+      ctx.shadowBlur  = 0;
+    }
 
     // EXIT label only — no numbers, bar above conveys progress
     if (this.isExit) {
