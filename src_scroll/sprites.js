@@ -81,7 +81,7 @@ export class PlayerSprites {
     if (isMoving) {
       next = this[`walk_${dir}`];
       // Distance-based fps: advance one frame per 12px traveled so steps match movement
-      next.fps = Math.max(3, speed / 55);
+      next.fps = Math.max(3, speed / 70);
     } else {
       next = this[`idle_${dir}`];
     }

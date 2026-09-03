@@ -355,9 +355,17 @@ export class Player {
   // ── Collect dropped charge pickups ───────────
   _collectPickups(level) {
     for (const p of level.pickups) {
-      if (!p.done && p.collectable && p.inRange(this.cx, this.cy) && this.charge < MAX_CHARGE) {
-        p.done    = true;
-        this.charge = Math.min(MAX_CHARGE, this.charge + p.value);
+      const barFull  = this.charge >= MAX_CHARGE;
+      const pipsFull = this.bankedPips >= MAX_BANKED_PIPS;
+      if (!p.done && p.collectable && p.inRange(this.cx, this.cy) && !(barFull && pipsFull)) {
+        p.done = true;
+        if (!barFull) {
+          this.charge = Math.min(MAX_CHARGE, this.charge + p.value);
+        } else {
+          // Bar full — bank directly into a pip
+          this.bankedPips = Math.min(MAX_BANKED_PIPS, this.bankedPips + 1);
+          this._pipBankFx = 0.3;
+        }
       }
     }
   }
