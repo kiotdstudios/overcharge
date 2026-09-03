@@ -5,7 +5,7 @@ const prev = {};
 window.addEventListener('keydown', e => {
   cur[e.code] = true;
   // Prevent arrow keys from scrolling the page
-  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)) {
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space','KeyF','KeyP'].includes(e.code)) {
     e.preventDefault();
   }
 });

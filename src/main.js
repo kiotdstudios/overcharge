@@ -5,7 +5,7 @@ import { clear, drawText } from './render.js';
 import { Level }  from './level.js';
 import { Player } from './player.js';
 import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
-import { W, H, C } from './constants.js';
+import { W, H, C, MAX_CHARGE } from './constants.js';
 
 import { LEVEL1  } from './levels/level1.js';
 import { LEVEL2  } from './levels/level2.js';
@@ -97,8 +97,11 @@ function update(dt) {
       player.update(dt, level);
       level.update(dt, player);
 
-      // Dev: skip level with F2
+      // Dev: skip level with F2 / add charge with P
       if (Input.pressed('F2')) advanceLevel();
+      if (Input.pressed('KeyP')) {
+        player.charge = Math.min(player.charge + 2, MAX_CHARGE);
+      }
 
       // Game over: fell off level OR impossible to finish (not enough charge left)
       if (player.y > H + 60 || level.isFailState(player)) {
@@ -182,7 +185,7 @@ function _drawControls(ctx) {
   ctx.fillStyle = '#3a5060';
   ctx.font      = '10px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('MOVE: ← →   JUMP: ↑ / W   ABSORB: hold E near source   CHARGE GATE: hold SPACE near gate', W / 2, 13);
+  ctx.fillText('MOVE: ← →   JUMP: ↑ / W   ABSORB: hold E   CHARGE: hold SPACE   [F2] skip   [P] +charge', W / 2, 13);
 }
 
 // ── Boot ──────────────────────────────────────
