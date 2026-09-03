@@ -5,7 +5,7 @@ import { clear, drawText } from './render.js';
 import { Level }  from './level.js';
 import { Player } from './player.js';
 import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
-import { W, H, C, MAX_CHARGE } from './constants.js';
+import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
 
 import { LEVEL1  } from './levels/level1.js';
 import { LEVEL2  } from './levels/level2.js';
@@ -100,7 +100,11 @@ function update(dt) {
       // Dev: skip level with F2 / add charge with P
       if (Input.pressed('F2')) advanceLevel();
       if (Input.pressed('KeyP')) {
-        player.charge = Math.min(player.charge + 2, MAX_CHARGE);
+        if (player.charge < MAX_CHARGE) {
+          player.charge = Math.min(player.charge + 2, MAX_CHARGE);
+        } else if (player.bankedPips < MAX_BANKED_PIPS) {
+          player.bankedPips++;
+        }
       }
 
       // Game over: fell off level OR impossible to finish (not enough charge left)
