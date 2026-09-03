@@ -315,8 +315,11 @@ export class Player {
       this._pipSpendFx = 0.45;  // pip rack flashes to signal the spend
     }
 
-    // Rate scales with current charge: full (10) → 3/s; half (5) → 1.5/s; floor 0.5/s
-    const rate   = Math.max(0.5, DISCHARGE_RATE * (this.charge / MAX_CHARGE));
+    // Full rate if banked pips are available (each pip = a full bar in reserve).
+    // Only scale down when running on bar charge alone.
+    const rate = this.bankedPips > 0
+      ? DISCHARGE_RATE
+      : Math.max(0.5, DISCHARGE_RATE * (this.charge / MAX_CHARGE));
     const amount = Math.min(rate * dt, this.charge, needed);
     this.charge            -= amount;
     this.discharging        = true;
