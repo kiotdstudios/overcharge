@@ -132,11 +132,16 @@ export class Player {
 
   // ── Physics + AABB tilemap collision ─────────
   _applyPhysics(dt, level) {
-    if (!this.grounded) this.vy += GRAVITY * dt;
+    this.vy += GRAVITY * dt;
     this.vy = Math.min(this.vy, 700); // terminal velocity
 
     const wasGrounded = this.grounded;
     this.grounded = false;
+
+    // Floor-press: when grounded, _resolveY must fire every frame so snapping stays active.
+    // Without this, y+h lands exactly on a tile boundary — the tBot-1 check misses the
+    // floor tile and gravity accumulates for 3-4 frames before snapping back, causing vibration.
+    if (wasGrounded && this.vy > 60) this.vy = 60;
 
     // Drop-through one-way platforms: press Down/S while grounded to open a 0.25s window.
     // A small downward nudge gets the player moving before the window closes.
