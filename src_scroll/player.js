@@ -9,8 +9,10 @@ import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
 import { ChargePickup } from './electricity.js';
 import { PlayerSprites } from './sprites.js';
 
-// Sprite is 64x64; draw it larger than the hitbox so the character reads clearly
-const SPRITE_SIZE = 64;
+// Sprite PNGs are 92x92; character content sits from y=14 to y=78 (feet at y=78)
+const SPRITE_W      = 92;
+const SPRITE_H      = 92;
+const SPRITE_FEET_Y = 78;  // pixel row of character feet within the 92px frame
 
 const COYOTE_TIME  = 0.1;   // seconds of grace after walking off an edge
 const JUMP_BUFFER  = 0.1;   // pre-jump input buffer
@@ -458,11 +460,11 @@ export class Player {
         '#ffffff', t);
     }
 
-    // Sprite: draw centered on hitbox, feet aligned to hitbox bottom
-    // Round to integers — prevents sub-pixel jitter from floating-point y position
+    // Sprite: centered horizontally on hitbox; feet row (y=78 in 92px frame) pinned to hitbox bottom
+    // Rounding to integers prevents sub-pixel jitter from floating-point position
     const frame = this._sprites.currentFrame;
-    const sx    = Math.round(this.cx - SPRITE_SIZE / 2);
-    const sy    = Math.round(this.y + this.h - SPRITE_SIZE);
+    const sx    = Math.round(this.cx - SPRITE_W / 2);
+    const sy    = Math.round(this.y + this.h - SPRITE_FEET_Y);
 
     ctx.save();
 
@@ -480,7 +482,7 @@ export class Player {
     }
 
     if (frame && frame.complete) {
-      ctx.drawImage(frame, sx, sy, SPRITE_SIZE, SPRITE_SIZE);
+      ctx.drawImage(frame, sx, sy, SPRITE_W, SPRITE_H);
     } else {
       // Fallback box while images load
       drawGlowRect(ctx, this.x, this.y, this.w, this.h, C.PLAYER, glowColor, 10);
@@ -493,13 +495,13 @@ export class Player {
       ctx.save();
       ctx.globalAlpha  = 0.5 * Math.min(1, this._hurtFlash);
       ctx.fillStyle    = '#ff3333';
-      ctx.fillRect(sx, sy, SPRITE_SIZE, SPRITE_SIZE);
+      ctx.fillRect(sx, sy, SPRITE_W, SPRITE_H);
       ctx.restore();
     }
 
     // Sparks at top of hair when high charge
     if (chargeRatio > 0.7) {
-      drawSparks(ctx, this.cx, sy + 8, t, '#44ddff', 5, 9);
+      drawSparks(ctx, this.cx, sy + 14, t, '#44ddff', 5, 9);
     }
   }
 }

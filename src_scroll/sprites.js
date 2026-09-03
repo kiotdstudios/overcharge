@@ -37,10 +37,12 @@ export class Animator {
     const interval = 1 / this.fps;
     if (this._t >= interval) {
       this._t -= interval;
-      this._frame++;
-      if (this._frame >= this.frames.length) {
-        this._frame = 0; // loop
-        this.done   = true;
+      const next = (this._frame + 1) % this.frames.length;
+      // Only advance if the next frame image is fully loaded — avoids blank-frame jitter
+      // during the first few seconds when images are still fetching
+      if (this.frames[next].complete && this.frames[next].naturalWidth > 0) {
+        if (next === 0) this.done = true; // wrapped = one cycle done
+        this._frame = next;
       }
     }
   }
