@@ -72,14 +72,11 @@ export class PlayerSprites {
     this._current = this.idle_e;
   }
 
-  // DEBUG: locked to idle only — testing animation jitter isolation
+  // Priority: discharge > absorb/charge > jump > walk > idle
   update(dt, isMoving, facingRight, isAbsorbing, isRunning, isJumping, isDischarging) {
     const dir = facingRight ? 'e' : 'w';
 
     let next;
-    // TEMP: always idle — remove this block to restore full animation logic
-    next = this[`idle_${dir}`];
-    if (false) {
     if (isDischarging) {
       next = this[`discharge_${dir}`];
     } else if (isAbsorbing) {
@@ -91,7 +88,6 @@ export class PlayerSprites {
     } else {
       next = this[`idle_${dir}`];
     }
-    } // end TEMP
 
     // Switch animator — carry frame index when only direction flips (same anim type),
     // so turning left/right doesn't snap back to frame 0
