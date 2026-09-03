@@ -1,11 +1,133 @@
 // HUD: charge meter, context prompts, level banner
-import { MAX_CHARGE, C } from './constants.js';
+import { MAX_CHARGE, MAX_BANKED_PIPS, C } from './constants.js';
 import { drawGlowRect, drawText } from './render.js';
 
 export function drawHUD(ctx, player, level, t) {
+  _drawBankedPips(ctx, player, t);
   _drawChargeMeter(ctx, player, t);
   _drawLevelBanner(ctx, level, t);
   _drawContextPrompts(ctx, player, t);
+}
+
+// ── Banked pip rack — power-up display, top-left above charge bar ──
+function _drawBankedPips(ctx, player, t) {
+  const pipW    = 22;
+  const pipH    = 17;
+  const gap     = 5;
+  const startX  = 16;
+  const startY  = 5;
+  const count   = player.bankedPips;
+  const maxed   = count >= MAX_BANKED_PIPS;
+  const bankFx  = player._pipBankFx  > 0;
+  const spendFx = player._pipSpendFx > 0;
+  const totalW  = MAX_BANKED_PIPS * (pipW + gap) - gap;
+
+  ctx.save();
+
+  // ── Background panel ──
+  const panelX = startX - 6;
+  const panelY = startY - 4;
+  const panelW = totalW + 70;
+  const panelH = pipH + 8;
+  ctx.fillStyle = 'rgba(3,5,12,0.92)';
+  ctx.fillRect(panelX, panelY, panelW, panelH);
+  // Border glows gold when maxed
+  const borderAlpha = maxed ? 0.5 + 0.5 * Math.abs(Math.sin(t * 9)) : 0.18;
+  ctx.strokeStyle = `rgba(255,210,30,${borderAlpha})`;
+  ctx.lineWidth   = maxed ? 1.5 : 1;
+  ctx.strokeRect(panelX + 0.5, panelY + 0.5, panelW - 1, panelH - 1);
+
+  // ── Pips ──
+  for (let i = 0; i < MAX_BANKED_PIPS; i++) {
+    const x      = startX + i * (pipW + gap);
+    const filled = i < count;
+
+    if (filled) {
+      const isNewest = bankFx && i === count - 1;
+      // Pulse rate: fast on freshly banked, sync-fast when maxed, slow idle
+      const pulse = isNewest
+        ? 0.5 + 0.5 * Math.abs(Math.sin(t * 26))
+        : maxed
+          ? 0.55 + 0.45 * Math.abs(Math.sin(t * 9 + i * 0.3))
+          : 0.7  + 0.3  * Math.sin(t * 5 + i * 1.1);
+
+      // Outer glow — strongest on newest + when maxed
+      ctx.shadowBlur  = isNewest ? 32 * pulse : (maxed ? 22 * pulse : 14 * pulse);
+      ctx.shadowColor = maxed ? '#ffee44' : '#ffcc00';
+
+      // Fill: warm gold, shifts orange-white with pulse
+      const g = Math.round(165 + 75 * pulse);
+      ctx.fillStyle = `rgb(255,${g},15)`;
+      ctx.fillRect(x, startY, pipW, pipH);
+
+      // Bright inner highlight stripe
+      ctx.shadowBlur = 0;
+      ctx.fillStyle  = `rgba(255,255,190,${0.45 * pulse})`;
+      ctx.fillRect(x + 3, startY + 2, pipW - 6, 5);
+
+      // ⚡ glyph centred in pip
+      ctx.shadowBlur  = 6 * pulse;
+      ctx.shadowColor = '#fff8a0';
+      ctx.fillStyle   = `rgba(255,255,130,${0.85 + 0.15 * pulse})`;
+      ctx.font        = `bold ${Math.round(9 + 2 * pulse)}px monospace`;
+      ctx.textAlign   = 'center';
+      ctx.fillText('⚡', x + pipW / 2, startY + pipH - 3);
+
+    } else {
+      // Empty slot
+      ctx.shadowBlur  = 0;
+      ctx.fillStyle   = 'rgba(8,12,22,0.9)';
+      ctx.fillRect(x, startY, pipW, pipH);
+      ctx.strokeStyle = '#1a2d3d';
+      ctx.lineWidth   = 1;
+      ctx.strokeRect(x + 0.5, startY + 0.5, pipW - 1, pipH - 1);
+      // Dim ⚡ placeholder
+      ctx.fillStyle  = 'rgba(30,50,70,0.6)';
+      ctx.font       = '9px monospace';
+      ctx.textAlign  = 'center';
+      ctx.fillText('⚡', x + pipW / 2, startY + pipH - 3);
+    }
+  }
+
+  // ── Label ──
+  const labelX = startX + MAX_BANKED_PIPS * (pipW + gap) + 6;
+  const labelY = startY + pipH - 3;
+  ctx.shadowBlur = 0;
+  if (maxed) {
+    // "MAX!" blinks bold when all pips full
+    const mPulse = 0.5 + 0.5 * Math.abs(Math.sin(t * 10));
+    ctx.shadowBlur  = 10 * mPulse;
+    ctx.shadowColor = '#ffee44';
+    ctx.fillStyle   = `rgba(255,230,40,${0.7 + 0.3 * mPulse})`;
+    ctx.font        = 'bold 10px monospace';
+    ctx.textAlign   = 'left';
+    ctx.fillText('MAX!', labelX, labelY);
+  } else if (count > 0) {
+    ctx.shadowBlur  = 6;
+    ctx.shadowColor = '#aa8800';
+    ctx.fillStyle   = '#cc9900';
+    ctx.font        = 'bold 9px monospace';
+    ctx.textAlign   = 'left';
+    ctx.fillText(`×${count}`, labelX, labelY);
+  } else {
+    ctx.fillStyle = '#2a3a4a';
+    ctx.font      = '8px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('PWR', labelX, labelY);
+  }
+
+  // ── Spend flash — whole panel burst ──
+  if (spendFx) {
+    const alpha = Math.min(0.8, player._pipSpendFx * 2.2);
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle   = '#ffe040';
+    ctx.shadowBlur  = 24;
+    ctx.shadowColor = '#ffffff';
+    ctx.fillRect(panelX, panelY, panelW, panelH);
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
 }
 
 // ── Charge meter (top-left) — smooth bar, no numbers ─────────────
@@ -148,6 +270,17 @@ function _drawContextPrompts(ctx, player, t) {
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#ff4444';
       ctx.fillText(`NO CHARGE — absorb a source first`, cx, cy);
+    }
+
+    // Pip spend prompt — shown below the main prompt when player has banked pips
+    if (player.bankedPips > 0) {
+      const pipPulse = 0.7 + 0.3 * Math.sin(t * 5);
+      ctx.globalAlpha = pulse * pipPulse;
+      ctx.fillStyle   = '#ffcc00';
+      ctx.font        = 'bold 10px monospace';
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = '#ffaa00';
+      ctx.fillText(`[F] SPEND PIP  (${player.bankedPips} stored)`, cx, cy + 16);
     }
     ctx.restore();
   }
