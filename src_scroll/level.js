@@ -2,14 +2,15 @@
 import { TILE, COLS, ROWS, C } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
-import { DrainEnemy, PatrolEnemy } from './entities.js';
+import { DrainEnemy, PatrolEnemy, Checkpoint } from './entities.js';
 
 export class Level {
   constructor(def) {
     this.name    = def.name || 'LEVEL';
     this.number  = def.number || 1;
     this.tiles   = def.tiles;   // flat array, COLS * ROWS
-    this.pxW     = COLS * TILE;
+    this.cols    = def.cols || COLS;  // per-level width
+    this.pxW     = this.cols * TILE;
     this.pxH     = ROWS * TILE;
 
     this.sources  = (def.sources  || []).map(d => new ElectricalSource(d));
@@ -18,6 +19,7 @@ export class Level {
     this.enemies  = (def.enemies  || []).map(d => {
       return d.type === 'drain' ? new DrainEnemy(d) : new PatrolEnemy(d);
     });
+    this.checkpoints = (def.checkpoints || []).map(d => new Checkpoint(d));
     this.pickups  = [];
 
     this.playerStart = def.playerStart || { x: 48, y: 354 };
@@ -26,9 +28,9 @@ export class Level {
   }
 
   tileAt(tx, ty) {
-    if (tx < 0 || tx >= COLS || ty < 0) return 1; // wall/ceiling
+    if (tx < 0 || tx >= this.cols || ty < 0) return 1; // wall/ceiling
     if (ty >= ROWS) return 0;                      // below map = void — fall to death
-    return this.tiles[ty * COLS + tx] || 0;
+    return this.tiles[ty * this.cols + tx] || 0;
   }
 
   solidAt(tx, ty) {
@@ -67,6 +69,7 @@ export class Level {
     for (const gate of this.gates)    gate.update(dt);
     for (const sw   of this.switches) sw.update(dt);
     for (const p    of this.pickups)  p.update(dt, this);
+    for (const cp   of this.checkpoints) cp.update(dt);
     for (const e    of this.enemies)  {
       e.update(dt, this);
       if (e.tryContact) e.tryContact(player, this);
@@ -104,6 +107,7 @@ export class Level {
     for (const src  of this.sources)  src.draw(ctx);
     for (const gate of this.gates)    gate.draw(ctx);
     for (const sw   of this.switches) sw.draw(ctx);
+    for (const cp   of this.checkpoints) cp.draw(ctx);
     for (const p    of this.pickups)  p.draw(ctx);
     for (const e    of this.enemies)  e.draw(ctx);
   }
