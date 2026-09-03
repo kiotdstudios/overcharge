@@ -48,6 +48,7 @@ export class Player {
     this._dischargeFx = 0;  // discharge arc timer
     this._hurtFlash  = 0;   // flash duration on damage
     this._facingRight = true;
+    this.dead        = false;  // true = hit with no charge + no pips → game over
 
     // Movement state
     this.running        = false;
@@ -408,16 +409,24 @@ export class Player {
     }
   }
 
-  // ── Charge scatter: lose exactly 1 pip, bounce away from player ────
+  // ── Charge scatter on hit ────────────────────────────────────────
+  // Has charge  → scatter 1 unit as a pickup
+  // No charge, has pips → spend a pip (no scatter)
+  // Nothing left → die
   scatter(level) {
-    if (this.charge <= 0) return;
-    // Always remove exactly 1 unit — no float edge cases
-    this.charge = Math.max(0, this.charge - 1);
-    // Pickup launches opposite to facing direction so it flies away from the player
-    const xDir = this._facingRight ? -1 : 1;
-    const vx   = xDir * (110 + Math.random() * 70);
-    const vy   = -170 - Math.random() * 60;
-    level.pickups.push(new ChargePickup(this.cx, this.cy, 1, vx, vy));
+    if (this.charge > 0) {
+      this.charge = Math.max(0, this.charge - 1);
+      const xDir = this._facingRight ? -1 : 1;
+      const vx   = xDir * (110 + Math.random() * 70);
+      const vy   = -170 - Math.random() * 60;
+      level.pickups.push(new ChargePickup(this.cx, this.cy, 1, vx, vy));
+    } else if (this.bankedPips > 0) {
+      this.bankedPips--;
+      this._pipSpendFx = 0.4;
+    } else {
+      // No charge, no pips — dead
+      this.dead = true;
+    }
   }
 
   // ── Take damage (charge scatter) — kept for future use ──────────

@@ -121,6 +121,9 @@ function _update(dt) {
       // Fall off level → respawn at last checkpoint (not a full game over)
       if (player.y > H + 60) _respawn();
 
+      // Hit with no charge and no pips → game over
+      if (player.dead) state = STATES.GAME_OVER;
+
       // No charge path remaining → actual fail state
       if (level.isFailState(player)) state = STATES.GAME_OVER;
 
