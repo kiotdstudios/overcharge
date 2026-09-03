@@ -210,7 +210,7 @@ export class Player {
     const tLeft  = Math.floor(this.x / TILE);
     const tRight = Math.floor((this.x + this.w - 1) / TILE);
     if (this.vy >= 0) {
-      const tBot = Math.floor((this.y + this.h - 1) / TILE);
+      const tBot = Math.floor((this.y + this.h) / TILE);
       for (let tx = tLeft; tx <= tRight; tx++) {
         const tile = level.tileAt(tx, tBot);
         if (tile === 1) {
