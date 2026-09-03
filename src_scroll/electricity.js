@@ -335,9 +335,10 @@ export class ChargePickup {
       // Fallback: canvas-bottom clamp
       if (foot > 377) { this.y = 370; this.vy *= -0.4; this.vx *= 0.8; }
     }
-    // Horizontal wall clamp
-    if (this.x < 4)   { this.x = 4;   this.vx =  Math.abs(this.vx) * 0.6; }
-    if (this.x > 796) { this.x = 796; this.vx = -Math.abs(this.vx) * 0.6; }
+    // Horizontal wall clamp — use level bounds so drops don't teleport on scroll levels
+    const maxX = level ? level.pxW - 4 : 796;
+    if (this.x < 4)    { this.x = 4;    this.vx =  Math.abs(this.vx) * 0.6; }
+    if (this.x > maxX) { this.x = maxX; this.vx = -Math.abs(this.vx) * 0.6; }
   }
 
   // Not collectable for the first 0.35s — scatter pickups spawn on the player

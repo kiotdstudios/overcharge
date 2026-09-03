@@ -288,11 +288,14 @@ export class Player {
 
   // ── Discharge (hold SPACE near device — only when no enemy nearby) ────
   // Charge drains gradually — same feel as absorbing, just reversed.
+  // Banked pips auto-feed: when the bar empties mid-discharge, pop a pip
+  // and refill to MAX_CHARGE so the transfer continues uninterrupted.
   _updateDischarge(dt, level) {
     const holdSpace = Input.heldAny('Space');
+    const hasCharge = this.charge > 0 || this.bankedPips > 0;
 
     // Enemy takes priority — Space is attack when a target is in range
-    if (!holdSpace || !this.grounded || !this.nearDevice || this.charge <= 0 || this.nearEnemy) {
+    if (!holdSpace || !this.grounded || !this.nearDevice || !hasCharge || this.nearEnemy) {
       this.discharging     = false;
       this.dischargeTarget = null;
       return;
@@ -305,8 +308,14 @@ export class Player {
       return;
     }
 
-    // Rate scales with current charge: more charge = faster transfer
-    // Linear: full charge (10) → 3/s; half (5) → 1.5/s; floor at 0.5/s
+    // Auto-refill from banked pip when bar runs dry mid-discharge
+    if (this.charge <= 0 && this.bankedPips > 0) {
+      this.charge      = MAX_CHARGE;
+      this.bankedPips--;
+      this._pipSpendFx = 0.45;  // pip rack flashes to signal the spend
+    }
+
+    // Rate scales with current charge: full (10) → 3/s; half (5) → 1.5/s; floor 0.5/s
     const rate   = Math.max(0.5, DISCHARGE_RATE * (this.charge / MAX_CHARGE));
     const amount = Math.min(rate * dt, this.charge, needed);
     this.charge            -= amount;
