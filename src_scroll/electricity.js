@@ -14,18 +14,35 @@ export class ElectricalSource {
   constructor({ id, x, y, charge, label = '' }) {
     this.id     = id;
     this.x      = x; this.y = y;
-    this.w      = 28; this.h = 28;
+    this.w      = 64; this.h = 64;
     this.charge = charge;
     this.max    = charge;
     this.label  = label;
     this.drained = false;
     this._t      = 0;
+    this._frame  = 0;
+    this._frameFps = 8;
+    // Load generator 1 sprite frames
+    this._frames = Array.from({ length: 9 }, (_, i) => {
+      const img = new Image();
+      img.src = `assets/sprites/generator 1/frame_${String(i).padStart(3, '0')}.png`;
+      return img;
+    });
   }
 
   get cx() { return this.x + this.w / 2; }
   get cy() { return this.y + this.h / 2; }
 
-  update(dt) { this._t += dt; }
+  update(dt) {
+    this._t += dt;
+    // Advance animation frames 1-8 when active (frame 0 = drained state)
+    if (!this.drained) {
+      this._frame += dt * this._frameFps;
+      // cycle frames 1–8
+      if (this._frame >= 9) this._frame = 1;
+      if (this._frame < 1)  this._frame = 1;
+    }
+  }
 
   inRange(px, py) { return dist(px, py, this.cx, this.cy) < ABSORB_RADIUS; }
 
@@ -38,44 +55,41 @@ export class ElectricalSource {
   }
 
   draw(ctx) {
-    const t = this._t;
-    if (this.drained) {
-      ctx.fillStyle = '#1c1c28';
+    const t  = this._t;
+    // Pick sprite: frame 0 when drained, animated frames 1-8 when active
+    const fi  = this.drained ? 0 : Math.floor(this._frame) % 9;
+    const img = this._frames[fi];
+
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, this.x, this.y, this.w, this.h);
+    } else {
+      // Fallback box while images load
+      ctx.fillStyle = this.drained ? '#1c1c28' : '#ffcc00';
       ctx.fillRect(this.x, this.y, this.w, this.h);
-      ctx.fillStyle = '#2a2a38';
-      ctx.fillRect(this.x + 4, this.y + 4, this.w - 8, this.h - 8);
-      ctx.fillStyle = '#444';
-      ctx.font = '9px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('[ ]', this.cx, this.y + this.h + 10);
-      return;
     }
-    const pulse = 0.7 + 0.3 * Math.sin(t * 5.5);
-    drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#1e1c06', '#ffcc00', 18 * pulse);
-    // Inner glow cell
-    ctx.fillStyle = `rgba(255,220,40,${0.75 * pulse})`;
-    ctx.fillRect(this.x + 4, this.y + 4, this.w - 8, this.h - 8);
-    // Drain bar above source — full→empty as player absorbs
-    const bW = this.w + 8, bH = 6;
-    const bX = this.x - 4, bY = this.y - 10;
-    const fill = this.max > 0 ? this.charge / this.max : 0;
-    ctx.fillStyle = '#332a00';
-    ctx.fillRect(bX, bY, bW, bH);
-    if (fill > 0) {
-      ctx.shadowBlur  = 8;
-      ctx.shadowColor = '#ffcc00';
-      ctx.fillStyle   = '#ffe040';
-      ctx.fillRect(bX, bY, Math.round(bW * fill), bH);
-      ctx.shadowBlur  = 0;
+
+    // Drain bar above — full→empty as player absorbs (hidden when drained)
+    if (!this.drained) {
+      const bW = this.w, bH = 5;
+      const bX = this.x, bY = this.y - 9;
+      const fill = this.max > 0 ? this.charge / this.max : 0;
+      ctx.fillStyle = '#332a00';
+      ctx.fillRect(bX, bY, bW, bH);
+      if (fill > 0) {
+        ctx.shadowBlur  = 6;
+        ctx.shadowColor = '#ffcc00';
+        ctx.fillStyle   = '#ffe040';
+        ctx.fillRect(bX, bY, Math.round(bW * fill), bH);
+        ctx.shadowBlur  = 0;
+      }
     }
-    // Sparkle
-    drawSparks(ctx, this.cx, this.cy, t, '#ffee66', 5, 10);
+
     // Label
     if (this.label) {
       ctx.fillStyle = '#aa8800';
       ctx.font = '9px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(this.label, this.cx, this.y + this.h + 10);
+      ctx.fillText(this.label, this.cx, this.y + this.h + 12);
     }
   }
 }
