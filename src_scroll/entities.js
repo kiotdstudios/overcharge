@@ -23,8 +23,6 @@ function _resolveDrops(drops, cx, cy, level) {
 // ──────────────────────────────────────────────
 export class DrainEnemy {
   constructor({ x, y, patrolLeft, patrolRight, speed = 60 }) {
-    this._spawnX     = x;
-    this._spawnY     = y;
     this.x           = x;
     this.y           = y;
     this.w           = 22;
@@ -36,8 +34,6 @@ export class DrainEnemy {
     this._cooldown   = 0;
     this._t          = 0;
     this.alive       = true;
-    this._respawnTimer = 0;
-
     this.hp          = 2;
     this.maxHp       = 2;
     this._hitFlash   = 0;
@@ -50,18 +46,7 @@ export class DrainEnemy {
   get cy() { return this.y + this.h / 2; }
 
   update(dt, level) {
-    if (!this.alive) {
-      this._respawnTimer -= dt;
-      if (this._respawnTimer <= 0) {
-        this.alive    = true;
-        this.hp       = this.maxHp;
-        this.x        = this._spawnX;
-        this.y        = this._spawnY;
-        this.vx       = this.speed;
-        this._hitFlash = 0;
-      }
-      return;
-    }
+    if (!this.alive) return;
     this._t        += dt;
     this._cooldown  = Math.max(0, this._cooldown - dt);
     this._hitFlash  = Math.max(0, this._hitFlash  - dt);
@@ -83,8 +68,7 @@ export class DrainEnemy {
     this.hp--;
     this._hitFlash = 0.25;
     if (this.hp <= 0) {
-      this.alive         = false;
-      this._respawnTimer = 6;
+      this.alive = false;
       _resolveDrops(this.drops, this.cx, this.cy, level);
     }
   }
@@ -130,8 +114,6 @@ export class DrainEnemy {
 // ──────────────────────────────────────────────
 export class PatrolEnemy {
   constructor({ x, y, patrolLeft, patrolRight, speed = 50 }) {
-    this._spawnX     = x;
-    this._spawnY     = y;
     this.x           = x;
     this.y           = y;
     this.w           = 20;
@@ -143,8 +125,6 @@ export class PatrolEnemy {
     this._cooldown   = 0;
     this.alive       = true;
     this._t          = 0;
-    this._respawnTimer = 0;
-
     this.hp          = 1;
     this.maxHp       = 1;
     this._hitFlash   = 0;
@@ -156,18 +136,7 @@ export class PatrolEnemy {
   get cy() { return this.y + this.h / 2; }
 
   update(dt) {
-    if (!this.alive) {
-      this._respawnTimer -= dt;
-      if (this._respawnTimer <= 0) {
-        this.alive     = true;
-        this.hp        = this.maxHp;
-        this.x         = this._spawnX;
-        this.y         = this._spawnY;
-        this.vx        = this.speed;
-        this._hitFlash = 0;
-      }
-      return;
-    }
+    if (!this.alive) return;
     this._t        += dt;
     this._cooldown  = Math.max(0, this._cooldown - dt);
     this._hitFlash  = Math.max(0, this._hitFlash  - dt);
@@ -188,8 +157,7 @@ export class PatrolEnemy {
     this.hp--;
     this._hitFlash = 0.25;
     if (this.hp <= 0) {
-      this.alive         = false;
-      this._respawnTimer = 6;
+      this.alive = false;
       _resolveDrops(this.drops, this.cx, this.cy, level);
     }
   }
