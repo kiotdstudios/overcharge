@@ -73,12 +73,15 @@ export class PlayerSprites {
   }
 
   // Testing animations one by one — currently: idle + walk only
-  update(dt, isMoving, facingRight, isAbsorbing, isRunning, isJumping, isDischarging) {
+  // speed = |vx| in px/s — used to sync walk frames to actual movement (no sliding)
+  update(dt, isMoving, facingRight, isAbsorbing, isRunning, isJumping, isDischarging, speed = 0) {
     const dir = facingRight ? 'e' : 'w';
 
     let next;
     if (isMoving) {
       next = this[`walk_${dir}`];
+      // Distance-based fps: advance one frame per 12px traveled so steps match movement
+      next.fps = Math.max(4, speed / 12);
     } else {
       next = this[`idle_${dir}`];
     }

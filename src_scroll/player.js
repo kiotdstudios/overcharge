@@ -94,7 +94,7 @@ export class Player {
 
     // Tick sprite animator — threshold at 20 avoids idle/walk flicker during decel
     const isMoving = Math.abs(this.vx) > 20;
-    this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging);
+    this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx));
   }
 
   // ── Movement & jump ──────────────────────────
