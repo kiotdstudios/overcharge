@@ -98,7 +98,7 @@ export class Level {
   draw(ctx, t) {
     // Tiles
     for (let ty = 0; ty < ROWS; ty++) {
-      for (let tx = 0; tx < COLS; tx++) {
+      for (let tx = 0; tx < this.cols; tx++) {
         const tile = this.tileAt(tx, ty);
         if (tile !== 0) drawTile(ctx, tx, ty, TILE, tile);
       }
