@@ -1,5 +1,5 @@
 // Level: tilemap + entity manager + update/draw
-import { TILE, COLS, ROWS, C } from './constants.js';
+import { TILE, COLS, ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint } from './entities.js';
@@ -57,7 +57,10 @@ export class Level {
         .filter(d => d.type === 'charge')
         .reduce((s, d) => s + d.value, 0), 0);
 
-    const available = player.charge + sourcesLeft + pickupsLeft + enemyDrops;
+    // Banked pips each represent a full charge bar — must count them or the
+    // game incorrectly declares failure when the player has pips but 0 bar charge.
+    const pipCharge = player.bankedPips * MAX_CHARGE;
+    const available = player.charge + pipCharge + sourcesLeft + pickupsLeft + enemyDrops;
     // Epsilon guard: float discharge fills exit.charged in tiny increments, so
     // needed = required - charged can be e.g. 1.0000002 when mathematically 1.
     // A tolerance of 0.01 is invisible to the player but absorbs all float drift.
