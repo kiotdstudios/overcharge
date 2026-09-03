@@ -55,14 +55,14 @@ export class Animator {
 export class PlayerSprites {
   constructor() {
     // East variants
-    this.idle_e      = new Animator(loadFrames(framePaths('idle',      'east', 11)), WALK_FPS);
+    this.idle_e      = new Animator(loadFrames(framePaths('idle_2.0',  'east', 11)), WALK_FPS);
     this.walk_e      = new Animator(loadFrames(framePaths('walking',   'east',  9)), WALK_FPS);
     this.jump_e      = new Animator(loadFrames(framePaths('jumping',   'east',  9)), WALK_FPS);
     this.charge_e    = new Animator(loadFrames(framePaths('charge',    'east',  9)), WALK_FPS);
     this.discharge_e = new Animator(loadFrames(framePaths('discharge', 'east', 11)), WALK_FPS);
 
     // West variants
-    this.idle_w      = new Animator(loadFrames(framePaths('idle',      'west', 11)), WALK_FPS);
+    this.idle_w      = new Animator(loadFrames(framePaths('idle_2.0',  'west', 11)), WALK_FPS);
     this.walk_w      = new Animator(loadFrames(framePaths('walking',   'west',  9)), WALK_FPS);
     this.jump_w      = new Animator(loadFrames(framePaths('jumping',   'west',  9)), WALK_FPS);
     this.charge_w    = new Animator(loadFrames(framePaths('charge',    'west',  9)), WALK_FPS);
