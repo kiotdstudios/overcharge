@@ -256,7 +256,7 @@ export class Player {
       }
     }
 
-    if (holdE && this.nearSource && this.charge < MAX_CHARGE) {
+    if (holdE && this.nearSource && (this.charge < MAX_CHARGE || this.bankedPips < MAX_BANKED_PIPS)) {
       this.absorbing    = true;
       this.absorbTarget = this.nearSource;
       const rate    = ABSORB_RATE;
