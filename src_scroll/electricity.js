@@ -345,13 +345,13 @@ export class ChargePickup {
   // and would be instantly re-absorbed without this delay
   get collectable() { return this._t >= 0.35; }
 
-  inRange(px, py) { return dist(px, py, this.x, this.y) < 22; }
+  inRange(px, py) { return dist(px, py, this.x, this.y) < 30; }
 
   draw(ctx) {
     const t     = this._t;
     const alpha = Math.min(1, this.life * 1.5);
     const pulse = 0.8 + 0.2 * Math.sin(t * 14);
-    const s     = pulse;
+    const s     = pulse * 1.8;  // scale up bolt size
     // Classic ⚡ bolt polygon — 8 points, ~14px tall
     // Upper bar slants right-to-left, notch steps right, lower bar continues
     const bx = this.x, by = this.y;
