@@ -14,7 +14,7 @@ export class ElectricalSource {
   constructor({ id, x, y, charge, label = '' }) {
     this.id     = id;
     this.x      = x; this.y = y;
-    this.w      = 64; this.h = 64;
+    this.w      = 28; this.h = 28;  // logical hitbox; sprite is drawn 64x64 above
     this.charge = charge;
     this.max    = charge;
     this.label  = label;
@@ -61,17 +61,21 @@ export class ElectricalSource {
     const img = this._frames[fi];
 
     if (img && img.complete && img.naturalWidth > 0) {
-      ctx.drawImage(img, this.x, this.y, this.w, this.h);
+      // Draw 64x64 sprite centered on hitbox, bottom of sprite = bottom of hitbox
+      const dX = this.cx - 32;
+      const dY = this.y + this.h - 64;
+      ctx.drawImage(img, dX, dY, 64, 64);
     } else {
       // Fallback box while images load
       ctx.fillStyle = this.drained ? '#1c1c28' : '#ffcc00';
-      ctx.fillRect(this.x, this.y, this.w, this.h);
+      ctx.fillRect(this.cx - 14, this.y, 28, 28);
     }
 
     // Drain bar above — full→empty as player absorbs (hidden when drained)
     if (!this.drained) {
-      const bW = this.w, bH = 5;
-      const bX = this.x, bY = this.y - 9;
+      const dY2 = this.y + this.h - 64;
+      const bW = 64, bH = 5;
+      const bX = this.cx - 32, bY = dY2 - 8;
       const fill = this.max > 0 ? this.charge / this.max : 0;
       ctx.fillStyle = '#332a00';
       ctx.fillRect(bX, bY, bW, bH);
