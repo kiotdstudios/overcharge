@@ -72,18 +72,12 @@ export class PlayerSprites {
     this._current = this.idle_e;
   }
 
-  // Priority: discharge > absorb/charge > jump > walk > idle
+  // Testing animations one by one — currently: idle + walk only
   update(dt, isMoving, facingRight, isAbsorbing, isRunning, isJumping, isDischarging) {
     const dir = facingRight ? 'e' : 'w';
 
     let next;
-    if (isDischarging) {
-      next = this[`discharge_${dir}`];
-    } else if (isAbsorbing) {
-      next = this[`charge_${dir}`];
-    } else if (isJumping) {
-      next = this[`jump_${dir}`];
-    } else if (isMoving) {
+    if (isMoving) {
       next = this[`walk_${dir}`];
     } else {
       next = this[`idle_${dir}`];
