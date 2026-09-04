@@ -13,28 +13,25 @@
 
 import {
   screenToWorld, worldToTile, TILE_SIZE,
-  setTile, addDecoration,
   panCamera, zoomCamera, state,
 } from './state.js';
+import * as Actions from './actions.js';
+import * as History from './history.js';
+import * as Selection from './selection.js';
 
 // Helper: get screen coords relative to canvas element
 function canvasCoords(evt, canvas) {
   const r = canvas.getBoundingClientRect();
   return { sx: evt.clientX - r.left, sy: evt.clientY - r.top };
 }
-
-// Helper: convert a mouse event → world coordinates
 function worldUnderMouse(evt, canvas) {
   const { sx, sy } = canvasCoords(evt, canvas);
   return screenToWorld(sx, sy);
 }
-
-// Helper: convert a mouse event → tile column/row
 function tileUnderMouse(evt, canvas) {
   const w = worldUnderMouse(evt, canvas);
   return worldToTile(w.x, w.y);
 }
-
 // Snap a world coordinate down to the nearest 32×32 grid corner (top-left).
 function snapToGrid(worldX, worldY) {
   return {
@@ -42,84 +39,254 @@ function snapToGrid(worldX, worldY) {
     y: Math.floor(worldY / TILE_SIZE) * TILE_SIZE,
   };
 }
-
-// Is this asset category "terrain-like"? Terrain assets paint the tile grid.
-// Everything else gets placed as a decoration entry.
 function isTerrainCategory(cat) {
   return cat === 'tile' || cat === 'terrain' || cat === 'tileset';
 }
 
+// ── SELECT TOOL ──────────────────────────────────────────────────────────
+// Default tool. Behavior:
+//   • Click on empty space           → clear selection + start marquee
+//   • Click on decoration            → select that decoration (Shift = additive/toggle)
+//   • Click on selected decoration   → begin drag-move (single or group)
+//   • Drag empty space (no click)    → marquee rectangle, adds to selection on release
+//
+// state.marquee = { active, startWX, startWY, curWX, curWY } — read by renderer.
+// state.dragMove = { active, startWX, startWY, curWX, curWY } — snapped drag delta.
+export const selectTool = {
+  name:   'select',
+  cursor: 'default',
+  _mode:  null,           // null | 'marquee' | 'move' | 'idle'
+  _shift: false,
+  _startWorld: null,
+  _origPositions: null,   // decoration → {x, y} snapshot for move undo
+
+  onMouseDown(evt, canvas) {
+    if (evt.button !== 0) return;
+    this._shift = evt.shiftKey;
+    const w = worldUnderMouse(evt, canvas);
+    this._startWorld = w;
+
+    const hit = Selection.decorationAt(w.x, w.y);
+    const alreadySelected = hit && Selection.isSelected(hit);
+
+    if (hit) {
+      // Clicking a decoration
+      if (this._shift) {
+        Selection.toggleDecoration(hit);
+        this._mode = 'idle';
+      } else if (alreadySelected) {
+        // Begin drag-move of the current selection
+        this._mode = 'move';
+        this._origPositions = new Map();
+        for (const d of Selection.selectedDecorations()) {
+          this._origPositions.set(d, { x: d.x, y: d.y });
+        }
+        state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
+      } else {
+        // Select just this one, prep for potential drag
+        Selection.selectDecoration(hit, false);
+        this._mode = 'move';
+        this._origPositions = new Map([[hit, { x: hit.x, y: hit.y }]]);
+        state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
+      }
+    } else {
+      // Empty space — start marquee, optionally clearing selection
+      if (!this._shift) Selection.clearSelection();
+      this._mode = 'marquee';
+      state.marquee = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
+    }
+  },
+
+  onMouseMove(evt, canvas) {
+    if (!this._mode) return;
+    const w = worldUnderMouse(evt, canvas);
+    if (this._mode === 'marquee') {
+      state.marquee.curWX = w.x;
+      state.marquee.curWY = w.y;
+      // Force redraw via notify — marquee is read by renderer each frame
+      import('./state.js').then(m => m.notify());
+    } else if (this._mode === 'move') {
+      // Live-preview move: apply delta from start to current, quantized to 32px.
+      const dxRaw = w.x - this._startWorld.x;
+      const dyRaw = w.y - this._startWorld.y;
+      const dx = Math.round(dxRaw / TILE_SIZE) * TILE_SIZE;
+      const dy = Math.round(dyRaw / TILE_SIZE) * TILE_SIZE;
+      for (const [dec, orig] of this._origPositions.entries()) {
+        dec.x = orig.x + dx;
+        dec.y = orig.y + dy;
+      }
+      state.dragMove.curWX = w.x;
+      state.dragMove.curWY = w.y;
+      import('./state.js').then(m => m.notify());
+    }
+  },
+
+  onMouseUp(evt, canvas) {
+    if (this._mode === 'marquee' && state.marquee && state.marquee.active) {
+      const m = state.marquee;
+      const x = Math.min(m.startWX, m.curWX);
+      const y = Math.min(m.startWY, m.curWY);
+      const wRect = Math.abs(m.curWX - m.startWX);
+      const hRect = Math.abs(m.curWY - m.startWY);
+      if (wRect >= 2 && hRect >= 2) {
+        // Real marquee — collect hits and select. Additive on shift.
+        const decs  = Selection.decorationsInRect(x, y, wRect, hRect);
+        const tiles = Selection.tilesInRect(x, y, wRect, hRect);
+        if (!this._shift) Selection.clearSelection();
+        for (const d of decs)  Selection.selectDecoration(d, true);
+        for (const t of tiles) Selection.selectTile(t.col, t.row, true);
+      }
+      state.marquee = null;
+    } else if (this._mode === 'move' && this._origPositions) {
+      // Commit the move as a composite of moveDecoration actions.
+      const actions = [];
+      for (const [dec, orig] of this._origPositions.entries()) {
+        const dx = dec.x - orig.x;
+        const dy = dec.y - orig.y;
+        if (dx !== 0 || dy !== 0) {
+          // Move already applied live — record without re-applying.
+          actions.push(Actions.moveDecoration(dec, dx, dy));
+        }
+      }
+      if (actions.length > 0) History.record(History.makeComposite(actions, 'move'));
+      state.dragMove = null;
+    }
+    this._mode = null;
+    this._origPositions = null;
+    this._startWorld = null;
+    import('./state.js').then(m => m.notify());
+  },
+};
+
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
-// Behavior depends on the currently selected asset in the browser:
-//   • No asset selected           → paint tile-type state.selectedTile into the grid (fallback)
-//   • Terrain asset (tile/tileset)→ paint tile-type 1 into the grid (drag OK)
-//   • Non-terrain static asset    → add ONE decoration at cursor, snapped to 32×32 (single click)
-//   • Animation asset             → skipped (Phase 5 will handle animated placement)
-// Decorations are stored in level.decorations[] as { src, x, y, w, h } per SCHEMA.
+// Behavior:
+//   • Terrain-category asset (or none): paint tile-1 into grid (drag OK)
+//   • Non-terrain static asset: single decoration at cursor snapped to 32×32
+//   • Animation asset: skipped (Phase 5)
+// Every mutation goes through History.apply so undo works.
+// A drag paints multiple tiles — recorded as one composite for one-press undo.
 export const placeTool = {
   name:   'place',
   cursor: 'crosshair',
-  _painting: false,        // active drag flag (terrain only)
-  _placedThisPress: false, // decorations only place once per mouse-down
+  _painting: false,
+  _dragActions: null,    // collected while dragging; flushed on mouseUp
+  _paintedThisDrag: null,// Set<"c,r"> to avoid re-recording same cell in a single drag
+
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
-    this._placedThisPress = false;
     const asset = state.selectedAsset;
     const terrain = !asset || isTerrainCategory(asset.category);
     if (terrain) {
       this._painting = true;
+      this._dragActions = [];
+      this._paintedThisDrag = new Set();
       const t = tileUnderMouse(evt, canvas);
-      setTile(t.col, t.row, state.selectedTile);
+      this._paintCell(t.col, t.row);
     } else if (asset.isAnimation) {
-      // Skip — animation placement is Phase 5 territory
       console.warn('[editor] animation asset placement not supported in Phase 1:', asset.id);
     } else {
       // Non-terrain decoration
       const w = worldUnderMouse(evt, canvas);
       const s = snapToGrid(w.x, w.y);
-      addDecoration({
+      const dec = {
         src: asset.path,
         x:   s.x,
         y:   s.y,
         w:   asset.width  || TILE_SIZE,
         h:   asset.height || TILE_SIZE,
-      });
-      this._placedThisPress = true;
+      };
+      const a = Actions.addDecoration(dec);
+      if (a) History.apply(a);
     }
   },
+
   onMouseMove(evt, canvas) {
-    // Only terrain painting drags. Decorations place once per press.
     if (!this._painting) return;
     const t = tileUnderMouse(evt, canvas);
-    setTile(t.col, t.row, state.selectedTile);
+    this._paintCell(t.col, t.row);
   },
-  onMouseUp() { this._painting = false; },
+
+  onMouseUp() {
+    if (this._painting && this._dragActions && this._dragActions.length > 0) {
+      History.record(History.makeComposite(this._dragActions, 'paint'));
+    }
+    this._painting = false;
+    this._dragActions = null;
+    this._paintedThisDrag = null;
+  },
+
+  _paintCell(col, row) {
+    const key = col + ',' + row;
+    if (this._paintedThisDrag.has(key)) return;
+    this._paintedThisDrag.add(key);
+    const a = Actions.setTile(col, row, state.selectedTile);
+    if (a) { a.forward(); this._dragActions.push(a); }   // apply live, batch record
+  },
 };
 
 // ── ERASE TOOL ───────────────────────────────────────────────────────────
-// Left-click drag zeroes tiles.
+// Removes tiles AND removes decorations under the cursor. Drag OK for tiles.
+// Decorations are removed on first click (single click per decoration).
 export const eraseTool = {
   name:   'erase',
   cursor: 'cell',
   _erasing: false,
+  _dragActions: null,
+  _erasedThisDrag: null,
+  _decorationsErasedThisPress: null,
+
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
     this._erasing = true;
+    this._dragActions = [];
+    this._erasedThisDrag = new Set();
+    this._decorationsErasedThisPress = new Set();
+
+    // Erase any decoration under cursor (single click).
+    const w = worldUnderMouse(evt, canvas);
+    const dec = Selection.decorationAt(w.x, w.y);
+    if (dec && !this._decorationsErasedThisPress.has(dec)) {
+      const a = Actions.removeDecoration(dec);
+      if (a) { a.forward(); this._dragActions.push(a); this._decorationsErasedThisPress.add(dec); }
+    }
+    // Erase tile at cursor.
     const t = tileUnderMouse(evt, canvas);
-    setTile(t.col, t.row, 0);
+    this._eraseCell(t.col, t.row);
   },
+
   onMouseMove(evt, canvas) {
     if (!this._erasing) return;
     const t = tileUnderMouse(evt, canvas);
-    setTile(t.col, t.row, 0);
+    this._eraseCell(t.col, t.row);
+    // Drag also erases decorations you drag over (but each only once per press).
+    const w = worldUnderMouse(evt, canvas);
+    const dec = Selection.decorationAt(w.x, w.y);
+    if (dec && !this._decorationsErasedThisPress.has(dec)) {
+      const a = Actions.removeDecoration(dec);
+      if (a) { a.forward(); this._dragActions.push(a); this._decorationsErasedThisPress.add(dec); }
+    }
   },
-  onMouseUp() { this._erasing = false; },
+
+  onMouseUp() {
+    if (this._erasing && this._dragActions && this._dragActions.length > 0) {
+      History.record(History.makeComposite(this._dragActions, 'erase'));
+    }
+    this._erasing = false;
+    this._dragActions = null;
+    this._erasedThisDrag = null;
+    this._decorationsErasedThisPress = null;
+  },
+
+  _eraseCell(col, row) {
+    const key = col + ',' + row;
+    if (this._erasedThisDrag.has(key)) return;
+    this._erasedThisDrag.add(key);
+    const a = Actions.setTile(col, row, 0);
+    if (a) { a.forward(); this._dragActions.push(a); }
+  },
 };
 
 // ── PAN TOOL ─────────────────────────────────────────────────────────────
-// Left-click drag pans the camera. (Middle-mouse pan also works globally,
-// wired in main.js — this is the explicit tool for people without a middle
-// mouse button.)
 export const panTool = {
   name:   'pan',
   cursor: 'grab',
@@ -146,13 +313,13 @@ export const panTool = {
 
 // Registry — main.js reads this to build the toolbar and dispatch events.
 export const TOOLS = {
-  place: placeTool,
-  erase: eraseTool,
-  pan:   panTool,
+  select: selectTool,
+  place:  placeTool,
+  erase:  eraseTool,
+  pan:    panTool,
 };
 
-// Middle-mouse pan is a global handler wired in main.js — kept here so all
-// pan logic lives in one module.
+// Middle-mouse pan is a global handler wired in main.js.
 export function middleMousePan(canvas) {
   let panning = false, lastX = 0, lastY = 0;
   canvas.addEventListener('mousedown', (evt) => {
@@ -174,7 +341,6 @@ export function middleMousePan(canvas) {
     panning = false;
     canvas.style.cursor = TOOLS[state.tool]?.cursor || 'default';
   });
-  // Prevent middle-click scroll on Windows
   canvas.addEventListener('auxclick', (e) => { if (e.button === 1) e.preventDefault(); });
 }
 
