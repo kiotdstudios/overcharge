@@ -7,7 +7,7 @@ export const ROWS = 14;   // H / TILE (floor)
 
 // Physics
 export const GRAVITY      = 900;
-export const PLAYER_SPEED = 110;
+export const PLAYER_SPEED = 75;
 export const JUMP_FORCE   = -430;
 export const PLAYER_W     = 20;
 export const PLAYER_H     = 30;
