@@ -495,19 +495,12 @@ export class Player {
       ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 30);
     }
 
-    // Charge glow: only active during energy states or high charge
-    // Low/mid charge with no active transfer → no glow, keeps sprite clean
-    const glowing = this.absorbing || this.discharging || chargeRatio > 0.6;
-    if (glowing) {
-      ctx.shadowBlur  = 10 + 12 * chargeRatio;
-      ctx.shadowColor = glowColor;
-    }
-
     if (frame && frame.complete) {
       ctx.drawImage(frame, sx, sy, SPRITE_W, SPRITE_H);
     } else {
       // Fallback box while images load
-      drawGlowRect(ctx, this.x, this.y, this.w, this.h, C.PLAYER, glowColor, 10);
+      ctx.fillStyle = C.PLAYER;
+      ctx.fillRect(this.x, this.y, this.w, this.h);
     }
 
     ctx.restore();
