@@ -109,6 +109,9 @@ export class PowerGate {
     this._t        = 0;
     this._openAge  = 0;
     this._pipFlash = 0;  // white flash when powered by a banked pip
+    // Sprite art
+    this._imgClosed = new Image();
+    this._imgClosed.src = 'assets/objects/gate_closed.png';
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -156,31 +159,27 @@ export class PowerGate {
       return;
     }
 
-    const fill    = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
-    const fillH   = Math.round(this.h * fill);
-    const splitY  = this.y + this.h - fillH; // boundary: animated above, solid below
+    const fill  = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
 
-    const pulse = 0.55 + 0.45 * Math.sin(t * 3.8);
+    // Sprite base -- pixel art gate (closed)
     ctx.save();
-    ctx.shadowBlur  = 20 * pulse;
-    ctx.shadowColor = '#9910dd';
-    // Animated strips only in the uncharged (top) portion
-    for (let yy = this.y; yy < splitY; yy += 9) {
-      const alpha = 0.5 + 0.5 * Math.sin(t * 6 + yy * 0.15);
-      ctx.fillStyle = `rgba(180, 55, 255, ${alpha})`;
-      ctx.fillRect(this.x, yy, this.w, Math.min(5, splitY - yy));
-    }
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(this._imgClosed, this.x, this.y, this.w, this.h);
     ctx.restore();
 
-    // Solid charged fill — bottom rising upward, no animation
-    if (fillH > 0) {
+    // Charge fill overlay -- bright strip rising from bottom as player charges gate
+    if (fill > 0 && fill < 1) {
+      const fillH  = Math.round(this.h * fill);
+      const splitY = this.y + this.h - fillH;
       ctx.save();
-      ctx.shadowBlur  = 18;
-      ctx.shadowColor = '#cc44ff';
-      ctx.fillStyle   = '#cc44ff';
-      ctx.fillRect(this.x, splitY, this.w, fillH);
+      ctx.globalAlpha  = 0.45;
+      ctx.shadowBlur   = 14;
+      ctx.shadowColor  = '#cc44ff';
+      ctx.fillStyle    = '#cc44ff';
+      ctx.fillRect(this.x + 2, splitY, this.w - 4, fillH);
       ctx.restore();
     }
+
 
     // blockOnly barriers just show a lock — no charge bar, no player interaction
     if (this.blockOnly) {
