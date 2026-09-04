@@ -118,7 +118,8 @@ export class Player {
 
     if (left)  { this.vx = -speed; this._facingRight = false; }
     else if (right) { this.vx =  speed; this._facingRight = true; }
-    else       { this.vx *= 0.75; if (Math.abs(this.vx) < 5) this.vx = 0; }
+    // Ground friction only — preserve horizontal momentum through jump arcs
+    else if (this.grounded) { this.vx *= 0.75; if (Math.abs(this.vx) < 5) this.vx = 0; }
 
     if (jump) this._jumpBuf = JUMP_BUFFER;
     this._jumpBuf = Math.max(0, this._jumpBuf - dt);
