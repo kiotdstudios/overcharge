@@ -791,6 +791,377 @@
         "density": "dense",
         "stackable": true
       }
+    },
+    {
+      "id": "rooftop_ac_unit",
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_ac_unit.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "hvac",
+        "ac",
+        "purple_city",
+        "static"
+      ],
+      "width": 32,
+      "height": 24,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "2bc5205d-01ca-40fc-82f7-231d1c047e85",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "rooftop_vent_unit",
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_vent_unit.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "ventilation",
+        "hvac",
+        "purple_city",
+        "static"
+      ],
+      "width": 32,
+      "height": 24,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "78827de5-0b64-4107-80ca-9dea4e1ada56",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "rooftop_vent_large",
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_vent_large.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "ventilation",
+        "duct",
+        "purple_city",
+        "static"
+      ],
+      "width": 48,
+      "height": 32,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "55c156ed-9470-40e4-89ec-35d0357d6a61",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "water_tower",
+      "path": "assets/tilesets/purple_city/rooftop/water_tower.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "water_tower",
+        "structure",
+        "purple_city",
+        "static"
+      ],
+      "width": 32,
+      "height": 64,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "b8381ef6-7318-41fa-bca7-096e9606895a",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "antenna_tall",
+      "path": "assets/tilesets/purple_city/rooftop/antenna_tall.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "antenna",
+        "communication",
+        "purple_city",
+        "static"
+      ],
+      "width": 16,
+      "height": 48,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "0e29b030-7935-4566-932a-fd9d3eef0d85",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "satellite_dish",
+      "path": "assets/tilesets/purple_city/rooftop/satellite_dish.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "satellite",
+        "dish",
+        "communication",
+        "purple_city",
+        "static"
+      ],
+      "width": 32,
+      "height": 24,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "dec65484-086f-4932-a6cc-b8a21f0629b0",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "electrical_box",
+      "path": "assets/tilesets/purple_city/rooftop/electrical_box.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "electrical",
+        "junction_box",
+        "purple_city",
+        "static"
+      ],
+      "width": 24,
+      "height": 32,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "61fb7dc9-98c8-4c72-881b-408b11a38627",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "conduit_cluster",
+      "path": "assets/tilesets/purple_city/rooftop/conduit_cluster.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "prop",
+        "conduit",
+        "cables",
+        "electrical",
+        "purple_city",
+        "static"
+      ],
+      "width": 16,
+      "height": 32,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "03dc3613-05a2-4339-a86f-7cdf7445ea0d",
+        "date": "2026-09-04T22:22:00Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "tile_dark_a",
+      "path": "assets/tilesets/purple_city/tiles/tile_dark_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "floor",
+        "dark",
+        "purple_city",
+        "16x16",
+        "static"
+      ],
+      "width": 16,
+      "height": 16,
+      "generated": {
+        "tool": "pixellab_pro",
+        "date": "2026-09-04T22:22:00Z"
+      }
+    },
+    {
+      "id": "tile_dark_b",
+      "path": "assets/tilesets/purple_city/tiles/tile_dark_b.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "floor",
+        "dark",
+        "purple_city",
+        "16x16",
+        "static"
+      ],
+      "width": 16,
+      "height": 16,
+      "generated": {
+        "tool": "pixellab_pro",
+        "date": "2026-09-04T22:22:00Z"
+      }
+    },
+    {
+      "id": "tile_purple_a",
+      "path": "assets/tilesets/purple_city/tiles/tile_purple_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "floor",
+        "purple",
+        "purple_city",
+        "16x16",
+        "static"
+      ],
+      "width": 16,
+      "height": 16,
+      "generated": {
+        "tool": "pixellab_pro",
+        "date": "2026-09-04T22:22:00Z"
+      }
+    },
+    {
+      "id": "tile_purple_b",
+      "path": "assets/tilesets/purple_city/tiles/tile_purple_b.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "floor",
+        "purple",
+        "purple_city",
+        "16x16",
+        "static"
+      ],
+      "width": 16,
+      "height": 16,
+      "generated": {
+        "tool": "pixellab_pro",
+        "date": "2026-09-04T22:22:00Z"
+      }
+    },
+    {
+      "id": "rooftop_railing",
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_railing.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "traversal",
+        "railing",
+        "purple_city",
+        "static"
+      ],
+      "width": 64,
+      "height": 16,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "38b1c2c7-e1dc-4890-b1cf-29cf8f92b342",
+        "date": "2026-09-04T22:25:27Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "rooftop_door",
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_door.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "architecture",
+        "door",
+        "access",
+        "purple_city",
+        "static"
+      ],
+      "width": 24,
+      "height": 32,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "e12e35d4-b1a9-43bc-9f04-ba04cb7eb1fa",
+        "date": "2026-09-04T22:25:27Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "roof_access_hatch",
+      "path": "assets/tilesets/purple_city/rooftop/roof_access_hatch.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "architecture",
+        "hatch",
+        "access",
+        "purple_city",
+        "static"
+      ],
+      "width": 32,
+      "height": 16,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "fe1d037e-b3fe-4027-b46c-1add26800f0b",
+        "date": "2026-09-04T22:25:27Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "catwalk_section",
+      "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "traversal",
+        "catwalk",
+        "platform",
+        "purple_city",
+        "static"
+      ],
+      "width": 64,
+      "height": 16,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "e0d333d0-7566-4dbb-b3dc-8c95836df584",
+        "date": "2026-09-04T22:25:27Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "fire_escape_section",
+      "path": "assets/tilesets/purple_city/rooftop/fire_escape_section.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "traversal",
+        "fire_escape",
+        "stairs",
+        "purple_city",
+        "static"
+      ],
+      "width": 48,
+      "height": 32,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "26261fb3-c31d-4978-b58f-8f74c56fa489",
+        "date": "2026-09-04T22:25:27Z",
+        "candidate": 0
+      }
+    },
+    {
+      "id": "ladder_section",
+      "path": "assets/tilesets/purple_city/rooftop/ladder_section.png",
+      "category": "rooftop",
+      "tags": [
+        "rooftop",
+        "traversal",
+        "ladder",
+        "vertical",
+        "purple_city",
+        "static"
+      ],
+      "width": 16,
+      "height": 32,
+      "generated": {
+        "tool": "pixellab_pro",
+        "job_id": "a1a8da57-1025-45b9-9e32-8a5d1acd7abf",
+        "date": "2026-09-04T22:25:27Z",
+        "candidate": 0
+      }
     }
   ]
 }
