@@ -1,8 +1,14 @@
-# Asset Manifest Schema
+# Asset Index Schema — `assets/asset_index.json`
 
-**File:** `assets/manifest.json`
+**File:** `assets/asset_index.json`
 **Generator:** `scripts/build_manifest.mjs`
 **Regeneration:** `node scripts/build_manifest.mjs` (run whenever new PNGs are added under `assets/`)
+
+> **Naming convention (per Chief 2026-09-04):**
+> - `assets/asset_index.json` — raw filesystem index. Auto-generated. Answers "what files physically exist under `assets/`". Owner: Orcha (scanner).
+> - `assets/ASSET_MANIFEST.json` — curated semantic production manifest. Answers "which assets are approved and what do they mean" (stable IDs, animation metadata, tags). Owner: Aki.
+>
+> This document describes only `asset_index.json`. For the semantic manifest, see `assets/ASSET_MANIFEST.json` and Aki's docs.
 
 ## Shape
 

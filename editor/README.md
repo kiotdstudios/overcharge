@@ -33,7 +33,7 @@ editor/MANIFEST.md          manifest schema (authoritative)
 
 ## Data flow
 
-1. `main.js` fetches `assets/manifest.json` → stores in `state.manifest`.
+1. `main.js` fetches `assets/asset_index.json` → stores in `state.manifest`. (This is the raw filesystem index. Aki's semantic production catalog lives at `assets/ASSET_MANIFEST.json` — different file, different purpose.)
 2. `main.js` fetches `src_scroll/levels/level1.json` → stores in `state.level`. (Any JSON conforming to `SCHEMA.md` works — no Level-1 assumptions in code.)
 3. Canvas listens for mouse events, delegates to the active tool.
 4. Tools mutate `state.level` and call `state.notify()`.

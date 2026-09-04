@@ -94,7 +94,7 @@ async function bootstrap() {
   fitCanvas();
   mountAssetBrowser(sidebar);
   try {
-    await loadManifest('assets/manifest.json');
+    await loadManifest('assets/asset_index.json');
     await loadLevel(DEFAULT_LEVEL_URL);
     refreshToolUI();
     refreshLevelInfo();

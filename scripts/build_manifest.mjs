@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 
 const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const ASSETS = join(ROOT, 'assets');
-const OUT = join(ASSETS, 'manifest.json');
+const OUT = join(ASSETS, 'asset_index.json');
 
 function categorize(rel) {
   const p = rel.toLowerCase().split(sep).join('/');

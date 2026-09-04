@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-04T20:54:52.362Z",
-  "count": 607,
+  "generated": "2026-09-04T21:01:52.821Z",
+  "count": 586,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -55,126 +55,6 @@
       "name": "frame_008",
       "category": "electrical/generator",
       "size": 3720
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_000.png",
-      "name": "frame_000",
-      "category": "enemy/drain",
-      "size": 1819
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_001.png",
-      "name": "frame_001",
-      "category": "enemy/drain",
-      "size": 1903
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_002.png",
-      "name": "frame_002",
-      "category": "enemy/drain",
-      "size": 2026
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_003.png",
-      "name": "frame_003",
-      "category": "enemy/drain",
-      "size": 1915
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_004.png",
-      "name": "frame_004",
-      "category": "enemy/drain",
-      "size": 1821
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_005.png",
-      "name": "frame_005",
-      "category": "enemy/drain",
-      "size": 2116
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_006.png",
-      "name": "frame_006",
-      "category": "enemy/drain",
-      "size": 2247
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_007.png",
-      "name": "frame_007",
-      "category": "enemy/drain",
-      "size": 2071
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_000.png",
-      "name": "frame_000",
-      "category": "enemy/drain",
-      "size": 1904
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_001.png",
-      "name": "frame_001",
-      "category": "enemy/drain",
-      "size": 2055
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_002.png",
-      "name": "frame_002",
-      "category": "enemy/drain",
-      "size": 2099
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_003.png",
-      "name": "frame_003",
-      "category": "enemy/drain",
-      "size": 2034
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_004.png",
-      "name": "frame_004",
-      "category": "enemy/drain",
-      "size": 1879
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_005.png",
-      "name": "frame_005",
-      "category": "enemy/drain",
-      "size": 2294
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_006.png",
-      "name": "frame_006",
-      "category": "enemy/drain",
-      "size": 2313
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_007.png",
-      "name": "frame_007",
-      "category": "enemy/drain",
-      "size": 2146
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/east.png",
-      "name": "east",
-      "category": "enemy/drain",
-      "size": 1663
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/north.png",
-      "name": "north",
-      "category": "enemy/drain",
-      "size": 2220
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/south.png",
-      "name": "south",
-      "category": "enemy/drain",
-      "size": 2447
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/west.png",
-      "name": "west",
-      "category": "enemy/drain",
-      "size": 1654
     },
     {
       "path": "assets/sprites/drone/idle/frame_000.png",
@@ -283,12 +163,6 @@
       "name": "frame_008",
       "category": "enemy/drone",
       "size": 1662
-    },
-    {
-      "path": "assets/backgrounds/mid_city.png",
-      "name": "mid_city",
-      "category": "other",
-      "size": 6142
     },
     {
       "path": "assets/objects/gate_closed.png",

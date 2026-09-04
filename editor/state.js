@@ -31,7 +31,7 @@ export function subscribe(fn) { listeners.add(fn); return () => listeners.delete
 export function notify() { for (const fn of listeners) fn(); }
 
 // ── Data loading ─────────────────────────────────────────────────────────
-export async function loadManifest(url = 'assets/manifest.json') {
+export async function loadManifest(url = 'assets/asset_index.json') {
   const res = await fetch(url);
   if (!res.ok) throw new Error('manifest fetch failed: ' + res.status);
   state.manifest = await res.json();
