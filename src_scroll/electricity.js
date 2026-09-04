@@ -333,12 +333,13 @@ export class ChargePickup {
     this.x  += this.vx * dt;
     this.y  += this.vy * dt;
     this.vx *= 0.97;
-    // Bounce off solid tiles — use level tilemap when available
+    // Bounce off solid tiles and one-way platforms (tile 1 and 2)
     const foot = this.y + 7;
     if (level) {
-      const tx = Math.floor(this.x / TILE);
-      const ty = Math.floor(foot / TILE);
-      if (level.solidAt(tx, ty) && this.vy > 0) {
+      const tx   = Math.floor(this.x / TILE);
+      const ty   = Math.floor(foot / TILE);
+      const tile = level.tileAt(tx, ty);
+      if ((tile === 1 || tile === 2) && this.vy > 0) {
         this.y  = ty * TILE - 7;
         this.vy *= -0.4;
         this.vx *= 0.8;
