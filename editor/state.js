@@ -31,10 +31,36 @@ export function subscribe(fn) { listeners.add(fn); return () => listeners.delete
 export function notify() { for (const fn of listeners) fn(); }
 
 // ── Data loading ─────────────────────────────────────────────────────────
-export async function loadManifest(url = 'assets/asset_index.json') {
+// The editor consumes the CURATED semantic manifest at assets/ASSET_MANIFEST.json
+// (owned by Aki). The raw filesystem index at assets/asset_index.json exists
+// for discovery/tooling but is NOT the level-building browser source.
+//
+// ASSET_MANIFEST.json shape:  { _schema, _note, assets: [ { id, path, category,
+// tags, frame_width, frame_height, frame_count?, fps?, directions?, loop?, notes? } ] }
+//
+// We normalize each entry into a common { path, name, category, width, height,
+// tags, isAnimation, raw } shape so downstream UI/tools use one field set.
+export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
   const res = await fetch(url);
   if (!res.ok) throw new Error('manifest fetch failed: ' + res.status);
-  state.manifest = await res.json();
+  const raw = await res.json();
+  const source = Array.isArray(raw.assets) ? raw.assets : (Array.isArray(raw.items) ? raw.items : []);
+  const items = source.map(a => {
+    const path = a.path || '';
+    const isAnimation = path.indexOf('{') >= 0;    // {dir}, {n} placeholders
+    return {
+      id:          a.id || path,
+      path:        path,
+      name:        a.id || (a.name || path.split('/').pop().replace(/\.png$/i, '')),
+      category:    a.category || 'other',
+      width:       a.frame_width  || a.width  || 32,
+      height:      a.frame_height || a.height || 32,
+      tags:        a.tags || [],
+      isAnimation: isAnimation,
+      raw:         a,
+    };
+  });
+  state.manifest = { source: raw, items, count: items.length };
   notify();
   return state.manifest;
 }
@@ -137,4 +163,15 @@ export function setTile(col, row, value) {
   L.tiles[idx] = value;
   notify();
   return true;
+}
+
+// Append a decoration to the current level. Silently no-ops if level has no
+// decorations array or nothing loaded. Returns the appended entry.
+export function addDecoration(entry) {
+  const L = state.level;
+  if (!L) return null;
+  if (!Array.isArray(L.decorations)) L.decorations = [];
+  L.decorations.push(entry);
+  notify();
+  return entry;
 }

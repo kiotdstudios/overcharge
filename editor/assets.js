@@ -86,13 +86,23 @@ function _populateThumbs() {
   const cap = Math.min(items.length, 400);
   for (let i = 0; i < cap; i++) {
     const it = items[i];
+    const isSelected = state.selectedAsset && (state.selectedAsset.id === it.id || state.selectedAsset.path === it.path);
     const cell = document.createElement('div');
-    cell.className = 'ab-cell' + (state.selectedAsset && state.selectedAsset.path === it.path ? ' selected' : '');
-    cell.title = `${it.name}\n${it.category}\n${it.path}`;
+    cell.className = 'ab-cell' + (isSelected ? ' selected' : '');
+    // Rich tooltip: id, category, dims, path, notes if present
+    const tipParts = [it.name, `${it.category}  ${it.width}×${it.height}`, it.path];
+    if (it.raw && it.raw.notes) tipParts.push('— ' + it.raw.notes);
+    if (it.isAnimation) tipParts.push('(animation — placement disabled in Phase 1)');
+    cell.title = tipParts.join('\n');
     cell.addEventListener('click', () => setSelectedAsset(it));
 
+    // Preview thumb. If asset is an animation with {dir}/{n} placeholders,
+    // substitute the first frame of east-facing so the thumbnail resolves.
+    const previewPath = it.isAnimation
+      ? it.path.replace('{dir}', 'east').replace('{n}', '000')
+      : it.path;
     const img = document.createElement('img');
-    img.src = it.path;
+    img.src = previewPath;
     img.loading = 'lazy';
     img.decoding = 'async';
     img.className = 'ab-thumb';

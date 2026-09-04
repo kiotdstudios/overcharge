@@ -94,7 +94,7 @@ async function bootstrap() {
   fitCanvas();
   mountAssetBrowser(sidebar);
   try {
-    await loadManifest('assets/asset_index.json');
+    await loadManifest('assets/ASSET_MANIFEST.json');   // curated production catalog (Aki-owned)
     await loadLevel(DEFAULT_LEVEL_URL);
     refreshToolUI();
     refreshLevelInfo();

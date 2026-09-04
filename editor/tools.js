@@ -11,7 +11,11 @@
 // Adding a new tool: define an object below, add it to TOOLS at the bottom,
 // add a matching button in editor.html's toolbar.
 
-import { screenToWorld, worldToTile, setTile, panCamera, zoomCamera, state } from './state.js';
+import {
+  screenToWorld, worldToTile, TILE_SIZE,
+  setTile, addDecoration,
+  panCamera, zoomCamera, state,
+} from './state.js';
 
 // Helper: get screen coords relative to canvas element
 function canvasCoords(evt, canvas) {
@@ -19,29 +23,72 @@ function canvasCoords(evt, canvas) {
   return { sx: evt.clientX - r.left, sy: evt.clientY - r.top };
 }
 
-// Helper: convert a mouse event → tile column/row (or null if out of level)
-function tileUnderMouse(evt, canvas) {
+// Helper: convert a mouse event → world coordinates
+function worldUnderMouse(evt, canvas) {
   const { sx, sy } = canvasCoords(evt, canvas);
-  const w = screenToWorld(sx, sy);
-  const t = worldToTile(w.x, w.y);
-  return t;
+  return screenToWorld(sx, sy);
+}
+
+// Helper: convert a mouse event → tile column/row
+function tileUnderMouse(evt, canvas) {
+  const w = worldUnderMouse(evt, canvas);
+  return worldToTile(w.x, w.y);
+}
+
+// Snap a world coordinate down to the nearest 32×32 grid corner (top-left).
+function snapToGrid(worldX, worldY) {
+  return {
+    x: Math.floor(worldX / TILE_SIZE) * TILE_SIZE,
+    y: Math.floor(worldY / TILE_SIZE) * TILE_SIZE,
+  };
+}
+
+// Is this asset category "terrain-like"? Terrain assets paint the tile grid.
+// Everything else gets placed as a decoration entry.
+function isTerrainCategory(cat) {
+  return cat === 'tile' || cat === 'terrain' || cat === 'tileset';
 }
 
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
-// Left-click drag paints tile-type state.selectedTile into the grid.
-// Only affects terrain (level.tiles) in Phase 1. Decoration/gameplay-object
-// placement is Phase 5.
+// Behavior depends on the currently selected asset in the browser:
+//   • No asset selected           → paint tile-type state.selectedTile into the grid (fallback)
+//   • Terrain asset (tile/tileset)→ paint tile-type 1 into the grid (drag OK)
+//   • Non-terrain static asset    → add ONE decoration at cursor, snapped to 32×32 (single click)
+//   • Animation asset             → skipped (Phase 5 will handle animated placement)
+// Decorations are stored in level.decorations[] as { src, x, y, w, h } per SCHEMA.
 export const placeTool = {
   name:   'place',
   cursor: 'crosshair',
-  _painting: false,
+  _painting: false,        // active drag flag (terrain only)
+  _placedThisPress: false, // decorations only place once per mouse-down
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
-    this._painting = true;
-    const t = tileUnderMouse(evt, canvas);
-    setTile(t.col, t.row, state.selectedTile);
+    this._placedThisPress = false;
+    const asset = state.selectedAsset;
+    const terrain = !asset || isTerrainCategory(asset.category);
+    if (terrain) {
+      this._painting = true;
+      const t = tileUnderMouse(evt, canvas);
+      setTile(t.col, t.row, state.selectedTile);
+    } else if (asset.isAnimation) {
+      // Skip — animation placement is Phase 5 territory
+      console.warn('[editor] animation asset placement not supported in Phase 1:', asset.id);
+    } else {
+      // Non-terrain decoration
+      const w = worldUnderMouse(evt, canvas);
+      const s = snapToGrid(w.x, w.y);
+      addDecoration({
+        src: asset.path,
+        x:   s.x,
+        y:   s.y,
+        w:   asset.width  || TILE_SIZE,
+        h:   asset.height || TILE_SIZE,
+      });
+      this._placedThisPress = true;
+    }
   },
   onMouseMove(evt, canvas) {
+    // Only terrain painting drags. Decorations place once per press.
     if (!this._painting) return;
     const t = tileUnderMouse(evt, canvas);
     setTile(t.col, t.row, state.selectedTile);
