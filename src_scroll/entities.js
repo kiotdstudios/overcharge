@@ -396,7 +396,7 @@ export class DroneEnemy {
 
   draw(ctx) {
     if (!this.alive) return;
-    const frames = this._shooting ? this._shootFrames : this._idleFrames;
+    const frames = this._idleFrames;  // shooting anim disabled until fixed
     const fi     = Math.floor(this._frame) % 9;
     const img    = frames[fi];
     const flash  = this._hitFlash > 0;
