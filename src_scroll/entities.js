@@ -403,6 +403,12 @@ export class DroneEnemy {
 
     ctx.save();
     if (flash) { ctx.globalAlpha = 0.5 + 0.5 * Math.sin(this._t * 40); }
+    // Flip horizontally when moving left
+    if (this.vx < 0) {
+      ctx.translate(this.x + this.w / 2, 0);
+      ctx.scale(-1, 1);
+      ctx.translate(-(this.x + this.w / 2), 0);
+    }
     if (img && img.complete && img.naturalWidth > 0) {
       ctx.drawImage(img, this.x, this.y, this.w, this.h);
     } else {
