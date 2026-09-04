@@ -163,7 +163,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox."
+      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") \u2014 URL-encodes to %20; real HTTP servers handle this, but recommend renaming to \"generator_1\" (file-system change, coord with Orcha)."
     },
     {
       "id": "gate_electric_closed",
@@ -221,42 +221,6 @@
       "directions": null,
       "loop": false,
       "notes": "Mid-layer parallax city. Tiled horizontally. Scrolls slower than foreground."
-    },
-    {
-      "id": "tile_concrete",
-      "path": "assets/tiles/concrete.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "platform",
-        "concrete",
-        "ground"
-      ],
-      "frame_width": 128,
-      "frame_height": 128,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "128x128 concrete platform tile. Wang variant also available (concrete_wang.png)."
-    },
-    {
-      "id": "tile_concrete_wang",
-      "path": "assets/tiles/concrete_wang.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "platform",
-        "concrete",
-        "wang"
-      ],
-      "frame_width": 128,
-      "frame_height": 128,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Wang-tile variant for seamless concrete edges."
     },
     {
       "id": "tileset_purple_city_full",
