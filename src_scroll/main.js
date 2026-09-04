@@ -3,6 +3,7 @@
 import * as Input from './input.js';
 import { clear } from './render.js';
 import { Level }  from './level.js';
+import { init as bgInit, update as bgUpdate } from './background.js';
 import { Player } from './player.js';
 import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
@@ -24,6 +25,9 @@ function resize() {
 }
 resize();
 window.addEventListener('resize', resize);
+
+// Parallax background — 3200px = 100 cols × 32px
+bgInit(3200);
 
 // ── State ──────────────────────────────────────
 const STATES = { TITLE: 0, PLAYING: 1, LEVEL_COMPLETE: 2, GAME_OVER: 3 };
@@ -172,6 +176,7 @@ function _render() {
 }
 
 function _drawScrollGame() {
+  bgUpdate(camX);
   // Scanlines — fixed, not scrolled
   ctx.save();
   ctx.globalAlpha = 0.03;
