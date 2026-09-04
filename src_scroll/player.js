@@ -217,7 +217,9 @@ export class Player {
       if (!overlapX) continue;
       const playerBottom = this.y + this.h;
       const withinY = playerBottom >= pl.y && playerBottom <= pl.y + pl.h + 4;
-      if (withinY && this.vy >= 0) {
+      // Only snap if player was above the platform last frame (approaching from above)
+      const prevBottom = playerBottom - this.vy * dt;
+      if (withinY && prevBottom <= pl.y + 2 && this.vy >= 0) {
         this.y        = pl.y - this.h;
         this.vy       = 0;
         this.grounded = true;
@@ -244,7 +246,7 @@ export class Player {
         // Using (tBot+1)*TILE instead of tBot*TILE prevents fall-through when
         // standing still — gravity nudges the player ~0.23px per frame which
         // rounds the tile index one row up, missing the narrow top-of-tile check.
-        if (tile === 2 && !dropThrough && prevBottom <= (tBot + 1) * TILE) {
+        if (tile === 2 && !dropThrough && prevBottom <= tBot * TILE) {
           this.y        = tBot * TILE - this.h;
           this.vy       = 0;
           this.grounded = true;
