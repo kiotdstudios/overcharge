@@ -309,3 +309,108 @@ export class MovingPlatform {
     ctx.restore();
   }
 }
+
+// ── DroneEnemy ─────────────────────────────────────────────────────────
+// Hovers and patrols. Uses helicopter drone sprites.
+// Switches to shooting animation when player is within 180px.
+export class DroneEnemy {
+  constructor({ x, y, patrolLeft, patrolRight, speed = 55 }) {
+    this.x           = x;
+    this.y           = y;
+    this._baseY      = y;           // hover oscillates around this
+    this.w           = 40;
+    this.h           = 36;
+    this.vx          = speed;
+    this.patrolLeft  = patrolLeft;
+    this.patrolRight = patrolRight;
+    this.speed       = speed;
+    this._cooldown   = 0;
+    this.alive       = true;
+    this._t          = 0;
+    this.hp          = 2;
+    this.maxHp       = 2;
+    this._hitFlash   = 0;
+    this.drops       = [{ type: 'charge', value: 2 }];
+
+    // Load sprite frames
+    const load = (anim, count) => Array.from({ length: count }, (_, i) => {
+      const img = new Image();
+      img.src = `assets/sprites/drone/${anim}/frame_${String(i).padStart(3,'0')}.png`;
+      return img;
+    });
+    this._idleFrames     = load('idle', 9);
+    this._shootFrames    = load('shooting', 9);
+    this._frame          = 0;
+    this._fps            = 12;
+    this._shooting       = false;
+  }
+
+  get cx() { return this.x + this.w / 2; }
+  get cy() { return this.y + this.h / 2; }
+
+  overlaps(px, py, pw, ph) {
+    return !(this.x + this.w <= px || this.x >= px + pw ||
+             this.y + this.h <= py || this.y >= py + ph);
+  }
+
+  update(dt, level, player) {
+    if (!this.alive) return;
+    this._t        += dt;
+    this._cooldown  = Math.max(0, this._cooldown - dt);
+    this._hitFlash  = Math.max(0, this._hitFlash  - dt);
+
+    // Patrol
+    this.x += this.vx * dt;
+    if (this.x < this.patrolLeft)             { this.x = this.patrolLeft;             this.vx =  this.speed; }
+    if (this.x + this.w > this.patrolRight)   { this.x = this.patrolRight - this.w;   this.vx = -this.speed; }
+
+    // Hover bob
+    this.y = this._baseY + Math.sin(this._t * 2.5) * 8;
+
+    // Animate
+    this._frame += dt * this._fps;
+    if (this._frame >= 9) this._frame = 0;
+  }
+
+  hit(level) {
+    if (!this.alive) return;
+    this.hp--;
+    this._hitFlash = 0.25;
+    if (this.hp <= 0) {
+      this.alive = false;
+      _resolveDrops(this.drops, this.cx, this.cy, level);
+    }
+  }
+
+  tryContact(player, level) {
+    if (!this.alive || this._cooldown > 0) return;
+    const dx = player.cx - this.cx, dy = player.cy - this.cy;
+    this._shooting = Math.sqrt(dx*dx + dy*dy) < 180;
+    if (this.overlaps(player.x, player.y, player.w, player.h)) {
+      const dir = player.cx <= this.cx ? -1 : 1;
+      player.stun(STUN_DURATION, dir * 300);
+      player.scatter(level);
+      this._cooldown = STUN_COOLDOWN;
+    }
+  }
+
+  draw(ctx) {
+    if (!this.alive) return;
+    const frames = this._shooting ? this._shootFrames : this._idleFrames;
+    const fi     = Math.floor(this._frame) % 9;
+    const img    = frames[fi];
+    const flash  = this._hitFlash > 0;
+
+    ctx.save();
+    if (flash) { ctx.globalAlpha = 0.5 + 0.5 * Math.sin(this._t * 40); }
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, this.x, this.y, this.w, this.h);
+    } else {
+      ctx.fillStyle = '#884400';
+      ctx.fillRect(this.x, this.y, this.w, this.h);
+    }
+    ctx.restore();
+
+    _drawHpBar(ctx, this.x, this.y, this.w, this.hp, this.maxHp);
+  }
+}

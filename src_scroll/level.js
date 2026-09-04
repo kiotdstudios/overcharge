@@ -2,7 +2,7 @@
 import { TILE, COLS, ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
-import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform } from './entities.js';
+import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy } from './entities.js';
 
 export class Level {
   constructor(def) {
@@ -17,7 +17,9 @@ export class Level {
     this.gates    = (def.gates    || []).map(d => new PowerGate(d));
     this.switches = (def.switches || []).map(d => new Switch(d));
     this.enemies  = (def.enemies  || []).map(d => {
-      return d.type === 'drain' ? new DrainEnemy(d) : new PatrolEnemy(d);
+      if (d.type === 'drain')  return new DrainEnemy(d);
+      if (d.type === 'drone')  return new DroneEnemy(d);
+      return new PatrolEnemy(d);
     });
     this.checkpoints = (def.checkpoints || []).map(d => new Checkpoint(d));
     this.platforms   = (def.platforms   || []).map(d => new MovingPlatform(d));

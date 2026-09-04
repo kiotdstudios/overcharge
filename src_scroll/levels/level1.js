@@ -78,8 +78,8 @@ export const LEVEL1 = {
   enemies: [
     // Drain — first zone, patrols cols 13-19
     { type: 'drain',   x: 416, y: 360, patrolLeft: 416, patrolRight: 608, speed: 65 },
-    // Patrol — on row-8 platform, cols 31-35
-    { type: 'patrol',  x: 992, y: 230, patrolLeft: 992, patrolRight: 1120, speed: 50 },
+    // Drone — hovers mid-level, patrols above the platforms
+    { type: 'drone',   x: 992, y: 200, patrolLeft: 900, patrolRight: 1200, speed: 55 },
     // Drain — second half, patrols ground cols 73-81
     { type: 'drain',   x: 2336, y: 360, patrolLeft: 2336, patrolRight: 2592, speed: 70 },
   ],
