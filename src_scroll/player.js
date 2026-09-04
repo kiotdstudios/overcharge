@@ -517,7 +517,7 @@ export class Player {
       ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 30);
     }
 
-    if (frame && frame.complete) {
+    if (frame && frame.complete && frame.naturalWidth > 0) {
       ctx.drawImage(frame, sx, sy, SPRITE_W, SPRITE_H);
     } else {
       // Fallback box while images load
