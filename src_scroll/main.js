@@ -20,6 +20,7 @@ function resize() {
   canvas.height = H;
   canvas.style.width  = `${W * scale}px`;
   canvas.style.height = `${H * scale}px`;
+  ctx.imageSmoothingEnabled = false; // pixel-perfect: no blur on integer-scaled sprites/tiles
 }
 resize();
 window.addEventListener('resize', resize);
