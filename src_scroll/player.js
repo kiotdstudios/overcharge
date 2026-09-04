@@ -514,9 +514,6 @@ export class Player {
       ctx.restore();
     }
 
-    // Sparks at top of hair when high charge
-    if (chargeRatio > 0.7) {
-      drawSparks(ctx, this.cx, sy + 14, t, '#44ddff', 5, 9);
-    }
+
   }
 }
