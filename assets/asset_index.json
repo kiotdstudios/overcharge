@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-04T21:01:52.821Z",
-  "count": 586,
+  "generated": "2026-09-04T21:38:52.341Z",
+  "count": 583,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -3277,24 +3277,6 @@
       "name": "frame_008",
       "category": "other",
       "size": 3043
-    },
-    {
-      "path": "assets/tiles/concrete_godot.png",
-      "name": "concrete_godot",
-      "category": "other",
-      "size": 29537
-    },
-    {
-      "path": "assets/tiles/concrete_wang.png",
-      "name": "concrete_wang",
-      "category": "other",
-      "size": 7844
-    },
-    {
-      "path": "assets/tiles/concrete.png",
-      "name": "concrete",
-      "category": "other",
-      "size": 7099
     },
     {
       "path": "assets/tilesets/purple_city/props/bracket_corner.png",

@@ -1,581 +1,545 @@
 {
-  "_schema": "1.0",
-  "_note": "Aki owns this file. Orcha consumes it. Change stable IDs only with cross-agent agreement.",
-  "assets": [
-    {
-      "id": "player_idle",
-      "path": "assets/sprites/idle_2.0/{dir}/frame_{n}.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "idle",
-        "animation"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 11,
-      "fps": 4,
-      "directions": [
-        "east",
-        "west",
-        "north",
-        "south",
-        "north-east",
-        "north-west",
-        "south-east",
-        "south-west"
-      ],
-      "loop": true,
-      "notes": "WALK_FPS=4. Dir pattern: east/west in gameplay; all 8 dirs exist on disk."
-    },
-    {
-      "id": "player_walk",
-      "path": "assets/sprites/walking/{dir}/frame_{n}.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "walk",
-        "animation"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 9,
-      "fps": 4,
-      "directions": [
-        "east",
-        "west",
-        "north",
-        "south",
-        "north-east",
-        "north-west",
-        "south-east",
-        "south-west"
-      ],
-      "loop": true,
-      "notes": "WALK_FPS=4."
-    },
-    {
-      "id": "player_run",
-      "path": "assets/sprites/running/{dir}/frame_{n}.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "run",
-        "animation"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 8,
-      "fps": 11,
-      "directions": [
-        "east",
-        "west"
-      ],
-      "loop": true,
-      "notes": "RUN_FPS=11. East+west only. Generated via PixelLab running-8-frames template on character c6503f8e."
-    },
-    {
-      "id": "player_jump",
-      "path": "assets/sprites/jumping/{dir}/frame_{n}.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "jump",
-        "animation"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 9,
-      "fps": 4,
-      "directions": [
-        "east",
-        "west",
-        "north",
-        "south",
-        "north-east",
-        "north-west",
-        "south-east",
-        "south-west"
-      ],
-      "loop": false,
-      "notes": "Frame selected by vy (vertical velocity), not time. vy=-430\u2192frame 0, vy=0\u2192frame 4, vy=+430\u2192frame 8."
-    },
-    {
-      "id": "player_absorb",
-      "path": "assets/sprites/charge_anim/{dir}/frame_{n}.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "absorb",
-        "charge",
-        "animation"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 11,
-      "fps": 18,
-      "directions": [
-        "east",
-        "west"
-      ],
-      "loop": true,
-      "notes": "Played while player is absorbing charge from a source. 18fps for energy urgency."
-    },
-    {
-      "id": "player_discharge",
-      "path": "assets/sprites/discharge/{dir}/frame_{n}.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "discharge",
-        "animation"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 11,
-      "fps": 4,
-      "directions": [
-        "east",
-        "west",
-        "north",
-        "south",
-        "north-east",
-        "north-west",
-        "south-east",
-        "south-west"
-      ],
-      "loop": true,
-      "notes": "Played while player is discharging into a gate/object."
-    },
-    {
-      "id": "electrical_generator",
-      "path": "assets/sprites/generator 1/frame_{n}.png",
-      "category": "electrical",
-      "tags": [
-        "generator",
-        "source",
-        "animation",
-        "electrical"
-      ],
-      "frame_width": 64,
-      "frame_height": 64,
-      "frame_count": 9,
-      "fps": 8,
-      "directions": null,
-      "loop": true,
-      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox."
-    },
-    {
-      "id": "gate_electric_closed",
-      "path": "assets/objects/gate_closed.png",
-      "category": "electrical",
-      "tags": [
-        "gate",
-        "barrier",
-        "electrical",
-        "static"
-      ],
-      "frame_width": 64,
-      "frame_height": 128,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Static sprite. Drawn scaled to gate world dims (w x h). Charge fill overlay rendered on top in code. PixelLab job id: e9dfee77. PENDING: gate_electric_open needed."
-    },
-    {
-      "id": "enemy_drain_walk",
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/{dir}/frame_{n}.png",
-      "category": "enemy",
-      "tags": [
-        "enemy",
-        "drain",
-        "walk",
-        "animation"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 8,
-      "fps": 8,
-      "directions": [
-        "east",
-        "west"
-      ],
-      "loop": true,
-      "notes": "Drain enemy walk cycle. East+west. PixelLab character \u2014 see drain_enemy folder."
-    },
-    {
-      "id": "env_bg_mid_city",
-      "path": "assets/backgrounds/mid_city.png",
-      "category": "background",
-      "tags": [
-        "background",
-        "city",
-        "parallax",
-        "environment"
-      ],
-      "frame_width": 400,
-      "frame_height": 256,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Mid-layer parallax city. Tiled horizontally. Scrolls slower than foreground."
-    },
-    {
-      "id": "tile_concrete",
-      "path": "assets/tiles/concrete.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "platform",
-        "concrete",
-        "ground"
-      ],
-      "frame_width": 128,
-      "frame_height": 128,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "128x128 concrete platform tile. Wang variant also available (concrete_wang.png)."
-    },
-    {
-      "id": "tile_concrete_wang",
-      "path": "assets/tiles/concrete_wang.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "platform",
-        "concrete",
-        "wang"
-      ],
-      "frame_width": 128,
-      "frame_height": 128,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Wang-tile variant for seamless concrete edges."
-    },
-    {
-      "id": "tileset_purple_city_full",
-      "path": "assets/tilesets/purple_city/purplecity_full.png",
-      "category": "tileset",
-      "tags": [
-        "tileset",
-        "purple_city",
-        "spritesheet"
-      ],
-      "frame_width": 800,
-      "frame_height": 800,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Full spritesheet for the purple city tileset. Individual tiles also exported as separate PNGs."
-    },
-    {
-      "id": "env_tile_dark_a",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "dark"
-      ],
-      "frame_width": 18,
-      "frame_height": 18,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "18x18 \u2014 confirm tile_size with Orcha before using in level data."
-    },
-    {
-      "id": "env_tile_dark_b",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "dark"
-      ],
-      "frame_width": 18,
-      "frame_height": 18,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_tile_purple_a",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "purple"
-      ],
-      "frame_width": 18,
-      "frame_height": 18,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_tile_purple_b",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "purple"
-      ],
-      "frame_width": 18,
-      "frame_height": 18,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_building_large",
-      "path": "assets/tilesets/purple_city/buildings/building_large.png",
-      "category": "building",
-      "tags": [
-        "building",
-        "purple_city",
-        "background"
-      ],
-      "frame_width": 70,
-      "frame_height": 58,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_building_wide",
-      "path": "assets/tilesets/purple_city/buildings/building_wide.png",
-      "category": "building",
-      "tags": [
-        "building",
-        "purple_city",
-        "background"
-      ],
-      "frame_width": 68,
-      "frame_height": 42,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_building_small_a",
-      "path": "assets/tilesets/purple_city/buildings/building_small_a.png",
-      "category": "building",
-      "tags": [
-        "building",
-        "purple_city",
-        "background"
-      ],
-      "frame_width": 36,
-      "frame_height": 33,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_platform_long_a",
-      "path": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "category": "platform",
-      "tags": [
-        "platform",
-        "purple_city"
-      ],
-      "frame_width": 45,
-      "frame_height": 14,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_platform_medium",
-      "path": "assets/tilesets/purple_city/platforms/platform_medium.png",
-      "category": "platform",
-      "tags": [
-        "platform",
-        "purple_city"
-      ],
-      "frame_width": 39,
-      "frame_height": 14,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_platform_short_a",
-      "path": "assets/tilesets/purple_city/platforms/platform_short_a.png",
-      "category": "platform",
-      "tags": [
-        "platform",
-        "purple_city"
-      ],
-      "frame_width": 21,
-      "frame_height": 14,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_prop_street_lamp",
-      "path": "assets/tilesets/purple_city/props/street_lamp.png",
-      "category": "prop",
-      "tags": [
-        "prop",
-        "purple_city",
-        "decoration"
-      ],
-      "frame_width": 22,
-      "frame_height": 43,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_prop_pipe_thin",
-      "path": "assets/tilesets/purple_city/props/pipe_thin.png",
-      "category": "prop",
-      "tags": [
-        "prop",
-        "purple_city",
-        "pipe"
-      ],
-      "frame_width": 5,
-      "frame_height": 13,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_prop_sign_arrow_right",
-      "path": "assets/tilesets/purple_city/props/sign_arrow_right.png",
-      "category": "prop",
-      "tags": [
-        "prop",
-        "purple_city",
-        "sign"
-      ],
-      "frame_width": 21,
-      "frame_height": 34,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_crate_large",
-      "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "category": "container",
-      "tags": [
-        "container",
-        "purple_city",
-        "crate"
-      ],
-      "frame_width": 50,
-      "frame_height": 50,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_container_small_a",
-      "path": "assets/tilesets/purple_city/containers/container_small_a.png",
-      "category": "container",
-      "tags": [
-        "container",
-        "purple_city"
-      ],
-      "frame_width": 20,
-      "frame_height": 18,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_wall_brick_a",
-      "path": "assets/tilesets/purple_city/walls/wall_brick_a.png",
-      "category": "wall",
-      "tags": [
-        "wall",
-        "purple_city",
-        "brick"
-      ],
-      "frame_width": 26,
-      "frame_height": 26,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_wall_brick_b",
-      "path": "assets/tilesets/purple_city/walls/wall_brick_b.png",
-      "category": "wall",
-      "tags": [
-        "wall",
-        "purple_city",
-        "brick"
-      ],
-      "frame_width": 27,
-      "frame_height": 26,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    },
-    {
-      "id": "env_wall_brick_c",
-      "path": "assets/tilesets/purple_city/walls/wall_brick_c.png",
-      "category": "wall",
-      "tags": [
-        "wall",
-        "purple_city",
-        "brick"
-      ],
-      "frame_width": 25,
-      "frame_height": 24,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": ""
-    }
-  ]
+    "_schema":  "1.0",
+    "_note":  "Aki owns this file. Orcha consumes it. Change stable IDs only with cross-agent agreement.",
+    "assets":  [
+                   {
+                       "id":  "player_idle",
+                       "path":  "assets/sprites/idle_2.0/{dir}/frame_{n}.png",
+                       "category":  "player",
+                       "tags":  [
+                                    "player",
+                                    "idle",
+                                    "animation"
+                                ],
+                       "frame_width":  92,
+                       "frame_height":  92,
+                       "frame_count":  11,
+                       "fps":  4,
+                       "directions":  [
+                                          "east",
+                                          "west",
+                                          "north",
+                                          "south",
+                                          "north-east",
+                                          "north-west",
+                                          "south-east",
+                                          "south-west"
+                                      ],
+                       "loop":  true,
+                       "notes":  "WALK_FPS=4. Dir pattern: east/west in gameplay; all 8 dirs exist on disk."
+                   },
+                   {
+                       "id":  "player_walk",
+                       "path":  "assets/sprites/walking/{dir}/frame_{n}.png",
+                       "category":  "player",
+                       "tags":  [
+                                    "player",
+                                    "walk",
+                                    "animation"
+                                ],
+                       "frame_width":  92,
+                       "frame_height":  92,
+                       "frame_count":  9,
+                       "fps":  4,
+                       "directions":  [
+                                          "east",
+                                          "west",
+                                          "north",
+                                          "south",
+                                          "north-east",
+                                          "north-west",
+                                          "south-east",
+                                          "south-west"
+                                      ],
+                       "loop":  true,
+                       "notes":  "WALK_FPS=4."
+                   },
+                   {
+                       "id":  "player_run",
+                       "path":  "assets/sprites/running/{dir}/frame_{n}.png",
+                       "category":  "player",
+                       "tags":  [
+                                    "player",
+                                    "run",
+                                    "animation"
+                                ],
+                       "frame_width":  92,
+                       "frame_height":  92,
+                       "frame_count":  8,
+                       "fps":  11,
+                       "directions":  [
+                                          "east",
+                                          "west"
+                                      ],
+                       "loop":  true,
+                       "notes":  "RUN_FPS=11. East+west only. Generated via PixelLab running-8-frames template on character c6503f8e."
+                   },
+                   {
+                       "id":  "player_jump",
+                       "path":  "assets/sprites/jumping/{dir}/frame_{n}.png",
+                       "category":  "player",
+                       "tags":  [
+                                    "player",
+                                    "jump",
+                                    "animation"
+                                ],
+                       "frame_width":  92,
+                       "frame_height":  92,
+                       "frame_count":  9,
+                       "fps":  4,
+                       "directions":  [
+                                          "east",
+                                          "west",
+                                          "north",
+                                          "south",
+                                          "north-east",
+                                          "north-west",
+                                          "south-east",
+                                          "south-west"
+                                      ],
+                       "loop":  false,
+                       "notes":  "Frame selected by vy (vertical velocity), not time. vy=-430→frame 0, vy=0→frame 4, vy=+430→frame 8."
+                   },
+                   {
+                       "id":  "player_absorb",
+                       "path":  "assets/sprites/charge_anim/{dir}/frame_{n}.png",
+                       "category":  "player",
+                       "tags":  [
+                                    "player",
+                                    "absorb",
+                                    "charge",
+                                    "animation"
+                                ],
+                       "frame_width":  92,
+                       "frame_height":  92,
+                       "frame_count":  11,
+                       "fps":  18,
+                       "directions":  [
+                                          "east",
+                                          "west"
+                                      ],
+                       "loop":  true,
+                       "notes":  "Played while player is absorbing charge from a source. 18fps for energy urgency."
+                   },
+                   {
+                       "id":  "player_discharge",
+                       "path":  "assets/sprites/discharge/{dir}/frame_{n}.png",
+                       "category":  "player",
+                       "tags":  [
+                                    "player",
+                                    "discharge",
+                                    "animation"
+                                ],
+                       "frame_width":  92,
+                       "frame_height":  92,
+                       "frame_count":  11,
+                       "fps":  4,
+                       "directions":  [
+                                          "east",
+                                          "west",
+                                          "north",
+                                          "south",
+                                          "north-east",
+                                          "north-west",
+                                          "south-east",
+                                          "south-west"
+                                      ],
+                       "loop":  true,
+                       "notes":  "Played while player is discharging into a gate/object."
+                   },
+                   {
+                       "id":  "electrical_generator",
+                       "path":  "assets/sprites/generator 1/frame_{n}.png",
+                       "category":  "electrical",
+                       "tags":  [
+                                    "generator",
+                                    "source",
+                                    "animation",
+                                    "electrical"
+                                ],
+                       "frame_width":  64,
+                       "frame_height":  64,
+                       "frame_count":  9,
+                       "fps":  8,
+                       "directions":  null,
+                       "loop":  true,
+                       "notes":  "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox."
+                   },
+                   {
+                       "id":  "gate_electric_closed",
+                       "path":  "assets/objects/gate_closed.png",
+                       "category":  "electrical",
+                       "tags":  [
+                                    "gate",
+                                    "barrier",
+                                    "electrical",
+                                    "static"
+                                ],
+                       "frame_width":  64,
+                       "frame_height":  128,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  "Static sprite. Drawn scaled to gate world dims (w x h). Charge fill overlay rendered on top in code. PixelLab job id: e9dfee77. PENDING: gate_electric_open needed."
+                   },
+                   {
+                       "id":  "enemy_drain_walk",
+                       "path":  "assets/sprites/drain_enemy/Idle/animations/drain_walk/{dir}/frame_{n}.png",
+                       "category":  "enemy",
+                       "tags":  [
+                                    "enemy",
+                                    "drain",
+                                    "walk",
+                                    "animation"
+                                ],
+                       "frame_width":  92,
+                       "frame_height":  92,
+                       "frame_count":  8,
+                       "fps":  8,
+                       "directions":  [
+                                          "east",
+                                          "west"
+                                      ],
+                       "loop":  true,
+                       "notes":  "Drain enemy walk cycle. East+west. PixelLab character — see drain_enemy folder."
+                   },
+                   {
+                       "id":  "env_bg_mid_city",
+                       "path":  "assets/backgrounds/mid_city.png",
+                       "category":  "background",
+                       "tags":  [
+                                    "background",
+                                    "city",
+                                    "parallax",
+                                    "environment"
+                                ],
+                       "frame_width":  400,
+                       "frame_height":  256,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  "Mid-layer parallax city. Tiled horizontally. Scrolls slower than foreground."
+                   },
+                   {
+                       "id":  "tileset_purple_city_full",
+                       "path":  "assets/tilesets/purple_city/purplecity_full.png",
+                       "category":  "tileset",
+                       "tags":  [
+                                    "tileset",
+                                    "purple_city",
+                                    "spritesheet"
+                                ],
+                       "frame_width":  800,
+                       "frame_height":  800,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  "Full spritesheet for the purple city tileset. Individual tiles also exported as separate PNGs."
+                   },
+                   {
+                       "id":  "env_tile_dark_a",
+                       "path":  "assets/tilesets/purple_city/tiles/tile_dark_a.png",
+                       "category":  "tile",
+                       "tags":  [
+                                    "tile",
+                                    "purple_city",
+                                    "dark"
+                                ],
+                       "frame_width":  18,
+                       "frame_height":  18,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  "18x18 — confirm tile_size with Orcha before using in level data."
+                   },
+                   {
+                       "id":  "env_tile_dark_b",
+                       "path":  "assets/tilesets/purple_city/tiles/tile_dark_b.png",
+                       "category":  "tile",
+                       "tags":  [
+                                    "tile",
+                                    "purple_city",
+                                    "dark"
+                                ],
+                       "frame_width":  18,
+                       "frame_height":  18,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_tile_purple_a",
+                       "path":  "assets/tilesets/purple_city/tiles/tile_purple_a.png",
+                       "category":  "tile",
+                       "tags":  [
+                                    "tile",
+                                    "purple_city",
+                                    "purple"
+                                ],
+                       "frame_width":  18,
+                       "frame_height":  18,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_tile_purple_b",
+                       "path":  "assets/tilesets/purple_city/tiles/tile_purple_b.png",
+                       "category":  "tile",
+                       "tags":  [
+                                    "tile",
+                                    "purple_city",
+                                    "purple"
+                                ],
+                       "frame_width":  18,
+                       "frame_height":  18,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_building_large",
+                       "path":  "assets/tilesets/purple_city/buildings/building_large.png",
+                       "category":  "building",
+                       "tags":  [
+                                    "building",
+                                    "purple_city",
+                                    "background"
+                                ],
+                       "frame_width":  70,
+                       "frame_height":  58,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_building_wide",
+                       "path":  "assets/tilesets/purple_city/buildings/building_wide.png",
+                       "category":  "building",
+                       "tags":  [
+                                    "building",
+                                    "purple_city",
+                                    "background"
+                                ],
+                       "frame_width":  68,
+                       "frame_height":  42,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_building_small_a",
+                       "path":  "assets/tilesets/purple_city/buildings/building_small_a.png",
+                       "category":  "building",
+                       "tags":  [
+                                    "building",
+                                    "purple_city",
+                                    "background"
+                                ],
+                       "frame_width":  36,
+                       "frame_height":  33,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_platform_long_a",
+                       "path":  "assets/tilesets/purple_city/platforms/platform_long_a.png",
+                       "category":  "platform",
+                       "tags":  [
+                                    "platform",
+                                    "purple_city"
+                                ],
+                       "frame_width":  45,
+                       "frame_height":  14,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_platform_medium",
+                       "path":  "assets/tilesets/purple_city/platforms/platform_medium.png",
+                       "category":  "platform",
+                       "tags":  [
+                                    "platform",
+                                    "purple_city"
+                                ],
+                       "frame_width":  39,
+                       "frame_height":  14,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_platform_short_a",
+                       "path":  "assets/tilesets/purple_city/platforms/platform_short_a.png",
+                       "category":  "platform",
+                       "tags":  [
+                                    "platform",
+                                    "purple_city"
+                                ],
+                       "frame_width":  21,
+                       "frame_height":  14,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_prop_street_lamp",
+                       "path":  "assets/tilesets/purple_city/props/street_lamp.png",
+                       "category":  "prop",
+                       "tags":  [
+                                    "prop",
+                                    "purple_city",
+                                    "decoration"
+                                ],
+                       "frame_width":  22,
+                       "frame_height":  43,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_prop_pipe_thin",
+                       "path":  "assets/tilesets/purple_city/props/pipe_thin.png",
+                       "category":  "prop",
+                       "tags":  [
+                                    "prop",
+                                    "purple_city",
+                                    "pipe"
+                                ],
+                       "frame_width":  5,
+                       "frame_height":  13,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_prop_sign_arrow_right",
+                       "path":  "assets/tilesets/purple_city/props/sign_arrow_right.png",
+                       "category":  "prop",
+                       "tags":  [
+                                    "prop",
+                                    "purple_city",
+                                    "sign"
+                                ],
+                       "frame_width":  21,
+                       "frame_height":  34,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_crate_large",
+                       "path":  "assets/tilesets/purple_city/containers/crate_large.png",
+                       "category":  "container",
+                       "tags":  [
+                                    "container",
+                                    "purple_city",
+                                    "crate"
+                                ],
+                       "frame_width":  50,
+                       "frame_height":  50,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_container_small_a",
+                       "path":  "assets/tilesets/purple_city/containers/container_small_a.png",
+                       "category":  "container",
+                       "tags":  [
+                                    "container",
+                                    "purple_city"
+                                ],
+                       "frame_width":  20,
+                       "frame_height":  18,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_wall_brick_a",
+                       "path":  "assets/tilesets/purple_city/walls/wall_brick_a.png",
+                       "category":  "wall",
+                       "tags":  [
+                                    "wall",
+                                    "purple_city",
+                                    "brick"
+                                ],
+                       "frame_width":  26,
+                       "frame_height":  26,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_wall_brick_b",
+                       "path":  "assets/tilesets/purple_city/walls/wall_brick_b.png",
+                       "category":  "wall",
+                       "tags":  [
+                                    "wall",
+                                    "purple_city",
+                                    "brick"
+                                ],
+                       "frame_width":  27,
+                       "frame_height":  26,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   },
+                   {
+                       "id":  "env_wall_brick_c",
+                       "path":  "assets/tilesets/purple_city/walls/wall_brick_c.png",
+                       "category":  "wall",
+                       "tags":  [
+                                    "wall",
+                                    "purple_city",
+                                    "brick"
+                                ],
+                       "frame_width":  25,
+                       "frame_height":  24,
+                       "frame_count":  1,
+                       "fps":  null,
+                       "directions":  null,
+                       "loop":  false,
+                       "notes":  ""
+                   }
+               ]
 }
