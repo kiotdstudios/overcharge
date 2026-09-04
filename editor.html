@@ -9,7 +9,12 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 100%; height: 100%; background: #0a0d14; color: #cdd; font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
 
-  #editor-root { display: grid; grid-template-columns: 240px 1fr 260px; grid-template-rows: 40px 1fr; grid-template-areas: "toolbar toolbar toolbar" "sidebar main inspector"; height: 100vh; width: 100vw; }
+  #editor-root { display: grid; grid-template-columns: 240px 1fr 260px; grid-template-rows: 40px 1fr; grid-template-areas: "toolbar toolbar toolbar" "sidebar main inspector"; height: 100vh; width: 100vw; transition: grid-template-columns 0.15s ease-out; }
+  /* Collapsed state: inspector column shrinks to 0, main expands. Content is
+     display:none-d so nothing leaks into the freed space. A small tab on the
+     right edge of the canvas lets the user re-open. */
+  #editor-root.inspector-collapsed { grid-template-columns: 240px 1fr 0; }
+  #editor-root.inspector-collapsed #inspector { display: none; }
 
   /* Toolbar */
   #toolbar { grid-area: toolbar; background: #0f1420; border-bottom: 1px solid #1c2436; display: flex; align-items: center; padding: 0 12px; gap: 12px; font-size: 12px; }
@@ -47,9 +52,26 @@
   #editor-canvas { display: block; width: 100%; height: 100%; }
 
   /* Inspector (Phase 3 placeholder) */
-  #inspector { grid-area: inspector; background: #0d1119; border-left: 1px solid #1c2436; padding: 12px; overflow-y: auto; }
-  #inspector h3 { font-size: 11px; letter-spacing: 2px; color: #557; padding-bottom: 8px; }
-  #inspector p { font-size: 11px; color: #557; line-height: 1.5; font-family: monospace; }
+  #inspector { grid-area: inspector; background: #0d1119; border-left: 1px solid #1c2436; padding: 0; overflow-y: auto; }
+  #inspector-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #1c2436; }
+  #inspector-header h3 { font-size: 11px; letter-spacing: 2px; color: #557; padding: 0; }
+  #inspector-header button { background: transparent; color: #557; border: 1px solid #2a3448; padding: 2px 8px; font-size: 11px; font-family: monospace; cursor: pointer; }
+  #inspector-header button:hover { color: #ffee00; border-color: #ffee00; }
+  #inspector-body { padding: 12px; }
+  #inspector-body p { font-size: 11px; color: #557; line-height: 1.5; font-family: monospace; }
+
+  /* Show-inspector tab — hugs the right edge of the canvas when collapsed.
+     Small vertical tab; click reopens the panel. Only visible when collapsed. */
+  #inspector-show-tab {
+    position: absolute; top: 12px; right: 0; z-index: 10;
+    display: none;
+    writing-mode: vertical-rl; text-orientation: mixed;
+    background: #1a2030; color: #779; border: 1px solid #2a3448; border-right: none;
+    padding: 8px 4px; font-size: 10px; font-family: monospace; letter-spacing: 2px;
+    cursor: pointer;
+  }
+  #inspector-show-tab:hover { color: #ffee00; border-color: #ffee00; }
+  #editor-root.inspector-collapsed #inspector-show-tab { display: block; }
 </style>
 </head>
 <body>
@@ -89,11 +111,18 @@
   <div id="asset-browser"></div>
   <div id="main-area">
     <canvas id="editor-canvas"></canvas>
+    <!-- Vertical tab to re-open inspector when collapsed. Only visible in collapsed state. -->
+    <button id="inspector-show-tab" title="Show Inspector (I)">▶ INSPECTOR</button>
   </div>
   <div id="inspector">
-    <h3>INSPECTOR</h3>
-    <p>Object properties will appear here.</p>
-    <p style="margin-top: 12px; color: #446;">Phase 3.</p>
+    <div id="inspector-header">
+      <h3>INSPECTOR</h3>
+      <button id="btn-inspector-hide" title="Hide Inspector (I)">◀ HIDE</button>
+    </div>
+    <div id="inspector-body">
+      <p>Object properties will appear here.</p>
+      <p style="margin-top: 12px; color: #446;">Phase 3.</p>
+    </div>
   </div>
 </div>
 <script type="module" src="editor/main.js"></script>

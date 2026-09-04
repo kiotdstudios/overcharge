@@ -33,6 +33,30 @@ const btnSave      = document.getElementById('btn-save');
 const btnUndo      = document.getElementById('btn-undo');
 const btnRedo      = document.getElementById('btn-redo');
 const saveFlash    = document.getElementById('save-flash');
+const editorRoot     = document.getElementById('editor-root');
+const btnInspHide    = document.getElementById('btn-inspector-hide');
+const inspShowTab    = document.getElementById('inspector-show-tab');
+
+// ── Inspector collapse ────────────────────────────────────────────────────
+// UI-only layout toggle. Selection/state is untouched — CSS just hides the
+// panel and expands the main grid column. Persists across the session via
+// sessionStorage (cleared when the tab closes; spec allows session-only).
+const INSP_KEY = 'overcharge.editor.inspectorCollapsed';
+function setInspectorCollapsed(collapsed) {
+  if (!editorRoot) return;
+  editorRoot.classList.toggle('inspector-collapsed', collapsed);
+  try { sessionStorage.setItem(INSP_KEY, collapsed ? '1' : '0'); } catch {}
+  // Grid column change doesn't fire a window resize event — force canvas
+  // to re-measure so pan/zoom hit-testing stays accurate.
+  fitCanvas();
+  // Trigger a redraw
+  import('./state.js').then(m => m.notify());
+}
+function toggleInspector() {
+  setInspectorCollapsed(!editorRoot.classList.contains('inspector-collapsed'));
+}
+btnInspHide?.addEventListener('click', () => setInspectorCollapsed(true));
+inspShowTab?.addEventListener('click', () => setInspectorCollapsed(false));
 
 function fitCanvas() {
   const r = canvas.getBoundingClientRect();
@@ -129,6 +153,7 @@ window.addEventListener('keydown', async (e) => {
   if (e.key === '4') setTool('pan');
   if (e.key === 'g' || e.key === 'G') { gridToggle.checked = !state.showGrid; setShowGrid(gridToggle.checked); }
   if (e.key === '0') resetZoom();
+  if (e.key === 'i' || e.key === 'I') { e.preventDefault(); toggleInspector(); }
 });
 
 // beforeunload — warn on unsaved changes (Ctrl+R, tab close, etc.)
@@ -214,6 +239,8 @@ function frame() {
 // ── Bootstrap ────────────────────────────────────────────────────────────
 async function bootstrap() {
   fitCanvas();
+  // Restore inspector-collapsed state from this session (spec §nice-to-have)
+  try { if (sessionStorage.getItem(INSP_KEY) === '1') editorRoot.classList.add('inspector-collapsed'); } catch {}
   mountAssetBrowser(sidebar);
   try {
     await loadManifest('assets/ASSET_MANIFEST.json');
