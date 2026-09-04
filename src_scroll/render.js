@@ -1,46 +1,56 @@
 // Canvas drawing utilities — pixel-art glow aesthetic
 
-// ── Tileset loader ────────────────────────────────────────────────
-// concrete.png is a 128×128 sheet: 4 cols × 4 rows of 32×32 tiles.
-// Tile positions used:
-//   solid interior: col 2, row 1  (srcX=64, srcY=32)
-//   top surface:    col 2, row 0  (srcX=64, srcY=0)
-//   platform lip:   col 1, row 0  (srcX=32, srcY=0)
-const _tileSheet = new Image();
-_tileSheet.src = 'assets/tiles/concrete.png';
-let   _tileReady = false;
-_tileSheet.onload = () => { _tileReady = true; };
+// ── Purple City tileset ───────────────────────────────────────────────────────
+// Individual 16×16 PNGs drawn at 32×32 (nearest-neighbor, no blur).
+const _pc = {};
+['tile_dark_a', 'tile_purple_a'].forEach(name => {
+  const img = new Image();
+  img.src = `assets/tilesets/purple_city/tiles/${name}.png`;
+  _pc[name] = img;
+});
 
 export function clear(ctx, w, h, bgColor) {
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, w, h);
 }
 
-export function drawTile(ctx, tx, ty, T, type) {
+// topOpen: true when the tile directly above is not solid — draws neon surface edge
+export function drawTile(ctx, tx, ty, T, type, topOpen = false) {
   const x = tx * T, y = ty * T;
+
   if (type === 2) {
-    // One-way platform: glowing ledge bar — never uses tileset, always clean
+    // One-way platform — purple city neon ledge
     ctx.save();
-    ctx.shadowBlur  = 6;
-    ctx.shadowColor = '#1a6a9a';
-    ctx.fillStyle   = '#0d2a40';
+    ctx.shadowBlur  = 8;
+    ctx.shadowColor = '#aa33ff';
+    ctx.fillStyle   = '#1a0830';
     ctx.fillRect(x, y, T, 7);       // dark body
-    ctx.shadowBlur  = 10;
-    ctx.shadowColor = '#44aaff';
-    ctx.fillStyle   = '#1a8acc';
-    ctx.fillRect(x, y, T, 2);       // bright top edge — the actual ledge surface
+    ctx.shadowBlur  = 14;
+    ctx.shadowColor = '#cc44ff';
+    ctx.fillStyle   = '#9922dd';
+    ctx.fillRect(x, y, T, 2);       // bright neon lip
     ctx.restore();
     return;
   }
-  if (!_tileReady) {
-    ctx.fillStyle = '#131d2a';
-    ctx.fillRect(x, y, T, T);
-    return;
-  }
+
   if (type === 1) {
-    // Solid ground: interior tile then top-surface overlay
-    ctx.drawImage(_tileSheet, 64, 32, 32, 32, x, y, T, T);
-    ctx.drawImage(_tileSheet, 64,  0, 32, 32, x, y, T, T);
+    const img = _pc['tile_dark_a'];
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, 0, 0, 16, 16, x, y, T, T);
+    } else {
+      ctx.fillStyle = '#0d1520';
+      ctx.fillRect(x, y, T, T);
+    }
+
+    // Neon top-surface edge on exposed tiles
+    if (topOpen) {
+      ctx.save();
+      ctx.shadowBlur  = 10;
+      ctx.shadowColor = '#8833cc';
+      ctx.fillStyle   = '#aa44ee';
+      ctx.fillRect(x, y, T, 2);
+      ctx.restore();
+    }
   }
 }
 

@@ -8,8 +8,8 @@ export class Level {
   constructor(def) {
     this.name    = def.name || 'LEVEL';
     this.number  = def.number || 1;
-    this.tiles   = def.tiles;   // flat array, COLS * ROWS
-    this.cols    = def.cols || COLS;  // per-level width
+    this.tiles   = def.tiles;
+    this.cols    = def.cols || COLS;
     this.pxW     = this.cols * TILE;
     this.pxH     = ROWS * TILE;
 
@@ -25,6 +25,13 @@ export class Level {
     this.platforms   = (def.platforms   || []).map(d => new MovingPlatform(d));
     this.pickups  = [];
 
+    // Background decoration sprites (buildings, props) drawn behind tiles
+    this.decorations = (def.decorations || []).map(d => {
+      const img = new Image();
+      img.src = d.src;
+      return { img, x: d.x, y: d.y, w: d.w, h: d.h };
+    });
+
     this.playerStart = def.playerStart || { x: 48, y: 354 };
     this.complete    = false;
     this._completedGate = null;
@@ -32,7 +39,7 @@ export class Level {
 
   tileAt(tx, ty) {
     if (tx < 0 || tx >= this.cols || ty < 0) return 1; // wall/ceiling
-    if (ty >= ROWS) return 0;                      // below map = void — fall to death
+    if (ty >= ROWS) return 0;                      // below map = void
     return this.tiles[ty * this.cols + tx] || 0;
   }
 
@@ -40,11 +47,9 @@ export class Level {
     return this.tileAt(tx, ty) === 1;
   }
 
-  // True when the player can no longer possibly gather enough charge to finish.
-  // Includes: player charge, undrained sources, live pickups, and enemy drops.
   isFailState(player) {
     const exit = this.gates.find(g => g.isExit && !g.open);
-    if (!exit) return false;                          // exit already open
+    if (!exit) return false;
     const needed = exit.required - exit.charged;
     if (needed <= 0) return false;
 
@@ -60,13 +65,8 @@ export class Level {
         .filter(d => d.type === 'charge')
         .reduce((s, d) => s + d.value, 0), 0);
 
-    // Banked pips each represent a full charge bar — must count them or the
-    // game incorrectly declares failure when the player has pips but 0 bar charge.
     const pipCharge = player.bankedPips * MAX_CHARGE;
     const available = player.charge + pipCharge + sourcesLeft + pickupsLeft + enemyDrops;
-    // Epsilon guard: float discharge fills exit.charged in tiny increments, so
-    // needed = required - charged can be e.g. 1.0000002 when mathematically 1.
-    // A tolerance of 0.01 is invisible to the player but absorbs all float drift.
     return available < needed - 0.01;
   }
 
@@ -82,10 +82,8 @@ export class Level {
       if (e.tryContact) e.tryContact(player, this);
     }
 
-    // Remove expired pickups
     this.pickups = this.pickups.filter(p => !p.done);
 
-    // Resolve switch activations → open linked gates
     for (const sw of this.switches) {
       if (sw.on && sw.linkedId) {
         const gate = this.gates.find(g => g.id === sw.linkedId);
@@ -93,7 +91,6 @@ export class Level {
       }
     }
 
-    // Check level complete: any exit gate just opened
     for (const gate of this.gates) {
       if (gate.isExit && gate.open && !this.complete) {
         this.complete = true;
@@ -103,16 +100,28 @@ export class Level {
   }
 
   draw(ctx, t) {
-    // Tiles
+    // 1. Background decorations (buildings, props) — behind everything
+    for (const dec of this.decorations) {
+      if (dec.img.complete && dec.img.naturalWidth > 0) {
+        ctx.drawImage(dec.img, dec.x, dec.y, dec.w, dec.h);
+      }
+    }
+
+    // 2. Tiles — pass topOpen so exposed surfaces get neon edge
     for (let ty = 0; ty < ROWS; ty++) {
       for (let tx = 0; tx < this.cols; tx++) {
         const tile = this.tileAt(tx, ty);
-        if (tile !== 0) drawTile(ctx, tx, ty, TILE, tile);
+        if (tile !== 0) {
+          const topOpen = this.tileAt(tx, ty - 1) !== 1;
+          drawTile(ctx, tx, ty, TILE, tile, topOpen);
+        }
       }
     }
-    // Moving platforms (draw before entities)
-    for (const pl   of this.platforms) pl.draw(ctx);
-    // Entities
+
+    // 3. Moving platforms
+    for (const pl of this.platforms) pl.draw(ctx);
+
+    // 4. Entities
     for (const src  of this.sources)  src.draw(ctx);
     for (const gate of this.gates)    gate.draw(ctx);
     for (const sw   of this.switches) sw.draw(ctx);
