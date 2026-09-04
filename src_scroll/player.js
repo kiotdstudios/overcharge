@@ -161,6 +161,7 @@ export class Player {
     const prevBottom = this.y + this.h;
     this.y += this.vy * dt;
     this._resolveY(level, prevBottom, dropDown);
+    this._resolvePlatforms(level, dt);
 
     // Clamp to canvas bounds — ceiling at y=0 prevents jumping above all barriers
     if (this.x < 0) { this.x = 0; this.vx = 0; }
@@ -203,6 +204,25 @@ export class Player {
         if (this.vx > 0) this.x = gate.x - this.w;
         else if (this.vx < 0) this.x = gate.x + gate.w;
         this.vx = 0;
+      }
+    }
+  }
+
+  // ── Moving platform collision ──────────────
+  // Must run after _resolveY so tilemap grounding takes priority
+  _resolvePlatforms(level, dt) {
+    for (const pl of level.platforms) {
+      // Overlap check: player rect vs platform rect
+      const overlapX = this.x < pl.x + pl.w && this.x + this.w > pl.x;
+      if (!overlapX) continue;
+      const playerBottom = this.y + this.h;
+      const withinY = playerBottom >= pl.y && playerBottom <= pl.y + pl.h + 4;
+      if (withinY && this.vy >= 0) {
+        this.y        = pl.y - this.h;
+        this.vy       = 0;
+        this.grounded = true;
+        // Carry player horizontally with the platform
+        this.x += pl.vx * dt;
       }
     }
   }

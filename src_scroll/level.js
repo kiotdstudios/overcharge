@@ -2,7 +2,7 @@
 import { TILE, COLS, ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
-import { DrainEnemy, PatrolEnemy, Checkpoint } from './entities.js';
+import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform } from './entities.js';
 
 export class Level {
   constructor(def) {
@@ -20,6 +20,7 @@ export class Level {
       return d.type === 'drain' ? new DrainEnemy(d) : new PatrolEnemy(d);
     });
     this.checkpoints = (def.checkpoints || []).map(d => new Checkpoint(d));
+    this.platforms   = (def.platforms   || []).map(d => new MovingPlatform(d));
     this.pickups  = [];
 
     this.playerStart = def.playerStart || { x: 48, y: 354 };
@@ -69,6 +70,7 @@ export class Level {
 
   update(dt, player) {
     for (const src  of this.sources)  src.update(dt);
+    for (const pl   of this.platforms) pl.update(dt);
     for (const gate of this.gates)    gate.update(dt);
     for (const sw   of this.switches) sw.update(dt);
     for (const p    of this.pickups)  p.update(dt, this);
@@ -106,6 +108,8 @@ export class Level {
         if (tile !== 0) drawTile(ctx, tx, ty, TILE, tile);
       }
     }
+    // Moving platforms (draw before entities)
+    for (const pl   of this.platforms) pl.draw(ctx);
     // Entities
     for (const src  of this.sources)  src.draw(ctx);
     for (const gate of this.gates)    gate.draw(ctx);

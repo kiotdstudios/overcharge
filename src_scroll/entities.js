@@ -268,3 +268,44 @@ export class Checkpoint {
     ctx.restore();
   }
 }
+
+// ── MovingPlatform ─────────────────────────────────────────────────────
+// Slides horizontally between x1 and x2 at given speed.
+// Player stands on top and rides with it.
+export class MovingPlatform {
+  constructor({ x, y, w = 96, h = 12, x1, x2, speed = 80 }) {
+    this.x  = x;
+    this.y  = y;
+    this.w  = w;
+    this.h  = h;
+    this.x1 = x1;
+    this.x2 = x2;
+    this.vx = speed;  // positive = moving right
+  }
+
+  update(dt) {
+    this.x += this.vx * dt;
+    if (this.x <= this.x1) { this.x = this.x1; this.vx =  Math.abs(this.vx); }
+    if (this.x + this.w >= this.x2) { this.x = this.x2 - this.w; this.vx = -Math.abs(this.vx); }
+  }
+
+  draw(ctx) {
+    // Main platform body
+    ctx.fillStyle = '#2a3a4a';
+    ctx.fillRect(this.x, this.y, this.w, this.h);
+    // Bright top edge — makes it readable as a surface
+    ctx.fillStyle = '#44aadd';
+    ctx.fillRect(this.x, this.y, this.w, 3);
+    // Side rails
+    ctx.fillStyle = '#1a2a3a';
+    ctx.fillRect(this.x,               this.y + 3, 6, this.h - 3);
+    ctx.fillRect(this.x + this.w - 6,  this.y + 3, 6, this.h - 3);
+    // Glow under platform
+    ctx.save();
+    ctx.shadowBlur  = 10;
+    ctx.shadowColor = '#44aadd';
+    ctx.fillStyle   = 'rgba(68,170,221,0.15)';
+    ctx.fillRect(this.x, this.y, this.w, this.h);
+    ctx.restore();
+  }
+}

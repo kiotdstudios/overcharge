@@ -70,6 +70,11 @@ export const LEVEL1 = {
     { x: 2240, y: 354 },
   ],
 
+  platforms: [
+    // Moving platform over the gap around col 26-27 (x=832)
+    { x: 700, y: 320, w: 96, h: 12, x1: 650, x2: 900, speed: 70 },
+  ],
+
   enemies: [
     // Drain — first zone, patrols cols 13-19
     { type: 'drain',   x: 416, y: 360, patrolLeft: 416, patrolRight: 608, speed: 65 },
