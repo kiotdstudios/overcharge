@@ -147,10 +147,11 @@ window.addEventListener('keydown', async (e) => {
 
   if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); Clipboard.deleteSelection(); return; }
   if (e.key === 'Escape') { Selection.clearSelection(); return; }
-  if (e.key === '1') setTool('select');
-  if (e.key === '2') setTool('place');
-  if (e.key === '3') setTool('erase');
-  if (e.key === '4') setTool('pan');
+  if (e.key === '1') setTool('pointer');
+  if (e.key === '2') setTool('select');
+  if (e.key === '3') setTool('place');
+  if (e.key === '4') setTool('erase');
+  if (e.key === '5') setTool('pan');
   if (e.key === 'g' || e.key === 'G') { gridToggle.checked = !state.showGrid; setShowGrid(gridToggle.checked); }
   if (e.key === '0') resetZoom();
   if (e.key === 'i' || e.key === 'I') { e.preventDefault(); toggleInspector(); }
@@ -249,7 +250,7 @@ async function bootstrap() {
     History.clearAll();
     Selection.clearSelection();
     state.dirty = false;
-    setTool('select');
+    setTool('pointer');   // everyday editing default per Chief
     refreshUI();
     frame();
     console.info(`[editor] Boot OK — ${state.availableLevels.length} level(s), FSA save: ${Persistence.hasFSA() ? 'yes' : 'no (download-only)'}`);

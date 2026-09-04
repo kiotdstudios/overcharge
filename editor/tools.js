@@ -43,7 +43,95 @@ function isTerrainCategory(cat) {
   return cat === 'tile' || cat === 'terrain' || cat === 'tileset';
 }
 
-// ── SELECT TOOL ──────────────────────────────────────────────────────────
+// ── POINTER TOOL ────────────────────────────────────────────────────────
+// Default everyday editing tool. Simpler than Select — no marquee, no shift-
+// additive. Its whole job is: pick one thing, move it, done.
+//
+//   • Click on empty space         → clear selection
+//   • Click on an object           → single-select that object (replaces any
+//                                    prior selection — no shift-additive here)
+//   • Click on already-selected    → begin drag-move (single object)
+//   • Drag empty space             → nothing (NO marquee; that's Select's job)
+//
+// Works on every selectable kind: decorations, sources, gates, switches,
+// checkpoints, enemies, and playerStart (SPAWN). Uses the same generic
+// Selection.objectAt hit-test and Actions.moveObject that Select uses, so
+// undo/redo goes through the exact same history path.
+export const pointerTool = {
+  name:   'pointer',
+  cursor: 'default',
+  _mode:  null,           // null | 'move' | 'idle'
+  _startWorld: null,
+  _origPositions: null,   // Map<ref, {x, y}> for move undo (single object)
+
+  onMouseDown(evt, canvas) {
+    if (evt.button !== 0) return;
+    const w = worldUnderMouse(evt, canvas);
+    this._startWorld = w;
+
+    const hit = Selection.objectAt(w.x, w.y);
+
+    if (!hit) {
+      // Empty canvas → clear selection. No marquee (that's Select).
+      Selection.clearSelection();
+      this._mode = null;
+      return;
+    }
+
+    const alreadySelected = Selection.isRefSelected(hit.kind, hit.ref);
+    if (!alreadySelected) {
+      // Click a different object → replace selection (no shift-additive)
+      Selection.selectByKind(hit.kind, hit.ref, false);
+    }
+
+    // Whether the hit was already selected or just became selected, allow drag.
+    // Pointer moves only what was clicked (not the whole selection group —
+    // that's Select's behavior). Snapshot origin for the potential drag.
+    this._mode = 'move';
+    this._origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]]);
+    state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
+  },
+
+  onMouseMove(evt, canvas) {
+    if (this._mode !== 'move') return;
+    const w = worldUnderMouse(evt, canvas);
+    // Live-preview: apply delta from start to current, quantized to 32px.
+    const dxRaw = w.x - this._startWorld.x;
+    const dyRaw = w.y - this._startWorld.y;
+    const dx = Math.round(dxRaw / TILE_SIZE) * TILE_SIZE;
+    const dy = Math.round(dyRaw / TILE_SIZE) * TILE_SIZE;
+    for (const [ref, orig] of this._origPositions.entries()) {
+      ref.x = orig.x + dx;
+      ref.y = orig.y + dy;
+    }
+    state.dragMove.curWX = w.x;
+    state.dragMove.curWY = w.y;
+    import('./state.js').then(m => m.notify());
+  },
+
+  onMouseUp(_evt, _canvas) {
+    if (this._mode === 'move' && this._origPositions) {
+      // Commit as a single moveObject action (or empty if user just clicked
+      // without dragging — makeComposite of [] is a no-op via History guard).
+      const actions = [];
+      for (const [ref, orig] of this._origPositions.entries()) {
+        const dx = ref.x - orig.x;
+        const dy = ref.y - orig.y;
+        if (dx !== 0 || dy !== 0) actions.push(Actions.moveObject(ref, dx, dy));
+      }
+      if (actions.length > 0) {
+        History.record(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'move'));
+      }
+      state.dragMove = null;
+    }
+    this._mode = null;
+    this._origPositions = null;
+    this._startWorld = null;
+    import('./state.js').then(m => m.notify());
+  },
+};
+
+// ── SELECT TOOL ─────────────────────────────────────────────────────────
 // Default tool. Behavior:
 //   • Click on empty space           → clear selection + start marquee
 //   • Click on decoration            → select that decoration (Shift = additive/toggle)
@@ -318,10 +406,11 @@ export const panTool = {
 
 // Registry — main.js reads this to build the toolbar and dispatch events.
 export const TOOLS = {
-  select: selectTool,
-  place:  placeTool,
-  erase:  eraseTool,
-  pan:    panTool,
+  pointer: pointerTool,
+  select:  selectTool,
+  place:   placeTool,
+  erase:   eraseTool,
+  pan:     panTool,
 };
 
 // Middle-mouse pan is a global handler wired in main.js.
