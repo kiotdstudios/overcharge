@@ -26,7 +26,11 @@
         "south-west"
       ],
       "loop": true,
-      "notes": "WALK_FPS=4. Dir pattern: east/west in gameplay; all 8 dirs exist on disk."
+      "notes": "WALK_FPS=4. Dir pattern: east/west in gameplay; all 8 dirs exist on disk.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
+      }
     },
     {
       "id": "player_walk",
@@ -52,7 +56,11 @@
         "south-west"
       ],
       "loop": true,
-      "notes": "WALK_FPS=4."
+      "notes": "WALK_FPS=4.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
+      }
     },
     {
       "id": "player_run",
@@ -72,7 +80,11 @@
         "west"
       ],
       "loop": true,
-      "notes": "RUN_FPS=11. East+west only. Generated via PixelLab running-8-frames template on character c6503f8e."
+      "notes": "RUN_FPS=11. East+west only. Generated via PixelLab running-8-frames template on character c6503f8e.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
+      }
     },
     {
       "id": "player_jump",
@@ -98,7 +110,11 @@
         "south-west"
       ],
       "loop": false,
-      "notes": "Frame selected by vy (vertical velocity), not time. vy=-430\u2192frame 0, vy=0\u2192frame 4, vy=+430\u2192frame 8."
+      "notes": "Frame selected by vy (vertical velocity), not time. vy=-430\u2192frame 0, vy=0\u2192frame 4, vy=+430\u2192frame 8.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
+      }
     },
     {
       "id": "player_absorb",
@@ -119,7 +135,11 @@
         "west"
       ],
       "loop": true,
-      "notes": "Played while player is absorbing charge from a source. 18fps for energy urgency."
+      "notes": "Played while player is absorbing charge from a source. 18fps for energy urgency.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
+      }
     },
     {
       "id": "player_discharge",
@@ -145,7 +165,11 @@
         "south-west"
       ],
       "loop": true,
-      "notes": "Played while player is discharging into a gate/object."
+      "notes": "Played while player is discharging into a gate/object.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
+      }
     },
     {
       "id": "electrical_generator",
@@ -163,7 +187,11 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") \u2014 URL-encodes to %20; real HTTP servers handle this, but recommend renaming to \"generator_1\" (file-system change, coord with Orcha)."
+      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") \u2014 URL-encodes to %20; real HTTP servers handle this, but recommend renaming to \"generator_1\" (file-system change, coord with Orcha).",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 requires scripted placement by level designer"
+      }
     },
     {
       "id": "gate_electric_closed",
@@ -181,7 +209,11 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Static sprite. Drawn scaled to gate world dims (w x h). Charge fill overlay rendered on top in code. PixelLab job id: e9dfee77. PENDING: gate_electric_open needed."
+      "notes": "Static sprite. Drawn scaled to gate world dims (w x h). Charge fill overlay rendered on top in code. PixelLab job id: e9dfee77. PENDING: gate_electric_open needed.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 linked to generator/switches by ID"
+      }
     },
     {
       "id": "enemy_drain_walk",
@@ -202,7 +234,11 @@
         "west"
       ],
       "loop": true,
-      "notes": "Drain enemy walk cycle. East+west. PixelLab character \u2014 see drain_enemy folder."
+      "notes": "Drain enemy walk cycle. East+west. PixelLab character \u2014 see drain_enemy folder.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Enemy entity \u2014 spawn density is gameplay-scripted, not randomized"
+      }
     },
     {
       "id": "env_bg_mid_city",
@@ -220,7 +256,11 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Mid-layer parallax city. Tiled horizontally. Scrolls slower than foreground."
+      "notes": "Mid-layer parallax city. Tiled horizontally. Scrolls slower than foreground.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Parallax background \u2014 one per level, fixed position, placed by hand"
+      }
     },
     {
       "id": "tileset_purple_city_full",
@@ -237,7 +277,11 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Full spritesheet for the purple city tileset. Individual tiles also exported as separate PNGs."
+      "notes": "Full spritesheet for the purple city tileset. Individual tiles also exported as separate PNGs.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Full spritesheet reference \u2014 not a placeable decoration"
+      }
     },
     {
       "id": "env_tile_dark_a",
@@ -254,7 +298,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "18x18 \u2014 confirm tile_size with Orcha before using in level data."
+      "notes": "18x18 \u2014 confirm tile_size with Orcha before using in level data.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     },
     {
       "id": "env_tile_dark_b",
@@ -271,7 +326,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     },
     {
       "id": "env_tile_purple_a",
@@ -288,7 +354,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     },
     {
       "id": "env_tile_purple_b",
@@ -305,7 +382,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     },
     {
       "id": "env_building_large",
@@ -322,7 +410,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
     },
     {
       "id": "env_building_wide",
@@ -339,7 +438,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
     },
     {
       "id": "env_building_small_a",
@@ -356,7 +466,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "small"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
     },
     {
       "id": "env_platform_long_a",
@@ -372,7 +493,19 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "grounded"
+        ],
+        "surface": "floating",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
     },
     {
       "id": "env_platform_medium",
@@ -388,7 +521,19 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "grounded"
+        ],
+        "surface": "floating",
+        "layer": "midground",
+        "density": "medium",
+        "stackable": false
+      }
     },
     {
       "id": "env_platform_short_a",
@@ -404,7 +549,19 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "small"
+        ],
+        "surface": "floating",
+        "layer": "midground",
+        "density": "medium",
+        "stackable": false
+      }
     },
     {
       "id": "env_prop_street_lamp",
@@ -421,7 +578,19 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "small"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": false
+      }
     },
     {
       "id": "env_prop_pipe_thin",
@@ -438,7 +607,19 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
     },
     {
       "id": "env_prop_sign_arrow_right",
@@ -455,7 +636,19 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "small"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
     },
     {
       "id": "env_crate_large",
@@ -472,7 +665,20 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "structural",
+          "large"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
     },
     {
       "id": "env_container_small_a",
@@ -488,7 +694,19 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "small"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
     },
     {
       "id": "env_wall_brick_a",
@@ -505,7 +723,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "wall_face",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     },
     {
       "id": "env_wall_brick_b",
@@ -522,7 +751,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "wall_face",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     },
     {
       "id": "env_wall_brick_c",
@@ -539,7 +779,18 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": ""
+      "notes": "",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "wall_face",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     }
   ]
 }
