@@ -24,6 +24,11 @@ export const state = {
 
   // UI toggles
   showGrid: true,
+
+  // ── Level workflow / persistence ─────────────────────────────────────
+  dirty:           false,   // true when unsaved changes exist since load/save
+  lastSavedAt:     null,    // Date.now() timestamp of last successful save
+  availableLevels: [],      // populated by persistence.discoverLevels() at boot
 };
 
 const listeners = new Set();
@@ -70,9 +75,10 @@ export async function loadLevel(url) {
   if (!res.ok) throw new Error('level fetch failed: ' + url + ' → ' + res.status);
   state.level = await res.json();
   state.levelPath = url;
-  // Reset camera to level origin
+  // Reset camera to level origin, clear dirty flag (fresh load = clean)
   state.camera.x = 0;
   state.camera.y = 0;
+  state.dirty = false;
   notify();
   return state.level;
 }

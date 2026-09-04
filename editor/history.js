@@ -12,7 +12,11 @@
 // live in actions.js and can grow independently through Phase 3-7 (layers,
 // inspector edits, collision, links) without touching this file.
 
-import { notify } from './state.js';
+import { state, notify } from './state.js';
+
+// Mark the level as having unsaved changes. Called on every history mutation.
+// state.dirty is checked by persistence.js before switching/discarding levels.
+function _markDirty() { state.dirty = true; }
 
 const MAX_DEPTH = 200;   // spec asks for at least 100; 200 gives headroom
 
@@ -26,6 +30,7 @@ export function apply(action) {
   _undo.push(action);
   if (_undo.length > MAX_DEPTH) _undo.shift();   // drop oldest
   _redo.length = 0;                              // any new action invalidates redo
+  _markDirty();
   notify();
 }
 
@@ -38,6 +43,7 @@ export function record(action) {
   _undo.push(action);
   if (_undo.length > MAX_DEPTH) _undo.shift();
   _redo.length = 0;
+  _markDirty();
   notify();
 }
 
@@ -46,6 +52,7 @@ export function undo() {
   if (!a) return false;
   a.inverse();
   _redo.push(a);
+  _markDirty();
   notify();
   return true;
 }
@@ -55,6 +62,7 @@ export function redo() {
   if (!a) return false;
   a.forward();
   _undo.push(a);
+  _markDirty();
   notify();
   return true;
 }
