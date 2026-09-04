@@ -15,6 +15,7 @@ import {
   screenToWorld, worldToTile, TILE_SIZE,
   panCamera, zoomCamera, state,
   snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
+  SNAP_DECORATION_DEFAULT,
   decoDimensions, getCachedImage,
 } from './state.js';
 import * as Actions from './actions.js';
@@ -99,7 +100,7 @@ export const pointerTool = {
     // whichever kind was hit (decoration.snap, or 16 for gameplay markers).
     const dxRaw = w.x - this._startWorld.x;
     const dyRaw = w.y - this._startWorld.y;
-    const s = this._snap ?? 16;
+    const s = this._snap ?? SNAP_DECORATION_DEFAULT;
     const { dx, dy } = snapDelta(dxRaw, dyRaw, s);
     for (const [ref, orig] of this._origPositions.entries()) {
       ref.x = orig.x + dx;
@@ -204,7 +205,7 @@ export const selectTool = {
       // ref. 32 is a multiple of 16 so mixed groups still land on valid grids.
       const dxRaw = w.x - this._startWorld.x;
       const dyRaw = w.y - this._startWorld.y;
-      const { dx, dy } = snapDelta(dxRaw, dyRaw, this._groupSnap ?? 16);
+      const { dx, dy } = snapDelta(dxRaw, dyRaw, this._groupSnap ?? SNAP_DECORATION_DEFAULT);
       for (const [ref, orig] of this._origPositions.entries()) {
         ref.x = orig.x + dx;
         ref.y = orig.y + dy;

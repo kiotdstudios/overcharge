@@ -6,14 +6,19 @@
 export const TILE_SIZE = 32;
 
 // ── Snap resolution constants ────────────────────────────────────────────
-// Terrain always snaps to TILE_SIZE (the game construction grid). Non-terrain
-// decorations use a finer grid so small assets (walls, thin pipes, containers)
-// can sit flush against each other. Assets may override via `asset.snap` in
-// the manifest; if absent, we use SNAP_DECORATION_DEFAULT. Gameplay markers
-// (sources, gates, switches, checkpoints, enemies, playerStart) use the same
-// finer grid — they benefit from precise placement too.
+// Terrain always snaps to TILE_SIZE (the game construction grid).
+//
+// Non-terrain decorations default to 1px so arbitrary-native-dimension art
+// (e.g. a 26px brick) can sit flush against neighbors — a 16px snap CANNOT
+// achieve edge-to-edge placement for widths that are not multiples of 16.
+// Assets in the manifest may explicitly opt into a coarser grid via `snap`.
+//
+// Gameplay markers (sources, gates, switches, checkpoints, enemies,
+// playerStart) use their own default — currently 16 — as a middle ground:
+// finer than terrain, coarser than free-pixel decorations. Adjustable later.
 export const SNAP_TERRAIN            = TILE_SIZE;   // 32 — do not change
-export const SNAP_DECORATION_DEFAULT = 16;          // half-grid; still a multiple of TILE_SIZE
+export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
+export const SNAP_GAMEPLAY_DEFAULT   = 16;          // spawn/source/gate/switch/checkpoint/enemy
 
 // Quantize a single world coordinate down to the nearest `snap`-aligned point.
 // Used at placement time (defines the object's origin).
@@ -41,19 +46,40 @@ export function snapDelta(dx, dy, snap) {
 export function snapForRef(kind, ref) {
   if (kind === 'tile') return SNAP_TERRAIN;
   if (kind === 'decoration' && ref && typeof ref.snap === 'number') return ref.snap;
-  return SNAP_DECORATION_DEFAULT;
+  if (kind === 'decoration') return SNAP_DECORATION_DEFAULT;
+  // sources, gates, switches, checkpoints, enemies, playerStart
+  return SNAP_GAMEPLAY_DEFAULT;
 }
 
-// Group-move delta snap: use the FINEST snap present so every object stays
-// on a valid grid (32 is a multiple of 16, so terrain items in a mixed group
-// still land on their own grid when quantized to 16). Refs is [{kind, ref}].
+// ── Group-move delta snap ────────────────────────────────────────────────
+// A group-move delta is valid only if it is a valid delta for EVERY member.
+// The set of valid deltas for one member with snap S is {n·S : n ∈ Z}.
+// The intersection of {n·A} and {n·B} is {n·LCM(A,B)}. So the group's
+// required delta increment is the LCM of all members' snaps.
+//
+// In our value space this reduces to the MAX when the finer snap divides the
+// coarser (16 divides 32; 1 divides everything), which is the common case:
+//   • terrain(32) + deco(16)  → LCM(32,16) = 32
+//   • terrain(32) + deco(1)   → LCM(32, 1) = 32
+//   • deco(16)   + deco(1)   → LCM(16, 1) = 16
+//   • deco(1)    + deco(1)   → LCM( 1, 1) =  1   (freeform)
+// This is Chief's "most restrictive compatible movement increment".
+function _gcd(a, b) { a = Math.abs(a|0); b = Math.abs(b|0); while (b) { [a, b] = [b, a % b]; } return a || 1; }
+function _lcm(a, b) { return Math.abs((a * b) / _gcd(a, b)); }
 export function groupSnap(refs) {
-  let min = SNAP_TERRAIN;
-  for (const { kind, ref } of refs) {
-    const s = snapForRef(kind, ref);
-    if (s < min) min = s;
-  }
-  return min;
+  if (!refs || refs.length === 0) return SNAP_DECORATION_DEFAULT;
+  let acc = 1;
+  for (const { kind, ref } of refs) acc = _lcm(acc, snapForRef(kind, ref));
+  return acc || SNAP_DECORATION_DEFAULT;
+}
+
+// LCM of a numeric list. Callers that already have snap values (e.g. clipboard
+// enumerating clipped items' preserved snaps) use this directly.
+export function lcmSnap(values) {
+  if (!values || values.length === 0) return SNAP_DECORATION_DEFAULT;
+  let acc = 1;
+  for (const v of values) if (v > 0) acc = _lcm(acc, v);
+  return acc || SNAP_DECORATION_DEFAULT;
 }
 
 // Snap resolution to USE at placement time for a manifest asset. Terrain

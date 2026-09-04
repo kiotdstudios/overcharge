@@ -9,7 +9,7 @@
 // Undo/redo: paste and duplicate go through history as composite actions so
 // Ctrl+Z reverts the whole paste in one press.
 
-import { state, TILE_SIZE, levelRows, snapPoint, SNAP_DECORATION_DEFAULT } from './state.js';
+import { state, TILE_SIZE, levelRows, snapPoint, lcmSnap, SNAP_DECORATION_DEFAULT } from './state.js';
 import {
   selectedDecorations, selectedTiles, clearSelection, selectDecoration, selectTile,
   selectedSources, selectedGates, selectedSwitches, selectedCheckpoints, selectedEnemies,
@@ -117,17 +117,15 @@ export function paste(targetWorld = null) {
   const clip = state.clipboard;
   if (!clip) return false;
 
-  // Determine paste-anchor snap resolution. Tiles imply terrain (32);
-  // decorations imply per-clip snap → default 16. Choose finest so mixed
-  // clipboards paste onto valid grids for both. When no cursor target is
-  // given, we're doing the standard 1-tile-offset paste — that offset stays
-  // TILE_SIZE (32) so decoration copies remain visually adjacent.
-  const clipHasTiles = clip.tiles && clip.tiles.length > 0;
-  const clipMinDecoSnap = clip.decorations.reduce(
-    (min, c) => Math.min(min, (typeof c.snap === 'number') ? c.snap : SNAP_DECORATION_DEFAULT),
-    TILE_SIZE
+  // Determine paste-anchor snap resolution. Each pasted item's final position
+  // is anchor + itemOffset. For that to be a multiple of the item's own snap
+  // (its offset was already a multiple of its snap when copied), the anchor
+  // must be a multiple of every item's snap → LCM. Tiles impose TILE_SIZE.
+  const snaps = clip.decorations.map(c =>
+    (typeof c.snap === 'number') ? c.snap : SNAP_DECORATION_DEFAULT
   );
-  const pasteSnap = clipHasTiles ? TILE_SIZE : clipMinDecoSnap;
+  if (clip.tiles && clip.tiles.length > 0) snaps.push(TILE_SIZE);
+  const pasteSnap = lcmSnap(snaps);
 
   const anchor = targetWorld
     ? snapPoint(targetWorld.x, targetWorld.y, pasteSnap)
