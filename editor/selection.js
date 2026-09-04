@@ -14,7 +14,12 @@
 // that's selected. Tools (select tool, delete, copy/paste) read and write it.
 // Selection is transient (not saved with level). Cleared on level load.
 
-import { state, notify, TILE_SIZE, levelRows } from './state.js';
+import { state, notify, TILE_SIZE, levelRows, worldToScreen } from './state.js';
+
+// Move-handle visual geometry (screen-space, constant across zoom).
+export const MOVE_HANDLE_RADIUS = 6;   // dot radius in screen px (visual)
+export const MOVE_HANDLE_HIT    = 10;  // click hit radius (visual + a little tolerance)
+export const MOVE_HANDLE_OFFSET = 20;  // dot sits this far ABOVE the bbox top
 
 // Extend state.selection lazily — state.js doesn't need to know these fields.
 if (!state.selection) {
@@ -267,4 +272,51 @@ export function objectsInRect(x, y, w, h) {
   for (const o of L.enemies     || []) if (check('enemy',      o)) out.enemies.push(o);
   if (L.playerStart && check('playerStart', L.playerStart)) out.playerStart = true;
   return out;
+}
+
+// ── Move handle ──────────────────────────────────────────────────────────
+// A visible dot-handle sits above the top-center of the current selection's
+// bounding box. Only rendered when at least one MOVABLE ref is selected
+// (tiles alone don't get a handle — tiles aren't currently movable). Multi-
+// selection produces ONE handle at the union bbox. Constant screen size
+// across zoom because computed in screen space at render time.
+
+// World-space bounding box of every currently-selected movable ref. Excludes
+// tiles (they'd need column/row math and aren't drag-movable today). Returns
+// { x, y, w, h } in world coords or null when there's nothing movable selected.
+export function selectedBoundingBox() {
+  const refs = selectedRefs();
+  if (refs.length === 0) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const { kind, ref } of refs) {
+    const r = boundingRect(kind, ref);
+    if (!r) continue;
+    if (r.x         < minX) minX = r.x;
+    if (r.y         < minY) minY = r.y;
+    if (r.x + r.w   > maxX) maxX = r.x + r.w;
+    if (r.y + r.h   > maxY) maxY = r.y + r.h;
+  }
+  if (!isFinite(minX)) return null;
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+// Screen-space position of the move handle dot. Returns { sx, sy, r } or null.
+// The `r` returned is the VISUAL radius; use MOVE_HANDLE_HIT for click testing.
+// Because everything is computed in screen space, the handle size does not
+// scale with camera zoom — which is exactly what Chief asked for.
+export function moveHandleScreen() {
+  const bb = selectedBoundingBox();
+  if (!bb) return null;
+  const topCenterWorldX = bb.x + bb.w / 2;
+  const topCenterWorldY = bb.y;
+  const p = worldToScreen(topCenterWorldX, topCenterWorldY);
+  return { sx: p.x, sy: p.y - MOVE_HANDLE_OFFSET, r: MOVE_HANDLE_RADIUS };
+}
+
+// Test whether a canvas-local (sx, sy) hits the current move handle.
+export function moveHandleContains(sx, sy) {
+  const h = moveHandleScreen();
+  if (!h) return false;
+  const dx = sx - h.sx, dy = sy - h.sy;
+  return (dx * dx + dy * dy) <= (MOVE_HANDLE_HIT * MOVE_HANDLE_HIT);
 }

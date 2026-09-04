@@ -62,9 +62,30 @@ export const pointerTool = {
   _mode:  null,           // null | 'move' | 'idle'
   _startWorld: null,
   _origPositions: null,   // Map<ref, {x, y}> for move undo (single object)
-
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
+
+    // ─ Handle-drag path ─ if the click landed on the move-handle dot,
+    // begin a group drag of the current selection using LCM snap.
+    const { sx, sy } = canvasCoords(evt, canvas);
+    if (Selection.moveHandleContains(sx, sy)) {
+      const refs = Selection.selectedRefs();
+      if (refs.length > 0) {
+        const w = worldUnderMouse(evt, canvas);
+        this._startWorld = w;
+        this._mode = 'move';
+        this._origPositions = new Map();
+        for (const { ref } of refs) {
+          if (ref && typeof ref.x === 'number' && typeof ref.y === 'number') {
+            this._origPositions.set(ref, { x: ref.x, y: ref.y });
+          }
+        }
+        this._snap = groupSnap(refs);
+        state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
+        return;
+      }
+    }
+
     const w = worldUnderMouse(evt, canvas);
     this._startWorld = w;
 
@@ -83,9 +104,9 @@ export const pointerTool = {
       Selection.selectByKind(hit.kind, hit.ref, false);
     }
 
-    // Whether the hit was already selected or just became selected, allow drag.
-    // Pointer moves only what was clicked (not the whole selection group —
-    // that's Select's behavior). Snapshot origin for the potential drag.
+    // Direct-click drag still moves only the clicked object (Pointer's
+    // "just this one" behavior). Users wanting group drag should marquee
+    // with Select then use the handle for the group.
     this._mode = 'move';
     this._origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]]);
     this._snap = snapForRef(hit.kind, hit.ref);
@@ -154,9 +175,30 @@ export const selectTool = {
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
     this._shift = evt.shiftKey;
+
+    // ─ Handle-drag path ─ same as Pointer: hitting the move-handle dot
+    // begins a group drag of whatever's currently selected.
+    const cc = canvasCoords(evt, canvas);
+    if (Selection.moveHandleContains(cc.sx, cc.sy)) {
+      const refs = Selection.selectedRefs();
+      if (refs.length > 0) {
+        const w0 = worldUnderMouse(evt, canvas);
+        this._startWorld = w0;
+        this._mode = 'move';
+        this._origPositions = new Map();
+        for (const { ref } of refs) {
+          if (ref && typeof ref.x === 'number' && typeof ref.y === 'number') {
+            this._origPositions.set(ref, { x: ref.x, y: ref.y });
+          }
+        }
+        this._groupSnap = groupSnap(refs);
+        state.dragMove = { active: true, startWX: w0.x, startWY: w0.y, curWX: w0.x, curWY: w0.y };
+        return;
+      }
+    }
+
     const w = worldUnderMouse(evt, canvas);
     this._startWorld = w;
-
     const hit = Selection.objectAt(w.x, w.y);
     const alreadySelected = hit && Selection.isRefSelected(hit.kind, hit.ref);
 

@@ -6,6 +6,7 @@
 // Any level JSON conforming to SCHEMA.md renders correctly. No Level-1 assumptions.
 
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight, worldToScreen } from './state.js';
+import * as Selection from './selection.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
 function getImage(path) {
@@ -189,6 +190,31 @@ export function render(ctx, canvas) {
     }
   }
 
+  // Move handle — bright dot at top-center of selection bounding box.
+  // Rendered in screen space so its size is constant across zoom. Not
+  // saved to level JSON; game runtime never sees this.
+  const handle = Selection.moveHandleScreen();
+  if (handle) {
+    // Thin connector line from bbox top down to handle so user sees the link
+    const bb = Selection.selectedBoundingBox();
+    if (bb) {
+      const bboxTopMid = worldToScreen(bb.x + bb.w / 2, bb.y);
+      ctx.strokeStyle = 'rgba(255,238,0,0.45)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(handle.sx, handle.sy + handle.r);
+      ctx.lineTo(bboxTopMid.x, bboxTopMid.y - 1);
+      ctx.stroke();
+    }
+    // The dot itself: bright yellow fill, dark outline for contrast on any background
+    ctx.beginPath();
+    ctx.arc(handle.sx, handle.sy, handle.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffee00';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#000';
+    ctx.stroke();
+  }
   // Marquee rect (during marquee drag)
   if (state.marquee && state.marquee.active) {
     const m = state.marquee;
