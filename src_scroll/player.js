@@ -161,7 +161,7 @@ export class Player {
     const prevBottom = this.y + this.h;
     this.y += this.vy * dt;
     this._resolveY(level, prevBottom, dropDown);
-    this._resolvePlatforms(level, dt);
+    this._resolvePlatforms(level, prevBottom, dt);
 
     // Clamp to canvas bounds — ceiling at y=0 prevents jumping above all barriers
     if (this.x < 0) { this.x = 0; this.vx = 0; }
@@ -210,16 +210,16 @@ export class Player {
 
   // ── Moving platform collision ──────────────
   // Must run after _resolveY so tilemap grounding takes priority
-  _resolvePlatforms(level, dt) {
+  _resolvePlatforms(level, prevBottom, dt) {
     for (const pl of level.platforms) {
       // Overlap check: player rect vs platform rect
       const overlapX = this.x < pl.x + pl.w && this.x + this.w > pl.x;
       if (!overlapX) continue;
       const playerBottom = this.y + this.h;
       const withinY = playerBottom >= pl.y && playerBottom <= pl.y + pl.h + 4;
-      // Only snap if player was above the platform last frame (approaching from above)
-      const prevBottom = playerBottom - this.vy * dt;
-      if (withinY && prevBottom <= pl.y + 2 && this.vy >= 0) {
+      // prevBottom from before this frame's y-move — reliable even if _resolveY zeroed vy.
+      // 8px tolerance: falling player can overshoot tile top by a few px within one frame.
+      if (withinY && prevBottom <= pl.y + 8 && this.vy >= 0) {
         this.y        = pl.y - this.h;
         this.vy       = 0;
         this.grounded = true;
@@ -246,7 +246,7 @@ export class Player {
         // Using (tBot+1)*TILE instead of tBot*TILE prevents fall-through when
         // standing still — gravity nudges the player ~0.23px per frame which
         // rounds the tile index one row up, missing the narrow top-of-tile check.
-        if (tile === 2 && !dropThrough && prevBottom <= tBot * TILE) {
+        if (tile === 2 && !dropThrough && prevBottom <= tBot * TILE + 8) {
           this.y        = tBot * TILE - this.h;
           this.vy       = 0;
           this.grounded = true;
