@@ -9,7 +9,7 @@
 // Undo/redo: paste and duplicate go through history as composite actions so
 // Ctrl+Z reverts the whole paste in one press.
 
-import { state, TILE_SIZE, levelRows } from './state.js';
+import { state, TILE_SIZE, levelRows, snapPoint, SNAP_DECORATION_DEFAULT } from './state.js';
 import {
   selectedDecorations, selectedTiles, clearSelection, selectDecoration, selectTile,
   selectedSources, selectedGates, selectedSwitches, selectedCheckpoints, selectedEnemies,
@@ -41,6 +41,8 @@ export function copy() {
     decorations: decs.map(d => ({
       offX: d.x - minX, offY: d.y - minY,
       src: d.src, w: d.w, h: d.h,
+      // Preserve per-item snap so pasted items retain their placement grid.
+      snap: (typeof d.snap === 'number') ? d.snap : undefined,
     })),
     // Tiles stored with column/row offsets AND the current value at that cell.
     tiles: tiles.map(t => {
@@ -115,9 +117,20 @@ export function paste(targetWorld = null) {
   const clip = state.clipboard;
   if (!clip) return false;
 
+  // Determine paste-anchor snap resolution. Tiles imply terrain (32);
+  // decorations imply per-clip snap → default 16. Choose finest so mixed
+  // clipboards paste onto valid grids for both. When no cursor target is
+  // given, we're doing the standard 1-tile-offset paste — that offset stays
+  // TILE_SIZE (32) so decoration copies remain visually adjacent.
+  const clipHasTiles = clip.tiles && clip.tiles.length > 0;
+  const clipMinDecoSnap = clip.decorations.reduce(
+    (min, c) => Math.min(min, (typeof c.snap === 'number') ? c.snap : SNAP_DECORATION_DEFAULT),
+    TILE_SIZE
+  );
+  const pasteSnap = clipHasTiles ? TILE_SIZE : clipMinDecoSnap;
+
   const anchor = targetWorld
-    ? { x: Math.floor(targetWorld.x / TILE_SIZE) * TILE_SIZE,
-        y: Math.floor(targetWorld.y / TILE_SIZE) * TILE_SIZE }
+    ? snapPoint(targetWorld.x, targetWorld.y, pasteSnap)
     : { x: clip.anchorWorld.x + PASTE_TILE_OFFSET * TILE_SIZE,
         y: clip.anchorWorld.y + PASTE_TILE_OFFSET * TILE_SIZE };
 
@@ -126,8 +139,14 @@ export function paste(targetWorld = null) {
   const newTiles = [];
 
   // Build decorations, wrapping each in an add_decoration action.
+  // Preserve the clipped item's snap so its own drag-move stays consistent.
   for (const c of clip.decorations) {
-    const dec = { src: c.src, x: anchor.x + c.offX, y: anchor.y + c.offY, w: c.w, h: c.h };
+    const dec = {
+      src: c.src,
+      x: anchor.x + c.offX, y: anchor.y + c.offY,
+      w: c.w, h: c.h,
+      snap: (typeof c.snap === 'number') ? c.snap : SNAP_DECORATION_DEFAULT,
+    };
     const a = Actions.addDecoration(dec);
     if (a) { actions.push(a); newDecs.push(dec); }
   }

@@ -2,7 +2,7 @@
 
 import {
   state, subscribe,
-  loadManifest, loadLevel,
+  loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
 } from './state.js';
 import { render } from './renderer.js';
@@ -245,6 +245,9 @@ async function bootstrap() {
   mountAssetBrowser(sidebar);
   try {
     await loadManifest('assets/ASSET_MANIFEST.json');
+    // Preload every non-animated asset image so placeTool can read
+    // naturalWidth/naturalHeight synchronously as a dimension fallback.
+    await preloadManifestImages();
     state.availableLevels = await Persistence.discoverLevels();
     await loadLevel(DEFAULT_LEVEL_URL);
     History.clearAll();

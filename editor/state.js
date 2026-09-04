@@ -5,6 +5,110 @@
 
 export const TILE_SIZE = 32;
 
+// ── Snap resolution constants ────────────────────────────────────────────
+// Terrain always snaps to TILE_SIZE (the game construction grid). Non-terrain
+// decorations use a finer grid so small assets (walls, thin pipes, containers)
+// can sit flush against each other. Assets may override via `asset.snap` in
+// the manifest; if absent, we use SNAP_DECORATION_DEFAULT. Gameplay markers
+// (sources, gates, switches, checkpoints, enemies, playerStart) use the same
+// finer grid — they benefit from precise placement too.
+export const SNAP_TERRAIN            = TILE_SIZE;   // 32 — do not change
+export const SNAP_DECORATION_DEFAULT = 16;          // half-grid; still a multiple of TILE_SIZE
+
+// Quantize a single world coordinate down to the nearest `snap`-aligned point.
+// Used at placement time (defines the object's origin).
+export function snapPoint(x, y, snap) {
+  return {
+    x: Math.floor(x / snap) * snap,
+    y: Math.floor(y / snap) * snap,
+  };
+}
+
+// Quantize a movement DELTA (dx, dy). Used during drag-move so relative
+// spacing across a group is preserved (one delta, applied to everyone).
+export function snapDelta(dx, dy, snap) {
+  return {
+    dx: Math.round(dx / snap) * snap,
+    dy: Math.round(dy / snap) * snap,
+  };
+}
+
+// Determine snap resolution for a given ref (a level object). Kind is one of:
+// 'decoration' | 'source' | 'gate' | 'switch' | 'checkpoint' | 'enemy' |
+// 'playerStart' | 'tile'. Decorations may carry an explicit `snap` field
+// stored at placement time; older decorations without it fall through to
+// SNAP_DECORATION_DEFAULT.
+export function snapForRef(kind, ref) {
+  if (kind === 'tile') return SNAP_TERRAIN;
+  if (kind === 'decoration' && ref && typeof ref.snap === 'number') return ref.snap;
+  return SNAP_DECORATION_DEFAULT;
+}
+
+// Group-move delta snap: use the FINEST snap present so every object stays
+// on a valid grid (32 is a multiple of 16, so terrain items in a mixed group
+// still land on their own grid when quantized to 16). Refs is [{kind, ref}].
+export function groupSnap(refs) {
+  let min = SNAP_TERRAIN;
+  for (const { kind, ref } of refs) {
+    const s = snapForRef(kind, ref);
+    if (s < min) min = s;
+  }
+  return min;
+}
+
+// Snap resolution to USE at placement time for a manifest asset. Terrain
+// categories always 32; anything else takes asset.snap or the decoration
+// default. Kept alongside the other helpers so callers only import one place.
+export function snapForAsset(asset) {
+  if (!asset) return SNAP_DECORATION_DEFAULT;
+  const cat = asset.category;
+  if (cat === 'tile' || cat === 'terrain' || cat === 'tileset') return SNAP_TERRAIN;
+  return (typeof asset.snap === 'number') ? asset.snap : SNAP_DECORATION_DEFAULT;
+}
+
+// Resolve the pixel dimensions a decoration should occupy when placed.
+// Priority: manifest width/height → cached image.naturalWidth/Height → TILE_SIZE.
+// `cachedImg` is the shared preloaded HTMLImageElement (see imgCache below).
+export function decoDimensions(asset, cachedImg) {
+  const w = (asset && typeof asset.width  === 'number' && asset.width  > 0) ? asset.width
+          : (cachedImg && cachedImg.complete && cachedImg.naturalWidth  > 0) ? cachedImg.naturalWidth
+          : TILE_SIZE;
+  const h = (asset && typeof asset.height === 'number' && asset.height > 0) ? asset.height
+          : (cachedImg && cachedImg.complete && cachedImg.naturalHeight > 0) ? cachedImg.naturalHeight
+          : TILE_SIZE;
+  return { w, h };
+}
+
+// ── Shared image cache ───────────────────────────────────────────────────
+// Both placeTool (dimension resolution) and renderer.js (drawing) share this
+// so a decoration's natural dimensions are known at placement even when the
+// user has never seen its thumbnail — provided we preloaded at manifest load.
+const _imgCache = new Map();
+export function getCachedImage(path) {
+  let img = _imgCache.get(path);
+  if (!img) {
+    img = new Image();
+    img.src = path;
+    _imgCache.set(path, img);
+  }
+  return img;
+}
+// Preload every non-animated asset path from the manifest. Returns a promise
+// that resolves when all images have finished loading (success or error).
+// Called from bootstrap right after loadManifest so placement is deterministic.
+export function preloadManifestImages() {
+  if (!state.manifest || !Array.isArray(state.manifest.items)) return Promise.resolve();
+  const paths = state.manifest.items
+    .filter(it => it && it.path && !it.isAnimation)
+    .map(it => it.path);
+  return Promise.all(paths.map(p => new Promise(resolve => {
+    const img = getCachedImage(p);
+    if (img.complete && img.naturalWidth > 0) return resolve();
+    img.addEventListener('load',  () => resolve(), { once: true });
+    img.addEventListener('error', () => resolve(), { once: true });
+  })));
+}
+
 export const state = {
   // Loaded data
   manifest:     null,   // full asset manifest json (see MANIFEST.md)

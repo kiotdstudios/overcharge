@@ -14,6 +14,8 @@
 import {
   screenToWorld, worldToTile, TILE_SIZE,
   panCamera, zoomCamera, state,
+  snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
+  decoDimensions, getCachedImage,
 } from './state.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
@@ -32,16 +34,12 @@ function tileUnderMouse(evt, canvas) {
   const w = worldUnderMouse(evt, canvas);
   return worldToTile(w.x, w.y);
 }
-// Snap a world coordinate down to the nearest 32×32 grid corner (top-left).
-function snapToGrid(worldX, worldY) {
-  return {
-    x: Math.floor(worldX / TILE_SIZE) * TILE_SIZE,
-    y: Math.floor(worldY / TILE_SIZE) * TILE_SIZE,
-  };
-}
 function isTerrainCategory(cat) {
   return cat === 'tile' || cat === 'terrain' || cat === 'tileset';
 }
+// Legacy terrain-snap alias (32-only). Retained because paste-anchor code in
+// clipboard.js used to import it. Prefer snapPoint() from state.js.
+function snapToGrid(worldX, worldY) { return snapPoint(worldX, worldY, TILE_SIZE); }
 
 // ── POINTER TOOL ────────────────────────────────────────────────────────
 // Default everyday editing tool. Simpler than Select — no marquee, no shift-
@@ -89,17 +87,20 @@ export const pointerTool = {
     // that's Select's behavior). Snapshot origin for the potential drag.
     this._mode = 'move';
     this._origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]]);
+    this._snap = snapForRef(hit.kind, hit.ref);
     state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
   },
 
   onMouseMove(evt, canvas) {
     if (this._mode !== 'move') return;
     const w = worldUnderMouse(evt, canvas);
-    // Live-preview: apply delta from start to current, quantized to 32px.
+    // Live-preview: quantize delta to the ref's snap resolution. For pointer
+    // the "group" is always the single clicked object, so snap comes from
+    // whichever kind was hit (decoration.snap, or 16 for gameplay markers).
     const dxRaw = w.x - this._startWorld.x;
     const dyRaw = w.y - this._startWorld.y;
-    const dx = Math.round(dxRaw / TILE_SIZE) * TILE_SIZE;
-    const dy = Math.round(dyRaw / TILE_SIZE) * TILE_SIZE;
+    const s = this._snap ?? 16;
+    const { dx, dy } = snapDelta(dxRaw, dyRaw, s);
     for (const [ref, orig] of this._origPositions.entries()) {
       ref.x = orig.x + dx;
       ref.y = orig.y + dy;
@@ -127,6 +128,7 @@ export const pointerTool = {
     this._mode = null;
     this._origPositions = null;
     this._startWorld = null;
+    this._snap = null;
     import('./state.js').then(m => m.notify());
   },
 };
@@ -165,17 +167,20 @@ export const selectTool = {
         // Begin drag-move of the current selection (all kinds)
         this._mode = 'move';
         this._origPositions = new Map();
-        for (const { ref } of Selection.selectedRefs()) {
+        const refs = Selection.selectedRefs();
+        for (const { ref } of refs) {
           if (ref && typeof ref.x === 'number' && typeof ref.y === 'number') {
             this._origPositions.set(ref, { x: ref.x, y: ref.y });
           }
         }
+        this._groupSnap = groupSnap(refs);
         state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
       } else {
         // Select just this one, prep for potential drag
         Selection.selectByKind(hit.kind, hit.ref, false);
         this._mode = 'move';
         this._origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]]);
+        this._groupSnap = snapForRef(hit.kind, hit.ref);
         state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
       }
     } else {
@@ -194,11 +199,12 @@ export const selectTool = {
       state.marquee.curWY = w.y;
       import('./state.js').then(m => m.notify());
     } else if (this._mode === 'move') {
-      // Live-preview move: apply delta from start to current, quantized to 32px.
+      // Group-move: preserve relative spacing. Quantize the delta ONCE using
+      // the finest snap in the selection, then apply that same delta to every
+      // ref. 32 is a multiple of 16 so mixed groups still land on valid grids.
       const dxRaw = w.x - this._startWorld.x;
       const dyRaw = w.y - this._startWorld.y;
-      const dx = Math.round(dxRaw / TILE_SIZE) * TILE_SIZE;
-      const dy = Math.round(dyRaw / TILE_SIZE) * TILE_SIZE;
+      const { dx, dy } = snapDelta(dxRaw, dyRaw, this._groupSnap ?? 16);
       for (const [ref, orig] of this._origPositions.entries()) {
         ref.x = orig.x + dx;
         ref.y = orig.y + dy;
@@ -247,6 +253,7 @@ export const selectTool = {
     this._mode = null;
     this._origPositions = null;
     this._startWorld = null;
+    this._groupSnap = null;
     import('./state.js').then(m => m.notify());
   },
 };
@@ -278,15 +285,22 @@ export const placeTool = {
     } else if (asset.isAnimation) {
       console.warn('[editor] animation asset placement not supported in Phase 1:', asset.id);
     } else {
-      // Non-terrain decoration
-      const w = worldUnderMouse(evt, canvas);
-      const s = snapToGrid(w.x, w.y);
+      // Non-terrain decoration. Snap resolution comes from the asset
+      // (manifest asset.snap → SNAP_DECORATION_DEFAULT of 16). Dimensions
+      // come from the manifest when present, otherwise the preloaded image's
+      // naturalWidth/Height, otherwise TILE_SIZE as a last-resort fallback.
+      const wPt  = worldUnderMouse(evt, canvas);
+      const snap = snapForAsset(asset);
+      const pos  = snapPoint(wPt.x, wPt.y, snap);
+      const img  = getCachedImage(asset.path);
+      const dims = decoDimensions(asset, img);
       const dec = {
-        src: asset.path,
-        x:   s.x,
-        y:   s.y,
-        w:   asset.width  || TILE_SIZE,
-        h:   asset.height || TILE_SIZE,
+        src:  asset.path,
+        x:    pos.x,
+        y:    pos.y,
+        w:    dims.w,
+        h:    dims.h,
+        snap: snap,     // remember so drag-move / paste use the same resolution
       };
       const a = Actions.addDecoration(dec);
       if (a) History.apply(a);
