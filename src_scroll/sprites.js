@@ -58,6 +58,7 @@ export class PlayerSprites {
     this.idle_e      = new Animator(loadFrames(framePaths('idle_2.0',  'east', 11)), WALK_FPS);
     this.walk_e      = new Animator(loadFrames(framePaths('walking',   'east',  9)), WALK_FPS);
     this.jump_e      = new Animator(loadFrames(framePaths('jumping',   'east',  9)), WALK_FPS);
+    this.run_e       = new Animator(loadFrames(framePaths('running',   'east',  9)), RUN_FPS);
     this.charge_e    = new Animator(loadFrames(framePaths('charge_anim', 'east', 11)), 18);
     this.discharge_e = new Animator(loadFrames(framePaths('discharge', 'east', 11)), WALK_FPS);
 
@@ -65,6 +66,7 @@ export class PlayerSprites {
     this.idle_w      = new Animator(loadFrames(framePaths('idle_2.0',  'west', 11)), WALK_FPS);
     this.walk_w      = new Animator(loadFrames(framePaths('walking',   'west',  9)), WALK_FPS);
     this.jump_w      = new Animator(loadFrames(framePaths('jumping',   'west',  9)), WALK_FPS);
+    this.run_w       = new Animator(loadFrames(framePaths('running',   'west',  9)), RUN_FPS);
     this.charge_w    = new Animator(loadFrames(framePaths('charge_anim', 'west', 11)), 18);
     this.discharge_w = new Animator(loadFrames(framePaths('discharge', 'west', 11)), WALK_FPS);
 
@@ -79,6 +81,8 @@ export class PlayerSprites {
     let next;
     if (isAbsorbing || isDischarging) {
       next = this[`charge_${dir}`];
+    } else if (isRunning && isMoving) {
+      next = this[`run_${dir}`];
     } else if (isMoving) {
       next = this[`walk_${dir}`];
       // Distance-based fps: advance one frame per 20px traveled so steps match movement
