@@ -51,14 +51,14 @@ export class Animator {
 }
 
 // ── PlayerSprites: all animation states for the player ─────────────
-// Anims: idle (11f), walking (9f), jumping (9f), running (9f), charge (11f), discharge (11f)
+// Anims: idle (11f), walking (9f), jumping (9f), running (8f), charge (11f), discharge (11f)
 export class PlayerSprites {
   constructor() {
     // East variants
     this.idle_e      = new Animator(loadFrames(framePaths('idle_2.0',    'east', 11)), WALK_FPS);
     this.walk_e      = new Animator(loadFrames(framePaths('walking',     'east',  9)), WALK_FPS);
     this.jump_e      = new Animator(loadFrames(framePaths('jumping',     'east',  9)), WALK_FPS);
-    this.run_e       = new Animator(loadFrames(framePaths('running',     'east',  9)), RUN_FPS);
+    this.run_e       = new Animator(loadFrames(framePaths('running',     'east',  8)), RUN_FPS);
     this.charge_e    = new Animator(loadFrames(framePaths('charge_anim', 'east', 11)), 18);
     this.discharge_e = new Animator(loadFrames(framePaths('discharge',   'east', 11)), WALK_FPS);
 
@@ -66,7 +66,7 @@ export class PlayerSprites {
     this.idle_w      = new Animator(loadFrames(framePaths('idle_2.0',    'west', 11)), WALK_FPS);
     this.walk_w      = new Animator(loadFrames(framePaths('walking',     'west',  9)), WALK_FPS);
     this.jump_w      = new Animator(loadFrames(framePaths('jumping',     'west',  9)), WALK_FPS);
-    this.run_w       = new Animator(loadFrames(framePaths('running',     'west',  9)), RUN_FPS);
+    this.run_w       = new Animator(loadFrames(framePaths('running',     'west',  8)), RUN_FPS);
     this.charge_w    = new Animator(loadFrames(framePaths('charge_anim', 'west', 11)), 18);
     this.discharge_w = new Animator(loadFrames(framePaths('discharge',   'west', 11)), WALK_FPS);
 
