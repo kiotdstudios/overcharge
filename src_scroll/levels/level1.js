@@ -71,8 +71,9 @@ export const LEVEL1 = {
   ],
 
   platforms: [
-    // Moving platform over the gap around col 26-27 (x=832)
-    { x: 700, y: 320, w: 96, h: 12, x1: 650, x2: 900, speed: 70 },
+    // Bridges the floor gap at cols 26-27 (x=832-864). Sits 44px above floor
+    // so player can jump on from either side, then ride across.
+    { x: 800, y: 340, w: 96, h: 12, x1: 750, x2: 940, speed: 60 },
   ],
 
   enemies: [
