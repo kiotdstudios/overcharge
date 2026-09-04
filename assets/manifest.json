@@ -1,0 +1,3648 @@
+{
+  "generated": "2026-09-04T20:44:02.075Z",
+  "count": 607,
+  "items": [
+    {
+      "path": "assets/sprites/generator 1/frame_000.png",
+      "name": "frame_000",
+      "category": "electrical/generator",
+      "size": 4347
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_001.png",
+      "name": "frame_001",
+      "category": "electrical/generator",
+      "size": 3979
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_002.png",
+      "name": "frame_002",
+      "category": "electrical/generator",
+      "size": 3732
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_003.png",
+      "name": "frame_003",
+      "category": "electrical/generator",
+      "size": 3960
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_004.png",
+      "name": "frame_004",
+      "category": "electrical/generator",
+      "size": 3787
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_005.png",
+      "name": "frame_005",
+      "category": "electrical/generator",
+      "size": 3949
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_006.png",
+      "name": "frame_006",
+      "category": "electrical/generator",
+      "size": 3745
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_007.png",
+      "name": "frame_007",
+      "category": "electrical/generator",
+      "size": 3873
+    },
+    {
+      "path": "assets/sprites/generator 1/frame_008.png",
+      "name": "frame_008",
+      "category": "electrical/generator",
+      "size": 3720
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_000.png",
+      "name": "frame_000",
+      "category": "enemy/drain",
+      "size": 1819
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_001.png",
+      "name": "frame_001",
+      "category": "enemy/drain",
+      "size": 1903
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_002.png",
+      "name": "frame_002",
+      "category": "enemy/drain",
+      "size": 2026
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_003.png",
+      "name": "frame_003",
+      "category": "enemy/drain",
+      "size": 1915
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_004.png",
+      "name": "frame_004",
+      "category": "enemy/drain",
+      "size": 1821
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_005.png",
+      "name": "frame_005",
+      "category": "enemy/drain",
+      "size": 2116
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_006.png",
+      "name": "frame_006",
+      "category": "enemy/drain",
+      "size": 2247
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_007.png",
+      "name": "frame_007",
+      "category": "enemy/drain",
+      "size": 2071
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_000.png",
+      "name": "frame_000",
+      "category": "enemy/drain",
+      "size": 1904
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_001.png",
+      "name": "frame_001",
+      "category": "enemy/drain",
+      "size": 2055
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_002.png",
+      "name": "frame_002",
+      "category": "enemy/drain",
+      "size": 2099
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_003.png",
+      "name": "frame_003",
+      "category": "enemy/drain",
+      "size": 2034
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_004.png",
+      "name": "frame_004",
+      "category": "enemy/drain",
+      "size": 1879
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_005.png",
+      "name": "frame_005",
+      "category": "enemy/drain",
+      "size": 2294
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_006.png",
+      "name": "frame_006",
+      "category": "enemy/drain",
+      "size": 2313
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_007.png",
+      "name": "frame_007",
+      "category": "enemy/drain",
+      "size": 2146
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/rotations/east.png",
+      "name": "east",
+      "category": "enemy/drain",
+      "size": 1663
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/rotations/north.png",
+      "name": "north",
+      "category": "enemy/drain",
+      "size": 2220
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/rotations/south.png",
+      "name": "south",
+      "category": "enemy/drain",
+      "size": 2447
+    },
+    {
+      "path": "assets/sprites/drain_enemy/Idle/rotations/west.png",
+      "name": "west",
+      "category": "enemy/drain",
+      "size": 1654
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_000.png",
+      "name": "frame_000",
+      "category": "enemy/drone",
+      "size": 1613
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_001.png",
+      "name": "frame_001",
+      "category": "enemy/drone",
+      "size": 1766
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_002.png",
+      "name": "frame_002",
+      "category": "enemy/drone",
+      "size": 1726
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_003.png",
+      "name": "frame_003",
+      "category": "enemy/drone",
+      "size": 1743
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_004.png",
+      "name": "frame_004",
+      "category": "enemy/drone",
+      "size": 1735
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_005.png",
+      "name": "frame_005",
+      "category": "enemy/drone",
+      "size": 1708
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_006.png",
+      "name": "frame_006",
+      "category": "enemy/drone",
+      "size": 1651
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_007.png",
+      "name": "frame_007",
+      "category": "enemy/drone",
+      "size": 1729
+    },
+    {
+      "path": "assets/sprites/drone/idle/frame_008.png",
+      "name": "frame_008",
+      "category": "enemy/drone",
+      "size": 1709
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_000.png",
+      "name": "frame_000",
+      "category": "enemy/drone",
+      "size": 1612
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_001.png",
+      "name": "frame_001",
+      "category": "enemy/drone",
+      "size": 1855
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_002.png",
+      "name": "frame_002",
+      "category": "enemy/drone",
+      "size": 1857
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_003.png",
+      "name": "frame_003",
+      "category": "enemy/drone",
+      "size": 1688
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_004.png",
+      "name": "frame_004",
+      "category": "enemy/drone",
+      "size": 1697
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_005.png",
+      "name": "frame_005",
+      "category": "enemy/drone",
+      "size": 1679
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_006.png",
+      "name": "frame_006",
+      "category": "enemy/drone",
+      "size": 1639
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_007.png",
+      "name": "frame_007",
+      "category": "enemy/drone",
+      "size": 1669
+    },
+    {
+      "path": "assets/sprites/drone/shooting/frame_008.png",
+      "name": "frame_008",
+      "category": "enemy/drone",
+      "size": 1662
+    },
+    {
+      "path": "assets/backgrounds/mid_city.png",
+      "name": "mid_city",
+      "category": "other",
+      "size": 6142
+    },
+    {
+      "path": "assets/objects/gate_closed.png",
+      "name": "gate_closed",
+      "category": "other",
+      "size": 4498
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2819
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3441
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3180
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4068
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3907
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3456
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3372
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3943
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3136
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3515
+    },
+    {
+      "path": "assets/sprites/charge_anim/east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3220
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2823
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3380
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3207
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4156
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3860
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3455
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3401
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3930
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3125
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3532
+    },
+    {
+      "path": "assets/sprites/charge_anim/west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3235
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2977
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3419
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3052
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3440
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3278
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3494
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3325
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3520
+    },
+    {
+      "path": "assets/sprites/charge/east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3325
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2804
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3172
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3389
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3835
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3126
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3065
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2627
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3251
+    },
+    {
+      "path": "assets/sprites/charge/north-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2776
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2792
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3110
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3442
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3827
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3120
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3039
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2633
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3231
+    },
+    {
+      "path": "assets/sprites/charge/north-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2799
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2882
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3799
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3786
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3819
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3115
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3419
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3051
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3584
+    },
+    {
+      "path": "assets/sprites/charge/north/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2954
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3964
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4168
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3900
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4053
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3919
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4114
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3964
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4388
+    },
+    {
+      "path": "assets/sprites/charge/south-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 4034
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3993
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4119
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3930
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4024
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3910
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4147
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3997
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4388
+    },
+    {
+      "path": "assets/sprites/charge/south-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 4066
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3691
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4256
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 4134
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4297
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3879
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4080
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3951
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4235
+    },
+    {
+      "path": "assets/sprites/charge/south/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 4135
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2968
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3382
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3112
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3410
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3306
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3529
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3288
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3541
+    },
+    {
+      "path": "assets/sprites/charge/west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3284
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2977
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3621
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3582
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3768
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3403
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3644
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3654
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3647
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3420
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3518
+    },
+    {
+      "path": "assets/sprites/discharge/east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3181
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2877
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3566
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3286
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3384
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3099
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3262
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3320
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3718
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3410
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3117
+    },
+    {
+      "path": "assets/sprites/discharge/north-east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 2977
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2859
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3595
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3309
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3395
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3114
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3272
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3312
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3728
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3373
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3165
+    },
+    {
+      "path": "assets/sprites/discharge/north-west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 2958
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2882
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3495
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3441
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3702
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3345
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3403
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3042
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3532
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3541
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 4082
+    },
+    {
+      "path": "assets/sprites/discharge/north/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3049
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3474
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3835
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3809
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3812
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3681
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3826
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3787
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4064
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3706
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3525
+    },
+    {
+      "path": "assets/sprites/discharge/south-east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3298
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3532
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3828
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3801
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3867
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3721
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3814
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3788
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4025
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3725
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3531
+    },
+    {
+      "path": "assets/sprites/discharge/south-west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3299
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3691
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4219
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 4062
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4334
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 4087
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4116
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 4042
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4509
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 4328
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 4147
+    },
+    {
+      "path": "assets/sprites/discharge/south/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3687
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2461
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 2992
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2871
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3003
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 2613
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3061
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2502
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 2852
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2643
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3359
+    },
+    {
+      "path": "assets/sprites/discharge/west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3133
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2977
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3285
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3050
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3352
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3156
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3190
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3111
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3125
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2877
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3023
+    },
+    {
+      "path": "assets/sprites/idle_2.0/east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 2942
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2877
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3316
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2878
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3532
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3744
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3889
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2961
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3230
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2873
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3103
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 2968
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2859
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3261
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2804
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3526
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3625
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3859
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2885
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3167
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2841
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3065
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north-west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 2886
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2882
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3368
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3115
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3490
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3381
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3561
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2831
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3194
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2976
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3108
+    },
+    {
+      "path": "assets/sprites/idle_2.0/north/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3009
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3964
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4163
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3879
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4100
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3990
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3972
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3882
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4066
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3843
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3931
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3812
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3993
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4179
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3846
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4154
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3981
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3946
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3925
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4075
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3885
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 4063
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south-west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3816
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3691
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3991
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3664
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3748
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3374
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3572
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3536
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3624
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3595
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3897
+    },
+    {
+      "path": "assets/sprites/idle_2.0/south/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3539
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2461
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 2798
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2516
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 2877
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 2613
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 2926
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2719
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3118
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2701
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 2750
+    },
+    {
+      "path": "assets/sprites/idle_2.0/west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 2603
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2475
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 2929
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3074
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3548
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3909
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3685
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3450
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4030
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3557
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3775
+    },
+    {
+      "path": "assets/sprites/idle/east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3353
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2804
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 2953
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2617
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3599
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3396
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3428
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3011
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3453
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3699
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3045
+    },
+    {
+      "path": "assets/sprites/idle/north-east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3428
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2859
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3156
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3380
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3913
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3479
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4613
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 4425
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3978
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3519
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 4202
+    },
+    {
+      "path": "assets/sprites/idle/north-west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3926
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2882
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3763
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3804
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3865
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3252
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3437
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2869
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3799
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3640
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3750
+    },
+    {
+      "path": "assets/sprites/idle/north/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3211
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3964
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3956
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3712
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3979
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 4056
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3995
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3952
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4279
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 4055
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3851
+    },
+    {
+      "path": "assets/sprites/idle/south-east/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 4096
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3993
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4053
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3776
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4039
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 4153
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4043
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3946
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4343
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 4012
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3871
+    },
+    {
+      "path": "assets/sprites/idle/south-west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 4065
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3691
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4427
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 4026
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4141
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3677
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3863
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3463
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4067
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3863
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 4302
+    },
+    {
+      "path": "assets/sprites/idle/south/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3642
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2461
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 2930
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3073
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3586
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3920
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3665
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3461
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4045
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3624
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_009.png",
+      "name": "frame_009",
+      "category": "other",
+      "size": 3784
+    },
+    {
+      "path": "assets/sprites/idle/west/frame_010.png",
+      "name": "frame_010",
+      "category": "other",
+      "size": 3317
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2977
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3332
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3211
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 2686
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3692
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4112
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3039
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 2833
+    },
+    {
+      "path": "assets/sprites/jumping/east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2674
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2877
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3766
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3591
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3771
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3485
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3848
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3302
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3353
+    },
+    {
+      "path": "assets/sprites/jumping/north-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3081
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2859
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3754
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3601
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3815
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3561
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3801
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3270
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3351
+    },
+    {
+      "path": "assets/sprites/jumping/north-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3071
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2882
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3835
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3429
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3131
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 4012
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3738
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2981
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3309
+    },
+    {
+      "path": "assets/sprites/jumping/north/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3037
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3964
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4196
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3690
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 2894
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3010
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3334
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3762
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4054
+    },
+    {
+      "path": "assets/sprites/jumping/south-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3775
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3993
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4177
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3702
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 2907
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3058
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3375
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3779
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 4017
+    },
+    {
+      "path": "assets/sprites/jumping/south-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3817
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3691
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3975
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 4235
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 4399
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 4186
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3388
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 4039
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 5008
+    },
+    {
+      "path": "assets/sprites/jumping/south/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3876
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2968
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3350
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3282
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 2720
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3588
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4140
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2998
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 2816
+    },
+    {
+      "path": "assets/sprites/jumping/west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2652
+    },
+    {
+      "path": "assets/sprites/running/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2462
+    },
+    {
+      "path": "assets/sprites/running/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 2346
+    },
+    {
+      "path": "assets/sprites/running/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2416
+    },
+    {
+      "path": "assets/sprites/running/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 2048
+    },
+    {
+      "path": "assets/sprites/running/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 2464
+    },
+    {
+      "path": "assets/sprites/running/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 2573
+    },
+    {
+      "path": "assets/sprites/running/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2234
+    },
+    {
+      "path": "assets/sprites/running/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 2229
+    },
+    {
+      "path": "assets/sprites/running/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 1726
+    },
+    {
+      "path": "assets/sprites/running/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 1940
+    },
+    {
+      "path": "assets/sprites/running/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 1769
+    },
+    {
+      "path": "assets/sprites/running/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 1381
+    },
+    {
+      "path": "assets/sprites/running/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 1703
+    },
+    {
+      "path": "assets/sprites/running/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 1946
+    },
+    {
+      "path": "assets/sprites/running/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 1753
+    },
+    {
+      "path": "assets/sprites/running/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 1480
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2475
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3084
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2766
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3239
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 2716
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 2761
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2717
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3197
+    },
+    {
+      "path": "assets/sprites/walking/east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3036
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2804
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3294
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3193
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3423
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3229
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3017
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2796
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3146
+    },
+    {
+      "path": "assets/sprites/walking/north-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3105
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2859
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3438
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3028
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3427
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3139
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3356
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2716
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3068
+    },
+    {
+      "path": "assets/sprites/walking/north-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 2775
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2882
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3442
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3081
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3435
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3010
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3358
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3044
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3383
+    },
+    {
+      "path": "assets/sprites/walking/north/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3060
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3964
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3943
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3581
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3648
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3536
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3876
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3794
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3832
+    },
+    {
+      "path": "assets/sprites/walking/south-east/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3706
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3993
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3962
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3647
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3639
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3556
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 3953
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3815
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3801
+    },
+    {
+      "path": "assets/sprites/walking/south-west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3631
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 3691
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 4033
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 3781
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3522
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 3857
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 4078
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 3949
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3806
+    },
+    {
+      "path": "assets/sprites/walking/south/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3645
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 2461
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 3016
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 2766
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 3168
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 2701
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 2782
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 2725
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 3195
+    },
+    {
+      "path": "assets/sprites/walking/west/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 3043
+    },
+    {
+      "path": "assets/tiles/concrete_godot.png",
+      "name": "concrete_godot",
+      "category": "other",
+      "size": 29537
+    },
+    {
+      "path": "assets/tiles/concrete_wang.png",
+      "name": "concrete_wang",
+      "category": "other",
+      "size": 7844
+    },
+    {
+      "path": "assets/tiles/concrete.png",
+      "name": "concrete",
+      "category": "other",
+      "size": 7099
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/bracket_corner.png",
+      "name": "bracket_corner",
+      "category": "prop",
+      "size": 95
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/pipe_elbow.png",
+      "name": "pipe_elbow",
+      "category": "prop",
+      "size": 696
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/pipe_thin.png",
+      "name": "pipe_thin",
+      "category": "prop",
+      "size": 185
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/platform_glow_green.png",
+      "name": "platform_glow_green",
+      "category": "prop",
+      "size": 479
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/sign_arrow_right.png",
+      "name": "sign_arrow_right",
+      "category": "prop",
+      "size": 722
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/sign_arrow_up.png",
+      "name": "sign_arrow_up",
+      "category": "prop",
+      "size": 1088
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/street_lamp.png",
+      "name": "street_lamp",
+      "category": "prop",
+      "size": 549
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/tool_hammer.png",
+      "name": "tool_hammer",
+      "category": "prop",
+      "size": 625
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_bar_sign.png",
+      "name": "building_bar_sign",
+      "category": "terrain",
+      "size": 1202
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_brick_windows.png",
+      "name": "building_brick_windows",
+      "category": "terrain",
+      "size": 2021
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_door.png",
+      "name": "building_door",
+      "category": "terrain",
+      "size": 1236
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_large.png",
+      "name": "building_large",
+      "category": "terrain",
+      "size": 4863
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_neon_door.png",
+      "name": "building_neon_door",
+      "category": "terrain",
+      "size": 4314
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_neon_panel.png",
+      "name": "building_neon_panel",
+      "category": "terrain",
+      "size": 2355
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_small_a.png",
+      "name": "building_small_a",
+      "category": "terrain",
+      "size": 1841
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_striped_tall.png",
+      "name": "building_striped_tall",
+      "category": "terrain",
+      "size": 4017
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_teal_sign.png",
+      "name": "building_teal_sign",
+      "category": "terrain",
+      "size": 2265
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_wide.png",
+      "name": "building_wide",
+      "category": "terrain",
+      "size": 3544
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/building_windows_wide.png",
+      "name": "building_windows_wide",
+      "category": "terrain",
+      "size": 2112
+    },
+    {
+      "path": "assets/tilesets/purple_city/containers/container_small_a.png",
+      "name": "container_small_a",
+      "category": "terrain",
+      "size": 527
+    },
+    {
+      "path": "assets/tilesets/purple_city/containers/container_small_b.png",
+      "name": "container_small_b",
+      "category": "terrain",
+      "size": 558
+    },
+    {
+      "path": "assets/tilesets/purple_city/containers/crate_large_hollow.png",
+      "name": "crate_large_hollow",
+      "category": "terrain",
+      "size": 3382
+    },
+    {
+      "path": "assets/tilesets/purple_city/containers/crate_large.png",
+      "name": "crate_large",
+      "category": "terrain",
+      "size": 3366
+    },
+    {
+      "path": "assets/tilesets/purple_city/containers/crates_double.png",
+      "name": "crates_double",
+      "category": "terrain",
+      "size": 1324
+    },
+    {
+      "path": "assets/tilesets/purple_city/platforms/platform_long_a.png",
+      "name": "platform_long_a",
+      "category": "terrain",
+      "size": 896
+    },
+    {
+      "path": "assets/tilesets/purple_city/platforms/platform_long_b.png",
+      "name": "platform_long_b",
+      "category": "terrain",
+      "size": 778
+    },
+    {
+      "path": "assets/tilesets/purple_city/platforms/platform_medium.png",
+      "name": "platform_medium",
+      "category": "terrain",
+      "size": 814
+    },
+    {
+      "path": "assets/tilesets/purple_city/platforms/platform_short_a.png",
+      "name": "platform_short_a",
+      "category": "terrain",
+      "size": 494
+    },
+    {
+      "path": "assets/tilesets/purple_city/platforms/platform_short_b.png",
+      "name": "platform_short_b",
+      "category": "terrain",
+      "size": 454
+    },
+    {
+      "path": "assets/tilesets/purple_city/purplecity_full.png",
+      "name": "purplecity_full",
+      "category": "terrain",
+      "size": 58498
+    },
+    {
+      "path": "assets/tilesets/purple_city/tiles/tile_dark_a.png",
+      "name": "tile_dark_a",
+      "category": "terrain",
+      "size": 422
+    },
+    {
+      "path": "assets/tilesets/purple_city/tiles/tile_dark_b.png",
+      "name": "tile_dark_b",
+      "category": "terrain",
+      "size": 559
+    },
+    {
+      "path": "assets/tilesets/purple_city/tiles/tile_purple_a.png",
+      "name": "tile_purple_a",
+      "category": "terrain",
+      "size": 606
+    },
+    {
+      "path": "assets/tilesets/purple_city/tiles/tile_purple_b.png",
+      "name": "tile_purple_b",
+      "category": "terrain",
+      "size": 666
+    },
+    {
+      "path": "assets/tilesets/purple_city/walls/wall_brick_a.png",
+      "name": "wall_brick_a",
+      "category": "terrain",
+      "size": 1002
+    },
+    {
+      "path": "assets/tilesets/purple_city/walls/wall_brick_b.png",
+      "name": "wall_brick_b",
+      "category": "terrain",
+      "size": 913
+    },
+    {
+      "path": "assets/tilesets/purple_city/walls/wall_brick_c.png",
+      "name": "wall_brick_c",
+      "category": "terrain",
+      "size": 918
+    }
+  ]
+}
