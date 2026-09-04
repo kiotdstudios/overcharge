@@ -13,7 +13,6 @@ import { state, notify, levelRows } from './state.js';
 
 // ── SetTileAction ────────────────────────────────────────────────────────
 // Sets a single tile (col,row) to `newVal`, remembers `oldVal` for undo.
-// Silent no-op if the tile is out of bounds — call sites can pre-check.
 export function setTile(col, row, newVal) {
   const L = state.level;
   if (!L) return null;
@@ -21,7 +20,7 @@ export function setTile(col, row, newVal) {
   if (col < 0 || col >= L.cols || row < 0 || row >= rows) return null;
   const idx = row * L.cols + col;
   const oldVal = L.tiles[idx];
-  if (oldVal === newVal) return null;   // no change, don't record
+  if (oldVal === newVal) return null;
   return {
     type: 'set_tile',
     col, row, oldVal, newVal,
@@ -31,8 +30,6 @@ export function setTile(col, row, newVal) {
 }
 
 // ── AddDecorationAction ──────────────────────────────────────────────────
-// Appends `dec` to level.decorations at the end.
-// Inverse: pop that exact entry (identity match).
 export function addDecoration(dec) {
   const L = state.level;
   if (!L) return null;
@@ -49,35 +46,51 @@ export function addDecoration(dec) {
   };
 }
 
-// ── RemoveDecorationAction ───────────────────────────────────────────────
-// Removes an existing decoration by identity. Remembers its position in the
-// array so undo restores original z-order.
-export function removeDecoration(dec) {
-  const L = state.level;
-  if (!L || !Array.isArray(L.decorations)) return null;
-  const idx = L.decorations.indexOf(dec);
+// ── RemoveFromArrayAction (generic) ──────────────────────────────────────
+// Removes an object by identity from a specific level array (e.g. L.sources,
+// L.gates, L.decorations). Remembers its original index so undo restores
+// z-order. Returns null if the object isn't in the array.
+//
+// This is the ONE action type that handles removal for every gameplay object
+// kind. Prevents duplicated logic per kind and keeps the composite-delete
+// path in clipboard.js uniform.
+export function removeFromArray(arr, obj, label = 'remove_from_array') {
+  if (!Array.isArray(arr)) return null;
+  const idx = arr.indexOf(obj);
   if (idx < 0) return null;
   return {
-    type: 'remove_decoration',
-    dec, idx,
+    type: label,
+    idx, obj,
     forward() {
-      const i = L.decorations.indexOf(dec);
-      if (i >= 0) L.decorations.splice(i, 1);
+      const i = arr.indexOf(obj);
+      if (i >= 0) arr.splice(i, 1);
       notify();
     },
-    inverse() { L.decorations.splice(idx, 0, dec); notify(); },
+    inverse() { arr.splice(idx, 0, obj); notify(); },
   };
 }
 
-// ── MoveDecorationAction ─────────────────────────────────────────────────
-// Applies a delta (dx, dy) to a decoration's x/y. Undo applies the inverse
-// delta. Multiple decorations moving together get wrapped in a composite.
-export function moveDecoration(dec, dx, dy) {
-  if (!dec || (dx === 0 && dy === 0)) return null;
+// Thin wrapper for the common decoration case. Existing callers keep working.
+export function removeDecoration(dec) {
+  const L = state.level;
+  if (!L || !Array.isArray(L.decorations)) return null;
+  return removeFromArray(L.decorations, dec, 'remove_decoration');
+}
+
+// ── MoveObjectAction (generic) ───────────────────────────────────────────
+// Applies a delta (dx, dy) to ANY object with .x/.y fields. Works uniformly
+// for: decorations, sources, gates, switches, checkpoints, enemies, and the
+// level.playerStart sub-object. Multiple objects moving together get wrapped
+// in a Composite so a single Ctrl+Z reverts the whole gesture.
+export function moveObject(obj, dx, dy) {
+  if (!obj || (dx === 0 && dy === 0)) return null;
   return {
-    type: 'move_decoration',
-    dec, dx, dy,
-    forward() { dec.x += dx; dec.y += dy; notify(); },
-    inverse() { dec.x -= dx; dec.y -= dy; notify(); },
+    type: 'move_object',
+    obj, dx, dy,
+    forward() { obj.x += dx; obj.y += dy; notify(); },
+    inverse() { obj.x -= dx; obj.y -= dy; notify(); },
   };
 }
+
+// Legacy alias. Deprecated — use moveObject.
+export function moveDecoration(dec, dx, dy) { return moveObject(dec, dx, dy); }

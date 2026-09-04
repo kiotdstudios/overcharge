@@ -10,7 +10,10 @@
 // Ctrl+Z reverts the whole paste in one press.
 
 import { state, TILE_SIZE, levelRows } from './state.js';
-import { selectedDecorations, selectedTiles, clearSelection, selectDecoration, selectTile } from './selection.js';
+import {
+  selectedDecorations, selectedTiles, clearSelection, selectDecoration, selectTile,
+  selectedSources, selectedGates, selectedSwitches, selectedCheckpoints, selectedEnemies,
+} from './selection.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
 
@@ -61,21 +64,43 @@ export function cut() {
 }
 
 // ── Delete selection ─────────────────────────────────────────────────────
-// Composite action: remove every selected decoration + zero every selected tile.
+// Composite action: remove every selected decoration + gameplay object +
+// zero every selected tile. PLAYERSTART is not deletable — every level needs
+// a spawn, so Delete silently skips it (still deletes anything else selected).
 export function deleteSelection(label = 'delete') {
-  const decs  = selectedDecorations();
-  const tiles = selectedTiles();
-  if (decs.length === 0 && tiles.length === 0) return false;
+  const L    = state.level;
+  const decs = selectedDecorations();
+  const tiles= selectedTiles();
+  if (!L && decs.length === 0 && tiles.length === 0) return false;
 
   const actions = [];
+  // Decorations
   for (const d of decs) {
     const a = Actions.removeDecoration(d);
     if (a) actions.push(a);
   }
+  // Gameplay object arrays — same pattern for each. Uses generic removeFromArray.
+  for (const [arrName, list] of [
+    ['sources',     selectedSources()],
+    ['gates',       selectedGates()],
+    ['switches',    selectedSwitches()],
+    ['checkpoints', selectedCheckpoints()],
+    ['enemies',     selectedEnemies()],
+  ]) {
+    const arr = L && Array.isArray(L[arrName]) ? L[arrName] : null;
+    if (!arr) continue;
+    for (const obj of list) {
+      const a = Actions.removeFromArray(arr, obj, 'remove_' + arrName);
+      if (a) actions.push(a);
+    }
+  }
+  // Tiles
   for (const t of tiles) {
     const a = Actions.setTile(t.col, t.row, 0);
     if (a) actions.push(a);
   }
+  // playerStart intentionally NOT deletable — silently skipped.
+
   if (actions.length === 0) return false;
   clearSelection();
   History.apply(History.makeComposite(actions, label));

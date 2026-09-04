@@ -142,18 +142,39 @@ export function render(ctx, canvas) {
   _drawEnemies(ctx, L.enemies);
   _drawPlayerStart(ctx, L.playerStart);
 
-  // Selection highlights — decorations (yellow outline)
+  // Selection highlights — decorations, gameplay markers, tiles, playerStart.
+  // Uses the same visual language (yellow dashed outline) for every kind so
+  // the user knows immediately what's selected.
   if (state.selection) {
-    for (const d of state.selection.decorations) {
-      const p = worldToScreen(d.x, d.y);
-      const dw = d.w * c.zoom, dh = d.h * c.zoom;
+    const drawOutline = (rect) => {
+      if (!rect) return;
+      const p = worldToScreen(rect.x, rect.y);
+      const rw = rect.w * c.zoom, rh = rect.h * c.zoom;
       ctx.strokeStyle = MARKER.selection;
       ctx.lineWidth = 2;
       ctx.setLineDash([6, 3]);
-      ctx.strokeRect(p.x - 1, p.y - 1, dw + 2, dh + 2);
+      ctx.strokeRect(p.x - 1, p.y - 1, rw + 2, rh + 2);
       ctx.setLineDash([]);
+    };
+
+    // Decorations
+    for (const d of state.selection.decorations) drawOutline({ x: d.x, y: d.y, w: d.w, h: d.h });
+
+    // Gameplay markers — hit-box footprints match the visible marker size
+    // (see selection.js::boundingRect for the source of truth).
+    for (const o of state.selection.sources)     drawOutline({ x: o.x - 7, y: o.y - 7, w: 14, h: 14 });
+    for (const o of state.selection.switches)    drawOutline({ x: o.x - 7, y: o.y - 7, w: 14, h: 14 });
+    for (const o of state.selection.checkpoints) drawOutline({ x: o.x - 7, y: o.y - 7, w: 14, h: 14 });
+    for (const o of state.selection.enemies)     drawOutline({ x: o.x - 6, y: o.y - 6, w: 12, h: 12 });
+    for (const o of state.selection.gates)       drawOutline({ x: o.x,     y: o.y,     w: o.w, h: o.h });
+
+    // playerStart triangle bounds
+    if (state.selection.playerStart && L.playerStart) {
+      drawOutline({ x: L.playerStart.x, y: L.playerStart.y, w: 14, h: 14 });
     }
-    // Selected tiles — yellow fill overlay
+
+    // Selected tiles — yellow fill overlay (not just outline, so they're
+    // distinguishable from painted-but-unselected tiles)
     for (const key of state.selection.tiles) {
       const [col, row] = key.split(',').map(Number);
       const p = worldToScreen(col * TILE_SIZE, row * TILE_SIZE);

@@ -58,7 +58,7 @@ export const selectTool = {
   _mode:  null,           // null | 'marquee' | 'move' | 'idle'
   _shift: false,
   _startWorld: null,
-  _origPositions: null,   // decoration → {x, y} snapshot for move undo
+  _origPositions: null,   // Map<ref, {x, y}> snapshot across ALL kinds for move undo
 
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
@@ -66,27 +66,28 @@ export const selectTool = {
     const w = worldUnderMouse(evt, canvas);
     this._startWorld = w;
 
-    const hit = Selection.decorationAt(w.x, w.y);
-    const alreadySelected = hit && Selection.isSelected(hit);
+    const hit = Selection.objectAt(w.x, w.y);
+    const alreadySelected = hit && Selection.isRefSelected(hit.kind, hit.ref);
 
     if (hit) {
-      // Clicking a decoration
       if (this._shift) {
-        Selection.toggleDecoration(hit);
+        Selection.toggleByKind(hit.kind, hit.ref);
         this._mode = 'idle';
       } else if (alreadySelected) {
-        // Begin drag-move of the current selection
+        // Begin drag-move of the current selection (all kinds)
         this._mode = 'move';
         this._origPositions = new Map();
-        for (const d of Selection.selectedDecorations()) {
-          this._origPositions.set(d, { x: d.x, y: d.y });
+        for (const { ref } of Selection.selectedRefs()) {
+          if (ref && typeof ref.x === 'number' && typeof ref.y === 'number') {
+            this._origPositions.set(ref, { x: ref.x, y: ref.y });
+          }
         }
         state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
       } else {
         // Select just this one, prep for potential drag
-        Selection.selectDecoration(hit, false);
+        Selection.selectByKind(hit.kind, hit.ref, false);
         this._mode = 'move';
-        this._origPositions = new Map([[hit, { x: hit.x, y: hit.y }]]);
+        this._origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]]);
         state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
       }
     } else {
@@ -103,7 +104,6 @@ export const selectTool = {
     if (this._mode === 'marquee') {
       state.marquee.curWX = w.x;
       state.marquee.curWY = w.y;
-      // Force redraw via notify — marquee is read by renderer each frame
       import('./state.js').then(m => m.notify());
     } else if (this._mode === 'move') {
       // Live-preview move: apply delta from start to current, quantized to 32px.
@@ -111,9 +111,9 @@ export const selectTool = {
       const dyRaw = w.y - this._startWorld.y;
       const dx = Math.round(dxRaw / TILE_SIZE) * TILE_SIZE;
       const dy = Math.round(dyRaw / TILE_SIZE) * TILE_SIZE;
-      for (const [dec, orig] of this._origPositions.entries()) {
-        dec.x = orig.x + dx;
-        dec.y = orig.y + dy;
+      for (const [ref, orig] of this._origPositions.entries()) {
+        ref.x = orig.x + dx;
+        ref.y = orig.y + dy;
       }
       state.dragMove.curWX = w.x;
       state.dragMove.curWY = w.y;
@@ -129,23 +129,28 @@ export const selectTool = {
       const wRect = Math.abs(m.curWX - m.startWX);
       const hRect = Math.abs(m.curWY - m.startWY);
       if (wRect >= 2 && hRect >= 2) {
-        // Real marquee — collect hits and select. Additive on shift.
         const decs  = Selection.decorationsInRect(x, y, wRect, hRect);
         const tiles = Selection.tilesInRect(x, y, wRect, hRect);
+        const gp    = Selection.objectsInRect(x, y, wRect, hRect);
         if (!this._shift) Selection.clearSelection();
-        for (const d of decs)  Selection.selectDecoration(d, true);
-        for (const t of tiles) Selection.selectTile(t.col, t.row, true);
+        for (const d of decs)  Selection.selectByKind('decoration', d, true);
+        for (const t of tiles) Selection.selectByKind('tile', t.col + ',' + t.row, true);
+        for (const o of gp.sources)     Selection.selectByKind('source',     o, true);
+        for (const o of gp.gates)       Selection.selectByKind('gate',       o, true);
+        for (const o of gp.switches)    Selection.selectByKind('switch',     o, true);
+        for (const o of gp.checkpoints) Selection.selectByKind('checkpoint', o, true);
+        for (const o of gp.enemies)     Selection.selectByKind('enemy',      o, true);
+        if (gp.playerStart) Selection.selectByKind('playerStart', null, true);
       }
       state.marquee = null;
     } else if (this._mode === 'move' && this._origPositions) {
-      // Commit the move as a composite of moveDecoration actions.
+      // Commit the move as a composite of moveObject actions (works for any kind).
       const actions = [];
-      for (const [dec, orig] of this._origPositions.entries()) {
-        const dx = dec.x - orig.x;
-        const dy = dec.y - orig.y;
+      for (const [ref, orig] of this._origPositions.entries()) {
+        const dx = ref.x - orig.x;
+        const dy = ref.y - orig.y;
         if (dx !== 0 || dy !== 0) {
-          // Move already applied live — record without re-applying.
-          actions.push(Actions.moveDecoration(dec, dx, dy));
+          actions.push(Actions.moveObject(ref, dx, dy));
         }
       }
       if (actions.length > 0) History.record(History.makeComposite(actions, 'move'));
