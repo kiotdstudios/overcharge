@@ -51,7 +51,10 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false) {
   const texKey = ((tx + ty) % 2 === 0) ? 'tile_dark_a' : 'tile_dark_b';
   const img    = _pc[texKey];
   if (img.complete && img.naturalWidth > 0) {
-    ctx.drawImage(img, 0, 0, 18, 18, x, y, T, T);
+    // Source rect (1,1,16,16): purple_city PNGs are 18x18 with a 1px transparent
+    // border for atlas-safety. We skip that border so tiles render flush edge-
+    // to-edge at any zoom. Destination remains exactly one T-sized grid cell.
+    ctx.drawImage(img, 1, 1, 16, 16, x, y, T, T);
   } else {
     ctx.fillStyle = '#0d1520';
     ctx.fillRect(x, y, T, T);

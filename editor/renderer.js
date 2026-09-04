@@ -86,8 +86,11 @@ export function render(ctx, canvas) {
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
       if (v === 1 && tImg && tImg.complete && tImg.naturalWidth > 0) {
-        // Real tile art — flush 32x32, no gaps
-        ctx.drawImage(tImg, p.x, p.y, tsz, tsz);
+        // Source rect (1,1,16,16): purple_city PNGs are 18x18 with a 1px
+        // transparent border (PixelLab atlas-safety export). Cropping that
+        // border makes adjacent tiles render flush edge-to-edge. Destination
+        // is unchanged — still exactly one TILE_SIZE cell at (col*32, row*32).
+        ctx.drawImage(tImg, 1, 1, 16, 16, p.x, p.y, tsz, tsz);
       } else {
         // Fallback color box until tile PNG loads
         ctx.fillStyle = v === 1 ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
