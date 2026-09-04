@@ -88,13 +88,7 @@ export class ElectricalSource {
       }
     }
 
-    // Label
-    if (this.label) {
-      ctx.fillStyle = '#aa8800';
-      ctx.font = '9px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(this.label, this.cx, this.y + this.h + 12);
-    }
+
   }
 }
 
