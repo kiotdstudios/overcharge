@@ -1,32 +1,88 @@
 // Level 1 — "NEON DISTRICT"
 // 100 cols × 14 rows = 3200 × 448 px
 //
-// Buildings ARE the level geometry — rooftop traversal across a cyberpunk city block.
-// Route:
-//   S1 roof (row 10, y=320) → HVAC step-up (row 9)
-//   → S2a roof (row 9) → 1-tile gap → S2b roof (row 8) → mini-tower (row 7)
-//   → courtyard drop (row 11 floor) + fire-escape climb (type-2 ledges)
-//   → mid-gate → S4 high run (row 7) with HVAC peaks (row 6)
-//   → moving platform gap → gate building (row 6)
-//   → exit section (row 8) → EXIT
+// Six distinct buildings form the traversable skyline.
+// The TILE GEOMETRY IS the architecture — no decorative building sprites.
 //
-// Physics budget (JUMP_FORCE=-430, GRAVITY=900):
-//   max height ≈ 103 px (3.2 tiles), max horiz at run ≈ 122 px (3.8 tiles)
-//   All intentional gaps ≤ 2 tiles wide; vertical steps ≤ 2 tiles.
+// ┌────────────────── SKYLINE MAP ──────────────────────────────────────────────┐
+// │  A  │ gap │  B   │gap│    C    │ gap │   D   │gap│     E     │gap│  F   │  │
+// │     │     │ ████ │   │         │     │       │   │    ████   │   │      │  │
+// │     │     │ ████ │   │    ████ │     │       │   │    ████   │   │      │  │
+// │     │     │ ████ │   │ ██████  │     │       │   │ ██████████│   │      │  │
+// │ ██  │     │ ████ │   │ ██████  │     │ ████  │   │ ██████████│   │ ████ │  │
+// │ ██  │     │ ████ │   │ ██████  │     │ ████  │   │ ██████████│   │ ████ │  │
+// │ ██  │     │ ████ │   │ ██████  │     │ ████  │   │ ██████████│   │ ████ │  │
+// └───────────────────────────────────────────────────────────────────────────-─┘
+//
+//  BUILDING    COLS     ROOF ROW   SURFACE Y   NOTES
+//  A           0–16     row 7      y=224       Tutorial — wide, low entry
+//  B           19–34    row 5      y=160       Office block — step UP from A
+//  C           37–53    row 6      y=192       Complex — step down from B
+//  C-tower     48–53    row 4      y=128       Spire above C main
+//  D           57–72    row 7      y=224       Maintenance shed — drop from C
+//  E           75–90    row 5      y=160       Power facility — step UP from D
+//  E-tower     80–85    row 3      y=96        Tallest structure in level
+//  F           93–99    row 6      y=192       Exit building
+//
+//  ALLEYS (void — falling triggers respawn):
+//  A→B: cols 17–18 (64 px)    B→C: cols 35–36 (64 px)
+//  C→D: cols 54–56 (96 px)    D→E: cols 73–74 (64 px)
+//  E→F: cols 91–92 (64 px)
+//
+//  PHYSICS BUDGET (JUMP_FORCE=-430, GRAVITY=900):
+//  max apex ≈ 103 px  |  run horiz range ≈ 122 px
+//  Hardest jump: A→B (UP 64 px across 64 px gap) — needs running jump
+//  All other jumps are comfortable with a short-to-medium jump arc.
 
 const BASE = 'assets/tilesets/purple_city';
-const S3   = 3;  // building sprite scale (background facades)
-const S2   = 2;  // prop sprite scale
+const S2   = 2;   // prop sprite render scale (2× pixel art)
 
-// Background building — base anchored at world y=384.
-// Upper portion shows above tile rooftops; tiles cover the building body below.
-function bld(file, srcW, srcH, x) {
-  return { src: `${BASE}/buildings/${file}.png`, x, y: 384 - srcH * S3, w: srcW * S3, h: srcH * S3 };
+// Prop flush on a rooftop surface.
+// groundY = row * 32 (top face of the rooftop tile row).
+// Sprite bottom-edge sits at groundY, so the prop stands ON the tile.
+function prp(file, srcW, srcH, x, groundY) {
+  return {
+    src: `${BASE}/props/${file}.png`,
+    x,
+    y:   groundY - srcH * S2,
+    w:   srcW * S2,
+    h:   srcH * S2,
+  };
 }
-// Prop placed flush on a rooftop (groundY = top-surface y of that tile row = row * 32).
-function prp(file, srcW, srcH, x, groundY = 384) {
-  return { src: `${BASE}/props/${file}.png`, x, y: groundY - srcH * S2, w: srcW * S2, h: srcH * S2 };
+
+// Build one tile row (100 columns).
+// specs: flat array of [fromCol, toCol, tileType, ...] triplets.
+// All unspecified columns default to 0 (void/sky).
+function tileRow(specs = [], cols = 100) {
+  const r = new Array(cols).fill(0);
+  for (let i = 0; i < specs.length; i += 3) {
+    const [a, b, v] = [specs[i], specs[i + 1], specs[i + 2]];
+    for (let c = a; c <= b; c++) r[c] = v;
+  }
+  return r;
 }
+
+// ── Row data ──────────────────────────────────────────────────────────────────
+const SKY = tileRow();   // pure sky — rows 0, 1, 2
+
+//  Row 3: E-tower peak only
+const R3  = tileRow([80, 85, 1]);
+
+//  Row 4: C-tower body + E-tower body (both peaks already passed row 3)
+const R4  = tileRow([48, 53, 1,   80, 85, 1]);
+
+//  Row 5: B rooftop  + C-tower body + E-tower body
+const R5  = tileRow([19, 34, 1,   48, 53, 1,   80, 85, 1]);
+
+//  Row 6: B body + C main rooftop + E main rooftop + F rooftop
+//  (A has NOT started yet — A roof is row 7)
+const R6  = tileRow([19, 34, 1,   37, 53, 1,   75, 90, 1,   93, 99, 1]);
+
+//  Row 7: A rooftop + B body + C body + D rooftop + E body + F body
+const R7  = tileRow([0, 16, 1,   19, 34, 1,   37, 53, 1,   57, 72, 1,   75, 90, 1,   93, 99, 1]);
+
+// Rows 8–13: same building bodies, no new rooftops
+const R8  = R7;
 
 export const LEVEL1 = {
   name:   'NEON DISTRICT',
@@ -34,155 +90,70 @@ export const LEVEL1 = {
   cols:   100,
 
   // ── Tilemap ──────────────────────────────────────────────────────────────────
-  // type 1 = solid building mass  |  type 2 = one-way platform (pass up, land on top)
-  // Exposed top edges receive the neon glow line in render.js (topOpen flag).
-  //
-  // Section map (col ranges, rooftop row):
-  //   S1 main:       cols  0–22   row 10   y=320
-  //   S1 HVAC bump:  cols 14–18   row  9   y=288  (step up within S1)
-  //   S2a:           cols 23–35   row  9   y=288  (adjacent step, no gap)
-  //   pit:           col  36               (single-tile gap, fall = void)
-  //   S2b:           cols 37–51   row  8   y=256
-  //   mini-tower:    cols 47–50   row  7   y=224  (bump within S2b)
-  //   courtyard:     cols 52–64   row 11   y=352  (drop zone)
-  //     fire-esc-1:  cols 58–63   row 10   type 2  (climb step 1)
-  //     fire-esc-2:  cols 60–63   row  8   type 2  (climb step 2)
-  //   S4 main:       cols 65–80   row  7   y=224
-  //   S4 HVAC-1:     cols 70–73   row  6   y=192  (bump within S4)
-  //   S4 HVAC-2:     cols 76–78   row  6   y=192  (bump within S4)
-  //   gap:           cols 81–84             (4-tile gap, moving platform)
-  //   gate bldg:     cols 85–93   row  6   y=192
-  //   exit section:  cols 94–99   row  8   y=256
+  // type 1 = solid building mass   type 2 = one-way ledge (pass up, land top)
+  // topOpen logic in level.js/render.js: tile above ≠ 1 → neon rooftop edge drawn.
   tiles: [
-    // Row  0 — open sky
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-    // Row  1
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-    // Row  2
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-    // Row  3
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-    // Row  4
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-    // Row  5
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,
-    // Row  6 — S4 HVAC bumps (70-73, 76-78), gate building peak (85-93)
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 1,1,1,1,0,0,1,1,1,0, 0,0,0,0,0,1,1,1,1,1, 1,1,1,1,0,0,0,0,0,0,
-    // Row  7 — S2b mini-tower (47-50), S4 main run (65-80), gate building (85-93)
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,1,1,1, 1,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,0,0,0,0,1,1,1,1,1, 1,1,1,1,0,0,0,0,0,0,
-    // Row  8 — S2b (37-51), fire-esc-2 one-way (60-63), S4 (65-80), gate (85-93), exit (94-99)
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,0,0,0,0,0,0,0,0, 2,2,2,2,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
-    // Row  9 — S1 HVAC bump (14-18), S2a (23-35), S2b (37-51), S4 (65-80), gate (85-93), exit (94-99)
-    0,0,0,0,0,0,0,0,0,0, 0,0,0,0,1,1,1,1,1,0, 0,0,0,1,1,1,1,1,1,1, 1,1,1,1,1,1,0,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,0,0,0,0,0,0,0,0, 0,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
-    // Row 10 — S1 main (0-35), S2b (37-51), fire-esc-1 one-way (58-63), S4 (65-80), gate (85-93), exit (94-99)
-    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,0,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,0,0,0,0,0,0,2,2, 2,2,2,2,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
-    // Row 11 — building bodies, courtyard floor (52-64), pit at col 36, gap at 81-84
-    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,0,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
-    // Row 12
-    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,0,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
-    // Row 13
-    1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,0,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1, 1,0,0,0,0,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,
+    ...SKY,  // row 0  — open sky
+    ...SKY,  // row 1  — open sky
+    ...SKY,  // row 2  — open sky
+    ...R3,   // row 3  — E-tower peak                             (cols 80–85)
+    ...R4,   // row 4  — C-tower body, E-tower body               (cols 48–53, 80–85)
+    ...R5,   // row 5  — B rooftop, tower bodies                  (cols 19–34, 48–53, 80–85)
+    ...R6,   // row 6  — C rooftop, E rooftop, F rooftop, B body  (cols 19–34, 37–53, 75–90, 93–99)
+    ...R7,   // row 7  — A rooftop, D rooftop, all bodies         (cols 0–16, 19–34, 37–53, 57–72, 75–90, 93–99)
+    ...R8,   // row 8  — building bodies
+    ...R8,   // row 9
+    ...R8,   // row 10
+    ...R8,   // row 11
+    ...R8,   // row 12
+    ...R8,   // row 13
   ],
 
-  // Player spawns on S1 rooftop, col 2
-  playerStart: { x: 64, y: 290 },
+  // Player spawns on Building A rooftop, col 2.
+  // A roof = row 7 → surface y = 7 × 32 = 224 → player.y = 224 − PLAYER_H = 224 − 30 = 194
+  playerStart: { x: 64, y: 194 },
 
-  // ── Background decorations ──────────────────────────────────────────────────
-  // Building sprites anchor at y=384; their upper portion shows above tile rooftops.
-  // Tiles cover the facade below the rooftop — only upper floors + signs are visible.
-  // Rooftop props (lamps, signs) sit on the tile surface and extend upward.
+  // ── Rooftop props ─────────────────────────────────────────────────────────────
+  // No background building sprites — the tiles ARE the buildings.
+  // Props (lamps, signs, pipes) sit on the tile surface and extend upward.
+  // groundY = row * 32 (top face of that row's tile).
   decorations: [
-    // --- S1 backdrop (rooftop row 10, y=320 — upper 116-104 px of buildings visible) ---
-    bld('building_striped_tall',  49, 60,   10),   // left anchor, top at y=204
-    bld('building_large',         68, 56,  250),   // wide facade, top at y=216
-    bld('building_wide',          66, 40,  500),   // lower block, top at y=264
+    // ── Building A — row 7, groundY = 224 ──────────────────────────────────────
+    prp('street_lamp',       22, 43,   128, 224),   // col  4
+    prp('street_lamp',       22, 43,   448, 224),   // col 14
 
-    // --- S2a backdrop (rooftop row 9, y=288) ---
-    bld('building_neon_door',     52, 53,  760),   // neon door facade, top at y=225
-    bld('building_teal_sign',     31, 40,  970),   // teal sign, top at y=264
+    // ── Building B — row 5, groundY = 160 ──────────────────────────────────────
+    prp('street_lamp',       22, 43,   736, 160),   // col 23
+    prp('sign_arrow_right',  21, 34,  1056, 160),   // col 33 — nudge player toward C
 
-    // --- S2b backdrop (rooftop row 8, y=256 — upper 52px visible) ---
-    bld('building_striped_tall',  49, 60, 1200),   // behind S2b, top at y=204
-    bld('building_neon_panel',    28, 51, 1440),   // neon panel slab
+    // ── Building C main — row 6, groundY = 192 ─────────────────────────────────
+    prp('street_lamp',       22, 43,  1312, 192),   // col 41
+    prp('pipe_elbow',        19, 27,  1536, 192),   // col 48 — rooftop machinery at tower base
 
-    // --- Courtyard backdrop (open air from row 8 down to row 11 floor) ---
-    bld('building_large',         68, 56, 1680),   // visible behind courtyard space
-    bld('building_windows_wide',  43, 28, 1900),   // windows block
+    // ── Building C tower top — row 4, groundY = 128 ────────────────────────────
+    prp('sign_arrow_up',     31, 47,  1568, 128),   // col 49 — look up, reward is here
 
-    // --- S4 / gate area backdrop (parallax bg handles most of this) ---
-    bld('building_large',         68, 56, 2680),   // behind gate building gap
+    // ── Building D — row 7, groundY = 224 ──────────────────────────────────────
+    prp('street_lamp',       22, 43,  1984, 224),   // col 62
+    prp('sign_arrow_right',  21, 34,  2240, 224),   // col 70 — point toward E
 
-    // --- Rooftop props — lamps and signs placed on tile surfaces ---
-    // S1 roof (groundY=320)
-    prp('street_lamp',    20, 41,  100, 320),
-    prp('street_lamp',    20, 41,  560, 320),
-    // S2a roof (groundY=288)
-    prp('street_lamp',    20, 41,  840, 288),
-    prp('sign_arrow_right', 19, 32, 1095, 288),   // nudge toward S2b gap
-    // S2b roof (groundY=256)
-    prp('street_lamp',    20, 41, 1500, 256),
-    // S4 roof (groundY=224)
-    prp('street_lamp',    20, 41, 2200, 224),
-    prp('sign_arrow_right', 19, 32, 2500, 224),   // nudge toward platform gap
-    // Gate building roof (groundY=192)
-    prp('street_lamp',    20, 41, 2800, 192),
-    prp('sign_arrow_up',  29, 45, 2960, 192),     // exit direction indicator
-    // Exit section (groundY=256)
-    prp('street_lamp',    20, 41, 3090, 256),
+    // ── Building E main — row 5, groundY = 160 ─────────────────────────────────
+    prp('street_lamp',       22, 43,  2464, 160),   // col 77
+    prp('pipe_elbow',        19, 27,  2720, 160),   // col 85 — conduit at E-tower edge
+
+    // ── Building E tower top — row 3, groundY = 96 ─────────────────────────────
+    prp('sign_arrow_up',     31, 47,  2592, 96),    // col 81 — highest point
+
+    // ── Building F — row 6, groundY = 192 ──────────────────────────────────────
+    prp('street_lamp',       22, 43,  3040, 192),   // col 95
   ],
 
-  // ── Electrical sources ──────────────────────────────────────────────────────
-  // y = row * 32 - 30  (player-top when standing on that rooftop)
-  sources: [
-    // SRC-A — S1 rooftop, col 5  — near start, easy grab
-    { id: 'src_a', x: 160,  y: 290, charge: 3, label: 'SRC-A' },
-    // SRC-B — S2b rooftop, col 44 — rewards climbing the step-up
-    { id: 'src_b', x: 1408, y: 226, charge: 4, label: 'SRC-B' },
-    // SRC-C — courtyard floor, col 56 — requires the drop-and-climb route
-    { id: 'src_c', x: 1792, y: 322, charge: 3, label: 'SRC-C' },
-    // SRC-D — S4 HVAC peak, col 70 — highest point reward
-    { id: 'src_d', x: 2240, y: 162, charge: 5, label: 'SRC-D' },
-    // SRC-E — gate building roof, col 90 — before exit gate
-    { id: 'src_e', x: 2880, y: 162, charge: 3, label: 'SRC-E' },
-  ],
-
-  // ── Power gates ─────────────────────────────────────────────────────────────
-  gates: [
-    // Mid-gate — courtyard/S4 boundary (col 64, x=2048). Required: 4 charge.
-    // SRC-B alone (4) unlocks it; encourages climbing S2b.
-    { id: 'gate_mid',  x: 2048, y: 0, w: 14, h: 448, required: 4, label: 'SECTOR GATE' },
-    // Exit gate — inside exit section (col 94, x=3008). Required: 6 charge.
-    // Needs SRC-D(5)+SRC-E(3) or carried charge from earlier.
-    { id: 'gate_exit', x: 3008, y: 0, w: 14, h: 448, required: 6, isExit: true, label: 'EXIT' },
-  ],
-
-  switches: [],
-
-  // ── Checkpoints ─────────────────────────────────────────────────────────────
-  checkpoints: [
-    // CP1 — end of S2a rooftop (col 35, row 9). Respawn before the S2b gap.
-    { x: 1120, y: 258 },
-    // CP2 — entering S4 after mid-gate (col 66, row 7).
-    { x: 2112, y: 194 },
-  ],
-
-  // ── Moving platform ──────────────────────────────────────────────────────────
-  // Bridges the 4-tile gap (cols 81-84, x 2592-2720) between S4 and gate building.
-  // Travels at S4 roof level (y=224). Player rides it then jumps up 1 tile to gate
-  // building (row 6, y=192).
-  platforms: [
-    { x: 2590, y: 224, w: 80, h: 12, x1: 2582, x2: 2610, speed: 55 },
-  ],
-
-  // ── Enemies ─────────────────────────────────────────────────────────────────
-  enemies: [
-    // Drain — patrols S1 rooftop (row 10 surface y=290)
-    { type: 'drain', x: 320,  y: 290, patrolLeft:  96,  patrolRight:  640, speed: 58 },
-    // Drone — hovers over S2b / mini-tower area
-    { type: 'drone', x: 1520, y: 170, patrolLeft: 1200, patrolRight: 1620, speed: 50 },
-    // Drain — patrols S4 rooftop (row 7 surface y=194)
-    { type: 'drain', x: 2270, y: 194, patrolLeft: 2110, patrolRight: 2500, speed: 68 },
-    // Drain — patrols gate building roof (row 6 surface y=162)
-    { type: 'drain', x: 2820, y: 162, patrolLeft: 2730, patrolRight: 2970, speed: 65 },
-  ],
+  // ── Puzzle elements — intentionally empty for architecture pass ───────────────
+  // Do not populate until traversal and silhouette are approved.
+  sources:     [],
+  gates:       [],
+  switches:    [],
+  checkpoints: [],
+  platforms:   [],
+  enemies:     [],
 };
