@@ -16,7 +16,7 @@ function _drawBankedPips(ctx, player, t) {
   const pipH    = 17;
   const gap     = 5;
   const startX  = 16;
-  const startY  = 5;
+  const startY  = 35;
   const count   = player.bankedPips;
   const maxed   = count >= MAX_BANKED_PIPS;
   const bankFx  = player._pipBankFx  > 0;
@@ -134,7 +134,7 @@ function _drawBankedPips(ctx, player, t) {
 // ── Charge meter (top-left) — smooth bar, no numbers ─────────────
 function _drawChargeMeter(ctx, player, t) {
   const barX  = 16;
-  const barY  = 26;
+  const barY  = 56;
   const barW  = 244;
   const barH  = 14;
   const fill  = player.charge / MAX_CHARGE;
