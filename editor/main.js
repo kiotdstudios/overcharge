@@ -278,6 +278,36 @@ btnSave?.addEventListener('click', async () => {
     try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
   }
 });
+// Escape hatch from a local-only level. The dropdown lets Chief LOOK at the
+// committed copy, but the game keeps preferring the local save until it is
+// either committed or explicitly discarded here.
+const btnRevertLocal = document.getElementById('btn-revert-local');
+btnRevertLocal?.addEventListener('click', async () => {
+  const num = state.level?.number;
+  if (num == null) return;
+  const rec = await Persistence.getPersistedLevel(num);
+  if (!rec) {
+    showSaveFlash({ ok: false, message: `No local save for level ${num} — already on the git version.` });
+    return;
+  }
+  const when = rec.savedAt ? new Date(rec.savedAt).toLocaleString() : 'unknown time';
+  const msg = `Discard your local save of level ${num} (${rec.filename || 'unnamed'}, saved ${when}) `
+            + `and load the version committed in git?\n\nSnapshots and any file already written to your `
+            + `save folder are NOT affected.`;
+  if (!window.confirm(msg)) return;
+  await Persistence.forgetPersistedLevel(num);
+  // Go back to the committed entry for THIS level, not always level 1.
+  const committed = (state.availableLevels || [])
+    .find(l => l.source === 'bundled' && l.number === num);
+  const ok = await Persistence.switchToLevel(
+    committed || `src_scroll/levels/level${num}.json`);
+  state.availableLevels = await Persistence.discoverLevels();
+  refreshLevelSelect();
+  showSaveFlash({ ok, message: ok
+    ? `Local save discarded — now on the git version of level ${num}.`
+    : `Local save discarded, but the git version failed to load.` });
+});
+
 levelSelect?.addEventListener('change', async (e) => {
   // Value is an index into state.availableLevels; the array is (re)populated
   // by refreshLevelSelect from Persistence.discoverLevels().
@@ -426,8 +456,14 @@ function refreshLevelSelect() {
     list.forEach((l, i) => {
       const o = document.createElement('option');
       o.value = String(i);
+      // Two rows can share a level number: the copy committed in git and
+      // Chief's own newer save. Spell out which is which, and which one the
+      // game will actually load, or it just looks like a duplicate.
       const src = l.source === 'dir' ? '📂' : (l.source === 'idb' ? '💾' : '📦');
-      o.textContent = `${src} ${l.number ?? '?'} — ${l.name}`;
+      const tag = l.source === 'idb'  ? '  (your save · what the game plays)'
+                : l.source === 'dir'  ? '  (file in your save folder)'
+                :                       '  (in git)';
+      o.textContent = `${src} ${l.number ?? '?'} — ${l.name}${tag}`;
       levelSelect.appendChild(o);
     });
     levelSelect._sig = desiredSig;
@@ -534,12 +570,12 @@ function refreshParityStatus() {
     parityStatus.innerHTML =
       '<span style="color:#ffee00">\u25CF LOCAL SAVE \u2014 NOT COMMITTED</span>' +
       '<span style="color:#556"> \u2502 </span>' +
-      '<span style="color:#8aaabb">GAME USES COMMITTED LEVEL JSON</span>' +
+      '<span style="color:#ffee00">GAME PLAYS THIS SAVE IN YOUR BROWSER ONLY</span>' +
       '<span style="color:#556"> \u2502 </span>' +
       '<span style="color:#44ccff">checksum ' + sum + '</span>';
-    parityStatus.title = 'This level is saved on your machine only (disk + browser storage). '
-      + 'The game and everyone else still load the committed src_scroll/levels JSON until '
-      + 'this file is committed to git.';
+    parityStatus.title = 'Saved on this machine only (disk + browser storage). The game in THIS browser '
+      + 'plays it, but everyone else still gets the committed src_scroll/levels JSON until '
+      + 'you publish it to git (PUBLISH_LEVELS.bat).';
   } else {
     parityStatus.innerHTML =
       '<span style="color:#44ff88">\u25CF IN SYNC WITH COMMITTED LEVEL JSON</span>' +

@@ -312,6 +312,53 @@ function _drawCpFlash() {
   ctx.restore();
 }
 
+// ── Which level am I actually playing? ───────────
+// The editor SAVE button cannot write to GitHub, so a saved level only reaches
+// the committed JSON after someone commits and pushes it. Until then the game
+// would load the OLD committed level and the save would look like it did
+// nothing. The editor mirrors every save into IndexedDB on this same origin,
+// so the game can read that mirror and play Chief's latest work immediately.
+//
+// Priority: ?test=1 preview  >  local save  >  committed JSON.
+// Add ?committed=1 to the URL to ignore the local save and play what is in git.
+async function _tryLocalSave(number) {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('committed') === '1') return null;
+    const LocalStore = await import('../editor/localstore.js');
+    const rec = await LocalStore.getLevel('num:' + number);
+    if (!rec || !rec.json) return null;
+    const def = JSON.parse(rec.json);
+    if (!def || !Array.isArray(def.tiles) || !def.playerStart) return null;
+    _normalizeLevelDef(def, 'LEVEL ' + number, number);
+    def.__localSavedAt = rec.savedAt || 0;
+    def.__localFilename = rec.filename || null;
+    return def;
+  } catch (err) {
+    console.warn('[game] local save lookup skipped:', err && err.message);
+    return null;
+  }
+}
+
+// Chief must never have to guess which version is on screen.
+function _showLevelSourceBadge(kind, detail) {
+  try {
+    const el = document.createElement('div');
+    el.id = 'level-source-badge';
+    el.style.cssText = [
+      'position:fixed', 'left:8px', 'top:8px', 'z-index:9999',
+      'font:11px/1.4 monospace', 'padding:5px 9px',
+      'background:rgba(6,8,14,.88)', 'border-radius:3px',
+      'pointer-events:none', 'white-space:pre',
+    ].join(';');
+    const colors = { local: '#ffee00', committed: '#44ff88', test: '#ff8800' };
+    el.style.color  = colors[kind] || '#c8d8f0';
+    el.style.border = '1px solid ' + (colors[kind] || '#556');
+    el.textContent  = detail;
+    document.body.appendChild(el);
+  } catch { /* badge is informational — never block boot */ }
+}
+
 // ── Boot: fetch level JSON, then launch ──────────
 // Runtime and editor share ONE authoritative source per level (level<N>.json).
 // The runtime no longer imports a hand-authored JS mirror. If Chief updates
@@ -347,16 +394,32 @@ async function _bootAsync() {
   _TEST_LEVEL = _tryLoadTestLevel();
   if (_TEST_LEVEL) {
     LEVEL_DEFS = [_TEST_LEVEL];
+    _showLevelSourceBadge('test', 'BUILDER TEST PREVIEW \u2014 unsaved editor level');
   } else {
     const LEVEL1_PATH = 'src_scroll/levels/level1.json';
-    try {
-      const l1 = await _loadJsonLevel(LEVEL1_PATH, 'LEVEL 1', 1);
-      LEVEL_DEFS = [l1];
-      logLevelSource('[game] NORMAL GAME', LEVEL1_PATH + '  (authoritative committed JSON)', l1);
-    } catch (err) {
-      console.error('[game] FATAL: Level 1 JSON failed to load', err);
-      _drawFatalLevelLoadError(err.message || 'unknown error');
-      return; // do NOT start the loop or fall back to a stale bundled level.
+    const local = await _tryLocalSave(1);
+    if (local) {
+      LEVEL_DEFS = [local];
+      const when = local.__localSavedAt
+        ? new Date(local.__localSavedAt).toLocaleString() : 'unknown time';
+      logLevelSource('[game] YOUR LOCAL SAVE',
+        'IndexedDB mirror of the editor SAVE (' + (local.__localFilename || 'level 1')
+        + ', ' + when + ') \u2014 NOT yet committed to git', local);
+      _showLevelSourceBadge('local',
+        'PLAYING YOUR LOCAL SAVE \u00b7 ' + (local.name || 'LEVEL 1')
+        + '\nsaved ' + when + ' \u2014 not committed \u00b7 ?committed=1 for the git version');
+    } else {
+      try {
+        const l1 = await _loadJsonLevel(LEVEL1_PATH, 'LEVEL 1', 1);
+        LEVEL_DEFS = [l1];
+        logLevelSource('[game] NORMAL GAME', LEVEL1_PATH + '  (authoritative committed JSON)', l1);
+        _showLevelSourceBadge('committed',
+          'COMMITTED LEVEL \u00b7 ' + (l1.name || 'LEVEL 1') + '  (src_scroll/levels/level1.json)');
+      } catch (err) {
+        console.error('[game] FATAL: Level 1 JSON failed to load', err);
+        _drawFatalLevelLoadError(err.message || 'unknown error');
+        return; // do NOT start the loop or fall back to a stale bundled level.
+      }
     }
   }
 

@@ -269,11 +269,33 @@ export async function saveCurrentLevel() {
       const w  = await fh.createWritable();
       await w.write(json);
       await w.close();
+      // Also write the CANONICAL name the game loads (level<N>.json). The
+      // descriptive filename is good for keeping variants around, but the
+      // runtime only ever fetches src_scroll/levels/level<N>.json — so if the
+      // save folder IS that folder, this one extra write is what makes the
+      // save real: commit and push it and the live game plays it.
+      let canonical = null;
+      if (L.number != null) {
+        canonical = `level${L.number}.json`;
+        if (canonical !== filename) {
+          try {
+            const ch = await dir.getFileHandle(canonical, { create: true });
+            const cw = await ch.createWritable();
+            await cw.write(json);
+            await cw.close();
+          } catch (err) {
+            canonical = null;   // report the truth: only the variant landed
+            console.warn('[editor] canonical level file not written:', err && err.message);
+          }
+        }
+      }
       state.dirty = false;
       state.lastSavedAt = Date.now();
       await _mirrorSave(L, filename, 'fsa-dir');
       notify();
-      return { ok: true, method: 'fsa-dir', message: `Saved to ${dir.name}/${filename}` };
+      const wrote = canonical && canonical !== filename
+        ? `${filename} + ${canonical}` : filename;
+      return { ok: true, method: 'fsa-dir', message: `Saved to ${dir.name}/${wrote}` };
     } catch (err) {
       // Permission revoked / disk full / whatever — clear the dir and try
       // the per-file picker below as a last-ditch effort.
