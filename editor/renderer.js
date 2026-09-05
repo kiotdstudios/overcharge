@@ -6,7 +6,7 @@
 // Any level JSON conforming to SCHEMA.md renders correctly. No Level-1 assumptions.
 
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
-         worldToScreen, tileIsSolid, tileAssetIdFor } from './state.js';
+         worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation } from './state.js';
 import * as Selection from './selection.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
@@ -96,8 +96,20 @@ export function render(ctx, canvas) {
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
       const img = tileIsSolid(v) ? resolveTileImg(v) : null;
+      const rot = getTileRotation(col, r);
       if (img && img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, 0, 0, 16, 16, p.x, p.y, tsz, tsz);
+        if (rot === 0) {
+          ctx.drawImage(img, 0, 0, 16, 16, p.x, p.y, tsz, tsz);
+        } else {
+          // Rotate the tile around its center. 16×16 source keeps pixel
+          // crispness on 90° turns.
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;
+          ctx.translate(p.x + tsz / 2, p.y + tsz / 2);
+          ctx.rotate(rot * Math.PI / 180);
+          ctx.drawImage(img, 0, 0, 16, 16, -tsz / 2, -tsz / 2, tsz, tsz);
+          ctx.restore();
+        }
       } else {
         ctx.fillStyle = tileIsSolid(v) ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
         ctx.fillRect(p.x, p.y, tsz, tsz);

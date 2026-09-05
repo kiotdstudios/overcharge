@@ -37,7 +37,7 @@ export function clear(ctx, w, h, bgColor) {
 // topOpen: true when the tile directly above is not solid.
 //   → rooftop surface with neon glow edge
 //   → false = building facade interior → draw windows
-export function drawTile(ctx, tx, ty, T, type, topOpen = false) {
+export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0) {
   const x = tx * T, y = ty * T;
 
   if (type === 2) {
@@ -59,26 +59,32 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false) {
   if (type !== 1 && type < 10) return;
 
   // ── Base tile texture — direct registry lookup ────────────────────────
-  // Stored tile value → asset filename via TILE_ID_REGISTRY. Legacy 1
-  // maps to the default. Unknown value falls back to default.
   const texKey = (type === 1) ? TILE_DEFAULT_KEY
                               : (TILE_ID_REGISTRY[type] || TILE_DEFAULT_KEY);
   const img    = _pc[texKey];
   if (img.complete && img.naturalWidth > 0) {
-    // Tiles are true 16×16 as of Aki Batch 1 — full source blit, no crop.
-    ctx.drawImage(img, 0, 0, 16, 16, x, y, T, T);
+    if (!rot) {
+      // Tiles are true 16×16 as of Aki Batch 1 — full source blit, no crop.
+      ctx.drawImage(img, 0, 0, 16, 16, x, y, T, T);
+    } else {
+      // Rotate around tile center. Editor stores rotation in degrees {0,90,180,270}.
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      ctx.translate(x + T / 2, y + T / 2);
+      ctx.rotate(rot * Math.PI / 180);
+      ctx.drawImage(img, 0, 0, 16, 16, -T / 2, -T / 2, T, T);
+      ctx.restore();
+    }
   } else {
     ctx.fillStyle = '#0d1520';
     ctx.fillRect(x, y, T, T);
   }
-
-  // NOTE: The old procedural overlay (parapet band + neon line for rooftops,
-  // amber/teal/cyan window grid for facades) has been removed. Aki's real
-  // 16×16 pixel-art tile PNGs already contain the visual detail those overlays
-  // used to simulate. Let the tile art render as-is. If a rooftop neon accent
-  // is wanted later, expose it as a per-registry-value tile art variant, not
-  // as a runtime overpaint that hides Aki's work.
 }
+
+// NOTE: The old procedural overlay (parapet band + neon line for rooftops,
+// amber/teal/cyan window grid for facades) has been removed. Aki's real
+// 16×16 pixel-art tile PNGs already contain the visual detail those overlays
+// used to simulate. Let the tile art render as-is.
 
 export function drawGlowRect(ctx, x, y, w, h, fill, shadow, blur = 14) {
   ctx.save();

@@ -200,3 +200,40 @@ export function rotateDecorations(decs, delta = 90) {
     },
   };
 }
+
+// ── RotateTilesAction ────────────────────────────────────────────────────
+// Rotate each selected tile cell by `delta` degrees clockwise (default 90).
+// Rotation is stored in L.tileRotations (parallel to L.tiles). Missing array
+// = all zeros. Only cells that actually contain a solid tile are rotated
+// (rotating an empty cell is a no-op). Purely visual — collision unchanged.
+export function rotateTiles(cells, delta = 90) {
+  const L = state.level;
+  if (!L || !cells || cells.length === 0) return null;
+  const rows = levelRows();
+  if (!Array.isArray(L.tileRotations) || L.tileRotations.length !== L.tiles.length) {
+    L.tileRotations = new Array(L.tiles.length).fill(0);
+  }
+  const changes = [];
+  for (const { col, row } of cells) {
+    if (col < 0 || col >= L.cols || row < 0 || row >= rows) continue;
+    const idx = row * L.cols + col;
+    const v = L.tiles[idx];
+    if (v === 0) continue;
+    const prior = L.tileRotations[idx] || 0;
+    const next  = (((prior + delta) % 360) + 360) % 360;
+    if (next === prior) continue;
+    changes.push({ idx, prior, next });
+  }
+  if (changes.length === 0) return null;
+  return {
+    type: 'rotate_tiles',
+    forward() {
+      for (const c of changes) L.tileRotations[c.idx] = c.next;
+      notify();
+    },
+    inverse() {
+      for (const c of changes) L.tileRotations[c.idx] = c.prior;
+      notify();
+    },
+  };
+}

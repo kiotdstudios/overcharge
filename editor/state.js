@@ -474,6 +474,36 @@ export function setTile(col, row, value) {
   return true;
 }
 
+// ── Tile rotation ────────────────────────────────────────────────────────
+// Rotation is stored in a parallel array L.tileRotations, one entry per
+// L.tiles cell. Values are DEGREES in {0, 90, 180, 270}. Missing array or
+// short array = all zeros (rotation defaults off). Rotation is a purely
+// visual attribute — collision still uses tileIsSolid on L.tiles unchanged.
+export function getTileRotation(col, row) {
+  const L = state.level;
+  if (!L) return 0;
+  if (col < 0 || col >= L.cols || row < 0 || row >= levelRows()) return 0;
+  const arr = L.tileRotations;
+  if (!Array.isArray(arr)) return 0;
+  const idx = row * L.cols + col;
+  return arr[idx] || 0;
+}
+export function setTileRotation(col, row, degrees) {
+  const L = state.level;
+  if (!L) return false;
+  if (col < 0 || col >= L.cols || row < 0 || row >= levelRows()) return false;
+  const norm = (((Number(degrees) || 0) % 360) + 360) % 360;
+  if (norm !== 0 && norm !== 90 && norm !== 180 && norm !== 270) return false;
+  if (!Array.isArray(L.tileRotations) || L.tileRotations.length !== L.tiles.length) {
+    L.tileRotations = new Array(L.tiles.length).fill(0);
+  }
+  const idx = row * L.cols + col;
+  if (L.tileRotations[idx] === norm) return false;
+  L.tileRotations[idx] = norm;
+  notify();
+  return true;
+}
+
 // Append a decoration to the current level. Silently no-ops if level has no
 // decorations array or nothing loaded. Returns the appended entry.
 export function addDecoration(entry) {

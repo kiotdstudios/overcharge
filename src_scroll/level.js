@@ -8,7 +8,10 @@ export class Level {
   constructor(def) {
     this.name    = def.name || 'LEVEL';
     this.number  = def.number || 1;
-    this.tiles   = def.tiles;
+    this.tiles          = def.tiles;
+    // Parallel rotation array (0/90/180/270 degrees). Optional in the JSON —
+    // missing / short array renders as all-zero rotation (backward-compatible).
+    this.tileRotations  = Array.isArray(def.tileRotations) ? def.tileRotations : null;
     this.cols    = def.cols || COLS;
     this.pxW     = this.cols * TILE;
     this.pxH     = ROWS * TILE;
@@ -118,7 +121,9 @@ export class Level {
         if (tile !== 0) {
           const above = this.tileAt(tx, ty - 1);
           const topOpen = !(above === 1 || above >= 10);
-          drawTile(ctx, tx, ty, TILE, tile, topOpen);
+          const idx = ty * this.cols + tx;
+          const rot = this.tileRotations ? (this.tileRotations[idx] || 0) : 0;
+          drawTile(ctx, tx, ty, TILE, tile, topOpen, rot);
         }
       }
     }

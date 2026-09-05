@@ -122,13 +122,23 @@ btnLayerBackward?.addEventListener('click', () => _applyLayerOp('send-backward')
 btnLayerBack    ?.addEventListener('click', () => _applyLayerOp('send-to-back'));
 
 // ── Rotate wiring ─────────────────────────────────────────────────────────
-// Rotates the currently-selected decorations by ±90°. Tiles and gameplay
-// markers are not rotated (no rotation semantic in the schema yet).
+// Rotates the currently-selected tiles AND decorations by ±90°. Gameplay
+// markers (spawn/source/gate/switch/checkpoint/enemy) have no rotation
+// semantic yet and are ignored. Tiles + decorations rotate as two adjacent
+// undo entries — Ctrl+Z once reverts decorations, twice reverts tiles.
 function _applyRotate(delta) {
-  const decs = Selection.selectedDecorations();
-  if (decs.length === 0) return;
-  const a = Actions.rotateDecorations(decs, delta);
-  if (a) History.apply(a);
+  const decs  = Selection.selectedDecorations();
+  const cells = Selection.selectedTiles();
+  let applied = false;
+  if (decs.length > 0) {
+    const a = Actions.rotateDecorations(decs, delta);
+    if (a) { History.apply(a); applied = true; }
+  }
+  if (cells.length > 0) {
+    const a = Actions.rotateTiles(cells, delta);
+    if (a) { History.apply(a); applied = true; }
+  }
+  if (!applied) console.info('[editor] rotate — nothing rotatable in selection');
 }
 btnRotate?.addEventListener('click', () => _applyRotate(90));
 
