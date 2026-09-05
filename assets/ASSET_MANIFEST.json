@@ -1577,6 +1577,459 @@
         "density": "sparse",
         "stackable": false
       }
+    },
+    {
+      "id": "env_building_bar_sign",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_bar_sign.png",
+      "frame_width": 22,
+      "frame_height": 35,
+      "tags": [
+        "background",
+        "building",
+        "sign",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_brick_windows",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_brick_windows.png",
+      "frame_width": 45,
+      "frame_height": 28,
+      "tags": [
+        "background",
+        "building",
+        "brick",
+        "windows",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_door",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_door.png",
+      "frame_width": 30,
+      "frame_height": 24,
+      "tags": [
+        "background",
+        "building",
+        "door",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_neon_door",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_neon_door.png",
+      "frame_width": 54,
+      "frame_height": 55,
+      "tags": [
+        "background",
+        "building",
+        "neon",
+        "door",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_building_neon_panel",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_neon_panel.png",
+      "frame_width": 30,
+      "frame_height": 53,
+      "tags": [
+        "background",
+        "building",
+        "neon",
+        "panel",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_building_striped_tall",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_striped_tall.png",
+      "frame_width": 51,
+      "frame_height": 62,
+      "tags": [
+        "background",
+        "building",
+        "tall",
+        "striped",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_building_teal_sign",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_teal_sign.png",
+      "frame_width": 33,
+      "frame_height": 42,
+      "tags": [
+        "background",
+        "building",
+        "sign",
+        "teal",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_windows_wide",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_windows_wide.png",
+      "frame_width": 45,
+      "frame_height": 30,
+      "tags": [
+        "background",
+        "building",
+        "windows",
+        "wide",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_container_small_b",
+      "category": "container",
+      "path": "assets/tilesets/purple_city/containers/container_small_b.png",
+      "frame_width": 18,
+      "frame_height": 16,
+      "tags": [
+        "container",
+        "small",
+        "clutter",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "small"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_crate_large_hollow",
+      "category": "container",
+      "path": "assets/tilesets/purple_city/containers/crate_large_hollow.png",
+      "frame_width": 50,
+      "frame_height": 50,
+      "tags": [
+        "crate",
+        "large",
+        "hollow",
+        "climbable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "structural",
+          "large"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_crates_double",
+      "category": "container",
+      "path": "assets/tilesets/purple_city/containers/crates_double.png",
+      "frame_width": 60,
+      "frame_height": 34,
+      "tags": [
+        "crate",
+        "double",
+        "large",
+        "clutter",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "structural",
+          "large"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_platform_long_b",
+      "category": "platform",
+      "path": "assets/tilesets/purple_city/platforms/platform_long_b.png",
+      "frame_width": 49,
+      "frame_height": 12,
+      "tags": [
+        "platform",
+        "long",
+        "walkable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "grounded"
+        ],
+        "surface": "floating",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_platform_short_b",
+      "category": "platform",
+      "path": "assets/tilesets/purple_city/platforms/platform_short_b.png",
+      "frame_width": 24,
+      "frame_height": 12,
+      "tags": [
+        "platform",
+        "short",
+        "walkable",
+        "small",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "grounded",
+          "small"
+        ],
+        "surface": "floating",
+        "layer": "midground",
+        "density": "medium",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_prop_bracket_corner",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/bracket_corner.png",
+      "frame_width": 8,
+      "frame_height": 9,
+      "tags": [
+        "prop",
+        "bracket",
+        "rooftop",
+        "small",
+        "detail",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_prop_pipe_elbow",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/pipe_elbow.png",
+      "frame_width": 19,
+      "frame_height": 27,
+      "tags": [
+        "prop",
+        "pipe",
+        "rooftop",
+        "detail",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_prop_platform_glow",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/platform_glow_green.png",
+      "frame_width": 23,
+      "frame_height": 18,
+      "tags": [
+        "prop",
+        "glow",
+        "green",
+        "detail",
+        "small",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "small"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_prop_sign_arrow_up",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/sign_arrow_up.png",
+      "frame_width": 31,
+      "frame_height": 47,
+      "tags": [
+        "prop",
+        "sign",
+        "arrow",
+        "up",
+        "directional",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_prop_tool_hammer",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/tool_hammer.png",
+      "frame_width": 25,
+      "frame_height": 20,
+      "tags": [
+        "prop",
+        "tool",
+        "hammer",
+        "detail",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
     }
   ]
 }
