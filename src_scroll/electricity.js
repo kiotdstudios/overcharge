@@ -118,10 +118,18 @@ export class PowerGate {
     this._t        = 0;
     this._openAge  = 0;
     this._pipFlash = 0;  // white flash when powered by a banked pip
-    // Sprite art
+    // Sprite art — fallback + animated sheet + open frame.
+    // Attach onload logging so we can verify in the browser devtools
+    // that the sheet actually loaded (prior "static gate" report was
+    // most likely: the sheet loaded but the visible size (40×64 into
+    // the hitbox slot) made the plasma animation subtle. Fix below is
+    // to draw at the sprite's natural 64×128 aspect anchored on the
+    // hitbox — animation clearly visible; hitbox untouched).
     this._imgClosed = new Image();
-    this._imgClosed.src = 'assets/objects/gate_closed.png';   // fallback while sheet loads
+    this._imgClosed.src = 'assets/objects/gate_closed.png';
     this._sheet     = new Image();
+    this._sheet.addEventListener('load',  () => console.info('[gate] spritesheet loaded:',  this._sheet.naturalWidth + 'x' + this._sheet.naturalHeight));
+    this._sheet.addEventListener('error', () => console.warn('[gate] spritesheet FAILED to load — falling back to static gate_closed.png'));
     this._sheet.src = 'assets/objects/gate_electric_spritesheet.png';
     this._openImg   = new Image();
     this._openImg.src = 'assets/objects/gate_electric_open.png';
@@ -169,6 +177,20 @@ export class PowerGate {
   draw(ctx) {
     const t = this._t;
 
+    // ── Draw geometry (independent from hitbox) ──
+    // The hitbox (this.x, this.y, this.w, this.h) is what the player
+    // collides with (e.g. 40x64 in Level 1). The sprite renders LARGER
+    // so the animation is unambiguously visible. Same convention the
+    // generator sprite uses (28x28 hitbox, 64x64 sprite). Anchor:
+    //   horizontally centered on hitbox center
+    //   vertically bottom-aligned to hitbox bottom
+    // Sprite size = 64x128 (matches gate_electric_open.png native +
+    // matches the centered 64-wide crop of each 128x128 sheet cell).
+    const spriteW = 64;
+    const spriteH = 128;
+    const dX      = Math.round(this.cx - spriteW / 2);
+    const dY      = (this.y + this.h) - spriteH;   // bottom-aligned
+
     // ── OPEN state: bright flash → fade to invisible over ~1.0s ──
     if (this.open) {
       const age = this._openAge;
@@ -177,47 +199,41 @@ export class PowerGate {
       ctx.save();
       ctx.globalAlpha = alpha;
       ctx.imageSmoothingEnabled = false;
-      // Opening flash — first 0.2s bright white halo behind the open sprite
-      if (age < 0.2) {
-        ctx.shadowBlur  = 30;
-        ctx.shadowColor = '#ffffff';
-      } else {
-        ctx.shadowBlur  = 16;
-        ctx.shadowColor = '#cc44ff';
-      }
+      if (age < 0.2) { ctx.shadowBlur = 30; ctx.shadowColor = '#ffffff'; }
+      else            { ctx.shadowBlur = 16; ctx.shadowColor = '#cc44ff'; }
       const openImg = this._openImg;
       if (openImg && openImg.complete && openImg.naturalWidth > 0) {
-        // gate_electric_open.png is 64x128; slot is w x h. Preserve aspect.
-        ctx.drawImage(openImg, this.x, this.y, this.w, this.h);
+        ctx.drawImage(openImg, dX, dY, spriteW, spriteH);
       } else {
-        // Fallback: legacy purple rect while art loads
         drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
       }
       ctx.restore();
       return;
     }
 
-    const fill  = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
+    const fill = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
 
     // ── CLOSED state: play spritesheet idle (row 1) or charging (row 2) ──
-    // Cell 128x128; crop centered 64x128 (matches gate_closed.png aspect)
-    // so the sprite fits the 40x64-ish gate slot without extra squash.
+    // Sheet is 1152×384: 9 cols × 3 rows of 128×128 cells.
+    //   Row 0 = base (unused)   Row 1 = idle   Row 2 = charging
+    // Each frame's 128×128 cell is cropped centered to 64×128 so the
+    // gate art (which is portrait-shaped) is drawn at its natural
+    // aspect into a 64×128 destination.
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     const sheet = this._sheet;
     if (sheet && sheet.complete && sheet.naturalWidth > 0) {
       const CELL = 128;
       const fi   = Math.floor(this._frame) % 9;
-      const row  = this._reactT > 0 ? 2 : 1;   // 2 = charging, 1 = idle
-      const sx   = fi * CELL + 32;             // centered 64-wide crop
+      const row  = this._reactT > 0 ? 2 : 1;
+      const sx   = fi * CELL + 32;   // centered 64-wide crop within 128-wide cell
       const sy   = row * CELL;
-      // Idle glow (soft purple) while animating; charging boosts glow.
       ctx.shadowBlur  = this._reactT > 0 ? 18 : 8;
       ctx.shadowColor = '#cc44ff';
-      ctx.drawImage(sheet, sx, sy, 64, CELL, this.x, this.y, this.w, this.h);
+      ctx.drawImage(sheet, sx, sy, 64, CELL, dX, dY, spriteW, spriteH);
     } else if (this._imgClosed.complete && this._imgClosed.naturalWidth > 0) {
-      // Fallback to legacy static sprite while sheet loads
-      ctx.drawImage(this._imgClosed, this.x, this.y, this.w, this.h);
+      // Sheet not loaded yet — legacy static gate for one frame or two.
+      ctx.drawImage(this._imgClosed, dX, dY, spriteW, spriteH);
     }
     ctx.restore();
 

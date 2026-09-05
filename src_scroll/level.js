@@ -108,6 +108,67 @@ export class Level {
     }
   }
 
+  // ── Checkpoint snapshot / restore ──────────────────────────────────
+  // Captures the LEVEL side of the checkpoint reset model. main.js pairs
+  // this with a player {charge, bankedPips, respawnX, respawnY} snapshot.
+  //
+  // What is snapshotted (per Chief's spec):
+  //   sources      — charge remaining, drained flag
+  //   gates        — accumulated charge, open flag, react/open timers
+  //   switches     — accumulated charge, on flag
+  //   checkpoints  — activated flag (so re-crossing doesn't fire again)
+  //   enemies      — position, velocity, hp/alive, cooldown timers
+  //   platforms    — x position + direction (vx sign)
+  //   pickups      — cleared (any pickups dropped after the checkpoint
+  //                  are transient and vanish on rewind)
+  //   complete     — level completion flag
+  //
+  // What is NOT snapshotted (persistent across death; report):
+  //   tiles / tileRotations / decorations — static level geometry.
+  //   Image objects on entities — untouched (they carry loaded state).
+  snapshot() {
+    return {
+      sources:     this.sources.map(s => ({ charge: s.charge, drained: s.drained })),
+      gates:       this.gates.map(g => ({
+        charged: g.charged, open: g.open,
+        _openAge: g._openAge || 0, _reactT: g._reactT || 0,
+        _pipFlash: g._pipFlash || 0,
+      })),
+      switches:    this.switches.map(sw => ({ charged: sw.charged, on: sw.on })),
+      checkpoints: this.checkpoints.map(cp => ({ activated: cp.activated })),
+      enemies:     this.enemies.map(e => ({
+        x: e.x, y: e.y, vx: e.vx, hp: e.hp, alive: e.alive,
+        _cooldown: e._cooldown || 0, _hitFlash: e._hitFlash || 0, _t: e._t || 0,
+      })),
+      platforms:   this.platforms.map(pl => ({ x: pl.x, vx: pl.vx })),
+      complete:    this.complete,
+    };
+  }
+
+  restore(snap) {
+    if (!snap) return;
+    for (let i = 0; i < this.sources.length && i < snap.sources.length; i++) {
+      Object.assign(this.sources[i], snap.sources[i]);
+    }
+    for (let i = 0; i < this.gates.length && i < snap.gates.length; i++) {
+      Object.assign(this.gates[i], snap.gates[i]);
+    }
+    for (let i = 0; i < this.switches.length && i < snap.switches.length; i++) {
+      Object.assign(this.switches[i], snap.switches[i]);
+    }
+    for (let i = 0; i < this.checkpoints.length && i < snap.checkpoints.length; i++) {
+      Object.assign(this.checkpoints[i], snap.checkpoints[i]);
+    }
+    for (let i = 0; i < this.enemies.length && i < snap.enemies.length; i++) {
+      Object.assign(this.enemies[i], snap.enemies[i]);
+    }
+    for (let i = 0; i < this.platforms.length && i < snap.platforms.length; i++) {
+      Object.assign(this.platforms[i], snap.platforms[i]);
+    }
+    this.pickups  = [];   // transient — any post-checkpoint drops vanish on rewind
+    this.complete = snap.complete;
+  }
+
   draw(ctx, t) {
     // 1. Background decorations (buildings, props) — behind everything
     for (const dec of this.decorations) {

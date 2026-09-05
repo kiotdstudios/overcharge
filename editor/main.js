@@ -440,6 +440,186 @@ function frame() {
   requestAnimationFrame(frame);
 }
 
+// ── UPLOAD LEVEL ─────────────────────────────────────────────────────────
+// Import an OVERCHARGE .json level from disk. Runs through the same
+// _loadInMemory path the generator uses, so the uploaded level lands in
+// state as DIRTY / UNSAVED — Chief must explicitly SAVE to commit.
+//
+// Validation happens BEFORE any state is mutated; malformed JSON leaves
+// the current editor state untouched (Chief directive).
+const btnUpload   = document.getElementById('btn-upload');
+const uploadInput = document.getElementById('upload-input');
+
+function _validateLevelShape(obj) {
+  if (!obj || typeof obj !== 'object')          return 'not an object';
+  if (typeof obj.cols !== 'number' || obj.cols < 1) return 'missing/invalid cols';
+  if (!Array.isArray(obj.tiles))                return 'missing tiles array';
+  const expected = obj.cols * 14;
+  if (obj.tiles.length !== expected)            return `tiles length ${obj.tiles.length} ≠ cols*14 (${expected})`;
+  if (!obj.playerStart || typeof obj.playerStart.x !== 'number' || typeof obj.playerStart.y !== 'number') return 'missing playerStart {x,y}';
+  return null;
+}
+
+function _normalizeUploadedLevel(obj) {
+  // Match the runtime normalizer + editor conventions. Missing collections
+  // default to []. Preserves ALL supported fields (rotation, snap, family,
+  // etc.) — we spread the original to avoid dropping unknown-yet-valid keys.
+  return {
+    ...obj,
+    name:         obj.name || 'UPLOADED',
+    number:       Number.isFinite(obj.number) ? obj.number : (state.level?.number ?? 1),
+    decorations:  obj.decorations || [],
+    sources:      obj.sources     || [],
+    gates:        obj.gates       || [],
+    switches:     obj.switches    || [],
+    checkpoints:  obj.checkpoints || [],
+    platforms:    obj.platforms   || [],
+    enemies:      obj.enemies     || [],
+  };
+}
+
+btnUpload?.addEventListener('click', () => uploadInput?.click());
+uploadInput?.addEventListener('change', async () => {
+  const file = uploadInput.files && uploadInput.files[0];
+  uploadInput.value = '';  // allow re-picking the same file next time
+  if (!file) return;
+  try {
+    const text = await file.text();
+    let parsed;
+    try { parsed = JSON.parse(text); }
+    catch (e) { throw new Error('invalid JSON: ' + e.message); }
+    const err = _validateLevelShape(parsed);
+    if (err) throw new Error('rejected — ' + err);
+    const normalized = _normalizeUploadedLevel(parsed);
+    const ok = await Persistence.loadInMemoryLevel(normalized, {
+      confirmMessage: `Discard unsaved changes and load "${normalized.name}" from ${file.name}?`,
+      syntheticKey:   'upload:' + file.name,
+    });
+    if (ok) {
+      saveFlash.textContent = `↑ Uploaded ${file.name} — DIRTY / UNSAVED. Review, then SAVE to commit.`;
+      saveFlash.style.color = '#44ccff';
+      setTimeout(() => { saveFlash.textContent = ''; saveFlash.style.color = ''; }, 5000);
+    }
+  } catch (e) {
+    console.warn('[editor] upload rejected:', e.message);
+    saveFlash.textContent = `✗ Upload rejected: ${e.message}`;
+    saveFlash.style.color = '#ff8888';
+    setTimeout(() => { saveFlash.textContent = ''; saveFlash.style.color = ''; }, 6000);
+  }
+});
+
+// ── AUTO-RECOVERY ────────────────────────────────────────────────────────
+// Chief's directive: on meaningful editor changes, save a local recovery
+// snapshot. On refresh/startup, if a recovery exists, show a prompt with
+// RESTORE / DISCARD. Never silently replace the committed level.
+//
+// The snapshot lives in localStorage under a single slot. It contains the
+// dirty in-memory level as JSON plus the source path we started from (so
+// Chief can tell what the recovery is relative to). Save is debounced.
+const RECOVERY_KEY   = 'overcharge.editor.recovery';
+const RECOVERY_DEBOUNCE_MS = 600;
+let _recoverySaveTimer = null;
+let _recoverySuppress  = true;   // true during bootstrap — avoid writing the freshly-loaded snapshot
+
+function _saveRecoverySnapshot() {
+  if (_recoverySuppress) return;
+  if (!state.level || !state.dirty) return;
+  try {
+    const payload = {
+      savedAt:    new Date().toISOString(),
+      sourcePath: state.levelPath || null,
+      levelName:  state.level.name || 'LEVEL',
+      level:      state.level,
+    };
+    localStorage.setItem(RECOVERY_KEY, JSON.stringify(payload));
+  } catch (e) {
+    console.warn('[editor] Could not persist recovery snapshot:', e.message);
+  }
+}
+
+function _clearRecoverySnapshot() {
+  try { localStorage.removeItem(RECOVERY_KEY); } catch {}
+}
+
+function _readRecoverySnapshot() {
+  try {
+    const raw = localStorage.getItem(RECOVERY_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (!p || !p.level) return null;
+    return p;
+  } catch { return null; }
+}
+
+// Debounced writer — wired to subscribe() below (after bootstrap sets up).
+function _scheduleRecoverySave() {
+  clearTimeout(_recoverySaveTimer);
+  _recoverySaveTimer = setTimeout(_saveRecoverySnapshot, RECOVERY_DEBOUNCE_MS);
+}
+
+// Also drop a synchronous snapshot on tab close so we don't lose the last
+// few ms of edits between debounce fires.
+window.addEventListener('beforeunload', () => {
+  if (state.dirty) _saveRecoverySnapshot();
+});
+
+// Recovery dialog wiring — presented from bootstrap() when a snapshot is found.
+async function _promptRecovery(snap) {
+  const dialog  = document.getElementById('recovery-dialog');
+  const detail  = document.getElementById('recovery-details');
+  const btnR    = document.getElementById('recovery-restore');
+  const btnD    = document.getElementById('recovery-discard');
+  if (!dialog || !btnR || !btnD) return false;   // no dialog → skip prompt
+  detail.textContent = `An unsaved editor session was found (saved ${snap.savedAt}, level "${snap.levelName}"). Restore it, or discard and keep the committed level?`;
+  return new Promise(resolve => {
+    const cleanup = () => {
+      btnR.removeEventListener('click', onRestore);
+      btnD.removeEventListener('click', onDiscard);
+      try { dialog.close(); } catch {}
+    };
+    const onRestore = () => { cleanup(); resolve(true); };
+    const onDiscard = () => { cleanup(); resolve(false); };
+    btnR.addEventListener('click', onRestore);
+    btnD.addEventListener('click', onDiscard);
+    try { dialog.showModal(); }
+    catch { resolve(window.confirm('Restore unsaved editor session?')); }
+  });
+}
+
+async function _handleRecoveryOnBoot() {
+  const snap = _readRecoverySnapshot();
+  if (!snap) return;
+  const restore = await _promptRecovery(snap);
+  if (restore) {
+    // Validate before applying — a corrupt snapshot must NOT wipe committed state.
+    const err = _validateLevelShape(snap.level);
+    if (err) {
+      console.warn('[editor] Recovery snapshot rejected —', err);
+      _clearRecoverySnapshot();
+      return;
+    }
+    const normalized = _normalizeUploadedLevel(snap.level);
+    // Force-load: recovery has its own confirm dialog; bypass the "dirty" prompt.
+    state.dirty = false;
+    await Persistence.loadInMemoryLevel(normalized, {
+      confirmMessage: '',   // never actually shown; state.dirty=false forces bypass
+      syntheticKey:   'recovery:' + (snap.savedAt || Date.now()),
+    });
+    saveFlash.textContent = `↺ Restored unsaved level from ${snap.savedAt}`;
+    saveFlash.style.color = '#44ccff';
+    setTimeout(() => { saveFlash.textContent = ''; saveFlash.style.color = ''; }, 5000);
+  } else {
+    _clearRecoverySnapshot();
+  }
+}
+
+// Hook the debounced saver into the state change stream. Fires only when
+// state.dirty is true — clean loads don't overwrite the previous recovery.
+subscribe(() => { if (state.dirty) _scheduleRecoverySave(); });
+// Persistence.save*() flips state.dirty = false on success — clear the
+// recovery slot when a level is successfully saved to disk.
+subscribe(() => { if (!state.dirty && !_recoverySuppress) _clearRecoverySnapshot(); });
+
 // ── Bootstrap ────────────────────────────────────────────────────────────
 async function bootstrap() {
   fitCanvas();
@@ -459,6 +639,11 @@ async function bootstrap() {
     setTool('pointer');   // everyday editing default per Chief
     refreshUI();
     frame();
+    // Present recovery prompt if a snapshot exists. Suppression flag stays
+    // true until after the prompt resolves so we don't overwrite the
+    // recovery with the freshly-loaded default level.
+    await _handleRecoveryOnBoot();
+    _recoverySuppress = false;
     console.info(`[editor] Boot OK — ${state.availableLevels.length} level(s), FSA save: ${Persistence.hasFSA() ? 'yes' : 'no (download-only)'}`);
   } catch (err) {
     console.error('Editor bootstrap failed:', err);

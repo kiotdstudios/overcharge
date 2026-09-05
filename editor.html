@@ -91,6 +91,8 @@
     <select id="level-select" title="Switch level (warns on unsaved changes)"></select>
     <button id="btn-new"       title="New empty level">NEW</button>
     <button id="btn-duplicate" title="Duplicate current level">DUPLICATE</button>
+    <button id="btn-upload"    title="Upload an exported OVERCHARGE level JSON — loads as DIRTY / UNSAVED so you can review before saving">⬆ UPLOAD</button>
+    <input id="upload-input" type="file" accept=".json,application/json" style="display:none">
     <button id="btn-generate" title="Generate a random level idea">🎲 GENERATE</button>
     <button id="btn-test" title="Test the current level in the game (opens new tab)">▶ TEST</button>
     <button id="btn-save" class="primary" title="Save current level (Ctrl+S)">💾 SAVE</button>
@@ -212,6 +214,17 @@
   <div style="display: flex; gap: 8px; justify-content: flex-end;">
     <button id="confirm-cancel" type="button">CANCEL</button>
     <button id="confirm-ok" type="button" style="background: #442200; border: 1px solid #ff8800; color: #ffcc88; padding: 4px 12px;">DISCARD & CONTINUE</button>
+  </div>
+</dialog>
+
+<!-- Recovery dialog — shown on boot when an autosaved unsaved level exists.
+     Non-blocking otherwise (only appears if localStorage has a snapshot). -->
+<dialog id="recovery-dialog" style="background: #0f1420; color: #cdd; border: 1px solid #44ccff; padding: 18px 22px; font-family: monospace; min-width: 380px;">
+  <h2 style="font-size: 13px; letter-spacing: 2px; color: #44ccff; margin-bottom: 10px;">↺ UNSAVED LEVEL RECOVERED</h2>
+  <p id="recovery-details" style="font-size: 12px; line-height: 1.5; color: #cdd; margin-bottom: 16px;">An unsaved editor session was found from your previous visit. Restore it, or discard and reload the committed level?</p>
+  <div style="display: flex; gap: 8px; justify-content: flex-end;">
+    <button id="recovery-discard" type="button">DISCARD</button>
+    <button id="recovery-restore" type="button" class="primary" style="background: #001a30; border: 1px solid #44ccff; color: #cceeff; padding: 4px 12px;">RESTORE</button>
   </div>
 </dialog>
 

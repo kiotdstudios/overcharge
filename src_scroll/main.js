@@ -113,18 +113,50 @@ function _updateCamera() {
   camX = Math.max(0, Math.min(target, level.pxW - W));
 }
 
+// ── Checkpoint snapshot ──────────────────────────
+// The full "restore state on death" model. We keep a single snapshot
+// object with the level's mutable state AND the player's charge/pip
+// state at snapshot time. Taken at level load (fallback = initial state)
+// and refreshed on each checkpoint activation.
+let _snap = null;
+
+function _takeSnapshot() {
+  _snap = {
+    level: level.snapshot(),
+    player: { charge: player.charge, bankedPips: player.bankedPips },
+    respawnX, respawnY,
+  };
+}
+
+function _applySnapshot() {
+  if (!_snap) return false;
+  level.restore(_snap.level);
+  player = new Player(_snap.respawnX, _snap.respawnY);
+  player.charge     = _snap.player.charge;
+  player.bankedPips = _snap.player.bankedPips;
+  respawnX = _snap.respawnX;
+  respawnY = _snap.respawnY;
+  camX = Math.max(0, Math.min(respawnX - W / 2, level.pxW - W));
+  _cpFlash = 0;
+  return true;
+}
+
 function loadLevel(idx, carryCharge = false) {
   const savedCharge = carryCharge && player ? player.charge : 0;
+  const savedPips   = carryCharge && player ? player.bankedPips : 0;
   const def = LEVEL_DEFS[idx % LEVEL_DEFS.length];
   level  = new Level(def);
   player = new Player(level.playerStart.x, level.playerStart.y);
-  if (carryCharge) player.charge = savedCharge;
+  if (carryCharge) { player.charge = savedCharge; player.bankedPips = savedPips; }
   level.complete = false;
   completeTimer  = 0;
   respawnX = level.playerStart.x;
   respawnY = level.playerStart.y;
   camX     = Math.max(0, Math.min(respawnX - W / 2, level.pxW - W));
   _cpFlash = 0;
+  // Initial snapshot = clean level + initial player state. If Chief dies
+  // before touching any checkpoint, _applySnapshot restores this.
+  _takeSnapshot();
 }
 
 function startGame() {
@@ -140,8 +172,7 @@ function advanceLevel() {
 }
 
 function _respawn() {
-  player   = new Player(respawnX, respawnY);
-  camX     = Math.max(0, Math.min(respawnX - W / 2, level.pxW - W));
+  _applySnapshot();
 }
 
 // ── Loop ───────────────────────────────────────
@@ -169,23 +200,27 @@ function _update(dt) {
       _updateCamera();
       _cpFlash = Math.max(0, _cpFlash - dt);
 
-      // Checkpoint activation
+      // Checkpoint activation — first cross snapshots the whole level +
+      // player state so death fully rewinds to this moment.
       for (const cp of level.checkpoints) {
         if (cp.tryActivate(player)) {
           respawnX = cp.x;
           respawnY = cp.y;
           _cpFlash = 2.5;
+          _takeSnapshot();
         }
       }
 
       // Dev shortcuts
       if (Input.pressed('F2')) advanceLevel();
-      if (Input.pressed('KeyP')) {
-        if (player.charge < MAX_CHARGE)             player.charge = Math.min(player.charge + 2, MAX_CHARGE);
-        else if (player.bankedPips < MAX_BANKED_PIPS) player.bankedPips++;
-      }
+      // Dev P now feeds energy through the SAME rule the game uses
+      // (fill bar first, roll to pip when bar tops out). No shortcut
+      // that bypasses the charge model.
+      if (Input.pressed('KeyP')) player.giveEnergy(2);
 
-      // Fall off level → respawn at last checkpoint (not a full game over)
+      // Fall off level → respawn at last checkpoint (not a full game over).
+      // _respawn() restores the full snapshot: level state + player
+      // charge/pip, not just position.
       if (player.y > H + 60) _respawn();
 
       // Hit with no charge and no pips → game over
@@ -207,7 +242,8 @@ function _update(dt) {
       break;
 
     case STATES.GAME_OVER:
-      if (Input.pressedAny('KeyR')) { loadLevel(currentLevelIdx); state = STATES.PLAYING; }
+      // R restores from checkpoint snapshot; Space returns to title.
+      if (Input.pressedAny('KeyR')) { _respawn(); player.dead = false; state = STATES.PLAYING; }
       if (Input.pressedAny('Space'))  state = STATES.TITLE;
       break;
   }

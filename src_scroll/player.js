@@ -93,9 +93,60 @@ export class Player {
     this._updatePipSpend(dt, level);  // F near gate + has pip → instant power
     this._collectPickups(level);
 
+    // BANK RESERVE (Chief directive):
+    // Anywhere the active bar reaches 0 while a banked pip exists,
+    // consume exactly 1 pip and refill the bar to full. This makes each
+    // pip behave like a reserve battery, transparently, regardless of
+    // whether the drain came from discharge, damage, or dev-P.
+    this._applyBankReserve();
+
     // Tick sprite animator — threshold at 20 avoids idle/walk flicker during decel
     const isMoving = Math.abs(this.vx) > 20;
     this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy);
+  }
+
+  // Consume a whole banked pip to top the bar back up. Fires whenever
+  // the bar has been drawn down to zero and there is still a reserve.
+  _applyBankReserve() {
+    if (this.charge <= 1e-9 && this.bankedPips > 0) {
+      this.charge      = MAX_CHARGE;
+      this.bankedPips  = this.bankedPips - 1;
+      this._pipSpendFx = 0.45;   // brief pip-rack flash to signal the promote
+    }
+  }
+
+  // Deposit `amount` energy into the player using the SAME rules the game
+  // uses when absorbing from a source: fill the bar first, then bank a pip
+  // when the bar tops out. Used by dev-P (real energy, not a shortcut) and
+  // any future in-game reward that awards raw energy.
+  giveEnergy(amount) {
+    let remain = amount;
+    // Fill any headroom left in the bar first.
+    if (remain > 0) {
+      const space = MAX_CHARGE - this.charge;
+      const take  = Math.min(remain, space);
+      this.charge += take;
+      remain      -= take;
+    }
+    // Convert whole-bar chunks into banked pips.
+    while (remain >= MAX_CHARGE && this.bankedPips < MAX_BANKED_PIPS) {
+      this.bankedPips++;
+      this._pipBankFx = 0.5;
+      // The bar was already full; a pip has been banked, so the bar reads
+      // MAX_CHARGE. To be able to accept another chunk we leave it there
+      // and the next iteration will exit (headroom = 0 again). Any excess
+      // spills; we don't over-fill past the cap.
+      remain -= MAX_CHARGE;
+    }
+    // If the bar is exactly at MAX_CHARGE and we still have residual, roll
+    // the bar over into a pip so residual can be absorbed as bar-charge.
+    if (remain > 0 && this.charge >= MAX_CHARGE - 1e-9 && this.bankedPips < MAX_BANKED_PIPS) {
+      this.bankedPips++;
+      this._pipBankFx = 0.5;
+      this.charge = Math.min(remain, MAX_CHARGE);
+    }
+    // Anything still left beyond the max-pip cap is discarded — matches
+    // the absorb path (source drain silently clamps at the ceiling).
   }
 
   // ── Movement & jump ──────────────────────────
@@ -319,17 +370,16 @@ export class Player {
 
   // ── Discharge (hold E near device) ────
   //
-  // Interaction rework (Chief directive):
+  // Interaction model:
   //  • E is the universal context-sensitive interact button.
   //     - Near a source: absorb (see _updateAbsorb — runs first).
   //     - Near a gate/switch with usable charge: discharge here.
   //  • SPACE no longer discharges. SPACE is attack-only near enemies.
-  //     Pressing SPACE anywhere else does NOT drain charge.
-  //  • Bar-first spend policy. A banked pip is auto-promoted to bar
-  //    ONLY when this frame's contribution would exceed the bar AND
-  //    there is still gate demand. This eliminates the previous
-  //    "tap = pip wiped" bug where a single frame of discharge
-  //    unconditionally consumed a whole pip.
+  //  • Discharge spends from the active bar. When the bar drains to 0
+  //    while pips remain, `_applyBankReserve` at end-of-frame promotes
+  //    one pip to a full bar — same 16.67ms cadence Chief specified
+  //    ("consume 1 pip, immediately refill"). This works generically:
+  //    the same reserve logic covers damage and dev-P.
   //  • Explicit pip-spend on a gate remains on F (_updatePipSpend).
   _updateDischarge(dt, level) {
     const holdE     = Input.heldAny('KeyE');
@@ -350,40 +400,21 @@ export class Player {
       return;
     }
 
-    // Rate: full when bar has enough or a pip is queued; otherwise scaled
-    // so a nearly-empty bar drains gracefully rather than all-at-once.
-    const rate       = this.bankedPips > 0 || this.charge >= 1
-      ? DISCHARGE_RATE
-      : Math.max(0.5, DISCHARGE_RATE * (this.charge / MAX_CHARGE));
-    const frameSpend = Math.min(rate * dt, needed);
+    // Steady discharge rate. Since _applyBankReserve refills the bar to
+    // MAX_CHARGE the moment it empties (when a pip is available), we can
+    // always run at the full rate without the old bar-percent scaling.
+    const rate       = DISCHARGE_RATE;
+    const frameSpend = Math.min(rate * dt, this.charge, needed);
 
-    // Spend from bar first. Promote a pip only if the bar cannot cover
-    // this frame's contribution AND a pip is available.
-    let actual;
-    if (this.charge >= frameSpend) {
-      this.charge -= frameSpend;
-      actual = frameSpend;
-    } else if (this.bankedPips > 0) {
-      // Bar shortfall — consume remaining bar, then draw the rest from
-      // one promoted pip. Any residual bar-charge from the promoted pip
-      // is retained (this is the fix: pip energy is NOT wasted).
-      const shortfall = frameSpend - this.charge;
-      this.charge      = MAX_CHARGE - shortfall;   // pip → bar, minus this frame
-      this.bankedPips--;
-      this._pipSpendFx = 0.45;                      // pip rack flashes
-      actual = frameSpend;
+    if (frameSpend > 0) {
+      this.charge          -= frameSpend;
+      this.discharging      = true;
+      this.dischargeTarget  = this.nearDevice;
+      this._dischargeFx     = 0.15;
+      this.nearDevice.receive(frameSpend);
     } else {
-      // No pips — spend whatever bar remains.
-      actual      = this.charge;
-      this.charge = 0;
-    }
-
-    if (actual > 0) {
-      this.discharging     = true;
-      this.dischargeTarget = this.nearDevice;
-      this._dischargeFx    = 0.15;
-      this.nearDevice.receive(actual);
-    } else {
+      // Bar is exactly 0 this frame. If pips exist, _applyBankReserve
+      // will promote one at end-of-frame and discharge resumes next tick.
       this.discharging     = false;
       this.dischargeTarget = null;
     }
@@ -463,9 +494,11 @@ export class Player {
   }
 
   // ── Charge scatter on hit ────────────────────────────────────────
-  // Has charge  → scatter 1 unit as a pickup
-  // No charge, has pips → spend a pip (no scatter)
-  // Nothing left → die
+  // Has bar-charge   → drop 1 unit as a pickup, bar decreases.
+  // Bar empty + pip  → do nothing here; _applyBankReserve will promote
+  //                    a pip to the bar at end-of-frame. Player survived
+  //                    on their reserve, no pickup dropped.
+  // Nothing at all   → die.
   scatter(level) {
     if (this.charge > 0) {
       this.charge = Math.max(0, this.charge - 1);
@@ -473,11 +506,10 @@ export class Player {
       const vx   = xDir * (110 + Math.random() * 70);
       const vy   = -170 - Math.random() * 60;
       level.pickups.push(new ChargePickup(this.cx, this.cy, 1, vx, vy));
-    } else if (this.bankedPips > 0) {
-      this.bankedPips--;
-      this._pipSpendFx = 0.4;
-    } else {
-      // No charge, no pips — dead
+    } else if (this.bankedPips <= 0) {
+      // No bar, no pips → dead. If pips > 0, we intentionally do nothing;
+      // the shared bank-reserve promoter will fire end-of-frame, keeping
+      // the player alive on a full bar drawn from the pip reserve.
       this.dead = true;
     }
   }
