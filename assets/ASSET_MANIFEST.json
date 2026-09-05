@@ -209,7 +209,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Static sprite. Drawn scaled to gate world dims (w x h). Charge fill overlay rendered on top in code. PixelLab job id: e9dfee77. PENDING: gate_electric_open needed.",
+      "notes": "Static closed-gate reference sprite (64x128). Animated spritesheet now in gate_electric_animated. PixelLab job: e9dfee77.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object \u2014 linked to generator/switches by ID"
@@ -1249,6 +1249,43 @@
         "stackable": false
       },
       "notes": "Wall-mounted. Requires adjacent vertical solid face."
+    },
+    {
+      "id": "gate_electric_animated",
+      "path": "assets/objects/gate_electric_spritesheet.png",
+      "layout": "assets/objects/gate_electric_spritesheet.json",
+      "category": "electrical",
+      "tags": [
+        "gate",
+        "barrier",
+        "electrical",
+        "animated",
+        "spritesheet"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "directions": 1,
+      "notes": "Animated gate spritesheet. Row 0: base (1f). Row 1: idle (9f) \u2014 plasma pulse loop. Row 2: charging (9f) \u2014 build to overcharge flash. PixelLab object: 4a1480fd.",
+      "animations": {
+        "idle": {
+          "row": 1,
+          "frame_count": 9,
+          "fps": 8,
+          "loop": true,
+          "group_id": "68923f1b-a374-406b-96ab-b5607fa59574"
+        },
+        "charging": {
+          "row": 2,
+          "frame_count": 9,
+          "fps": 10,
+          "loop": true,
+          "group_id": "d786d02c-45a0-447d-94be-7422ee8da7bb"
+        }
+      },
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 linked to generator/switches by ID"
+      }
     }
   ]
 }

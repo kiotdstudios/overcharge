@@ -1,0 +1,54 @@
+{
+  "object": {
+    "id": "4a1480fd-f826-4915-99b4-8e55289c7c25",
+    "name": "base",
+    "prompt": "electric barrier gate, tall vertical rectangle, two dark metal side pillar columns with bolts, purple-white plasma lightning bolt crackling vertically through center gap, dark near-black metal housing, pixel art sidescroller, purple city cyberpunk palette",
+    "size": {
+      "width": 128,
+      "height": 128
+    },
+    "directions": 1,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "gate_electric_spritesheet.png",
+    "cell_size": {
+      "width": 128,
+      "height": 128
+    },
+    "sheet_size": {
+      "width": 1152,
+      "height": 384
+    },
+    "columns": 9,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 1,
+        "directions": [
+          "unknown"
+        ]
+      },
+      {
+        "row": 1,
+        "type": "animation",
+        "frame_count": 9,
+        "animation": "idle",
+        "animation_group_id": "68923f1b-a374-406b-96ab-b5607fa59574",
+        "direction": "unknown"
+      },
+      {
+        "row": 2,
+        "type": "animation",
+        "frame_count": 9,
+        "animation": "charging",
+        "animation_group_id": "d786d02c-45a0-447d-94be-7422ee8da7bb",
+        "direction": "unknown"
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-09-05T04:42:48.323757+00:00"
+}
