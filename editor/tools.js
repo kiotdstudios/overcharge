@@ -18,6 +18,7 @@ import {
   SNAP_DECORATION_DEFAULT, effectiveSnap,
   decoDimensions, getCachedImage,
   tileValueForAssetId, tileIsSolid,
+  flashPlacementReject,
 } from './state.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
@@ -386,6 +387,12 @@ function _placeGameplayMarker(asset, worldX, worldY) {
 // Every mutation goes through History.apply so undo works.
 // Returns true if a placement action was applied, false otherwise.
 export function placeAssetAt(asset, worldX, worldY) {
+  // Reference atlases are for lookup, not placement.
+  if (asset && asset.category === 'tileset') {
+    console.warn('[editor] tileset atlas is not placeable:', asset.id);
+    flashPlacementReject(worldX, worldY, 'atlas not placeable');
+    return false;
+  }
   if (isTerrainCategory(asset?.category) || !asset) {
     const t = { col: Math.floor(worldX / TILE_SIZE), row: Math.floor(worldY / TILE_SIZE) };
     // Determine tile value based on selected asset. When Chief selects a
@@ -410,9 +417,10 @@ export function placeAssetAt(asset, worldX, worldY) {
       /generator|source|gate|switch|exit|checkpoint/i.test(asset.id || '')) {
     return _placeGameplayMarker(asset, worldX, worldY);
   }
-  // Animated decoration (player anims etc.) — not placeable.
+  // Animated decoration that isn't a recognized gameplay marker: skip.
   if (asset.isAnimation) {
     console.warn('[editor] animation asset not placeable:', asset.id);
+    flashPlacementReject(worldX, worldY, 'animation not placeable');
     return false;
   }
   // ── Static non-terrain decoration ─────────────────────────────────────
@@ -445,6 +453,7 @@ export function placeAssetAt(asset, worldX, worldY) {
     });
     if (clash) {
       console.info('[editor] wall overlap rejected — already a wall in this cell', asset.id, cellCol, cellRow);
+      flashPlacementReject(worldX, worldY, 'wall already here');
       return false;
     }
   }
@@ -476,6 +485,7 @@ export function placeAssetAt(asset, worldX, worldY) {
     }
     if (!hasGround) {
       console.info('[editor] floating placement rejected — need solid ground below', asset.id, pos);
+      flashPlacementReject(worldX, worldY, 'no ground below');
       return false;
     }
   }

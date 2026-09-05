@@ -103,11 +103,15 @@ export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
 export const SNAP_GAMEPLAY_DEFAULT   = 16;          // spawn/source/gate/switch/checkpoint/enemy
 
 // Quantize a single world coordinate down to the nearest `snap`-aligned point.
-// Used at placement time (defines the object's origin).
+// Used at placement time. round-to-nearest so a click lands at the CLOSEST
+// snapped point rather than always toward the top-left — much more intuitive
+// for Chief when placing large decorations (was floor, felt like the click
+// jumped away from the cursor).
 export function snapPoint(x, y, snap) {
+  if (snap <= 1) return { x: Math.round(x), y: Math.round(y) };
   return {
-    x: Math.floor(x / snap) * snap,
-    y: Math.floor(y / snap) * snap,
+    x: Math.round(x / snap) * snap,
+    y: Math.round(y / snap) * snap,
   };
 }
 
@@ -236,9 +240,10 @@ export const state = {
 
   // UI toggles
   showGrid: true,
-  guardsOn: true,       // when false, disables authoring-time placement guards
-                        // (floating placement, wall-overlap, decoration-in-air)
-                        // — runtime collision is unaffected. Toolbar checkbox.
+  guardsOn: false,      // authoring-time placement guards. DEFAULT OFF so
+                        // Chief can freely place decorations anywhere. Toggle
+                        // ON to reject floating placements + wall overlaps
+                        // (runtime collision is always unaffected).
   snapOverride: 'auto', // 'auto' | 1 | 16 | 32. Chief-controlled override for
                         // placement snap and drag delta. 'auto' preserves the
                         // per-ref default behavior (terrain=32, gameplay=16,
@@ -353,6 +358,17 @@ export function effectiveSnap(fallback) {
   const o = state.snapOverride;
   if (o === 1 || o === 16 || o === 32) return o;
   return fallback;
+}
+
+// Flash a red rejection marker at world (x,y). Renderer picks up
+// state.rejectFlash and draws a fading red X. Auto-clears after 700ms so
+// Chief always sees WHY his click "did nothing" — no more silent rejects.
+let _flashTimer = null;
+export function flashPlacementReject(worldX, worldY, msg = 'blocked') {
+  state.rejectFlash = { x: worldX, y: worldY, msg, at: Date.now() };
+  if (_flashTimer) clearTimeout(_flashTimer);
+  _flashTimer = setTimeout(() => { state.rejectFlash = null; notify(); }, 700);
+  notify();
 }
 
 // Camera helpers

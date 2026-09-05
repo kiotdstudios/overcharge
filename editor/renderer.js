@@ -259,6 +259,35 @@ export function render(ctx, canvas) {
     ctx.font = 'bold 12px monospace';
     ctx.fillText(`${cHi - cLo + 1}×${rHi - rLo + 1} = ${count}`, p.x + 4, p.y - 4);
   }
+
+  // Placement-rejected flash — a fading red X + reason at the cursor world
+  // position. Set by state.flashPlacementReject; auto-clears after 700ms.
+  if (state.rejectFlash) {
+    const rf = state.rejectFlash;
+    const age = Date.now() - rf.at;
+    const life = 700;
+    const alpha = Math.max(0, 1 - age / life);
+    if (alpha > 0) {
+      const p = worldToScreen(rf.x, rf.y);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = '#ff3355';
+      ctx.lineWidth = 3;
+      const r = 14;
+      ctx.beginPath();
+      ctx.moveTo(p.x - r, p.y - r); ctx.lineTo(p.x + r, p.y + r);
+      ctx.moveTo(p.x + r, p.y - r); ctx.lineTo(p.x - r, p.y + r);
+      ctx.stroke();
+      ctx.fillStyle = '#ff3355';
+      ctx.font = 'bold 12px monospace';
+      const msg = String(rf.msg || 'blocked');
+      const tw = ctx.measureText(msg).width;
+      ctx.fillRect(p.x - tw/2 - 4, p.y + r + 4, tw + 8, 16);
+      ctx.fillStyle = '#0a0d14';
+      ctx.fillText(msg, p.x - tw/2, p.y + r + 16);
+      ctx.restore();
+    }
+  }
 }
 
 function _drawMarkers(ctx, arr, kind, glyph) {
