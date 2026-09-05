@@ -193,6 +193,9 @@ const _SNAP_CATEGORY_16 = new Set([
 export function snapForAsset(asset) {
   if (!asset) return SNAP_DECORATION_DEFAULT;
   if (typeof asset.snap === 'number') return asset.snap;
+  // Modular-family assets use native pixel placement — magnetic edge snap
+  // does all the alignment work, so we don't want a coarse grid interfering.
+  if (asset.family) return SNAP_DECORATION_DEFAULT;
   const cat = asset.category;
   if (cat === 'tile' || cat === 'terrain' || cat === 'tileset') return SNAP_TERRAIN;
   if (_SNAP_CATEGORY_16.has(cat)) return 16;
@@ -339,6 +342,10 @@ function _normalizeManifestEntry(a) {
     path:        path,
     name:        a.id || (a.name || path.split('/').pop().replace(/\.png$/i, '')),
     category:    a.category || 'other',
+    // Modular-family tag: Aki-authored assets that magnetically join
+    // edge-to-edge with peers sharing the same family string. Optional —
+    // absence means the asset uses normal (folder-fallback) magnetic behavior.
+    family:      a.family || null,
     width:       a.frame_width  || a.width  || 32,
     height:      a.frame_height || a.height || 32,
     tags:        a.tags || [],
