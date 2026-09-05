@@ -4,7 +4,7 @@ import {
   state, subscribe,
   loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
-  setGuardsOn, setSnapOverride,
+  setGuardsOn, setMagneticSnap, setSnapOverride,
 } from './state.js';
 import { render } from './renderer.js';
 import { mountAssetBrowser } from './assets.js';
@@ -41,6 +41,7 @@ const editorRoot     = document.getElementById('editor-root');
 const btnInspHide    = document.getElementById('btn-inspector-hide');
 const inspShowTab    = document.getElementById('inspector-show-tab');
 const guardsToggle   = document.getElementById('guards-toggle');
+const magneticToggle = document.getElementById('magnetic-toggle');
 const snapSelect     = document.getElementById('snap-select');
 const btnLayerFront    = document.getElementById('btn-layer-front');
 const btnLayerForward  = document.getElementById('btn-layer-forward');
@@ -102,6 +103,7 @@ zoomOutBtn?.addEventListener('click', () => zoomCamera(1/1.25, canvas.width/2, c
 zoomResetBtn?.addEventListener('click', () => resetZoom());
 gridToggle?.addEventListener('change', () => setShowGrid(gridToggle.checked));
 guardsToggle?.addEventListener('change', () => setGuardsOn(guardsToggle.checked));
+magneticToggle?.addEventListener('change', () => setMagneticSnap(magneticToggle.checked));
 snapSelect?.addEventListener('change', (e) => {
   const v = e.target.value;
   setSnapOverride(v === 'auto' ? 'auto' : Number(v));

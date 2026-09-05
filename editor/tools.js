@@ -59,6 +59,56 @@ function isTerrainCategory(cat) {
 // clipboard.js used to import it. Prefer snapPoint() from state.js.
 function snapToGrid(worldX, worldY) { return snapPoint(worldX, worldY, TILE_SIZE); }
 
+// ── Magnetic edge snap helper ────────────────────────────────────────────
+// Same-family = the asset's category matches the sibling's src folder,
+// either singular (rooftop, structure) or plural (platforms, edges, walls,
+// buildings, containers, facades, signs, props). We match by folder to work
+// with the disk-index entries too (which don't always share Aki's category
+// spelling).
+function _folderFromSrc(src) {
+  if (!src) return '';
+  const parts = src.split('/');
+  return parts.length >= 2 ? parts[parts.length - 2] : '';
+}
+function _sameFamily(decSrc, assetCat) {
+  const f = _folderFromSrc(decSrc);
+  if (!f || !assetCat) return false;
+  return f === assetCat || f === assetCat + 's';
+}
+// Returns a possibly-nudged {x, y}. Never moves further than ±THRESHOLD on
+// each axis. Independent X and Y snap: closest matching edge wins per axis.
+// Candidate edges per sibling: abut-right/left (my.L↔sib.R, my.R↔sib.L),
+// column-align (my.L↔sib.L, my.R↔sib.R), row-abut (my.T↔sib.B, my.B↔sib.T),
+// row-align (my.T↔sib.T, my.B↔sib.B).
+const MAGNETIC_THRESHOLD_PX = 12;
+function _magneticEdgeSnap(pos, dims, asset, L) {
+  if (!state.magneticSnap) return pos;
+  if (!L || !Array.isArray(L.decorations) || L.decorations.length === 0) return pos;
+  const cat = String(asset.category || '').toLowerCase();
+  if (!cat) return pos;
+  const myL = pos.x, myR = pos.x + dims.w, myT = pos.y, myB = pos.y + dims.h;
+  let bestDx = 0, bestDxAbs = MAGNETIC_THRESHOLD_PX + 1;
+  let bestDy = 0, bestDyAbs = MAGNETIC_THRESHOLD_PX + 1;
+  for (const s of L.decorations) {
+    if (!s || typeof s.x !== 'number' || typeof s.y !== 'number') continue;
+    if (!_sameFamily(s.src, cat)) continue;
+    const sL = s.x, sR = s.x + (s.w || 0), sT = s.y, sB = s.y + (s.h || 0);
+    // X candidates
+    const dxCandidates = [ sR - myL, sL - myR, sL - myL, sR - myR ];
+    for (const d of dxCandidates) {
+      const a = Math.abs(d);
+      if (a <= MAGNETIC_THRESHOLD_PX && a < bestDxAbs) { bestDx = d; bestDxAbs = a; }
+    }
+    // Y candidates
+    const dyCandidates = [ sB - myT, sT - myB, sT - myT, sB - myB ];
+    for (const d of dyCandidates) {
+      const a = Math.abs(d);
+      if (a <= MAGNETIC_THRESHOLD_PX && a < bestDyAbs) { bestDy = d; bestDyAbs = a; }
+    }
+  }
+  if (bestDx === 0 && bestDy === 0) return pos;
+  return { x: pos.x + bestDx, y: pos.y + bestDy };
+}
 // ── POINTER TOOL ────────────────────────────────────────────────────────
 // Default everyday editing tool. Simpler than Select — no marquee, no shift-
 // additive. Its whole job is: pick one thing, move it, done.
@@ -431,12 +481,19 @@ export function placeAssetAt(asset, worldX, worldY) {
   const isWall = asset.category === 'wall';
   const autoSnap = isWall ? TILE_SIZE : snapForAsset(asset);
   const snap     = effectiveSnap(autoSnap);            // Chief override wins
-  const pos      = snapPoint(worldX, worldY, snap);
+  let   pos      = snapPoint(worldX, worldY, snap);
   const img      = getCachedImage(asset.path);
   const nativeDims = decoDimensions(asset, img);
   const dims   = isWall ? { w: TILE_SIZE, h: TILE_SIZE } : nativeDims;
 
   const L = state.level;
+
+  // ── Magnetic edge snap ───────────────────────────────────────────────
+  // If enabled, nudge pos so we abut / align with same-family sibling
+  // decorations within ±12px on each axis. Runs BEFORE guards so guards
+  // evaluate the FINAL landing position, not the pre-magnetic one.
+  pos = _magneticEdgeSnap(pos, dims, asset, L);
+
   const guardsOn = state.guardsOn !== false;   // default ON
 
   // ── Wall overlap guard ───────────────────────────────────────────────

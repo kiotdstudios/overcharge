@@ -269,7 +269,10 @@ export const state = {
                         // placement snap and drag delta. 'auto' preserves the
                         // per-ref default behavior (terrain=32, gameplay=16,
                         // decoration=1 or asset-defined).
-
+  magneticSnap: true,   // when true, decoration placement magnetically snaps
+                        // to same-family sibling edges/rows within ±12px so
+                        // pieces abut and rows align without pixel-perfect
+                        // cursor precision. Toggle in toolbar.
   // ── Level workflow / persistence ─────────────────────────────────────
   dirty:           false,   // true when unsaved changes exist since load/save
   lastSavedAt:     null,    // Date.now() timestamp of last successful save
@@ -396,6 +399,7 @@ export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
 export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
+export function setMagneticSnap(v)       { state.magneticSnap = !!v; notify(); }
 export function setSnapOverride(v) {
   // Accept 'auto' | 1 | 16 | 32. Anything else falls back to 'auto'.
   if (v === 'auto' || v === 1 || v === 16 || v === 32) state.snapOverride = v;
