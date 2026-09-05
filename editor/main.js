@@ -12,6 +12,7 @@ import { TOOLS, middleMousePan, wheelZoom } from './tools.js';
 import * as History from './history.js';
 import * as Clipboard from './clipboard.js';
 import * as Selection from './selection.js';
+import * as Persistence from './persistence.js';
 import * as Generator   from './generator.js';
 import * as Actions     from './actions.js';
 
