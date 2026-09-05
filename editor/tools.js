@@ -338,20 +338,46 @@ export function placeAssetAt(asset, worldX, worldY) {
     console.warn('[editor] animation asset placement not supported in Phase 1:', asset.id);
     return false;
   }
-  // Static non-terrain decoration
-  const snap = snapForAsset(asset);
-  const pos  = snapPoint(worldX, worldY, snap);
-  const img  = getCachedImage(asset.path);
-  const dims = decoDimensions(asset, img);
+  // ── Static non-terrain decoration ─────────────────────────────────────
+  // Special-case: 'wall' category acts as a tile-sized building block. Walls
+  // snap to the 32 grid, render at exactly 32×32 (stretched from native ~26),
+  // and cannot overlap another wall in the same cell. This makes brick walls
+  // stackable into structures like normal terrain tiles.
+  const isWall = asset.category === 'wall';
+  const snap   = isWall ? TILE_SIZE : snapForAsset(asset);
+  const pos    = snapPoint(worldX, worldY, snap);
+  const img    = getCachedImage(asset.path);
+  const nativeDims = decoDimensions(asset, img);
+  const dims   = isWall ? { w: TILE_SIZE, h: TILE_SIZE } : nativeDims;
+
+  const L = state.level;
+
+  // ── Wall overlap guard ───────────────────────────────────────────────
+  // Reject placing a wall on top of another wall in the same 32×32 cell.
+  // Detected by path pattern (we don't currently store category on the
+  // decoration itself); good enough for the walls/ folder in purple_city.
+  if (isWall && L && Array.isArray(L.decorations)) {
+    const cellCol = Math.floor(pos.x / TILE_SIZE);
+    const cellRow = Math.floor(pos.y / TILE_SIZE);
+    const clash = L.decorations.some(d => {
+      if (!d || typeof d.x !== 'number' || typeof d.y !== 'number') return false;
+      if (!/\/walls\//.test(d.src || '')) return false;
+      return Math.floor(d.x / TILE_SIZE) === cellCol
+          && Math.floor(d.y / TILE_SIZE) === cellRow;
+    });
+    if (clash) {
+      console.info('[editor] wall overlap rejected — already a wall in this cell', asset.id, cellCol, cellRow);
+      return false;
+    }
+  }
 
   // ── Floating-placement guard ─────────────────────────────────────────
   // Reject decorations that would float in mid-air. Requires a solid tile
-  // within N tiles below the decoration's bottom, spanning any col in its
-  // x-range. N=3 tolerance so slightly-high clicks still register (they
-  // won't auto-snap yet — Chief just gets a rejection console note).
-  const L = state.level;
+  // within N tiles below the decoration's bottom (or below the cell for
+  // walls, which are effectively terrain). Walls placed as part of a stack
+  // count each other as ground, so consult existing wall decorations too.
   if (L) {
-    const MAX_FALL_TILES = 3;
+    const MAX_FALL_TILES = isWall ? 1 : 3;
     const rows = Math.floor(L.tiles.length / L.cols);
     const bottomRow = Math.floor((pos.y + dims.h) / TILE_SIZE);
     const startCol  = Math.max(0, Math.floor(pos.x / TILE_SIZE));
@@ -363,8 +389,18 @@ export function placeAssetAt(asset, worldX, worldY) {
         if (L.tiles[r * L.cols + c] === 1) { hasGround = true; break; }
       }
     }
+    // Walls also treat other walls as ground so vertical stacking works.
+    if (!hasGround && isWall && Array.isArray(L.decorations)) {
+      const bRow = bottomRow;
+      hasGround = L.decorations.some(d => {
+        if (!d || !/\/walls\//.test(d.src || '')) return false;
+        const dRow = Math.floor(d.y / TILE_SIZE);
+        const dCol = Math.floor(d.x / TILE_SIZE);
+        return dRow === bRow && dCol >= startCol && dCol <= endCol;
+      });
+    }
     if (!hasGround) {
-      console.info('[editor] floating placement rejected — need solid tile below', asset.id, pos);
+      console.info('[editor] floating placement rejected — need solid ground below', asset.id, pos);
       return false;
     }
   }
@@ -375,7 +411,7 @@ export function placeAssetAt(asset, worldX, worldY) {
     y:    pos.y,
     w:    dims.w,
     h:    dims.h,
-    snap,     // remember so drag-move / paste use the same resolution
+    snap,
   };
   const a = Actions.addDecoration(dec);
   if (a) { History.apply(a); return true; }

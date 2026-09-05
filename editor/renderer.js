@@ -32,18 +32,25 @@ const MARKER = {
   selection:  '#ffee00',
 };
 
-// Cache the tile PNG chosen for painted terrain rendering. Resolved lazily
-// from state.manifest — first item in category 'tile'. Aki-owned; we don't
-// care which specific tile art wins as long as it renders flush at 32x32.
-let _terrainImg = null;
-function terrainImage() {
-  if (_terrainImg && _terrainImg.complete && _terrainImg.naturalWidth > 0) return _terrainImg;
+// Pool of painted-terrain PNGs. All manifest items with category 'tile'
+// contribute. Each solid cell picks one via a stable per-position hash so
+// the same cell renders the same art every frame AND we get variety across
+// the level (mix of dark_a, dark_b, purple_a, purple_b). Matches the game
+// runtime's own hash-based tile variety.
+let _terrainImgs = null;
+function terrainImages() {
+  if (_terrainImgs && _terrainImgs.length > 0) return _terrainImgs;
   const m = state.manifest;
   if (!m || !Array.isArray(m.items)) return null;
-  const tile = m.items.find(it => it.category === 'tile');
-  if (!tile) return null;
-  _terrainImg = getImage(tile.path);
-  return _terrainImg;
+  const tiles = m.items.filter(it => it.category === 'tile' && !it.isAnimation);
+  if (tiles.length === 0) return null;
+  _terrainImgs = tiles.map(t => getImage(t.path));
+  return _terrainImgs;
+}
+// Same integer mix the game uses (src_scroll/render.js) so editor preview
+// visually matches gameplay. Deterministic per (col,row).
+function tileHash(col, row) {
+  return (((col * 2654435761) ^ (row * 2246822519)) >>> 0);
 }
 
 export function render(ctx, canvas) {
@@ -79,21 +86,23 @@ export function render(ctx, canvas) {
   const L = state.level;
   const rows = levelRows();
   const tsz = TILE_SIZE * c.zoom;
-  const tImg = terrainImage();
+  const tImgs = terrainImages() || [];
+  // Only images already loaded contribute; unloaded ones simply skip this
+  // frame and re-check next frame (getImage cache holds them until ready).
+  const readyImgs = tImgs.filter(im => im.complete && im.naturalWidth > 0);
   for (let r = 0; r < rows; r++) {
     for (let col = 0; col < L.cols; col++) {
       const v = L.tiles[r * L.cols + col];
       if (v === 0) continue;
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
-      if (v === 1 && tImg && tImg.complete && tImg.naturalWidth > 0) {
-        // Source rect (1,1,16,16): purple_city PNGs are 18x18 with a 1px
-        // transparent border (PixelLab atlas-safety export). Cropping that
-        // border makes adjacent tiles render flush edge-to-edge. Destination
-        // is unchanged — still exactly one TILE_SIZE cell at (col*32, row*32).
-        ctx.drawImage(tImg, 1, 1, 16, 16, p.x, p.y, tsz, tsz);
+      if (v === 1 && readyImgs.length > 0) {
+        // Per-cell hashed pick from the tile-art pool for visual variety
+        // (matches game runtime). Source rect (1,1,16,16) crops the PixelLab
+        // 1px transparent margin so tiles render flush at any zoom.
+        const idx = tileHash(col, r) % readyImgs.length;
+        ctx.drawImage(readyImgs[idx], 1, 1, 16, 16, p.x, p.y, tsz, tsz);
       } else {
-        // Fallback color box until tile PNG loads
         ctx.fillStyle = v === 1 ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
         ctx.fillRect(p.x, p.y, tsz, tsz);
       }
