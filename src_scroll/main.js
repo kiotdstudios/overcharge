@@ -1,5 +1,10 @@
 // OVERCHARGE — scroll edition
 // Camera follows player horizontally; checkpoints save respawn; one wide level.
+//
+// LEVEL DATA PIPELINE (single source of truth):
+//   src_scroll/levels/level<N>.json  ← the ONE authoritative level definition.
+//   Editor loads it, saves back to it. Runtime fetches it at boot.
+//   There is NO hand-authored JS mirror. Do not reintroduce one.
 import * as Input from './input.js';
 import { clear } from './render.js';
 import { Level }  from './level.js';
@@ -7,14 +12,13 @@ import { init as bgInit, update as bgUpdate } from './background.js';
 import { Player } from './player.js';
 import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
-import { LEVEL1 } from './levels/level1.js';
 
 // ── Editor-driven test mode ──────────────────────────────────────────────
 // When launched with `?test=1`, load the level def from localStorage under
 // the shared key `overcharge.testLevel` — the editor's ▶ TEST button writes
 // the current in-memory level here before opening this tab. Any failure
-// silently falls back to LEVEL1 so a broken localStorage state never blocks
-// launching the normal game.
+// falls through to the JSON pipeline so a broken localStorage state never
+// blocks launching the normal game.
 const TEST_LEVEL_KEY = 'overcharge.testLevel';
 function _tryLoadTestLevel() {
   try {
@@ -24,26 +28,48 @@ function _tryLoadTestLevel() {
     if (!raw) return null;
     const def = JSON.parse(raw);
     if (!def || !Array.isArray(def.tiles) || !def.playerStart) return null;
-    // Ensure the def has all the arrays Level constructor expects, so an
-    // editor-saved level with missing collections still runs.
-    def.sources     = def.sources     || [];
-    def.gates       = def.gates       || [];
-    def.switches    = def.switches    || [];
-    def.checkpoints = def.checkpoints || [];
-    def.platforms   = def.platforms   || [];
-    def.enemies     = def.enemies     || [];
-    def.decorations = def.decorations || [];
-    def.name        = def.name || 'TEST';
-    def.number      = def.number ?? 0;
-    console.info('[game] Test mode: loaded level from editor', def.name);
+    _normalizeLevelDef(def, 'TEST', 0);
+    console.info('[game] Test mode: loaded level from editor —', def.name);
     return def;
   } catch (err) {
     console.warn('[game] Test mode requested but level load failed:', err);
     return null;
   }
 }
-const _TEST_LEVEL = _tryLoadTestLevel();
-const LEVEL_DEFS = _TEST_LEVEL ? [_TEST_LEVEL] : [LEVEL1];
+
+// Editor-saved levels may omit empty collections; the Level constructor
+// tolerates missing arrays but consumers assume they exist. Normalize here.
+function _normalizeLevelDef(def, defaultName, defaultNumber) {
+  def.sources     = def.sources     || [];
+  def.gates       = def.gates       || [];
+  def.switches    = def.switches    || [];
+  def.checkpoints = def.checkpoints || [];
+  def.platforms   = def.platforms   || [];
+  def.enemies     = def.enemies     || [];
+  def.decorations = def.decorations || [];
+  def.name        = def.name || defaultName;
+  def.number      = def.number ?? defaultNumber;
+  return def;
+}
+
+// Fetch a level JSON from the levels directory. Path is resolved relative
+// to the served HTML (index.html), so this works identically local and on
+// GitHub Pages (no bundler, static files served as-is).
+async function _loadJsonLevel(path, fallbackName, fallbackNumber) {
+  const res = await fetch(path);
+  if (!res.ok) throw new Error(`Level fetch failed: ${path} (HTTP ${res.status})`);
+  const def = await res.json();
+  if (!def || !Array.isArray(def.tiles) || !def.playerStart) {
+    throw new Error(`Level malformed: ${path} — missing tiles/playerStart`);
+  }
+  return _normalizeLevelDef(def, fallbackName, fallbackNumber);
+}
+
+// LEVEL_DEFS filled by _bootAsync — see bottom of file. Kept the same
+// single-element array shape as the previous JS-import version so runtime
+// gameplay (advanceLevel / loadLevel(idx)) is unchanged.
+let LEVEL_DEFS   = null;
+let _TEST_LEVEL  = null;
 
 // ── Canvas ─────────────────────────────────────
 const canvas = document.getElementById('game');
@@ -60,12 +86,10 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-// Parallax background — sized to the loaded level's width so tests of any
-// length (Short/Medium/Long from the generator) get proper parallax range.
+// Parallax background — initialized inside _bootAsync once level data is
+// available (bgInit needs the loaded level's pixel width for parallax range).
 // SKIPPED in test mode per Chief: the neon-windows layers compete with the
 // authored level content while iterating. Normal LEVEL1 game unaffected.
-const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;
-if (!_TEST_LEVEL) bgInit(_bgW);
 
 // ── State ──────────────────────────────────────
 const STATES = { TITLE: 0, PLAYING: 1, LEVEL_COMPLETE: 2, GAME_OVER: 3 };
@@ -255,7 +279,56 @@ function _drawCpFlash() {
   ctx.restore();
 }
 
-// Test mode: auto-start into PLAYING so Chief lands directly in the level.
-if (_TEST_LEVEL) startGame();
+// ── Boot: fetch level JSON, then launch ──────────
+// Runtime and editor share ONE authoritative source per level (level<N>.json).
+// The runtime no longer imports a hand-authored JS mirror. If Chief updates
+// a level in the editor and saves it back to src_scroll/levels/level<N>.json,
+// the next runtime launch picks it up automatically.
+//
+// Progression note: LEVEL_DEFS keeps the same single-Level-1 array the
+// runtime has always used. Adding levels to game progression is a gameplay
+// change, not a data-pipeline change, and requires its own Chief directive.
+function _drawFatalLevelLoadError(msg) {
+  clear(ctx, W, H, C.BG);
+  ctx.fillStyle = '#ff4466';
+  ctx.font      = 'bold 18px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('LEVEL LOAD FAILED', W / 2, H / 2 - 20);
+  ctx.fillStyle = '#c8d8f0';
+  ctx.font      = '11px monospace';
+  ctx.fillText(msg.slice(0, 90), W / 2, H / 2 + 6);
+  ctx.fillStyle = '#7ab4ff';
+  ctx.fillText('Check console for details.', W / 2, H / 2 + 30);
+}
 
-requestAnimationFrame(loop);
+function _drawBootingScreen() {
+  clear(ctx, W, H, C.BG);
+  ctx.fillStyle = '#7ab4ff';
+  ctx.font      = 'bold 14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('LOADING\u2026', W / 2, H / 2);
+}
+
+async function _bootAsync() {
+  _drawBootingScreen();
+  _TEST_LEVEL = _tryLoadTestLevel();
+  if (_TEST_LEVEL) {
+    LEVEL_DEFS = [_TEST_LEVEL];
+  } else {
+    try {
+      const l1 = await _loadJsonLevel('src_scroll/levels/level1.json', 'LEVEL 1', 1);
+      LEVEL_DEFS = [l1];
+      console.info('[game] Level 1 loaded from level1.json —', l1.name);
+    } catch (err) {
+      console.error('[game] FATAL: Level 1 JSON failed to load', err);
+      _drawFatalLevelLoadError(err.message || 'unknown error');
+      return; // do NOT start the loop or fall back to a stale bundled level.
+    }
+  }
+  const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;
+  if (!_TEST_LEVEL) bgInit(_bgW);
+  if (_TEST_LEVEL) startGame();       // auto-start in TEST so Chief lands in-level
+  requestAnimationFrame(loop);
+}
+
+_bootAsync();
