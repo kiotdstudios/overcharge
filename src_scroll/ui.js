@@ -205,15 +205,21 @@ function _drawLevelBanner(ctx, level, t) {
 }
 
 // ── Context prompts ───────────────────────────
+//
+// Interaction rework (Chief directive):
+//   Source                                       → [E] ABSORB
+//   Gate (player has enough usable charge)       → [E] DISCHARGE
+//   Gate (player does NOT have enough)           → POWER REQUIRED / ABSORB MORE ENERGY
+//   Enemy                                        → [SPACE] ATTACK
+// "[E] ABSORB" is NEVER shown on a gate — it appears only under nearSource.
 function _drawContextPrompts(ctx, player, t) {
   const pulse = 0.7 + 0.3 * Math.sin(t * 4);
 
-  // Near a source
+  // ── Near a source: [E] ABSORB ──
   if (player.nearSource && !player.nearSource.drained) {
     const src = player.nearSource;
     const cx  = src.cx;
     const cy  = src.y - 22;
-    const needed = src.charge;
     ctx.save();
     ctx.globalAlpha = pulse;
     ctx.fillStyle   = '#ffe040';
@@ -221,11 +227,11 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.textAlign   = 'center';
     ctx.shadowBlur  = 8;
     ctx.shadowColor = '#ffcc00';
-    ctx.fillText(`[E] ABSORB  +${Math.round(needed)}⚡`, cx, cy);
+    ctx.fillText(`[E] ABSORB`, cx, cy);
     ctx.restore();
   }
 
-  // Near an enemy — Space = attack (overrides gate prompt)
+  // ── Near an enemy: [SPACE] ATTACK (overrides gate prompt) ──
   if (player.nearEnemy && player.nearEnemy.alive) {
     const e = player.nearEnemy;
     ctx.save();
@@ -239,41 +245,47 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.restore();
   }
 
-  // Near a device (gate or switch) — only shown when no enemy nearby
-  if (!player.nearEnemy && player.nearDevice && !player.nearDevice.open && !player.nearDevice.on) {
-    const dev     = player.nearDevice;
-    const cx      = dev.cx;
-    const cy      = dev.y - 20;
-    const needed  = dev.required - dev.charged;
-    const hasAny  = player.charge > 0;
+  // ── Near a device (gate/switch) — only shown when no enemy nearby ──
+  // Also suppress if standing at a source: E is absorb there, not discharge,
+  // and the two prompts on the same object would confuse.
+  if (!player.nearEnemy && !player.nearSource && player.nearDevice && !player.nearDevice.open && !player.nearDevice.on) {
+    const dev       = player.nearDevice;
+    const cx        = dev.cx;
+    const cy        = dev.y - 20;
+    const needed    = dev.required - dev.charged;
+    // Total energy the player could send here right now.
+    const usable    = player.charge + player.bankedPips * MAX_CHARGE;
+    const hasEnough = usable >= needed - 1e-9;
+
     ctx.save();
     ctx.globalAlpha = pulse;
+    ctx.textAlign   = 'center';
+    ctx.font        = 'bold 11px monospace';
 
     if (player.discharging) {
-      // Show live transfer feedback while holding Space
+      // Live feedback while actively holding E at the device
       ctx.fillStyle   = '#cc44ff';
-      ctx.font        = 'bold 11px monospace';
-      ctx.textAlign   = 'center';
       ctx.shadowBlur  = 10;
       ctx.shadowColor = '#cc44ff';
-      ctx.fillText('CHARGING...', cx, cy);
-    } else if (hasAny) {
+      ctx.fillText('DISCHARGING...', cx, cy);
+    } else if (hasEnough) {
       ctx.fillStyle   = '#cc44ff';
-      ctx.font        = 'bold 11px monospace';
-      ctx.textAlign   = 'center';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#cc44ff';
-      ctx.fillText('[SPACE] HOLD TO CHARGE', cx, cy);
+      ctx.fillText('[E] DISCHARGE', cx, cy);
     } else {
+      // Two-line prompt: POWER REQUIRED / ABSORB MORE ENERGY
       ctx.fillStyle   = '#ff4444';
-      ctx.font        = 'bold 11px monospace';
-      ctx.textAlign   = 'center';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#ff4444';
-      ctx.fillText(`NO CHARGE — absorb a source first`, cx, cy);
+      ctx.fillText('POWER REQUIRED', cx, cy);
+      ctx.font        = 'bold 9px monospace';
+      ctx.fillStyle   = '#ff8888';
+      ctx.fillText('ABSORB MORE ENERGY', cx, cy + 12);
     }
 
-    // Pip spend prompt — shown below the main prompt when player has banked pips
+    // Pip-spend prompt (F) — still available as an intentional one-shot
+    // when the player has stored pips; unaffected by the E rework.
     if (player.bankedPips > 0) {
       const pipPulse = 0.7 + 0.3 * Math.sin(t * 5);
       ctx.globalAlpha = pulse * pipPulse;
@@ -281,7 +293,7 @@ function _drawContextPrompts(ctx, player, t) {
       ctx.font        = 'bold 10px monospace';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#ffaa00';
-      ctx.fillText(`[F] SPEND PIP  (${player.bankedPips} stored)`, cx, cy + 16);
+      ctx.fillText(`[F] SPEND PIP  (${player.bankedPips} stored)`, cx, cy + 26);
     }
     ctx.restore();
   }

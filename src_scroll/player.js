@@ -88,8 +88,8 @@ export class Player {
     this._handleMovement(dt);
     this._applyPhysics(dt, level);
     this._updateAbsorb(dt, level);
-    this._updateAttack(dt, level);    // Space near enemy → attack
-    this._updateDischarge(dt, level); // Space near gate (no enemy) → charge
+    this._updateAttack(dt, level);    // SPACE near enemy → attack
+    this._updateDischarge(dt, level); // E near gate/switch (no source, no enemy) → discharge
     this._updatePipSpend(dt, level);  // F near gate + has pip → instant power
     this._collectPickups(level);
 
@@ -109,7 +109,7 @@ export class Player {
     }
     const left  = Input.heldAny('ArrowLeft',  'KeyA');
     const right = Input.heldAny('ArrowRight', 'KeyD');
-    // Jump: Up / W only. Space is reserved for charge discharge.
+    // Jump: Up / W only. SPACE is reserved for enemy attack.
     const jump = Input.pressedAny('ArrowUp', 'KeyW');
 
     const shift = Input.heldAny('ShiftLeft', 'ShiftRight');
@@ -317,16 +317,27 @@ export class Player {
     }
   }
 
-  // ── Discharge (hold SPACE near device — only when no enemy nearby) ────
-  // Charge drains gradually — same feel as absorbing, just reversed.
-  // Banked pips auto-feed: when the bar empties mid-discharge, pop a pip
-  // and refill to MAX_CHARGE so the transfer continues uninterrupted.
+  // ── Discharge (hold E near device) ────
+  //
+  // Interaction rework (Chief directive):
+  //  • E is the universal context-sensitive interact button.
+  //     - Near a source: absorb (see _updateAbsorb — runs first).
+  //     - Near a gate/switch with usable charge: discharge here.
+  //  • SPACE no longer discharges. SPACE is attack-only near enemies.
+  //     Pressing SPACE anywhere else does NOT drain charge.
+  //  • Bar-first spend policy. A banked pip is auto-promoted to bar
+  //    ONLY when this frame's contribution would exceed the bar AND
+  //    there is still gate demand. This eliminates the previous
+  //    "tap = pip wiped" bug where a single frame of discharge
+  //    unconditionally consumed a whole pip.
+  //  • Explicit pip-spend on a gate remains on F (_updatePipSpend).
   _updateDischarge(dt, level) {
-    const holdSpace = Input.heldAny('Space');
+    const holdE     = Input.heldAny('KeyE');
     const hasCharge = this.charge > 0 || this.bankedPips > 0;
 
-    // Enemy takes priority — Space is attack when a target is in range
-    if (!holdSpace || !this.grounded || !this.nearDevice || !hasCharge || this.nearEnemy) {
+    // Absorb takes priority when standing at a source — don't discharge
+    // through the same E press that's feeding the bar.
+    if (!holdE || !this.grounded || !this.nearDevice || this.nearSource || !hasCharge) {
       this.discharging     = false;
       this.dischargeTarget = null;
       return;
@@ -339,24 +350,43 @@ export class Player {
       return;
     }
 
-    // Auto-refill from banked pip when bar runs dry mid-discharge
-    if (this.charge <= 0 && this.bankedPips > 0) {
-      this.charge      = MAX_CHARGE;
-      this.bankedPips--;
-      this._pipSpendFx = 0.45;  // pip rack flashes to signal the spend
-    }
-
-    // Full rate if banked pips are available (each pip = a full bar in reserve).
-    // Only scale down when running on bar charge alone.
-    const rate = this.bankedPips > 0
+    // Rate: full when bar has enough or a pip is queued; otherwise scaled
+    // so a nearly-empty bar drains gracefully rather than all-at-once.
+    const rate       = this.bankedPips > 0 || this.charge >= 1
       ? DISCHARGE_RATE
       : Math.max(0.5, DISCHARGE_RATE * (this.charge / MAX_CHARGE));
-    const amount = Math.min(rate * dt, this.charge, needed);
-    this.charge            -= amount;
-    this.discharging        = true;
-    this.dischargeTarget    = this.nearDevice;
-    this._dischargeFx       = 0.15;
-    this.nearDevice.receive(amount);
+    const frameSpend = Math.min(rate * dt, needed);
+
+    // Spend from bar first. Promote a pip only if the bar cannot cover
+    // this frame's contribution AND a pip is available.
+    let actual;
+    if (this.charge >= frameSpend) {
+      this.charge -= frameSpend;
+      actual = frameSpend;
+    } else if (this.bankedPips > 0) {
+      // Bar shortfall — consume remaining bar, then draw the rest from
+      // one promoted pip. Any residual bar-charge from the promoted pip
+      // is retained (this is the fix: pip energy is NOT wasted).
+      const shortfall = frameSpend - this.charge;
+      this.charge      = MAX_CHARGE - shortfall;   // pip → bar, minus this frame
+      this.bankedPips--;
+      this._pipSpendFx = 0.45;                      // pip rack flashes
+      actual = frameSpend;
+    } else {
+      // No pips — spend whatever bar remains.
+      actual      = this.charge;
+      this.charge = 0;
+    }
+
+    if (actual > 0) {
+      this.discharging     = true;
+      this.dischargeTarget = this.nearDevice;
+      this._dischargeFx    = 0.15;
+      this.nearDevice.receive(actual);
+    } else {
+      this.discharging     = false;
+      this.dischargeTarget = null;
+    }
   }
 
   // ── Spend a banked pip at a gate (press F) ──────────────────────

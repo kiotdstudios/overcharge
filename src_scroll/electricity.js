@@ -94,6 +94,15 @@ export class ElectricalSource {
 
 // ──────────────────────────────────────────────
 // PowerGate: exit or barrier — opens when charged
+//
+// Visual states (Aki spritesheet `gate_electric_spritesheet.png`, 9 cols x 3 rows, 128x128 cells):
+//   Row 0: static base (unused — we play idle instead when closed)
+//   Row 1: 9-frame idle       → CLOSED, no active discharge
+//   Row 2: 9-frame charging   → CLOSED, currently receiving charge (POWERED-REACTION)
+//   `gate_electric_open.png` single 64x128 frame → OPEN state (fades out over 1s)
+//
+// Idle/charging switch is triggered by `receive()` bumping `_reactT`;
+// while _reactT > 0 the gate plays the 'charging' animation, otherwise 'idle'.
 // ──────────────────────────────────────────────
 export class PowerGate {
   constructor({ id, x, y, w, h, required, isExit = false, blockOnly = false, label = '' }) {
@@ -111,7 +120,14 @@ export class PowerGate {
     this._pipFlash = 0;  // white flash when powered by a banked pip
     // Sprite art
     this._imgClosed = new Image();
-    this._imgClosed.src = 'assets/objects/gate_closed.png';
+    this._imgClosed.src = 'assets/objects/gate_closed.png';   // fallback while sheet loads
+    this._sheet     = new Image();
+    this._sheet.src = 'assets/objects/gate_electric_spritesheet.png';
+    this._openImg   = new Image();
+    this._openImg.src = 'assets/objects/gate_electric_open.png';
+    this._frame     = 0;
+    this._fps       = 8;
+    this._reactT    = 0;   // >0 → play 'charging' row instead of 'idle'
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -121,6 +137,8 @@ export class PowerGate {
     this._t += dt;
     if (this.open) this._openAge += dt;
     this._pipFlash = Math.max(0, this._pipFlash - dt);
+    this._reactT   = Math.max(0, this._reactT   - dt);
+    this._frame    = (this._frame + dt * this._fps) % 9;
   }
 
   inRange(px, py) {
@@ -135,6 +153,7 @@ export class PowerGate {
     if (this.open) return false;
     const take = Math.min(amount, this.required - this.charged);
     this.charged += take;
+    if (take > 0) this._reactT = 0.18;   // ~11 frames of 'charging' anim per receive tick
     // Epsilon guard: float drip-charging never lands on exactly N.0
     if (this.charged >= this.required - 1e-9) { this.charged = this.required; this.open = true; return true; }
     return false;
@@ -149,22 +168,57 @@ export class PowerGate {
 
   draw(ctx) {
     const t = this._t;
+
+    // ── OPEN state: bright flash → fade to invisible over ~1.0s ──
     if (this.open) {
-      const alpha = Math.max(0, 1 - this._openAge * 3);
-      if (alpha <= 0) return;
+      const age = this._openAge;
+      if (age >= 1.0) return;
+      const alpha = age < 0.5 ? 1.0 : Math.max(0, 1.0 - (age - 0.5) / 0.5);
       ctx.save();
       ctx.globalAlpha = alpha;
-      drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
+      ctx.imageSmoothingEnabled = false;
+      // Opening flash — first 0.2s bright white halo behind the open sprite
+      if (age < 0.2) {
+        ctx.shadowBlur  = 30;
+        ctx.shadowColor = '#ffffff';
+      } else {
+        ctx.shadowBlur  = 16;
+        ctx.shadowColor = '#cc44ff';
+      }
+      const openImg = this._openImg;
+      if (openImg && openImg.complete && openImg.naturalWidth > 0) {
+        // gate_electric_open.png is 64x128; slot is w x h. Preserve aspect.
+        ctx.drawImage(openImg, this.x, this.y, this.w, this.h);
+      } else {
+        // Fallback: legacy purple rect while art loads
+        drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
+      }
       ctx.restore();
       return;
     }
 
     const fill  = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
 
-    // Sprite base -- pixel art gate (closed)
+    // ── CLOSED state: play spritesheet idle (row 1) or charging (row 2) ──
+    // Cell 128x128; crop centered 64x128 (matches gate_closed.png aspect)
+    // so the sprite fits the 40x64-ish gate slot without extra squash.
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(this._imgClosed, this.x, this.y, this.w, this.h);
+    const sheet = this._sheet;
+    if (sheet && sheet.complete && sheet.naturalWidth > 0) {
+      const CELL = 128;
+      const fi   = Math.floor(this._frame) % 9;
+      const row  = this._reactT > 0 ? 2 : 1;   // 2 = charging, 1 = idle
+      const sx   = fi * CELL + 32;             // centered 64-wide crop
+      const sy   = row * CELL;
+      // Idle glow (soft purple) while animating; charging boosts glow.
+      ctx.shadowBlur  = this._reactT > 0 ? 18 : 8;
+      ctx.shadowColor = '#cc44ff';
+      ctx.drawImage(sheet, sx, sy, 64, CELL, this.x, this.y, this.w, this.h);
+    } else if (this._imgClosed.complete && this._imgClosed.naturalWidth > 0) {
+      // Fallback to legacy static sprite while sheet loads
+      ctx.drawImage(this._imgClosed, this.x, this.y, this.w, this.h);
+    }
     ctx.restore();
 
     // Charge fill overlay -- bright strip rising from bottom as player charges gate
