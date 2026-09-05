@@ -114,7 +114,7 @@ export async function saveCurrentLevel() {
   const L = state.level;
   if (!L) return { ok: false, method: 'none', message: 'No level loaded.' };
   const json = JSON.stringify(L, null, 2);
-  const filename = `level${L.number ?? ''}.json`;
+  const filename = _levelFilename(L);
 
   // ── Preferred path: write into the chosen save folder ────────────────
   // Chief picks the folder once (via native folder picker). Subsequent
@@ -260,6 +260,26 @@ export async function loadInMemoryLevel(levelObj, opts = {}) {
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
+// Build the filename for a level. Preferred shape per Chief:
+//   <seed>_<sanitized_name>.json     (for generator-produced levels)
+// Fallback for hand-authored levels that never had a seed:
+//   <number>_<sanitized_name>.json
+// Sanitization: whitespace → underscore, only [A-Za-z0-9_-] survives, ≤64
+// chars. Names with unusual characters degrade gracefully to a stub.
+function _levelFilename(L) {
+  const rawName = (L && L.name) ? String(L.name) : 'LEVEL';
+  const cleanName = rawName
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^A-Za-z0-9_-]/g, '')
+    .slice(0, 64) || 'LEVEL';
+  // Seed comes from the generator (level.generated.seed). Hand-authored
+  // levels use their level number as the ID slot.
+  const idPart = (L && L.generated && typeof L.generated.seed === 'number')
+    ? L.generated.seed
+    : (L && L.number != null ? L.number : Date.now());
+  return `${idPart}_${cleanName}.json`;
+}
 function _canonicalEmptyLevel(name, number) {
   return {
     name, number,
