@@ -58,12 +58,29 @@ function toggleInspector() {
 btnInspHide?.addEventListener('click', () => setInspectorCollapsed(true));
 inspShowTab?.addEventListener('click', () => setInspectorCollapsed(false));
 
+// Redraw flag — hoisted here so the ResizeObserver below can reference it
+// without hitting a TDZ. Actual redraw loop wiring lives further down.
+let needsRedraw = true;
+// Match canvas backing-store size to its current CSS box. Called on window
+// resize, inspector-collapse toggle, and by a ResizeObserver so any future
+// layout change auto-syncs — preventing CSS-vs-backing coordinate skew.
+// Uses Math.round (not floor) so the backing is one pixel closer to CSS
+// when the box has a fractional width.
 function fitCanvas() {
   const r = canvas.getBoundingClientRect();
-  canvas.width  = Math.max(100, Math.floor(r.width));
-  canvas.height = Math.max(100, Math.floor(r.height));
+  canvas.width  = Math.max(100, Math.round(r.width));
+  canvas.height = Math.max(100, Math.round(r.height));
 }
 window.addEventListener('resize', fitCanvas);
+
+// ResizeObserver ensures fitCanvas fires on ANY layout change — grid template
+// toggle, devtools open/close, sidebar drag (future) — not just window resize.
+// Note: canvasCoords in tools.js also scales CSS→backing dynamically, so even
+// if fitCanvas hasn't run yet, clicks still map correctly.
+if (typeof ResizeObserver !== 'undefined') {
+  const ro = new ResizeObserver(() => { fitCanvas(); needsRedraw = true; });
+  ro.observe(canvas);
+}
 
 // ── Tool button wiring ────────────────────────────────────────────────────
 toolBtns.forEach(btn => btn.addEventListener('click', () => setTool(btn.dataset.tool)));
@@ -230,7 +247,7 @@ function refreshLevelInfo() {
 }
 
 // ── Redraw loop ───────────────────────────────────────────────────────────
-let needsRedraw = true;
+// (needsRedraw declared earlier — hoisted for ResizeObserver access)
 subscribe(() => { needsRedraw = true; refreshUI(); });
 function frame() {
   if (needsRedraw) { render(ctx, canvas); needsRedraw = false; }

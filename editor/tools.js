@@ -22,10 +22,25 @@ import * as Actions from './actions.js';
 import * as History from './history.js';
 import * as Selection from './selection.js';
 
-// Helper: get screen coords relative to canvas element
+// Convert a mouse event into canvas-INTERNAL (backing-store) pixel coords.
+//
+// getBoundingClientRect() returns CSS pixels. evt.clientX/Y are CSS pixels.
+// canvas.width/height are BACKING-STORE pixels. worldToScreen() and every
+// drawImage call in renderer.js produce/consume BACKING-store coords. If
+// the CSS box has been stretched or compressed relative to the backing
+// store — which happens whenever the grid layout resizes the canvas box
+// between fitCanvas() calls, or on HiDPI displays if we ever raise the
+// backing resolution — a raw CSS-pixel mouse coord will hit-test at the
+// wrong world position. Scale by (backing / CSS) so click coords land in
+// the same coordinate space that render uses.
 function canvasCoords(evt, canvas) {
   const r = canvas.getBoundingClientRect();
-  return { sx: evt.clientX - r.left, sy: evt.clientY - r.top };
+  const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
+  const scaleY = r.height > 0 ? canvas.height / r.height : 1;
+  return {
+    sx: (evt.clientX - r.left) * scaleX,
+    sy: (evt.clientY - r.top)  * scaleY,
+  };
 }
 function worldUnderMouse(evt, canvas) {
   const { sx, sy } = canvasCoords(evt, canvas);
