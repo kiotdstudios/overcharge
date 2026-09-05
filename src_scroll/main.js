@@ -12,6 +12,8 @@ import { init as bgInit, update as bgUpdate } from './background.js';
 import { Player } from './player.js';
 import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
+import { initViewport, viewW } from './viewport.js';
+import { logLevelSource } from './levelsig.js';
 
 // ── Editor-driven test mode ──────────────────────────────────────────────
 // When launched with `?test=1`, load the level def from localStorage under
@@ -29,7 +31,8 @@ function _tryLoadTestLevel() {
     const def = JSON.parse(raw);
     if (!def || !Array.isArray(def.tiles) || !def.playerStart) return null;
     _normalizeLevelDef(def, 'TEST', 0);
-    console.info('[game] Test mode: loaded level from editor —', def.name);
+    logLevelSource('[game] BUILDER TEST',
+      `localStorage['${TEST_LEVEL_KEY}']  (UNSAVED editor preview — not the committed JSON)`, def);
     return def;
   } catch (err) {
     console.warn('[game] Test mode requested but level load failed:', err);
@@ -70,26 +73,20 @@ async function _loadJsonLevel(path, fallbackName, fallbackNumber) {
 // gameplay (advanceLevel / loadLevel(idx)) is unchanged.
 let LEVEL_DEFS   = null;
 let _TEST_LEVEL  = null;
+let _bgEnabled   = false;   // set by _bootAsync from the level JSON `background` field
 
-// ── Canvas ─────────────────────────────────────
+// ── Canvas + viewport ──────────────────────────
+// Sizing lives in viewport.js. It COVERS the browser viewport (no black
+// pillarbox bars), keeps scaling uniform + nearest-neighbour, and reveals
+// more WORLD horizontally on wider screens instead of stretching. Level
+// geometry is untouched — only the visible window changes.
 const canvas = document.getElementById('game');
 const ctx    = canvas.getContext('2d');
+initViewport(canvas, ctx);
 
-function resize() {
-  const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
-  canvas.width  = W;
-  canvas.height = H;
-  canvas.style.width  = `${W * scale}px`;
-  canvas.style.height = `${H * scale}px`;
-  ctx.imageSmoothingEnabled = false; // pixel-perfect: no blur on integer-scaled sprites/tiles
-}
-resize();
-window.addEventListener('resize', resize);
-
-// Parallax background — initialized inside _bootAsync once level data is
-// available (bgInit needs the loaded level's pixel width for parallax range).
-// SKIPPED in test mode per Chief: the neon-windows layers compete with the
-// authored level content while iterating. Normal LEVEL1 game unaffected.
+// Parallax background — see _bootAsync. It is DATA-DRIVEN off the level JSON
+// (`background` field). Level 1 does not request one, so no procedural city
+// appears in either boot path. See the note in _bootAsync for the history.
 
 // ── State ──────────────────────────────────────
 const STATES = { TITLE: 0, PLAYING: 1, LEVEL_COMPLETE: 2, GAME_OVER: 3 };
@@ -109,8 +106,8 @@ let respawnY = 0;
 let _cpFlash = 0;   // seconds to show "CHECKPOINT SAVED" message
 
 function _updateCamera() {
-  const target = player.x - W / 2 + player.w / 2;
-  camX = Math.max(0, Math.min(target, level.pxW - W));
+  const target = player.x - viewW() / 2 + player.w / 2;
+  camX = Math.max(0, Math.min(target, level.pxW - viewW()));
 }
 
 // ── Checkpoint snapshot ──────────────────────────
@@ -136,7 +133,7 @@ function _applySnapshot() {
   player.bankedPips = _snap.player.bankedPips;
   respawnX = _snap.respawnX;
   respawnY = _snap.respawnY;
-  camX = Math.max(0, Math.min(respawnX - W / 2, level.pxW - W));
+  camX = Math.max(0, Math.min(respawnX - viewW() / 2, level.pxW - viewW()));
   _cpFlash = 0;
   return true;
 }
@@ -152,7 +149,7 @@ function loadLevel(idx, carryCharge = false) {
   completeTimer  = 0;
   respawnX = level.playerStart.x;
   respawnY = level.playerStart.y;
-  camX     = Math.max(0, Math.min(respawnX - W / 2, level.pxW - W));
+  camX     = Math.max(0, Math.min(respawnX - viewW() / 2, level.pxW - viewW()));
   _cpFlash = 0;
   // Initial snapshot = clean level + initial player state. If Chief dies
   // before touching any checkpoint, _applySnapshot restores this.
@@ -250,7 +247,7 @@ function _update(dt) {
 }
 
 function _render() {
-  clear(ctx, W, H, C.BG);
+  clear(ctx, viewW(), H, C.BG);
   switch (state) {
     case STATES.TITLE:
       drawTitleScreen(ctx, t);
@@ -274,12 +271,12 @@ function _render() {
 }
 
 function _drawScrollGame() {
-  if (!_TEST_LEVEL) bgUpdate(camX);
+  if (_bgEnabled) bgUpdate(camX);   // parity: driven by level data, not by test-vs-normal
   // Scanlines — fixed, not scrolled
   ctx.save();
   ctx.globalAlpha = 0.03;
   ctx.fillStyle   = '#000';
-  for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, W, 1);
+  for (let y = 0; y < H; y += 3) ctx.fillRect(0, y, viewW(), 1);
   ctx.restore();
   // World: translate by camera before drawing level + player
   ctx.save();
@@ -291,13 +288,13 @@ function _drawScrollGame() {
 
 function _drawDevBar() {
   ctx.fillStyle = 'rgba(5,8,15,0.75)';
-  ctx.fillRect(0, 0, W, 20);
+  ctx.fillRect(0, 0, viewW(), 20);
   ctx.fillStyle = '#3a5060';
   ctx.font      = '10px monospace';
   ctx.textAlign = 'center';
   ctx.fillText(
     '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB/DISCHARGE   SPACE ATTACK   F SPEND PIP   [F2] skip   [P] +charge',
-    W / 2, 13
+    viewW() / 2, 13
   );
 }
 
@@ -311,7 +308,7 @@ function _drawCpFlash() {
   ctx.fillStyle   = '#44ff88';
   ctx.font        = 'bold 16px monospace';
   ctx.textAlign   = 'center';
-  ctx.fillText('\u2713 CHECKPOINT SAVED', W / 2, H / 2 - 40);
+  ctx.fillText('\u2713 CHECKPOINT SAVED', viewW() / 2, H / 2 - 40);
   ctx.restore();
 }
 
@@ -325,24 +322,24 @@ function _drawCpFlash() {
 // runtime has always used. Adding levels to game progression is a gameplay
 // change, not a data-pipeline change, and requires its own Chief directive.
 function _drawFatalLevelLoadError(msg) {
-  clear(ctx, W, H, C.BG);
+  clear(ctx, viewW(), H, C.BG);
   ctx.fillStyle = '#ff4466';
   ctx.font      = 'bold 18px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('LEVEL LOAD FAILED', W / 2, H / 2 - 20);
+  ctx.fillText('LEVEL LOAD FAILED', viewW() / 2, H / 2 - 20);
   ctx.fillStyle = '#c8d8f0';
   ctx.font      = '11px monospace';
-  ctx.fillText(msg.slice(0, 90), W / 2, H / 2 + 6);
+  ctx.fillText(msg.slice(0, 90), viewW() / 2, H / 2 + 6);
   ctx.fillStyle = '#7ab4ff';
-  ctx.fillText('Check console for details.', W / 2, H / 2 + 30);
+  ctx.fillText('Check console for details.', viewW() / 2, H / 2 + 30);
 }
 
 function _drawBootingScreen() {
-  clear(ctx, W, H, C.BG);
+  clear(ctx, viewW(), H, C.BG);
   ctx.fillStyle = '#7ab4ff';
   ctx.font      = 'bold 14px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText('LOADING\u2026', W / 2, H / 2);
+  ctx.fillText('LOADING\u2026', viewW() / 2, H / 2);
 }
 
 async function _bootAsync() {
@@ -351,18 +348,40 @@ async function _bootAsync() {
   if (_TEST_LEVEL) {
     LEVEL_DEFS = [_TEST_LEVEL];
   } else {
+    const LEVEL1_PATH = 'src_scroll/levels/level1.json';
     try {
-      const l1 = await _loadJsonLevel('src_scroll/levels/level1.json', 'LEVEL 1', 1);
+      const l1 = await _loadJsonLevel(LEVEL1_PATH, 'LEVEL 1', 1);
       LEVEL_DEFS = [l1];
-      console.info('[game] Level 1 loaded from level1.json —', l1.name);
+      logLevelSource('[game] NORMAL GAME', LEVEL1_PATH + '  (authoritative committed JSON)', l1);
     } catch (err) {
       console.error('[game] FATAL: Level 1 JSON failed to load', err);
       _drawFatalLevelLoadError(err.message || 'unknown error');
       return; // do NOT start the loop or fall back to a stale bundled level.
     }
   }
-  const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;
-  if (!_TEST_LEVEL) bgInit(_bgW);
+
+  // ── Parallax background: DATA-DRIVEN, never implicit ──────────────────
+  // PARITY BUGFIX (Chief §3): bgInit() used to be called whenever we were
+  // NOT in test mode. background.js builds a large procedural DOM city
+  // (sky / far / mid / near silhouettes, rain, lightning) and inserts it
+  // behind the canvas. Result: the normal game rendered a neon city behind
+  // Level 1 while Builder TEST rendered none — identical level JSON, wildly
+  // different picture. That is the "old Level 1 with the city background".
+  //
+  // The city is NOT part of any level's authored data, so it must not appear
+  // implicitly. It is now opt-in per level via the JSON `background` field.
+  // Level 1 does not set it, so neither boot path shows a city. background.js
+  // itself is untouched and stays available for levels that ask for it.
+  const bgKind = LEVEL_DEFS[0] && LEVEL_DEFS[0].background;
+  if (bgKind) {
+    const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;
+    bgInit(_bgW);
+    console.info(`[game] parallax background ENABLED by level data (background="${bgKind}")`);
+  } else {
+    console.info('[game] parallax background OFF — level JSON declares no "background" field');
+  }
+  _bgEnabled = !!bgKind;
+
   if (_TEST_LEVEL) startGame();       // auto-start in TEST so Chief lands in-level
   requestAnimationFrame(loop);
 }

@@ -1,6 +1,7 @@
 // HUD: charge meter, context prompts, level banner
 import { MAX_CHARGE, MAX_BANKED_PIPS, C, W, H } from './constants.js';
 import { drawGlowRect, drawText } from './render.js';
+import { viewW, safeInsetX } from './viewport.js';
 
 export function drawHUD(ctx, player, level, t) {
   _drawBankedPips(ctx, player, t);
@@ -15,7 +16,7 @@ function _drawBankedPips(ctx, player, t) {
   const pipW    = 22;
   const pipH    = 17;
   const gap     = 5;
-  const startX  = 16;
+  const startX  = safeInsetX() + 16;   // HUD safe area (cover-crop aware)
   const startY  = 35;
   const count   = player.bankedPips;
   const maxed   = count >= MAX_BANKED_PIPS;
@@ -133,7 +134,7 @@ function _drawBankedPips(ctx, player, t) {
 
 // ── Charge meter (top-left) — smooth bar, no numbers ─────────────
 function _drawChargeMeter(ctx, player, t) {
-  const barX  = 16;
+  const barX  = safeInsetX() + 16;     // HUD safe area (cover-crop aware)
   const barY  = 56;
   const barW  = 244;
   const barH  = 14;
@@ -195,7 +196,7 @@ function _drawChargeMeter(ctx, player, t) {
 
 // ── Level name banner (top-right) ────────────
 function _drawLevelBanner(ctx, level, t) {
-  const x = 800 - 16;
+  const x = viewW() - safeInsetX() - 16;   // right edge of the HUD safe area
   ctx.fillStyle = '#3a5570';
   ctx.font      = '10px monospace';
   ctx.textAlign = 'right';
@@ -304,7 +305,7 @@ function _drawContextPrompts(ctx, player, t) {
 function _drawProgressBar(ctx, player, level) {
   const barW = 240;
   const barH = 5;
-  const barX = W / 2 - barW / 2;
+  const barX = viewW() / 2 - barW / 2;
   const barY = H - 12;
   const pct  = Math.max(0, Math.min(1, player.cx / level.pxW));
 
@@ -339,7 +340,7 @@ export function drawLevelComplete(ctx, level, timer, t) {
   ctx.save();
   ctx.globalAlpha = alpha;
   ctx.fillStyle   = 'rgba(5,8,15,0.75)';
-  ctx.fillRect(0, 0, 800, 450);
+  ctx.fillRect(0, 0, viewW(), 450);
 
   // Title
   ctx.shadowBlur  = 24;
@@ -347,24 +348,24 @@ export function drawLevelComplete(ctx, level, timer, t) {
   ctx.fillStyle   = '#44ddff';
   ctx.font        = 'bold 42px monospace';
   ctx.textAlign   = 'center';
-  ctx.fillText('CIRCUIT CLOSED', 400, 180);
+  ctx.fillText('CIRCUIT CLOSED', viewW() / 2, 180);
 
   ctx.shadowBlur  = 12;
   ctx.shadowColor = '#8ab4d4';
   ctx.fillStyle   = '#8ab4d4';
   ctx.font        = '18px monospace';
-  ctx.fillText(`Level ${level.number} — ${level.name}`, 400, 220);
+  ctx.fillText(`Level ${level.number} — ${level.name}`, viewW() / 2, 220);
 
   ctx.fillStyle   = '#556677';
   ctx.font        = '13px monospace';
-  ctx.fillText('[SPACE] to continue', 400, 265);
+  ctx.fillText('[SPACE] to continue', viewW() / 2, 265);
   ctx.restore();
 }
 
 // ── Title screen ──────────────────────────────
 export function drawTitleScreen(ctx, t) {
   ctx.fillStyle = '#07090f';
-  ctx.fillRect(0, 0, 800, 450);
+  ctx.fillRect(0, 0, viewW(), 450);
 
   // Logo glitch / chromatic aberration effect
   const offsets = [[-2, 0, 'rgba(255,40,80,0.7)'], [2, 0, 'rgba(40,220,255,0.7)'], [0, 0, '#ffffff']];
@@ -374,47 +375,47 @@ export function drawTitleScreen(ctx, t) {
     ctx.fillStyle   = color;
     ctx.shadowBlur  = dx === 0 ? 30 : 0;
     ctx.shadowColor = '#44ddff';
-    ctx.fillText('OVERCHARGE', 400 + dx, 200 + dy);
+    ctx.fillText('OVERCHARGE', viewW() / 2 + dx, 200 + dy);
   }
   ctx.shadowBlur = 0;
 
   ctx.fillStyle = '#3a5570';
   ctx.font      = '14px monospace';
-  ctx.fillText('Explore. Steal the current. Solve the circuit.', 400, 245);
+  ctx.fillText('Explore. Steal the current. Solve the circuit.', viewW() / 2, 245);
 
   const pulse = 0.6 + 0.4 * Math.sin(t * 3);
   ctx.globalAlpha = pulse;
   ctx.fillStyle   = '#44ddff';
   ctx.font        = '16px monospace';
-  ctx.fillText('[SPACE] to start', 400, 310);
+  ctx.fillText('[SPACE] to start', viewW() / 2, 310);
   ctx.globalAlpha = 1;
 
   ctx.fillStyle = '#1e2e3e';
   ctx.font      = '11px monospace';
-  ctx.fillText('KIOTD STUDIOS', 400, 430);
+  ctx.fillText('KIOTD STUDIOS', viewW() / 2, 430);
 }
 
 // ── Game over screen ──────────────────────────
 export function drawGameOver(ctx, t) {
   ctx.fillStyle = 'rgba(5,8,15,0.92)';
-  ctx.fillRect(0, 0, 800, 450);
+  ctx.fillRect(0, 0, viewW(), 450);
 
   ctx.shadowBlur  = 20;
   ctx.shadowColor = '#ff3355';
   ctx.fillStyle   = '#ff3355';
   ctx.font        = 'bold 48px monospace';
   ctx.textAlign   = 'center';
-  ctx.fillText('DISCHARGED', 400, 200);
+  ctx.fillText('DISCHARGED', viewW() / 2, 200);
   ctx.shadowBlur  = 0;
 
   ctx.fillStyle = '#5a7a8a';
   ctx.font      = '14px monospace';
-  ctx.fillText('All charge lost.', 400, 240);
+  ctx.fillText('All charge lost.', viewW() / 2, 240);
 
   const pulse = 0.6 + 0.4 * Math.sin(t * 3);
   ctx.globalAlpha = pulse;
   ctx.fillStyle   = '#cc4466';
   ctx.font        = '16px monospace';
-  ctx.fillText('[R] Retry  [SPACE] Title', 400, 300);
+  ctx.fillText('[R] Retry  [SPACE] Title', viewW() / 2, 300);
   ctx.globalAlpha = 1;
 }

@@ -15,6 +15,7 @@ import * as Selection from './selection.js';
 import * as Persistence from './persistence.js';
 import * as Generator   from './generator.js';
 import * as Actions     from './actions.js';
+import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -165,6 +166,13 @@ btnTest?.addEventListener('click', () => {
     console.error('[editor] Could not stash test level:', err);
     return;
   }
+  // Parity trace: log the EXACT payload the game is about to read back, with
+  // the same shared checksum the runtime prints. Chief can diff at a glance.
+  logLevelSource('[editor] TEST HANDOFF',
+    state.dirty
+      ? `localStorage['${TEST_LEVEL_KEY}']  (LOCAL UNSAVED editor state — NOT the committed JSON)`
+      : `localStorage['${TEST_LEVEL_KEY}']  (clean — identical to committed ${state.levelPath || 'JSON'})`,
+    state.level);
   // Cache-busting param so any code changes I ship land immediately.
   const url = 'index.html?test=1&t=' + Date.now();
   window.open(url, '_blank', 'noopener');
@@ -434,7 +442,33 @@ function refreshLevelInfo() {
 
 // ── Redraw loop ───────────────────────────────────────────────────────────
 // (needsRedraw declared earlier — hoisted for ResizeObserver access)
-subscribe(() => { needsRedraw = true; refreshUI(); });
+// ── Parity status strip ───────────────────────────────────────────────────
+// Chief §2: make it impossible to confuse "what I am testing" with
+// "what the game will load".
+const parityStatus = document.getElementById('parity-status');
+function refreshParityStatus() {
+  if (!parityStatus || !state.level) return;
+  const sum = levelChecksum(state.level);
+  if (state.dirty) {
+    parityStatus.innerHTML =
+      '<span style="color:#ff8800">\u25CF TESTING LOCAL UNSAVED LEVEL</span>' +
+      '<span style="color:#556"> \u2502 </span>' +
+      '<span style="color:#8aaabb">GAME USES COMMITTED LEVEL JSON</span>' +
+      '<span style="color:#556"> \u2502 </span>' +
+      '<span style="color:#44ccff">editor checksum ' + sum + '</span>';
+    parityStatus.title = 'Your edits are local only. The normal game still loads the committed src_scroll/levels/level1.json until you SAVE and commit it.';
+  } else {
+    parityStatus.innerHTML =
+      '<span style="color:#44ff88">\u25CF IN SYNC WITH COMMITTED LEVEL JSON</span>' +
+      '<span style="color:#556"> \u2502 </span>' +
+      '<span style="color:#8aaabb">GAME USES COMMITTED LEVEL JSON</span>' +
+      '<span style="color:#556"> \u2502 </span>' +
+      '<span style="color:#44ccff">checksum ' + sum + '</span>';
+    parityStatus.title = 'Editor state matches the level file it was loaded from. TEST and the normal game will report the same checksum.';
+  }
+}
+
+subscribe(() => { needsRedraw = true; refreshUI(); refreshParityStatus(); });
 function frame() {
   if (needsRedraw) { render(ctx, canvas); needsRedraw = false; }
   requestAnimationFrame(frame);
@@ -642,6 +676,7 @@ async function bootstrap() {
     // Present recovery prompt if a snapshot exists. Suppression flag stays
     // true until after the prompt resolves so we don't overwrite the
     // recovery with the freshly-loaded default level.
+    logLevelSource('[editor] BUILDER', DEFAULT_LEVEL_URL + '  (authoritative committed JSON)', state.level);
     await _handleRecoveryOnBoot();
     _recoverySuppress = false;
     console.info(`[editor] Boot OK — ${state.availableLevels.length} level(s), FSA save: ${Persistence.hasFSA() ? 'yes' : 'no (download-only)'}`);

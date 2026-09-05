@@ -21,7 +21,47 @@
   </style>
 </head>
 <body>
+  <!-- ══════════════════════════════════════════════════════════════════════
+       LEGACY / ARCHIVED BUILD — NOT the current OVERCHARGE game.
+
+       This page boots `src/main.js`, an older single-screen prototype that
+       carries its OWN hardcoded level set (src/levels/level1.js .. level10.js).
+       Its Level 1 is a DIFFERENT, obsolete layout and has nothing to do with
+       the authoritative src_scroll/levels/level1.json.
+
+       It is kept for reference only. Opening it will NOT show the current
+       Level 1. The live game is index.html.
+
+       Auto-redirect below prevents anyone (or a stale bookmark/tab) from
+       mistaking this for the real game — which is exactly how the
+       "normal game shows an old Level 1" confusion arose.
+       Append ?keep=1 to view the archive deliberately.
+  ═══════════════════════════════════════════════════════════════════════ -->
   <canvas id="game"></canvas>
-  <script type="module" src="src/main.js"></script>
+  <div id="legacy-banner" style="position:fixed;inset:0;z-index:99;background:#07090f;color:#c8d8f0;font-family:monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px;">
+    <div style="color:#ff8800;font-size:15px;letter-spacing:2px;">⚠ ARCHIVED PROTOTYPE — NOT THE CURRENT GAME</div>
+    <div style="font-size:12px;line-height:1.7;max-width:560px;color:#8aaabb;">
+      This page loads the legacy <code>src/</code> prototype and its own obsolete
+      Level 1. The authoritative Level 1 lives in
+      <code>src_scroll/levels/level1.json</code> and is played from
+      <code>index.html</code>.
+    </div>
+    <a href="index.html" style="color:#44ccff;font-size:13px;border:1px solid #44ccff;padding:7px 16px;text-decoration:none;">▶ GO TO THE CURRENT GAME</a>
+    <div style="font-size:10px;color:#556;">redirecting automatically... append <code>?keep=1</code> to stay here</div>
+  </div>
+  <script>
+    // Do not boot the legacy engine unless explicitly requested.
+    if (new URLSearchParams(location.search).get('keep') !== '1') {
+      console.warn('[classic] ARCHIVED prototype blocked — redirecting to index.html (the current game).');
+      location.replace('index.html');
+    } else {
+      console.warn('[classic] ARCHIVED prototype loaded deliberately via ?keep=1. Its Level 1 is NOT authoritative.');
+      document.getElementById('legacy-banner').remove();
+      const s = document.createElement('script');
+      s.type = 'module';
+      s.src  = 'src/main.js';
+      document.body.appendChild(s);
+    }
+  </script>
 </body>
 </html>

@@ -3,20 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>OVERCHARGE</title>
   <style>
+    /* Fullscreen presentation (Chief §4): the canvas COVERS the viewport.
+       No pillarboxing. viewport.js sizes the backing store in WORLD pixels
+       and sets the CSS px size at a uniform scale, so pixel art is never
+       stretched — a wider screen reveals more world instead. */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
       background: #000;
+      overflow: hidden;          /* clip the sub-pixel remainder from ceil() */
+    }
+    body {
       display: flex;
-      justify-content: center;
+      justify-content: center;   /* centre the <1px horizontal overflow */
       align-items: center;
-      height: 100vh;
-      overflow: hidden;
     }
     #game {
       display: block;
+      /* Nearest-neighbour on every engine — no fuzzy upscaling. */
       image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      -ms-interpolation-mode: nearest-neighbor;
       position: relative;
       z-index: 1;
     }
