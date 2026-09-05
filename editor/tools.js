@@ -17,7 +17,7 @@ import {
   snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
   SNAP_DECORATION_DEFAULT,
   decoDimensions, getCachedImage,
-  TILE_VARIANT_BASE, tileVariantForAssetId, tileIsSolid,
+  tileValueForAssetId, tileIsSolid,
 } from './state.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
@@ -391,11 +391,10 @@ export function placeAssetAt(asset, worldX, worldY) {
     // Determine tile value based on selected asset. When Chief selects a
     // specific tile art (env_tile_purple_a etc.) the cell records that
     // exact variant so it will render EXACTLY that art forever, not a
-    // hash-randomized pick. Empty selection or generic paint → default 1.
-    let val = 1;
+    let val = 1;                                // legacy default = art[0]
     if (asset && asset.id) {
-      const variant = tileVariantForAssetId(asset.id);
-      if (variant >= 0) val = TILE_VARIANT_BASE + variant;
+      const registered = tileValueForAssetId(asset.id);
+      if (registered >= 0) val = registered;    // registry-stable tile id
     }
     const a = Actions.setTile(t.col, t.row, val);
     if (a) { History.apply(a); return true; }

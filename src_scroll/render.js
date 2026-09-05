@@ -1,9 +1,20 @@
 // Canvas drawing utilities — pixel-art glow aesthetic
 
-// ── Purple City tileset ───────────────────────────────────────────────────────
-// Load all tile textures for visual variety across the building facade.
+// ── Purple City tileset ───────────────────────────────────────────────────
+// TILE_ID_REGISTRY — PERMANENT binding of stored tile-value → asset filename.
+// MUST match editor/state.js TILE_ID_REGISTRY exactly. New tile variants
+// ALWAYS append a new value. Never renumber. Never derive from array position.
+const TILE_ID_REGISTRY = Object.freeze({
+  10: 'tile_dark_a',
+  11: 'tile_dark_b',
+  12: 'tile_purple_a',
+  13: 'tile_purple_b',
+});
+const TILE_DEFAULT_KEY = 'tile_dark_a';
+// Preload the current registry entries. New keys added to the registry are
+// picked up automatically on next module load.
 const _pc = {};
-['tile_dark_a', 'tile_dark_b', 'tile_purple_a', 'tile_purple_b'].forEach(name => {
+Object.values(TILE_ID_REGISTRY).forEach(name => {
   const img = new Image();
   img.src = `assets/tilesets/purple_city/tiles/${name}.png`;
   _pc[name] = img;
@@ -47,13 +58,11 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false) {
   // Solid tile: type === 1 (legacy default) OR type >= 10 (Chief-chosen variant)
   if (type !== 1 && type < 10) return;
 
-  // ── Base tile texture — pick by variant, not by position ─────────────
-  // Variant order is kept in lockstep with editor state.terrainArtOrder():
-  // sorted-by-id → dark_a, dark_b, purple_a, purple_b. Legacy value 1
-  // renders as art[0] (dark_a). Values 10..13 select exactly variant 0..3.
-  const _TILE_ORDER = ['tile_dark_a', 'tile_dark_b', 'tile_purple_a', 'tile_purple_b'];
-  const artIdx = (type === 1) ? 0 : (type - 10);
-  const texKey = _TILE_ORDER[artIdx] || _TILE_ORDER[0];
+  // ── Base tile texture — direct registry lookup ────────────────────────
+  // Stored tile value → asset filename via TILE_ID_REGISTRY. Legacy 1
+  // maps to the default. Unknown value falls back to default.
+  const texKey = (type === 1) ? TILE_DEFAULT_KEY
+                              : (TILE_ID_REGISTRY[type] || TILE_DEFAULT_KEY);
   const img    = _pc[texKey];
   if (img.complete && img.naturalWidth > 0) {
     // Tiles are true 16×16 as of Aki Batch 1 — full source blit, no crop.

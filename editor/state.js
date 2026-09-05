@@ -21,36 +21,83 @@ export const SNAP_TERRAIN            = TILE_SIZE;   // 32 - do not change
 // ── Terrain tile encoding ────────────────────────────────────────────────
 // The tile grid stores an integer per cell. Values:
 //   0                       empty (non-solid)
-//   1                       LEGACY solid — renders as art[0] (default variant)
+//   1                       LEGACY solid — renders as TILE_ID_REGISTRY[10] (default)
 //   2                       one-way platform (not solid for regular collision)
-//   TILE_VARIANT_BASE + N   solid, art variant N (0..k-1) — CHIEF-CHOSEN
-// This encoding lets Chief-authored levels preserve exact tile art while old
-// 0/1 levels still load and render deterministically as art[0]. Collision
-// treats value 1 AND any value >= TILE_VARIANT_BASE as solid. Value 2 stays
-// reserved for one-way platforms.
+//   >= 10                   solid, ID looks up TILE_ID_REGISTRY (Chief-chosen)
+//
+// TILE ID REGISTRY (PERMANENT BINDING — CHIEF-LOCKED):
+//   Once an ID is assigned to an asset, it is stable FOREVER. New tile
+//   variants ALWAYS append a NEW ID. Never renumber. Never derive from
+//   manifest sort order or array position. Old saved levels remain valid
+//   even if a new alphabetically-earlier tile asset is added later.
+export const TILE_ID_REGISTRY = Object.freeze({
+  10: 'env_tile_dark_a',
+  11: 'env_tile_dark_b',
+  12: 'env_tile_purple_a',
+  13: 'env_tile_purple_b',
+});
+// Reverse map (asset id → tile value). Computed once at module load.
+const _TILE_REV_REGISTRY = Object.freeze(
+  Object.fromEntries(Object.entries(TILE_ID_REGISTRY).map(([v, id]) => [id, Number(v)]))
+);
+// Ordered list of {value, id} in registry order — for UI iteration only,
+// NEVER for save decoding.
+export const TILE_REGISTRY_ORDER = Object.freeze(
+  Object.entries(TILE_ID_REGISTRY)
+    .map(([v, id]) => ({ value: Number(v), id }))
+    .sort((a, b) => a.value - b.value)
+);
+// The default tile ID for legacy value 1 and for unregistered fallbacks.
+export const TILE_DEFAULT_ID = 'env_tile_dark_a';
+
 export const TILE_VARIANT_BASE = 10;
 export function tileIsSolid(v) { return v === 1 || v >= TILE_VARIANT_BASE; }
-export function tileArtIndex(v) {
-  if (v === 1) return 0;                       // legacy default → art[0]
-  if (v >= TILE_VARIANT_BASE) return v - TILE_VARIANT_BASE;
-  return -1;                                   // not a solid tile
+
+// Returns the asset id for a stored tile value, or null if not solid.
+// Value 1 → default id. Value >= 10 → registry lookup. Unknown registry
+// value falls back to default id so a corrupt/unknown value still renders.
+export function tileAssetIdFor(v) {
+  if (v === 1) return TILE_DEFAULT_ID;
+  if (v >= TILE_VARIANT_BASE) return TILE_ID_REGISTRY[v] || TILE_DEFAULT_ID;
+  return null;
 }
-export function tileValueForVariant(idx) { return TILE_VARIANT_BASE + idx; }
-// Ordered array of tile-category assets, sorted by id for a stable mapping
-// between variant index and asset. Editor + runtime + generator all key off
-// this ordering. If Aki adds a new tile PNG, it appends to the end.
+// Returns the stored tile value for a given asset id, or -1 if unknown.
+export function tileValueForAssetId(id) {
+  if (!id) return -1;
+  const v = _TILE_REV_REGISTRY[id];
+  return v === undefined ? -1 : v;
+}
+// Legacy compat: some call sites still expect a 0-based art index. Keep it
+// working by mapping registry value → position in TILE_REGISTRY_ORDER.
+export function tileArtIndex(v) {
+  const id = tileAssetIdFor(v);
+  if (!id) return -1;
+  const idx = TILE_REGISTRY_ORDER.findIndex(e => e.id === id);
+  return idx < 0 ? 0 : idx;
+}
+export function tileValueForVariant(idx) {
+  const e = TILE_REGISTRY_ORDER[idx];
+  return e ? e.value : TILE_VARIANT_BASE;
+}
+// Manifest-derived listing kept only for editor UI (asset browser filter etc.);
+// NOT used for save-value decoding. Returns manifest tile assets in registry
+// order, unregistered tiles append at the end.
 export function terrainArtOrder() {
   const m = state.manifest;
   if (!m || !Array.isArray(m.items)) return [];
-  return m.items
-    .filter(it => it && it.category === 'tile' && !it.isAnimation)
-    .slice()
-    .sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+  const byId = new Map();
+  for (const it of m.items) {
+    if (it && it.category === 'tile' && !it.isAnimation) byId.set(it.id, it);
+  }
+  const ordered = [];
+  for (const e of TILE_REGISTRY_ORDER) if (byId.has(e.id)) { ordered.push(byId.get(e.id)); byId.delete(e.id); }
+  for (const it of byId.values()) ordered.push(it);
+  return ordered;
 }
+// Editor's Place tool uses this: asset id → stored tile value.
 export function tileVariantForAssetId(id) {
-  if (!id) return -1;
-  const order = terrainArtOrder();
-  return order.findIndex(a => a.id === id);
+  const v = tileValueForAssetId(id);
+  return v < 0 ? -1 : v - TILE_VARIANT_BASE;   // return the OFFSET, caller adds BASE
 }
 export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
 export const SNAP_GAMEPLAY_DEFAULT   = 16;          // spawn/source/gate/switch/checkpoint/enemy

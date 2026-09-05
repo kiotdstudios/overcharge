@@ -23,7 +23,7 @@
 // swap-ins (real controller measurements, style presets) is one edit.
 
 import { state, TILE_SIZE, getCachedImage, decoDimensions,
-         TILE_VARIANT_BASE, terrainArtOrder, tileIsSolid } from './state.js';
+         TILE_REGISTRY_ORDER, tileIsSolid } from './state.js';
 
 // ── Playability constants (grounded in src_scroll/constants.js physics) ──
 // GRAVITY=900, PLAYER_SPEED=75, JUMP_FORCE=-430, RUN_MULTIPLIER=1.7
@@ -273,13 +273,17 @@ function _buildLevel(rng, ctx) {
   // Paint solid tiles from each section's rooftop row down to GROUND_ROW.
   // Optionally place a Purple City building decoration behind the mass for
   // visual character (its size doesn't affect collision).
-  const artCount = Math.max(1, terrainArtOrder().length);
+  // Pick tile variants from the PERMANENT registry, not from manifest sort
+  // order. Registry values are stable forever so generated levels never
+  // renumber when new tile assets are added.
+  const registry = TILE_REGISTRY_ORDER;
+  const artCount = Math.max(1, registry.length);
   for (const s of sections) {
     // Pick ONE tile variant per section so the section's tile art is
     // visually cohesive rather than randomized per cell. Deterministic
     // from the section's start column so seed uniquely determines it.
-    const secVariant = ((s.startCol * 2654435761) >>> 0) % artCount;
-    const tileVal    = TILE_VARIANT_BASE + secVariant;
+    const secIdx    = ((s.startCol * 2654435761) >>> 0) % artCount;
+    const tileVal   = registry[secIdx].value;
     for (let c = s.startCol; c <= s.endCol; c++) {
       for (let r = s.roofRow; r <= GROUND_ROW; r++) {
         tiles[r * cols + c] = tileVal;

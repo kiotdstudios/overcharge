@@ -6,7 +6,7 @@
 // Any level JSON conforming to SCHEMA.md renders correctly. No Level-1 assumptions.
 
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
-         worldToScreen, tileIsSolid, tileArtIndex } from './state.js';
+         worldToScreen, tileIsSolid, tileAssetIdFor } from './state.js';
 import * as Selection from './selection.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
@@ -33,23 +33,18 @@ const MARKER = {
   selection:  '#ffee00',
 };
 
-// Pool of painted-terrain PNGs. All manifest items with category 'tile'
-// contribute. Each solid cell picks one via a stable per-position hash so
-// the same cell renders the same art every frame AND we get variety across
-// the level (mix of dark_a, dark_b, purple_a, purple_b). Matches the game
-// runtime's own hash-based tile variety.
-let _terrainImgs = null;
-function terrainImages() {
-  if (_terrainImgs && _terrainImgs.length > 0) return _terrainImgs;
+// Terrain tile PNG lookup — keyed by ASSET ID, not by array position, so a
+// new manifest tile inserted at any position does not renumber saved cells.
+// Missing images are looked up on demand each frame (getImage caches).
+function terrainImageForId(id) {
   const m = state.manifest;
-  if (!m || !Array.isArray(m.items)) return null;
-  const tiles = m.items.filter(it => it.category === 'tile' && !it.isAnimation);
-  if (tiles.length === 0) return null;
-  _terrainImgs = tiles.map(t => getImage(t.path));
-  return _terrainImgs;
+  if (!m || !Array.isArray(m.items) || !id) return null;
+  const asset = m.items.find(it => it && it.id === id && it.category === 'tile');
+  if (!asset) return null;
+  return getImage(asset.path);
 }
-// (Hash-based tile variety removed per Chief. Every cell renders EXACTLY
-// the tile art variant its stored value encodes; see tileArtIndex in state.js.)
+// (Hash-based tile variety removed per Chief. Every cell renders EXACTLY the
+// asset bound to its stored tile value via TILE_ID_REGISTRY in state.js.)
 
 export function render(ctx, canvas) {
   const w = canvas.width, h = canvas.height;
@@ -84,22 +79,24 @@ export function render(ctx, canvas) {
   const L = state.level;
   const rows = levelRows();
   const tsz = TILE_SIZE * c.zoom;
-  const tImgs = terrainImages() || [];
-  // Only images already loaded contribute; unloaded ones simply skip this
-  // frame and re-check next frame (getImage cache holds them until ready).
-  const readyImgs = tImgs.filter(im => im.complete && im.naturalWidth > 0);
+  // Small per-frame cache: tile value → resolved Image. Avoids repeating
+  // the manifest-scan for every cell when the level uses one tile mostly.
+  const imgCache = new Map();
+  const resolveTileImg = (v) => {
+    if (imgCache.has(v)) return imgCache.get(v);
+    const id = tileAssetIdFor(v);
+    const img = id ? terrainImageForId(id) : null;
+    imgCache.set(v, img);
+    return img;
+  };
   for (let r = 0; r < rows; r++) {
     for (let col = 0; col < L.cols; col++) {
       const v = L.tiles[r * L.cols + col];
       if (v === 0) continue;
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
-      if (tileIsSolid(v) && readyImgs.length > 0) {
-        // Chief-chosen variant: art[tileArtIndex(v)]. Value 1 legacy = art[0].
-        // Out-of-range variant falls back to art[0] so a manifest change
-        // that removes an art doesn't blank the level.
-        const artIdx = tileArtIndex(v);
-        const img = readyImgs[artIdx] || readyImgs[0];
+      const img = tileIsSolid(v) ? resolveTileImg(v) : null;
+      if (img && img.complete && img.naturalWidth > 0) {
         ctx.drawImage(img, 0, 0, 16, 16, p.x, p.y, tsz, tsz);
       } else {
         ctx.fillStyle = tileIsSolid(v) ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
