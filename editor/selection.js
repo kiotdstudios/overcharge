@@ -157,20 +157,35 @@ export function isRefSelected(kind, ref) {
 export function selectDecoration(dec, additive = false)  { selectByKind('decoration', dec, additive); }
 export function toggleDecoration(dec)                    { toggleByKind('decoration', dec); }
 export function deselectDecoration(dec)                  { state.selection.decorations.delete(dec); notify(); }
-export function selectTile(col, row, additive = false)   { selectByKind('tile', col + ',' + row, additive); }
-export function deselectTile(col, row)                   { state.selection.tiles.delete(col + ',' + row); notify(); }
-export function toggleTile(col, row)                     { const k = col + ',' + row; state.selection.tiles.has(k) ? state.selection.tiles.delete(k) : state.selection.tiles.add(k); notify(); }
-
 // ── Hit-testing ──────────────────────────────────────────────────────────
-// Hit boxes match the on-screen MARKER footprint (what the user sees and
-// clicks), not the runtime collision hitbox. Coordinates are world-space.
+// TWO rects per object, deliberately distinct:
+//
+//   boundingRect(kind, ref)  → tight VISUAL bounds. Used to draw selection
+//                              outlines, position the move handle, and
+//                              compute selection bboxes for the group snap
+//                              math. Matches exactly what the user sees.
+//
+//   hitRect(kind, ref)       → generous CLICK bounds. Used by objectAt so
+//                              tiny gameplay markers (12–14 px in world
+//                              space) are actually clickable without pixel
+//                              precision. Decorations & gates use their full
+//                              footprint (already generous). Never used for
+//                              rendering.
+//
+// This is the "click anywhere on the object and move it" fix — decoupling
+// visual size from clickable size so a 14 px source marker can be grabbed
+// from a comfortable ~28 px world zone.
 
-// Returns bounding rect { x, y, w, h } for a given {kind, ref}.
+// Minimum world-space click target size for tiny gameplay markers. Gives a
+// forgiving grab zone even at 100% zoom. Larger objects use their own bounds.
+const MIN_CLICK_TARGET = 28;
+
+// Returns tight VISUAL bounds. Do not use for click hit-testing.
 export function boundingRect(kind, ref) {
   if (!ref) return null;
   if (kind === 'decoration') return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
   if (kind === 'gate')       return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
-  // Markers are drawn as centered squares at (x, y) — hit box mirrors that.
+  // Markers are drawn as centered squares at (x, y) — visual box mirrors that.
   if (kind === 'source')     return { x: ref.x - 7, y: ref.y - 7, w: 14, h: 14 };
   if (kind === 'switch')     return { x: ref.x - 7, y: ref.y - 7, w: 14, h: 14 };
   if (kind === 'checkpoint') return { x: ref.x - 7, y: ref.y - 7, w: 14, h: 14 };
@@ -180,17 +195,33 @@ export function boundingRect(kind, ref) {
   return null;
 }
 
-// Find topmost selectable object at a world coord. Search order:
-// playerStart → gameplay markers (sources/gates/switches/checkpoints/enemies) →
-// decorations (last so they don't cover gameplay markers).
-// Returns { kind, ref } or null.
+// Returns generous CLICK bounds. Always at least MIN_CLICK_TARGET square.
+// Centered on the visual bounding rect. For decorations larger than the
+// minimum, the rect matches the visual footprint (already easy to click).
+export function hitRect(kind, ref) {
+  const bb = boundingRect(kind, ref);
+  if (!bb) return null;
+  if (bb.w >= MIN_CLICK_TARGET && bb.h >= MIN_CLICK_TARGET) return bb;
+  const cx = bb.x + bb.w / 2, cy = bb.y + bb.h / 2;
+  const w = Math.max(bb.w, MIN_CLICK_TARGET);
+  const h = Math.max(bb.h, MIN_CLICK_TARGET);
+  return { x: cx - w / 2, y: cy - h / 2, w, h };
+}
+
+// Find topmost selectable object at a world coord. Search order (top of
+// z-stack first): playerStart → gameplay markers → decorations. Uses
+// hitRect() throughout so small markers are forgiving to click. If two
+// hit-rects overlap, the one drawn on top wins (playerStart > markers >
+// last-placed decoration).
 export function objectAt(worldX, worldY) {
   const L = state.level;
   if (!L) return null;
 
-  // playerStart — highest priority (it's a single object; if clicked, don't fall through)
-  const psRect = boundingRect('playerStart', L.playerStart);
-  if (L.playerStart && psRect && _hits(psRect, worldX, worldY)) return { kind: 'playerStart', ref: L.playerStart };
+  // playerStart — highest priority (single object; don't fall through if hit)
+  if (L.playerStart) {
+    const psHit = hitRect('playerStart', L.playerStart);
+    if (psHit && _hits(psHit, worldX, worldY)) return { kind: 'playerStart', ref: L.playerStart };
+  }
 
   // Gameplay markers next
   for (const [kind, arr] of [
@@ -201,7 +232,7 @@ export function objectAt(worldX, worldY) {
     ['enemy',      L.enemies     || []],
   ]) {
     for (let i = arr.length - 1; i >= 0; i--) {
-      const rect = boundingRect(kind, arr[i]);
+      const rect = hitRect(kind, arr[i]);
       if (rect && _hits(rect, worldX, worldY)) return { kind, ref: arr[i] };
     }
   }
@@ -210,9 +241,8 @@ export function objectAt(worldX, worldY) {
   if (Array.isArray(L.decorations)) {
     for (let i = L.decorations.length - 1; i >= 0; i--) {
       const d = L.decorations[i];
-      if (worldX >= d.x && worldX < d.x + d.w && worldY >= d.y && worldY < d.y + d.h) {
-        return { kind: 'decoration', ref: d };
-      }
+      const rect = hitRect('decoration', d);
+      if (rect && _hits(rect, worldX, worldY)) return { kind: 'decoration', ref: d };
     }
   }
   return null;
