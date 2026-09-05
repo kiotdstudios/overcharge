@@ -13,7 +13,7 @@
 
 import {
   screenToWorld, worldToTile, TILE_SIZE,
-  panCamera, zoomCamera, state,
+  panCamera, zoomCamera, state, notify,
   snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
   SNAP_DECORATION_DEFAULT,
   decoDimensions, getCachedImage,
@@ -317,41 +317,59 @@ export const selectTool = {
 };
 
 // ── Gameplay marker placement ────────────────────────────────────────────
-// Adds a source/gate/switch/enemy to the level's typed collection. Snaps to
-// 16px (gameplay default). Wraps the array push in an Action so it undoes.
+// Adds a source / gate / switch / enemy / exit / checkpoint to the level's
+// typed collection, or REPLACES playerStart. Snaps to 16px. Wraps in an
+// action so undo works.
 function _placeGameplayMarker(asset, worldX, worldY) {
   const L = state.level;
   if (!L) return false;
-  const pos = snapPoint(worldX, worldY, 16);
-  const idBase = (asset.id || 'obj').toLowerCase();
+  const pos    = snapPoint(worldX, worldY, 16);
+  const idBase = String(asset.id || '').toLowerCase();
+  const cat    = String(asset.category || '').toLowerCase();
+
+  // playerStart is a single object per level; dragging player_* MOVES it.
+  if (cat === 'player') {
+    const oldStart = L.playerStart || null;
+    const newStart = { x: pos.x, y: pos.y };
+    const action = {
+      type: 'set_player_start',
+      forward: () => { L.playerStart = newStart; notify(); },
+      inverse: () => { L.playerStart = oldStart; notify(); },
+    };
+    History.apply(action);
+    return true;
+  }
+
+  // Every other marker gets its own typed array.
   let arr, ref;
-  if (/gate/i.test(idBase)) {
+  if (/exit/.test(idBase)) {
+    arr = L.gates = L.gates || [];
+    ref = { id: `exit_${arr.length + 1}`, x: pos.x, y: pos.y, w: 32, h: 64, isExit: true, label: 'EXIT' };
+  } else if (/gate/.test(idBase)) {
     arr = L.gates = L.gates || [];
     ref = { id: `gate_${arr.length + 1}`, x: pos.x, y: pos.y, w: 32, h: 64, label: 'GATE' };
-  } else if (/switch/i.test(idBase)) {
+  } else if (/switch/.test(idBase)) {
     arr = L.switches = L.switches || [];
     ref = { id: `sw_${arr.length + 1}`, x: pos.x, y: pos.y, label: 'SW' };
-  } else if (asset.category === 'enemy') {
+  } else if (/check/.test(idBase)) {
+    arr = L.checkpoints = L.checkpoints || [];
+    ref = { id: `cp_${arr.length + 1}`, x: pos.x, y: pos.y, label: 'CP' };
+  } else if (cat === 'enemy') {
     arr = L.enemies = L.enemies || [];
-    ref = { id: `en_${arr.length + 1}`, x: pos.x, y: pos.y, type: /drone/i.test(idBase) ? 'drone' : 'drain', patrolLeft: pos.x - 64, patrolRight: pos.x + 64 };
+    const kind = /drone/.test(idBase) ? 'drone' : 'drain';
+    ref = { id: `en_${arr.length + 1}`, x: pos.x, y: pos.y, type: kind, patrolLeft: pos.x - 64, patrolRight: pos.x + 64 };
   } else {
     // default: electrical source / generator
     arr = L.sources = L.sources || [];
     ref = { id: `src_${arr.length + 1}`, x: pos.x, y: pos.y, charge: 5, label: 'GEN' };
   }
-  // Wrap the add in a reversible action so Ctrl+Z removes it.
+
   const action = {
-    type: 'add_gameplay_marker',
-    forward() { arr.push(ref); state.notify?.(); },
-    inverse() { const i = arr.indexOf(ref); if (i >= 0) arr.splice(i, 1); state.notify?.(); },
+    type:    'add_gameplay_marker',
+    forward: () => { arr.push(ref); notify(); },
+    inverse: () => { const i = arr.indexOf(ref); if (i >= 0) arr.splice(i, 1); notify(); },
   };
-  action.forward();
-  // Also route to History via notify
-  import('./history.js').then(H => {
-    // Retrofit history recording — action already applied above, record only
-    H.record({ type: action.type, forward: action.forward, inverse: action.inverse });
-  });
-  import('./state.js').then(m => m.notify());
+  History.apply(action);
   return true;
 }
 
@@ -374,13 +392,13 @@ export function placeAssetAt(asset, worldX, worldY) {
     return false;
   }
   // ── Gameplay marker assets ──────────────────────────────────────────
-  // Assets in the 'electrical' or 'enemy' category represent gameplay
-  // objects (sources / gates / enemies), not visual decorations. Route
-  // them to the correct level.<collection> instead of level.decorations.
-  // Placement snaps to 16 (gameplay-marker default snap).
-  if (asset.category === 'electrical' || asset.category === 'enemy' ||
-      /generator|source/i.test(asset.id || '') ||
-      /\bgate\b/i.test(asset.id || '')) {
+  // Categories 'electrical', 'enemy', 'player', 'gameplay' — and IDs
+  // matching generator/source/gate/switch/exit/checkpoint — route to
+  // typed level collections (sources/gates/switches/enemies/checkpoints)
+  // or playerStart, not level.decorations. Placement snaps to 16.
+  const cat = String(asset.category || '').toLowerCase();
+  if (cat === 'electrical' || cat === 'enemy' || cat === 'player' || cat === 'gameplay' ||
+      /generator|source|gate|switch|exit|checkpoint/i.test(asset.id || '')) {
     return _placeGameplayMarker(asset, worldX, worldY);
   }
   // Animated decoration (player anims etc.) — not placeable.
