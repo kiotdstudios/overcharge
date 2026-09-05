@@ -29,7 +29,7 @@
       "notes": "WALK_FPS=4. Dir pattern: east/west in gameplay; all 8 dirs exist on disk.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player character sprite — runtime-only, not a world object"
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
       }
     },
     {
@@ -59,7 +59,7 @@
       "notes": "WALK_FPS=4.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player character sprite — runtime-only, not a world object"
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
       }
     },
     {
@@ -83,7 +83,7 @@
       "notes": "RUN_FPS=11. East+west only. Generated via PixelLab running-8-frames template on character c6503f8e.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player character sprite — runtime-only, not a world object"
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
       }
     },
     {
@@ -110,10 +110,10 @@
         "south-west"
       ],
       "loop": false,
-      "notes": "Frame selected by vy (vertical velocity), not time. vy=-430→frame 0, vy=0→frame 4, vy=+430→frame 8.",
+      "notes": "Frame selected by vy (vertical velocity), not time. vy=-430\u2192frame 0, vy=0\u2192frame 4, vy=+430\u2192frame 8.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player character sprite — runtime-only, not a world object"
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
       }
     },
     {
@@ -138,7 +138,7 @@
       "notes": "Played while player is absorbing charge from a source. 18fps for energy urgency.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player character sprite — runtime-only, not a world object"
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
       }
     },
     {
@@ -168,7 +168,7 @@
       "notes": "Played while player is discharging into a gate/object.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player character sprite — runtime-only, not a world object"
+        "ineligible_reason": "Player character sprite \u2014 runtime-only, not a world object"
       }
     },
     {
@@ -187,10 +187,10 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") — URL-encodes to %20; real HTTP servers handle this, but recommend renaming to \"generator_1\" (file-system change, coord with Orcha).",
+      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") \u2014 URL-encodes to %20; real HTTP servers handle this, but recommend renaming to \"generator_1\" (file-system change, coord with Orcha).",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 requires scripted placement by level designer"
       }
     },
     {
@@ -212,7 +212,7 @@
       "notes": "Static closed-gate reference sprite (64x128). Animated spritesheet now in gate_electric_animated. PixelLab job: e9dfee77.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — linked to generator/switches by ID"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 linked to generator/switches by ID"
       }
     },
     {
@@ -234,10 +234,10 @@
         "west"
       ],
       "loop": true,
-      "notes": "Drain enemy walk cycle. East+west. PixelLab character — see drain_enemy folder.",
+      "notes": "Drain enemy walk cycle. East+west. PixelLab character \u2014 see drain_enemy folder.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Enemy entity — spawn density is gameplay-scripted, not randomized"
+        "ineligible_reason": "Enemy entity \u2014 spawn density is gameplay-scripted, not randomized"
       }
     },
     {
@@ -259,7 +259,7 @@
       "notes": "Mid-layer parallax city. Tiled horizontally. Scrolls slower than foreground.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Parallax background — one per level, fixed position, placed by hand"
+        "ineligible_reason": "Parallax background \u2014 one per level, fixed position, placed by hand"
       }
     },
     {
@@ -280,7 +280,7 @@
       "notes": "Full spritesheet for the purple city tileset. Individual tiles also exported as separate PNGs.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Full spritesheet reference — not a placeable decoration"
+        "ineligible_reason": "Full spritesheet reference \u2014 not a placeable decoration"
       }
     },
     {
@@ -298,7 +298,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18). Mix with other tile variants.",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718). Mix with other tile variants.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -326,7 +326,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18).",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718).",
       "generation": {
         "eligible": true,
         "roles": [
@@ -354,7 +354,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18). Prefer upper / decorated zones.",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718). Prefer upper / decorated zones.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -382,7 +382,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18). Prefer upper / decorated zones.",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718). Prefer upper / decorated zones.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -678,7 +678,7 @@
       "notes": "",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "50×50 visual reference for the env_edge_purple_* construction family; use env_edge_purple_* tiles for level building"
+        "ineligible_reason": "50\u00d750 visual reference for the env_edge_purple_* construction family; use env_edge_purple_* tiles for level building"
       }
     },
     {
@@ -1266,7 +1266,7 @@
       "frame_width": 128,
       "frame_height": 128,
       "directions": 1,
-      "notes": "Animated gate spritesheet. Row 0: base (1f). Row 1: idle (9f) — plasma pulse loop. Row 2: charging (9f) — build to overcharge flash. PixelLab object: 4a1480fd.",
+      "notes": "Animated gate spritesheet. Row 0: base (1f). Row 1: idle (9f) \u2014 plasma pulse loop. Row 2: charging (9f) \u2014 build to overcharge flash. PixelLab object: 4a1480fd.",
       "animations": {
         "idle": {
           "row": 1,
@@ -1285,7 +1285,7 @@
       },
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — linked to generator/switches by ID"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 linked to generator/switches by ID"
       }
     },
     {
@@ -2225,7 +2225,7 @@
         "roles": [
           "modular_construction"
         ],
-        "notes": "Modular waste platform segment — place via construction system, not random generation."
+        "notes": "Modular waste platform segment \u2014 place via construction system, not random generation."
       }
     },
     {
@@ -2249,7 +2249,7 @@
         "roles": [
           "modular_construction"
         ],
-        "notes": "Modular waste platform segment — place via construction system, not random generation."
+        "notes": "Modular waste platform segment \u2014 place via construction system, not random generation."
       }
     },
     {
@@ -2324,22 +2324,8 @@
       "id": "env_prop_platform_glow_green",
       "category": "prop",
       "path": "assets/tilesets/purple_city/props/platform_glow_green.png",
-      "frame_width": 23,
-      "frame_height": 18,
-      "frame_count": 1,
-      "fps": null,
-      "loop": false,
-      "directions": null,
-      "generation": {
-        "eligible": false,
-        "density": null,
-        "layer": null,
-        "roles": [
-          "decorative"
-        ],
-        "stackable": false,
-        "surface": null
-      },
+      "width": 23,
+      "height": 18,
       "tags": [
         "prop",
         "purple_city",
@@ -2347,7 +2333,13 @@
         "decoration",
         "legacy"
       ],
-      "notes": "Legacy Level 2 decorative glow indicator. Two horizontal green neon light bars (23x18 px, content 21x16). Hand-placed at specific positions in level2.js / level2.json as landing-zone beacons. Not suitable for generation system — placement semantics are level-specific. Do not classify as traversal."
+      "generation": {
+        "eligible": false,
+        "roles": [
+          "decorative"
+        ]
+      },
+      "notes": "Legacy Level 2 decorative glow indicator. Two horizontal green neon light bars (23x18 px, content 21x16). Hand-placed at specific positions in src_scroll/levels/level2.json as landing-zone beacons. Not suitable for generation system \u2014 placement semantics are level-specific. Do not classify as traversal."
     }
   ]
 }
