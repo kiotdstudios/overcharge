@@ -146,6 +146,105 @@
       ]
     },
     {
+      "id": "env_edge_purple_bottom_left.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_left.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_bottom_right.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_right.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_bottom.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_fill.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_fill.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_left.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_left.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_right.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_right.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_top_left.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_left.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_top_right.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_right.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_edge_purple_top.png",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
       "id": "container_small_a.png",
       "path": "assets/tilesets/purple_city/containers/container_small_a.png",
       "category": "container",
@@ -322,6 +421,39 @@
       ]
     },
     {
+      "id": "env_prop_arrow_box_up.png",
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "category": "prop",
+      "width": 18,
+      "height": 20,
+      "tags": [
+        "purple_city",
+        "props"
+      ]
+    },
+    {
+      "id": "env_prop_arrow_up.png",
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_up.png",
+      "category": "prop",
+      "width": 6,
+      "height": 8,
+      "tags": [
+        "purple_city",
+        "props"
+      ]
+    },
+    {
+      "id": "env_prop_box_purple.png",
+      "path": "assets/tilesets/purple_city/props/env_prop_box_purple.png",
+      "category": "prop",
+      "width": 18,
+      "height": 20,
+      "tags": [
+        "purple_city",
+        "props"
+      ]
+    },
+    {
       "id": "env_waste_platform_long.png",
       "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
       "category": "prop",
@@ -435,8 +567,8 @@
       "id": "catwalk_section.png",
       "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
       "category": "rooftop",
-      "width": 64,
-      "height": 16,
+      "width": 44,
+      "height": 9,
       "tags": [
         "purple_city",
         "rooftop"
