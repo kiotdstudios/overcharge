@@ -1,6 +1,6 @@
 {
   "generated": "2026-09-04T20:54:52.362Z",
-  "count": 622,
+  "count": 651,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -3733,6 +3733,180 @@
       "name": "env_waste_platform_long",
       "category": "prop",
       "size": 377
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_ceiling.png",
+      "name": "env_waste_ceiling",
+      "category": "construction_tile",
+      "size": 2011
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_bl.png",
+      "name": "env_waste_corner_bl",
+      "category": "construction_tile",
+      "size": 1906
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_br.png",
+      "name": "env_waste_corner_br",
+      "category": "construction_tile",
+      "size": 1913
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_tl.png",
+      "name": "env_waste_corner_tl",
+      "category": "construction_tile",
+      "size": 1765
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_tr.png",
+      "name": "env_waste_corner_tr",
+      "category": "construction_tile",
+      "size": 1784
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_floor.png",
+      "name": "env_waste_floor",
+      "category": "construction_tile",
+      "size": 2036
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_platform_left.png",
+      "name": "env_waste_platform_left",
+      "category": "construction_tile",
+      "size": 1709
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_platform_mid.png",
+      "name": "env_waste_platform_mid",
+      "category": "construction_tile",
+      "size": 1774
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_platform_right.png",
+      "name": "env_waste_platform_right",
+      "category": "construction_tile",
+      "size": 1735
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_wall.png",
+      "name": "env_waste_wall",
+      "category": "construction_tile",
+      "size": 2053
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_wall_left.png",
+      "name": "env_waste_wall_left",
+      "category": "construction_tile",
+      "size": 1882
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_wall_right.png",
+      "name": "env_waste_wall_right",
+      "category": "construction_tile",
+      "size": 1887
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_bubble.png",
+      "name": "env_waste_liquid_bubble",
+      "category": "liquid",
+      "size": 3279
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_calm.png",
+      "name": "env_waste_liquid_calm",
+      "category": "liquid",
+      "size": 2668
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_drip.png",
+      "name": "env_waste_liquid_drip",
+      "category": "liquid",
+      "size": 2174
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_outflow.png",
+      "name": "env_waste_liquid_outflow",
+      "category": "liquid",
+      "size": 2183
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_splash.png",
+      "name": "env_waste_liquid_splash",
+      "category": "liquid",
+      "size": 1977
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_barrel.png",
+      "name": "env_waste_barrel",
+      "category": "prop",
+      "size": 662
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_barrel_damaged.png",
+      "name": "env_waste_barrel_damaged",
+      "category": "prop",
+      "size": 707
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_barrel_leaking.png",
+      "name": "env_waste_barrel_leaking",
+      "category": "prop",
+      "size": 763
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_drain.png",
+      "name": "env_waste_drain",
+      "category": "prop",
+      "size": 961
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_grate.png",
+      "name": "env_waste_grate",
+      "category": "prop",
+      "size": 775
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_outflow.png",
+      "name": "env_waste_outflow",
+      "category": "prop",
+      "size": 314
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_pipe_corner.png",
+      "name": "env_waste_pipe_corner",
+      "category": "prop",
+      "size": 1730
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_pipe_h.png",
+      "name": "env_waste_pipe_h",
+      "category": "prop",
+      "size": 790
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_pipe_v.png",
+      "name": "env_waste_pipe_v",
+      "category": "prop",
+      "size": 936
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_tank.png",
+      "name": "env_waste_tank",
+      "category": "prop",
+      "size": 1873
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_valve.png",
+      "name": "env_waste_valve",
+      "category": "prop",
+      "size": 263
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_warning.png",
+      "name": "env_waste_warning",
+      "category": "prop",
+      "size": 1814
     }
   ]
 }
