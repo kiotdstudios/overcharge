@@ -1843,32 +1843,6 @@
       }
     },
     {
-      "id": "env_pipe_segment_long_b",
-      "category": "prop",
-      "path": "assets/tilesets/purple_city/platforms/platform_long_b.png",
-      "frame_width": 49,
-      "frame_height": 12,
-      "tags": [
-        "pipe",
-        "conduit",
-        "rooftop",
-        "detail",
-        "purple_city"
-      ],
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "decorative",
-          "rooftop",
-          "small"
-        ],
-        "surface": "rooftop",
-        "layer": "foreground",
-        "density": "medium",
-        "stackable": true
-      }
-    },
-    {
       "id": "env_platform_short_b",
       "category": "platform",
       "path": "assets/tilesets/purple_city/platforms/platform_short_b.png",
@@ -2340,6 +2314,54 @@
         ]
       },
       "notes": "Legacy Level 2 decorative glow indicator. Two horizontal green neon light bars (23x18 px, content 21x16). Hand-placed at specific positions in src_scroll/levels/level2.json as landing-zone beacons. Not suitable for generation system \u2014 placement semantics are level-specific. Do not classify as traversal."
+    },
+    {
+      "id": "env_construction_ledge_a",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_a.png",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "construction_tile",
+        "ledge",
+        "purple_city",
+        "purple"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "construction",
+          "ledge"
+        ],
+        "surface": "any",
+        "layer": "foreground",
+        "density": "medium"
+      },
+      "notes": "Split from platform_long_b.png (left block). Medium purple horizontal ledge/beam construction tile. 32x32 \u2014 10px decorated surface at top, interior fill below. Replaces env_pipe_segment_long_b."
+    },
+    {
+      "id": "env_construction_ledge_b",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_b.png",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "construction_tile",
+        "ledge",
+        "purple_city",
+        "dark"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "construction",
+          "ledge"
+        ],
+        "surface": "any",
+        "layer": "foreground",
+        "density": "medium"
+      },
+      "notes": "Split from platform_long_b.png (right block). Dark blue-purple horizontal ledge/beam construction tile. 32x32 \u2014 10px decorated surface at top, interior fill below. Replaces env_pipe_segment_long_b."
     }
   ]
 }

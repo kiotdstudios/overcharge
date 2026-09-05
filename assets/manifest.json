@@ -1,6 +1,6 @@
 {
   "generated": "2026-09-04T20:54:52.362Z",
-  "count": 621,
+  "count": 622,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -3567,12 +3567,6 @@
       "size": 896
     },
     {
-      "path": "assets/tilesets/purple_city/platforms/platform_long_b.png",
-      "name": "platform_long_b",
-      "category": "terrain",
-      "size": 778
-    },
-    {
       "path": "assets/tilesets/purple_city/platforms/platform_medium.png",
       "name": "platform_medium",
       "category": "terrain",
@@ -3691,6 +3685,18 @@
       "name": "env_edge_purple_bottom_right",
       "category": "construction_tile",
       "size": 1741
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_a.png",
+      "name": "env_construction_ledge_a",
+      "category": "construction_tile",
+      "size": 478
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_b.png",
+      "name": "env_construction_ledge_b",
+      "category": "construction_tile",
+      "size": 512
     },
     {
       "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
