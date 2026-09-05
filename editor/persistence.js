@@ -25,6 +25,7 @@
 import { state, notify, loadLevel } from './state.js';
 import * as History from './history.js';
 import * as Selection from './selection.js';
+import * as LocalStore from './localstore.js';
 
 // File handle cache: mapping level-key → FileSystemFileHandle.
 // Level-key = state.levelPath for pre-existing files, or a synthetic id
@@ -61,6 +62,20 @@ async function _ensureSaveDir() {
       _saveDirHandle = null;
     } catch { _saveDirHandle = null; }
   }
+  // Reuse the folder picked in a PREVIOUS session before prompting again. The
+  // handle is persisted in IndexedDB (localstore.js). It comes back with
+  // permission state 'prompt', and requestPermission() only grants from a user
+  // gesture — this function is only reached from the SAVE click, so that holds.
+  const stored = await LocalStore.getDirHandle();
+  if (stored) {
+    try {
+      let p = await stored.queryPermission({ mode: 'readwrite' });
+      if (p !== 'granted') p = await stored.requestPermission({ mode: 'readwrite' });
+      if (p === 'granted') { _saveDirHandle = stored; return _saveDirHandle; }
+    } catch { /* stale handle (folder moved/deleted) — fall through to picker */ }
+    await LocalStore.clearDirHandle();
+  }
+
   if (!_hasDirPicker()) return null;
   try {
     // `id` groups these picks so browsers remember the last-chosen location
@@ -71,6 +86,7 @@ async function _ensureSaveDir() {
       startIn: 'documents',
       mode: 'readwrite',
     });
+    await LocalStore.setDirHandle(_saveDirHandle);
     return _saveDirHandle;
   } catch (err) {
     if (err && err.name === 'AbortError') return null;   // user cancelled
@@ -145,6 +161,22 @@ export async function discoverLevels() {
     } catch { break; }
   }
 
+  // Tier 3: mirrored local saves from IndexedDB. Appended rather than merged
+  // so BOTH the local save and the committed copy appear and Chief can switch
+  // between them deliberately.
+  try {
+    for (const rec of await LocalStore.allLevels()) {
+      found.push({
+        source:   'idb',
+        levelKey: rec.levelKey,
+        name:     rec.name || 'local save',
+        number:   rec.number ?? 999,
+        filename: rec.filename || null,
+        savedAt:  rec.savedAt || 0,
+      });
+    }
+  } catch { /* storage unavailable — bundled levels still listed */ }
+
   found.sort((a, b) => (a.number || 0) - (b.number || 0));
   return found;
 }
@@ -156,7 +188,12 @@ export async function loadLevelEntry(entry) {
   if (!entry) return null;
   try {
     let data;
-    if (entry.source === 'dir' && entry.handle) {
+    if (entry.source === 'idb') {
+      const rec = await LocalStore.getLevel(entry.levelKey);
+      if (!rec) return null;
+      data = JSON.parse(rec.json);
+      state.levelPath = 'idb:' + entry.levelKey;
+    } else if (entry.source === 'dir' && entry.handle) {
       const file = await entry.handle.getFile();
       data = JSON.parse(await file.text());
       state.levelPath = 'dir:' + entry.filename;    // sentinel — save uses dir handle
@@ -172,6 +209,41 @@ export async function loadLevelEntry(entry) {
     notify();
     return data;
   } catch (err) { console.error('[persistence] loadLevelEntry failed:', err); return null; }
+}
+
+// ── Durable local mirror ─────────────────────────────────────────────────
+// A disk write is invisible to the next boot: bootstrap fetches level JSON
+// from the server origin, which on a static host is the copy committed in git.
+// Mirroring each save into IndexedDB is what lets the editor reopen on the
+// user's own latest work. Keyed by level NUMBER so a custom save filename
+// (e.g. 847291_WIRED_SPIRE.json) still resolves to "the local level 1".
+export function persistKeyForLevel(L) {
+  if (!L) return null;
+  return (L.number != null) ? ('num:' + L.number) : null;
+}
+
+async function _mirrorSave(L, filename, method) {
+  const levelKey = persistKeyForLevel(L);
+  if (!levelKey) return;
+  await LocalStore.putLevel({
+    levelKey,
+    filename,
+    name:    L.name ?? null,
+    number:  L.number ?? null,
+    json:    JSON.stringify(L, null, 2),
+    savedAt: Date.now(),
+    method,
+  });
+}
+
+// Look up the mirrored save for a level number. Returns the record or null.
+export function getPersistedLevel(number) {
+  if (number == null) return Promise.resolve(null);
+  return LocalStore.getLevel('num:' + number);
+}
+export function forgetPersistedLevel(number) {
+  if (number == null) return Promise.resolve(null);
+  return LocalStore.deleteLevel('num:' + number);
 }
 
 // ── Save ─────────────────────────────────────────────────────────────────
@@ -195,6 +267,7 @@ export async function saveCurrentLevel() {
       await w.close();
       state.dirty = false;
       state.lastSavedAt = Date.now();
+      await _mirrorSave(L, filename, 'fsa-dir');
       notify();
       return { ok: true, method: 'fsa-dir', message: `Saved to ${dir.name}/${filename}` };
     } catch (err) {
@@ -233,6 +306,7 @@ export async function saveCurrentLevel() {
         _handles.set(key, handle);
         state.dirty = false;
         state.lastSavedAt = Date.now();
+        await _mirrorSave(L, filename, 'fsa');
         notify();
         return { ok: true, method: 'fsa', message: `Saved to ${handle.name}` };
       } catch (err) {
@@ -257,6 +331,7 @@ export async function saveCurrentLevel() {
     setTimeout(() => URL.revokeObjectURL(url), 5000);
     state.dirty = false;
     state.lastSavedAt = Date.now();
+    await _mirrorSave(L, filename, 'download');
     notify();
     return { ok: true, method: 'download', message: `Downloaded ${filename} — place in src_scroll/levels/ and refresh.` };
   } catch (err) {

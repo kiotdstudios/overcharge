@@ -1,7 +1,7 @@
 // main.js — editor bootstrap. Wires DOM to state/renderer/tools/assets modules.
 
 import {
-  state, subscribe,
+  state, subscribe, notify,
   loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
@@ -259,6 +259,14 @@ genSeedCopy?.addEventListener('click', async () => {
 });
 btnSave?.addEventListener('click', async () => {
   const r = await Persistence.saveCurrentLevel();
+  // A successful save writes to local disk + IndexedDB, never to the server.
+  // Record that so the parity strip stops claiming "in sync with committed".
+  if (r.ok) {
+    _localSaveInfo = { savedAt: Date.now() };
+    // saveCurrentLevel() already ran notify() before returning, so the
+    // parity strip was rendered before we knew this was a local save.
+    refreshParityStatus();
+  }
   showSaveFlash(r);
   // Refresh dropdown so a newly-created custom filename appears immediately.
   if (r.ok) {
@@ -397,7 +405,7 @@ function refreshLevelSelect() {
   // Option `value` is the entry's index in availableLevels — kept simple
   // because entries can be directory-handle-backed with no stable string key.
   const desiredSig = (isInMemory ? '__inmemory__|' : '')
-                   + list.map(l => (l.source || 'x') + ':' + (l.filename || l.path || '')).join('|');
+                   + list.map(l => (l.source || 'x') + ':' + (l.filename || l.path || l.levelKey || '')).join('|');
   const currentSig = levelSelect._sig || '';
   if (currentSig !== desiredSig) {
     levelSelect.innerHTML = '';
@@ -410,7 +418,7 @@ function refreshLevelSelect() {
     list.forEach((l, i) => {
       const o = document.createElement('option');
       o.value = String(i);
-      const src = l.source === 'dir' ? '📂' : '📦';
+      const src = l.source === 'dir' ? '📂' : (l.source === 'idb' ? '💾' : '📦');
       o.textContent = `${src} ${l.number ?? '?'} — ${l.name}`;
       levelSelect.appendChild(o);
     });
@@ -423,6 +431,7 @@ function refreshLevelSelect() {
     const path = state.levelPath || '';
     const idx = list.findIndex(l =>
       (l.source === 'dir' && ('dir:' + l.filename) === path) ||
+      (l.source === 'idb' && ('idb:' + l.levelKey) === path) ||
       (l.source === 'bundled' && l.path === path));
     levelSelect.value = idx >= 0 ? String(idx) : '';
     levelSelect._priorValue = levelSelect.value;
@@ -466,6 +475,43 @@ function refreshLevelInfo() {
 // Chief §2: make it impossible to confuse "what I am testing" with
 // "what the game will load".
 const parityStatus = document.getElementById('parity-status');
+
+// Set when the loaded level came from (or was written to) local-only storage
+// rather than the committed server copy. Without this the strip would report
+// "IN SYNC WITH COMMITTED" for a clean-but-local level, which is false.
+let _localSaveInfo = null;
+
+// Reopen on the user's own latest work. A save from a previous session lives
+// in IndexedDB (localstore.js), not on the server, so bootstrap must look for
+// it explicitly — otherwise the committed copy silently wins and the save
+// appears to have been lost. Requires no file permission, so it is safe to do
+// automatically without a user gesture.
+async function _restoreLocalSaveIfAny() {
+  try {
+    const rec = await Persistence.getPersistedLevel(state.level?.number);
+    if (!rec || !rec.json) return;
+    const committed = JSON.stringify(state.level, null, 2);
+    if (rec.json === committed) return;       // identical — nothing to restore
+    const local = JSON.parse(rec.json);
+    state.level     = local;
+    state.levelPath = 'idb:' + rec.levelKey;
+    state.dirty     = false;
+    _localSaveInfo  = { savedAt: rec.savedAt, filename: rec.filename };
+    notify();
+    const when = rec.savedAt ? new Date(rec.savedAt).toLocaleString() : 'earlier';
+    if (saveFlash) {
+      saveFlash.textContent = `\u21BA Restored your local save (${rec.filename || 'level ' + rec.number}, ${when}). Switch to \u{1F4E6} in the LEVEL menu for the committed version.`;
+      saveFlash.style.color = '#44ccff';
+      setTimeout(() => { saveFlash.textContent = ''; saveFlash.style.color = ''; }, 12000);
+    }
+    console.info('[editor] LOCAL SAVE RESTORED from IndexedDB', {
+      levelKey: rec.levelKey, filename: rec.filename, savedAt: when,
+    });
+  } catch (err) {
+    console.warn('[editor] local save restore skipped:', err.message);
+  }
+}
+
 function refreshParityStatus() {
   if (!parityStatus || !state.level) return;
   const sum = levelChecksum(state.level);
@@ -477,6 +523,16 @@ function refreshParityStatus() {
       '<span style="color:#556"> \u2502 </span>' +
       '<span style="color:#44ccff">editor checksum ' + sum + '</span>';
     parityStatus.title = 'Your edits are local only. The normal game still loads the committed src_scroll/levels/level1.json until you SAVE and commit it.';
+  } else if (_localSaveInfo) {
+    parityStatus.innerHTML =
+      '<span style="color:#ffee00">\u25CF LOCAL SAVE \u2014 NOT COMMITTED</span>' +
+      '<span style="color:#556"> \u2502 </span>' +
+      '<span style="color:#8aaabb">GAME USES COMMITTED LEVEL JSON</span>' +
+      '<span style="color:#556"> \u2502 </span>' +
+      '<span style="color:#44ccff">checksum ' + sum + '</span>';
+    parityStatus.title = 'This level is saved on your machine only (disk + browser storage). '
+      + 'The game and everyone else still load the committed src_scroll/levels JSON until '
+      + 'this file is committed to git.';
   } else {
     parityStatus.innerHTML =
       '<span style="color:#44ff88">\u25CF IN SYNC WITH COMMITTED LEVEL JSON</span>' +
@@ -687,6 +743,8 @@ async function bootstrap() {
     await preloadManifestImages();
     state.availableLevels = await Persistence.discoverLevels();
     await loadLevel(DEFAULT_LEVEL_URL);
+    // Prefer a previous session's local save over the committed copy.
+    await _restoreLocalSaveIfAny();
     History.clearAll();
     Selection.clearSelection();
     state.dirty = false;
