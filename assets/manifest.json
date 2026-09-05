@@ -1,6 +1,6 @@
 {
   "generated": "2026-09-04T20:54:52.362Z",
-  "count": 607,
+  "count": 621,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -3453,12 +3453,6 @@
       "size": 722
     },
     {
-      "path": "assets/tilesets/purple_city/props/sign_arrow_up.png",
-      "name": "sign_arrow_up",
-      "category": "prop",
-      "size": 1088
-    },
-    {
       "path": "assets/tilesets/purple_city/props/street_lamp.png",
       "name": "street_lamp",
       "category": "prop",
@@ -3643,6 +3637,96 @@
       "name": "wall_brick_c",
       "category": "terrain",
       "size": 918
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_fill.png",
+      "name": "env_edge_purple_fill",
+      "category": "construction_tile",
+      "size": 1944
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
+      "name": "env_edge_purple_top",
+      "category": "construction_tile",
+      "size": 1800
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom.png",
+      "name": "env_edge_purple_bottom",
+      "category": "construction_tile",
+      "size": 1817
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_left.png",
+      "name": "env_edge_purple_left",
+      "category": "construction_tile",
+      "size": 1852
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_right.png",
+      "name": "env_edge_purple_right",
+      "category": "construction_tile",
+      "size": 1854
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_left.png",
+      "name": "env_edge_purple_top_left",
+      "category": "construction_tile",
+      "size": 1720
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_right.png",
+      "name": "env_edge_purple_top_right",
+      "category": "construction_tile",
+      "size": 1736
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_left.png",
+      "name": "env_edge_purple_bottom_left",
+      "category": "construction_tile",
+      "size": 1746
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_right.png",
+      "name": "env_edge_purple_bottom_right",
+      "category": "construction_tile",
+      "size": 1741
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
+      "name": "catwalk_section",
+      "category": "prop",
+      "size": 531
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_up.png",
+      "name": "env_prop_arrow_up",
+      "category": "prop",
+      "size": 171
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_prop_box_purple.png",
+      "name": "env_prop_box_purple",
+      "category": "prop",
+      "size": 728
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "name": "env_prop_arrow_box_up",
+      "category": "prop",
+      "size": 662
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_short.png",
+      "name": "env_waste_platform_short",
+      "category": "prop",
+      "size": 346
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
+      "name": "env_waste_platform_long",
+      "category": "prop",
+      "size": 377
     }
   ]
 }
