@@ -234,6 +234,28 @@
       ]
     },
     {
+      "id": "env_construction_ledge_a.png",
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_a.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
+      "id": "env_construction_ledge_b.png",
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_b.png",
+      "category": "construction_tile",
+      "width": 32,
+      "height": 32,
+      "tags": [
+        "purple_city",
+        "construction"
+      ]
+    },
+    {
       "id": "env_edge_purple_top.png",
       "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
       "category": "construction_tile",
@@ -360,17 +382,6 @@
       "category": "platform",
       "width": 45,
       "height": 14,
-      "tags": [
-        "purple_city",
-        "platforms"
-      ]
-    },
-    {
-      "id": "platform_long_b.png",
-      "path": "assets/tilesets/purple_city/platforms/platform_long_b.png",
-      "category": "platform",
-      "width": 49,
-      "height": 12,
       "tags": [
         "purple_city",
         "platforms"
