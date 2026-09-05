@@ -1473,11 +1473,11 @@
       "h": 68
     },
     {
-      "src": "assets/tilesets/purple_city/props/sign_arrow_up.png",
-      "x": 768,
-      "y": 2,
-      "w": 62,
-      "h": 94
+      "src": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "x": 781,
+      "y": 29,
+      "w": 36,
+      "h": 40
     },
     {
       "src": "assets/tilesets/purple_city/props/pipe_thin.png",
@@ -1515,11 +1515,11 @@
       "h": 26
     },
     {
-      "src": "assets/tilesets/purple_city/props/sign_arrow_up.png",
-      "x": 1568,
-      "y": 34,
-      "w": 62,
-      "h": 94
+      "src": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "x": 1581,
+      "y": 61,
+      "w": 36,
+      "h": 40
     },
     {
       "src": "assets/tilesets/purple_city/props/pipe_thin.png",
@@ -1578,11 +1578,11 @@
       "h": 26
     },
     {
-      "src": "assets/tilesets/purple_city/props/sign_arrow_up.png",
-      "x": 2592,
-      "y": 2,
-      "w": 62,
-      "h": 94
+      "src": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "x": 2605,
+      "y": 29,
+      "w": 36,
+      "h": 40
     },
     {
       "src": "assets/tilesets/purple_city/props/pipe_thin.png",
@@ -1613,11 +1613,11 @@
       "h": 86
     },
     {
-      "src": "assets/tilesets/purple_city/props/sign_arrow_up.png",
-      "x": 3104,
-      "y": 34,
-      "w": 62,
-      "h": 94
+      "src": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "x": 3117,
+      "y": 61,
+      "w": 36,
+      "h": 40
     },
     {
       "src": "assets/tilesets/purple_city/props/pipe_thin.png",
