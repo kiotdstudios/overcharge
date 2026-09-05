@@ -72,62 +72,12 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false) {
     ctx.fillRect(x, y, T, T);
   }
 
-  if (topOpen) {
-    // ── Rooftop tile ─────────────────────────────────────────────────────────
-    // Parapet band: slightly darker lip at the exposed top edge
-    ctx.fillStyle = '#12102a';
-    ctx.fillRect(x, y, T, 5);
-
-    // Neon glow surface line — the signature cyberpunk rooftop edge
-    ctx.save();
-    ctx.shadowBlur  = 14;
-    ctx.shadowColor = '#9933dd';
-    ctx.fillStyle   = '#cc55ff';
-    ctx.fillRect(x, y, T, 2);
-    ctx.restore();
-
-  } else {
-    // ── Facade tile — building window grid ───────────────────────────────────
-    // Each tile = one floor of the building. Two windows per floor.
-    //
-    // Layout within 32×32 tile:
-    //   y+0  to y+3  : ceiling band (part of floor above)
-    //   y+3  to y+25 : window zone (22 px tall)
-    //   y+25 to y+32 : floor slab (7 px — concrete divider between floors)
-    //
-    //   x+4  to x+13 : left window  (9 px wide)
-    //   x+18 to x+27 : right window (9 px wide)
-    //   gap between  : 5 px wall column
-
-    const hash    = tileHash(tx, ty);
-    const lit     = (hash % 10) > 3;           // ~60 % of windows lit
-    const dark2   = (hash % 10) === 0;          // ~10 % fully dark (off at night)
-
-    // Floor slab — dark concrete line at tile bottom
-    ctx.fillStyle = '#090c14';
-    ctx.fillRect(x, y + 25, T, 7);
-
-    if (lit && !dark2) {
-      const colorIdx = hash % WIN_COLORS.length;
-      const color    = WIN_COLORS[colorIdx];
-      // Slight per-tile brightness variation
-      const alpha    = 0.55 + (hash % 25) / 100;   // 0.55 – 0.80
-
-      ctx.save();
-      ctx.globalAlpha = alpha;
-      ctx.shadowBlur  = 5;
-      ctx.shadowColor = color;
-      ctx.fillStyle   = color;
-      ctx.fillRect(x + 4,  y + 3, 9, 22);   // left pane
-      ctx.fillRect(x + 18, y + 3, 9, 22);   // right pane
-      ctx.restore();
-    } else {
-      // Unlit / off window — very dark recess
-      ctx.fillStyle = '#05060d';
-      ctx.fillRect(x + 4,  y + 3, 9, 22);
-      ctx.fillRect(x + 18, y + 3, 9, 22);
-    }
-  }
+  // NOTE: The old procedural overlay (parapet band + neon line for rooftops,
+  // amber/teal/cyan window grid for facades) has been removed. Aki's real
+  // 16×16 pixel-art tile PNGs already contain the visual detail those overlays
+  // used to simulate. Let the tile art render as-is. If a rooftop neon accent
+  // is wanted later, expose it as a per-registry-value tile art variant, not
+  // as a runtime overpaint that hides Aki's work.
 }
 
 export function drawGlowRect(ctx, x, y, w, h, fill, shadow, blur = 14) {
