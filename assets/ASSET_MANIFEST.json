@@ -1165,8 +1165,8 @@
         "purple_city",
         "static"
       ],
-      "width": 64,
-      "height": 16,
+      "width": 44,
+      "height": 9,
       "generated": {
         "tool": "pixellab_pro",
         "job_id": "e0d333d0-7566-4dbb-b3dc-8c95836df584",
@@ -1948,32 +1948,6 @@
       }
     },
     {
-      "id": "env_prop_sign_arrow_up",
-      "category": "prop",
-      "path": "assets/tilesets/purple_city/props/sign_arrow_up.png",
-      "frame_width": 31,
-      "frame_height": 47,
-      "tags": [
-        "prop",
-        "sign",
-        "arrow",
-        "up",
-        "directional",
-        "purple_city"
-      ],
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "decorative",
-          "grounded"
-        ],
-        "surface": "ground_level",
-        "layer": "foreground",
-        "density": "sparse",
-        "stackable": false
-      }
-    },
-    {
       "id": "env_prop_tool_hammer",
       "category": "prop",
       "path": "assets/tilesets/purple_city/props/tool_hammer.png",
@@ -2276,6 +2250,74 @@
           "modular_construction"
         ],
         "notes": "Modular waste platform segment \u2014 place via construction system, not random generation."
+      }
+    },
+    {
+      "id": "env_prop_arrow_up",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_up.png",
+      "width": 6,
+      "height": 8,
+      "tags": [
+        "arrow",
+        "sign",
+        "prop",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative"
+        ],
+        "surface": "any",
+        "layer": "foreground",
+        "density": "sparse"
+      }
+    },
+    {
+      "id": "env_prop_box_purple",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/env_prop_box_purple.png",
+      "width": 18,
+      "height": 20,
+      "tags": [
+        "box",
+        "sign",
+        "purple",
+        "prop",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative"
+        ],
+        "surface": "any",
+        "layer": "foreground",
+        "density": "sparse"
+      }
+    },
+    {
+      "id": "env_prop_arrow_box_up",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "width": 18,
+      "height": 20,
+      "tags": [
+        "arrow",
+        "box",
+        "sign",
+        "prop",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative"
+        ],
+        "surface": "any",
+        "layer": "foreground",
+        "density": "sparse"
       }
     }
   ]
