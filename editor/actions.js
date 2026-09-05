@@ -147,3 +147,56 @@ function _applyReorder(arr, decs, op) {
   }
   return null;
 }
+
+// ── RotateDecorationsAction ──────────────────────────────────────────────
+// Rotate each selected decoration by `delta` degrees clockwise (default 90).
+// Rotation is stored on the decoration as .rotation (0/90/180/270). To keep
+// hit-testing simple, when a rotation transitions between horizontal (0/180)
+// and vertical (90/270) orientations we SWAP dec.w and dec.h so the stored
+// bbox always matches the visual bbox. Center is preserved. Renderer looks
+// at .rotation to rotate the sprite around the bbox center.
+//
+// Tiles/gameplay markers are not rotated by this action (they lack a
+// meaningful rotation semantic in the current schema).
+export function rotateDecorations(decs, delta = 90) {
+  if (!decs || decs.length === 0) return null;
+  const before = decs.map(d => ({
+    ref: d,
+    rotation: d.rotation || 0,
+    x: d.x, y: d.y, w: d.w, h: d.h,
+  }));
+  const after = before.map(p => {
+    const newRot = (((p.rotation + delta) % 360) + 360) % 360;
+    const wasHoriz = (p.rotation % 180) === 0;
+    const isHoriz  = (newRot   % 180) === 0;
+    let w = p.w, h = p.h, x = p.x, y = p.y;
+    if (wasHoriz !== isHoriz) {
+      const cx = p.x + p.w / 2;
+      const cy = p.y + p.h / 2;
+      w = p.h;
+      h = p.w;
+      x = Math.round(cx - w / 2);
+      y = Math.round(cy - h / 2);
+    }
+    return { ref: p.ref, rotation: newRot, x, y, w, h };
+  });
+  return {
+    type: 'rotate_decorations',
+    forward() {
+      for (const a of after) {
+        const d = a.ref;
+        d.rotation = a.rotation;
+        d.x = a.x; d.y = a.y; d.w = a.w; d.h = a.h;
+      }
+      notify();
+    },
+    inverse() {
+      for (const b of before) {
+        const d = b.ref;
+        d.rotation = b.rotation || 0;
+        d.x = b.x; d.y = b.y; d.w = b.w; d.h = b.h;
+      }
+      notify();
+    },
+  };
+}

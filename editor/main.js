@@ -46,6 +46,7 @@ const btnLayerFront    = document.getElementById('btn-layer-front');
 const btnLayerForward  = document.getElementById('btn-layer-forward');
 const btnLayerBackward = document.getElementById('btn-layer-backward');
 const btnLayerBack     = document.getElementById('btn-layer-back');
+const btnRotate        = document.getElementById('btn-rotate');
 
 // ── Inspector collapse ────────────────────────────────────────────────────
 // UI-only layout toggle. Selection/state is untouched — CSS just hides the
@@ -119,6 +120,17 @@ btnLayerFront   ?.addEventListener('click', () => _applyLayerOp('bring-to-front'
 btnLayerForward ?.addEventListener('click', () => _applyLayerOp('bring-forward'));
 btnLayerBackward?.addEventListener('click', () => _applyLayerOp('send-backward'));
 btnLayerBack    ?.addEventListener('click', () => _applyLayerOp('send-to-back'));
+
+// ── Rotate wiring ─────────────────────────────────────────────────────────
+// Rotates the currently-selected decorations by ±90°. Tiles and gameplay
+// markers are not rotated (no rotation semantic in the schema yet).
+function _applyRotate(delta) {
+  const decs = Selection.selectedDecorations();
+  if (decs.length === 0) return;
+  const a = Actions.rotateDecorations(decs, delta);
+  if (a) History.apply(a);
+}
+btnRotate?.addEventListener('click', () => _applyRotate(90));
 
 // ── Level workflow wiring ─────────────────────────────────────────────────
 btnUndo?.addEventListener('click', () => History.undo());
@@ -321,6 +333,8 @@ window.addEventListener('keydown', async (e) => {
   // Layer ordering shortcuts
   if (e.key === ']') { e.preventDefault(); _applyLayerOp(shift ? 'bring-to-front' : 'bring-forward'); }
   if (e.key === '[') { e.preventDefault(); _applyLayerOp(shift ? 'send-to-back'  : 'send-backward'); }
+  // Rotate — R = 90° CW, Shift+R = 90° CCW
+  if (e.key === 'r' || e.key === 'R') { e.preventDefault(); _applyRotate(shift ? -90 : 90); }
 });
 
 // beforeunload — warn on unsaved changes (Ctrl+R, tab close, etc.)

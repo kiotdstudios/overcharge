@@ -113,7 +113,23 @@ export function render(ctx, canvas) {
       if (p.x + dw < 0 || p.x > w || p.y + dh < 0 || p.y > h) continue;
       const img = getImage(d.src);
       if (img.complete && img.naturalWidth > 0) {
-        ctx.drawImage(img, p.x, p.y, dw, dh);
+        const rot = d.rotation || 0;
+        if (rot === 0) {
+          ctx.drawImage(img, p.x, p.y, dw, dh);
+        } else {
+          // Rotate around visual-bbox center. Source draw dims match the
+          // sprite's NATIVE orientation: at 90/270 that's (bbox.h, bbox.w).
+          const rad = rot * Math.PI / 180;
+          const isHoriz = (rot % 180) === 0;   // 0 or 180
+          const srcDW = (isHoriz ? d.w : d.h) * c.zoom;
+          const srcDH = (isHoriz ? d.h : d.w) * c.zoom;
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;   // preserve pixel-art crispness
+          ctx.translate(p.x + dw / 2, p.y + dh / 2);
+          ctx.rotate(rad);
+          ctx.drawImage(img, -srcDW / 2, -srcDH / 2, srcDW, srcDH);
+          ctx.restore();
+        }
       } else {
         ctx.strokeStyle = '#666';
         ctx.strokeRect(p.x, p.y, dw, dh);
