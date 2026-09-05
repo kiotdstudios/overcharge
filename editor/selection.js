@@ -157,6 +157,9 @@ export function isRefSelected(kind, ref) {
 export function selectDecoration(dec, additive = false)  { selectByKind('decoration', dec, additive); }
 export function toggleDecoration(dec)                    { toggleByKind('decoration', dec); }
 export function deselectDecoration(dec)                  { state.selection.decorations.delete(dec); notify(); }
+export function selectTile(col, row, additive = false)   { selectByKind('tile', col + ',' + row, additive); }
+export function deselectTile(col, row)                   { state.selection.tiles.delete(col + ',' + row); notify(); }
+export function toggleTile(col, row)                     { const k = col + ',' + row; state.selection.tiles.has(k) ? state.selection.tiles.delete(k) : state.selection.tiles.add(k); notify(); }
 // ── Hit-testing ──────────────────────────────────────────────────────────
 // TWO rects per object, deliberately distinct:
 //
