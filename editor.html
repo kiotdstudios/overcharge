@@ -134,7 +134,11 @@
 </div>
 
 <!-- Generator modal — hidden until btn-generate opens it. Native <dialog>. -->
-<dialog id="gen-dialog" style="background: #0f1420; color: #cdd; border: 1px solid #2a3448; padding: 18px 22px; font-family: monospace; min-width: 360px;">
+<dialog id="gen-dialog" style="background: #0f1420; color: #cdd; border: 1px solid #2a3448; padding: 18px 22px; font-family: monospace; min-width: 360px; position: relative;">
+  <!-- Close X in the top-right corner. Native <dialog>.close() also fires
+       on Esc key, but Chief wants an explicit visual close affordance. -->
+  <button id="gen-close" type="button" title="Close (Esc)" aria-label="Close"
+          style="position: absolute; top: 8px; right: 10px; background: transparent; border: none; color: #779; font-size: 18px; font-family: monospace; cursor: pointer; padding: 4px 8px; line-height: 1;">×</button>
   <h2 style="font-size: 14px; letter-spacing: 3px; color: #ffee00; margin-bottom: 14px;">🎲 GENERATE IDEA</h2>
   <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; align-items: center; font-size: 12px;">
     <label>STYLE</label>

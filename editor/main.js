@@ -132,6 +132,7 @@ const genEnemies    = document.getElementById('gen-enemies');
 const genSeedInput  = document.getElementById('gen-seed');
 const genSeedCopy   = document.getElementById('gen-seed-copy');
 const genCancel     = document.getElementById('gen-cancel');
+const genClose      = document.getElementById('gen-close');
 const genGo         = document.getElementById('gen-go');
 const genRegenerate = document.getElementById('gen-regenerate');
 const genStatus     = document.getElementById('gen-status');
@@ -181,6 +182,7 @@ btnGenerate?.addEventListener('click', () => {
   genDialog.showModal();
 });
 genCancel?.addEventListener('click', () => genDialog.close());
+genClose ?.addEventListener('click', () => genDialog.close());
 genGo?.addEventListener('click', async () => {
   await runGeneration(collectGenOpts());
 });
