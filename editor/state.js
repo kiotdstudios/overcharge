@@ -171,11 +171,32 @@ export function lcmSnap(values) {
 // Snap resolution to USE at placement time for a manifest asset. Terrain
 // categories always 32; anything else takes asset.snap or the decoration
 // default. Kept alongside the other helpers so callers only import one place.
+//
+// Per-category snap rules (default when the asset doesn't override with a
+// numeric asset.snap):
+//   • tile/terrain/tileset:              32 (tile grid)
+//   • platform, edge:                    16 (gameplay-adjacent: need tiling
+//                                            so pieces line up horizontally
+//                                            AND share the same row Y)
+//   • rooftop, structure, facade,
+//     building, container, wall:         16 (structural — sits on the
+//                                            half-tile grid so pieces align
+//                                            against terrain and each other)
+//   • sign, prop, background, other:      1 (ornamental — pixel freeform so
+//                                            Chief can micro-place)
+// Asset manifest can still override any of the above by setting asset.snap
+// to an integer — used first if present.
+const _SNAP_CATEGORY_16 = new Set([
+  'platform', 'edge', 'rooftop', 'structure', 'facade',
+  'building', 'container', 'wall',
+]);
 export function snapForAsset(asset) {
   if (!asset) return SNAP_DECORATION_DEFAULT;
+  if (typeof asset.snap === 'number') return asset.snap;
   const cat = asset.category;
   if (cat === 'tile' || cat === 'terrain' || cat === 'tileset') return SNAP_TERRAIN;
-  return (typeof asset.snap === 'number') ? asset.snap : SNAP_DECORATION_DEFAULT;
+  if (_SNAP_CATEGORY_16.has(cat)) return 16;
+  return SNAP_DECORATION_DEFAULT;
 }
 
 // Resolve the pixel dimensions a decoration should occupy when placed.
