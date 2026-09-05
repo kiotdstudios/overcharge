@@ -316,6 +316,40 @@ export function render(ctx, canvas) {
       ctx.restore();
     }
   }
+
+  // Magnetic snap indicator — bright green edge line, drawn while a snap
+  // is ACTIVE. Payload: { edgeAxis: 'x'|'y', edgeVal, y0/y1 for x-axis,
+  // x0/x1 for y-axis }. Cleared by tools when snap disengages.
+  if (state.snapIndicator) {
+    const si = state.snapIndicator;
+    ctx.save();
+    ctx.strokeStyle = '#00ff88';
+    ctx.shadowColor = '#00ff88';
+    ctx.shadowBlur  = 6;
+    ctx.lineWidth   = 2;
+    if (si.edgeAxis === 'x') {
+      const a = worldToScreen(si.edgeVal, si.y0);
+      const b = worldToScreen(si.edgeVal, si.y1);
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y - 4);
+      ctx.lineTo(b.x, b.y + 4);
+      ctx.stroke();
+      // tiny arrow caps
+      ctx.beginPath();
+      ctx.moveTo(a.x - 5, a.y - 4); ctx.lineTo(a.x + 5, a.y - 4);
+      ctx.moveTo(b.x - 5, b.y + 4); ctx.lineTo(b.x + 5, b.y + 4);
+      ctx.stroke();
+    } else if (si.edgeAxis === 'y') {
+      const a = worldToScreen(si.x0, si.edgeVal);
+      const b = worldToScreen(si.x1, si.edgeVal);
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(a.x - 4, a.y);
+      ctx.lineTo(b.x + 4, b.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
 }
 
 function _drawMarkers(ctx, arr, kind, glyph) {

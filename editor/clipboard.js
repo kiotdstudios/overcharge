@@ -16,6 +16,7 @@ import {
 } from './selection.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
+import { magneticPasteAnchor } from './tools.js';
 
 // Paste offset in tiles when no cursor is given. 1 tile down+right — enough
 // that the pasted content is immediately visible next to the original.
@@ -43,6 +44,9 @@ export function copy() {
       src: d.src, w: d.w, h: d.h,
       // Preserve per-item snap so pasted items retain their placement grid.
       snap: (typeof d.snap === 'number') ? d.snap : undefined,
+      // Preserve family tag so pasted modular pieces stay magnetically
+      // compatible with their peers.
+      family: d.family || null,
     })),
     // Tiles stored with column/row offsets AND the current value at that cell.
     tiles: tiles.map(t => {
@@ -127,10 +131,34 @@ export function paste(targetWorld = null) {
   if (clip.tiles && clip.tiles.length > 0) snaps.push(TILE_SIZE);
   const pasteSnap = lcmSnap(snaps);
 
-  const anchor = targetWorld
+  let anchor = targetWorld
     ? snapPoint(targetWorld.x, targetWorld.y, pasteSnap)
     : { x: clip.anchorWorld.x + PASTE_TILE_OFFSET * TILE_SIZE,
         y: clip.anchorWorld.y + PASTE_TILE_OFFSET * TILE_SIZE };
+
+  // ── Paste-anchor magnetic snap ─────────────────────────────────────
+  // If the clipboard contains any modular-family pieces, snap the paste
+  // anchor so the leftmost family piece abuts a sibling on the level.
+  // The whole clipboard shifts by the same (dx, dy) so relative spacing
+  // is preserved. Runs before decoration actions are built.
+  if (state.magneticSnap && clip.decorations.length > 0) {
+    const familyDecs = clip.decorations.filter(c => c.family);
+    if (familyDecs.length > 0) {
+      familyDecs.sort((a, b) => (a.offX - b.offX) || (a.offY - b.offY));
+      const leader = familyDecs[0];
+      const { pos: snappedAnchor, indicator } = magneticPasteAnchor(
+        anchor, leader.offX, leader.offY, leader.w, leader.h, leader.family);
+      if (snappedAnchor.x !== anchor.x || snappedAnchor.y !== anchor.y) {
+        anchor = snappedAnchor;
+      }
+      if (indicator) {
+        state.snapIndicator = indicator;
+        setTimeout(() => {
+          if (state.snapIndicator === indicator) state.snapIndicator = null;
+        }, 500);
+      }
+    }
+  }
 
   const actions = [];
   const newDecs = [];
@@ -145,6 +173,7 @@ export function paste(targetWorld = null) {
       w: c.w, h: c.h,
       snap: (typeof c.snap === 'number') ? c.snap : SNAP_DECORATION_DEFAULT,
     };
+    if (c.family) dec.family = c.family;
     const a = Actions.addDecoration(dec);
     if (a) { actions.push(a); newDecs.push(dec); }
   }

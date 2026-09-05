@@ -71,6 +71,7 @@ function snapToGrid(worldX, worldY) { return snapPoint(worldX, worldY, TILE_SIZE
 // Threshold is SCREEN-space pixels (10). Divided by camera.zoom so the
 // magnetic grab feels the same at any zoom level.
 const MAGNETIC_SCREEN_PX = 10;
+let _snapIndicatorClearTimer = null;    // one-shot placement flash timer
 function _folderFromSrc(src) {
   if (!src) return '';
   const parts = src.split('/');
@@ -81,59 +82,69 @@ function _folderFamilyMatch(decSrc, assetCat) {
   if (!f || !assetCat) return false;
   return f === assetCat || f === assetCat + 's';
 }
-// Returns {x,y}. exclude is an optional Set of decoration refs (used when
-// dragging so a decoration doesn't snap to itself).
+// Returns {pos, indicator}. exclude is an optional Set of decoration refs
+// (used when dragging so a decoration doesn't snap to itself).
+// indicator is null when no snap fired, or a payload describing the abut
+// edge and row for the renderer to draw.
 function _magneticEdgeSnap(pos, dims, asset, L, exclude) {
-  if (!state.magneticSnap) return pos;
-  if (!L || !Array.isArray(L.decorations) || L.decorations.length === 0) return pos;
-  if (!asset) return pos;
+  if (!state.magneticSnap) return { pos, indicator: null };
+  if (!L || !Array.isArray(L.decorations) || L.decorations.length === 0) return { pos, indicator: null };
+  if (!asset) return { pos, indicator: null };
   const zoom = (state.camera && state.camera.zoom) ? state.camera.zoom : 1;
   const threshold = MAGNETIC_SCREEN_PX / zoom;                // world-space
   const myL = pos.x, myR = pos.x + dims.w, myT = pos.y, myB = pos.y + dims.h;
 
   // TIER 1 — Modular family: strict edge-abut + Y-lock to sibling.
   if (asset.family) {
-    let bestDx = 0, bestDxAbs = threshold + 1, matchedSib = null;
+    let bestDx = 0, bestDxAbs = threshold + 1, matchedSib = null, matchedKind = null;
     for (const s of L.decorations) {
       if (!s || (exclude && exclude.has(s))) continue;
       if (s.family !== asset.family) continue;
       if (typeof s.x !== 'number' || typeof s.y !== 'number') continue;
       const sL = s.x, sR = s.x + (s.w || 0);
-      // Only edge-abut candidates (no column-align — modular is meant to tile).
       const candidates = [
-        { d: sR - myL, kind: 'right-of-sib' },
-        { d: sL - myR, kind: 'left-of-sib'  },
+        { d: sR - myL, kind: 'right-of-sib' },   // my.L = sib.R
+        { d: sL - myR, kind: 'left-of-sib'  },   // my.R = sib.L
       ];
       for (const c of candidates) {
         const a = Math.abs(c.d);
         if (a <= threshold && a < bestDxAbs) {
-          bestDx = c.d; bestDxAbs = a; matchedSib = s;
+          bestDx = c.d; bestDxAbs = a; matchedSib = s; matchedKind = c.kind;
         }
       }
     }
     if (matchedSib) {
-      // Edge abut fires → lock Y to sibling's Y for perfect row match.
-      return { x: pos.x + bestDx, y: matchedSib.y };
+      const newPos = { x: pos.x + bestDx, y: matchedSib.y };
+      // Indicator: vertical line at the abut edge, spanning both bboxes.
+      const edgeX = matchedKind === 'right-of-sib'
+        ? (matchedSib.x + matchedSib.w)     // sib right edge
+        : matchedSib.x;                      // sib left edge
+      const y0 = Math.min(newPos.y, matchedSib.y);
+      const y1 = Math.max(newPos.y + dims.h, matchedSib.y + (matchedSib.h || 0));
+      return { pos: newPos, indicator: { edgeAxis: 'x', edgeVal: edgeX, y0, y1 } };
     }
-    // No horizontal abut — fall back to row-align only (align to closest
-    // family sibling within Y threshold, so a piece dropped roughly on-row
-    // still snaps).
-    let bestDy = 0, bestDyAbs = threshold + 1;
+    // Y-only row-align fallback.
+    let bestDy = 0, bestDyAbs = threshold + 1, rowSib = null;
     for (const s of L.decorations) {
       if (!s || (exclude && exclude.has(s))) continue;
       if (s.family !== asset.family) continue;
       if (typeof s.y !== 'number') continue;
       const dy = s.y - pos.y;
       const a = Math.abs(dy);
-      if (a <= threshold && a < bestDyAbs) { bestDy = dy; bestDyAbs = a; }
+      if (a <= threshold && a < bestDyAbs) { bestDy = dy; bestDyAbs = a; rowSib = s; }
     }
-    if (bestDy !== 0) return { x: pos.x, y: pos.y + bestDy };
-    return pos;
+    if (rowSib) {
+      const newPos = { x: pos.x, y: pos.y + bestDy };
+      const x0 = Math.min(newPos.x, rowSib.x);
+      const x1 = Math.max(newPos.x + dims.w, rowSib.x + (rowSib.w || 0));
+      return { pos: newPos, indicator: { edgeAxis: 'y', edgeVal: rowSib.y, x0, x1 } };
+    }
+    return { pos, indicator: null };
   }
 
   // TIER 2 — Folder-fallback: per-axis independent (previous behavior).
   const cat = String(asset.category || '').toLowerCase();
-  if (!cat) return pos;
+  if (!cat) return { pos, indicator: null };
   let bestDx = 0, bestDxAbs = threshold + 1;
   let bestDy = 0, bestDyAbs = threshold + 1;
   for (const s of L.decorations) {
@@ -152,34 +163,50 @@ function _magneticEdgeSnap(pos, dims, asset, L, exclude) {
       if (a <= threshold && a < bestDyAbs) { bestDy = d; bestDyAbs = a; }
     }
   }
-  if (bestDx === 0 && bestDy === 0) return pos;
-  return { x: pos.x + bestDx, y: pos.y + bestDy };
+  if (bestDx === 0 && bestDy === 0) return { pos, indicator: null };
+  return { pos: { x: pos.x + bestDx, y: pos.y + bestDy }, indicator: null };
 }
 
 // ── Drag magnetic helper ────────────────────────────────────────────────
-// After the normal snapDelta update has moved decorations to their
-// candidate positions, look through the dragged set for exactly ONE
-// family-tagged decoration. If found, apply magnetic snap to it
-// (excluding itself from candidate siblings). Sole-piece rule keeps
-// group drags predictable — multi-piece drags stay on the LCM delta.
-// Returns the (possibly-adjusted) primary ref, or null.
+// Applies modular-family magnetic snap during drag. Handles both single-
+// piece and multi-piece drags:
+//   • SINGLE family piece: snap that piece against sibling row.
+//   • MULTI-PIECE drag: pick the "leader" (leftmost family piece in the
+//     group) and compute the magnetic offset it would need against
+//     siblings OUTSIDE the group. Apply that (dx, dy) to EVERY piece in
+//     the group so relative spacing is preserved and the whole assembled
+//     row locks onto the target row.
+//   • No family piece in group: no-op (LCM behavior preserved).
+// Excludes group members from candidate siblings so the group never snaps
+// to itself.
+// Also publishes state.snapIndicator when a snap fires (or clears it).
 function _applyDragMagnetic(origPositions) {
-  if (!origPositions) return null;
+  if (!origPositions) { state.snapIndicator = null; return null; }
   const L = state.level;
-  if (!L) return null;
-  const familyRefs = [];
-  for (const ref of origPositions.keys()) {
-    if (ref && ref.family) familyRefs.push(ref);
+  if (!L) { state.snapIndicator = null; return null; }
+  const groupRefs = [...origPositions.keys()];
+  const familyRefs = groupRefs.filter(r => r && r.family);
+  if (familyRefs.length === 0) { state.snapIndicator = null; return null; }
+  // Leader = leftmost family piece (deterministic tie-break by top).
+  familyRefs.sort((a, b) => (a.x - b.x) || (a.y - b.y));
+  const leader = familyRefs[0];
+  const exclude = new Set(groupRefs);   // don't snap to any group member
+  const pseudo = { family: leader.family, category: '' };
+  const dims = { w: leader.w || 0, h: leader.h || 0 };
+  const before = { x: leader.x, y: leader.y };
+  const { pos: snapped, indicator } = _magneticEdgeSnap(before, dims, pseudo, L, exclude);
+  const dx = snapped.x - before.x;
+  const dy = snapped.y - before.y;
+  if (dx === 0 && dy === 0) { state.snapIndicator = null; return leader; }
+  // Shift EVERY group member by the same delta so relative spacing is kept.
+  for (const ref of groupRefs) {
+    if (ref && typeof ref.x === 'number' && typeof ref.y === 'number') {
+      ref.x += dx;
+      ref.y += dy;
+    }
   }
-  if (familyRefs.length !== 1) return null;
-  const ref = familyRefs[0];
-  // Build a pseudo-asset for the snap function.
-  const pseudo = { family: ref.family, category: '' };
-  const dims = { w: ref.w || 0, h: ref.h || 0 };
-  const snapped = _magneticEdgeSnap({ x: ref.x, y: ref.y }, dims, pseudo, L, new Set([ref]));
-  ref.x = snapped.x;
-  ref.y = snapped.y;
-  return ref;
+  state.snapIndicator = indicator;
+  return leader;
 }
 // ── POINTER TOOL ────────────────────────────────────────────────────────
 // Default everyday editing tool. Simpler than Select — no marquee, no shift-
@@ -287,6 +314,7 @@ export const pointerTool = {
         History.record(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'move'));
       }
       state.dragMove = null;
+      state.snapIndicator = null;   // clear magnetic overlay on drag end
     }
     this._mode = null;
     this._origPositions = null;
@@ -435,6 +463,7 @@ export const selectTool = {
       }
       if (actions.length > 0) History.record(History.makeComposite(actions, 'move'));
       state.dragMove = null;
+      state.snapIndicator = null;   // clear magnetic overlay on drag end
     }
     this._mode = null;
     this._origPositions = null;
@@ -568,7 +597,21 @@ export function placeAssetAt(asset, worldX, worldY) {
   // If enabled, nudge pos so we abut / align with same-family sibling
   // decorations within ±12px on each axis. Runs BEFORE guards so guards
   // evaluate the FINAL landing position, not the pre-magnetic one.
-  pos = _magneticEdgeSnap(pos, dims, asset, L);
+  {
+    const r = _magneticEdgeSnap(pos, dims, asset, L);
+    pos = r.pos;
+    // Placement flashes the indicator briefly instead of holding it — a
+    // click is a one-shot, not a live drag. Renderer's snapIndicator path
+    // handles both. Cleared after 500ms so it doesn't linger forever.
+    if (r.indicator) {
+      state.snapIndicator = r.indicator;
+      if (_snapIndicatorClearTimer) clearTimeout(_snapIndicatorClearTimer);
+      _snapIndicatorClearTimer = setTimeout(() => {
+        state.snapIndicator = null;
+        notify();
+      }, 500);
+    }
+  }
 
   const guardsOn = state.guardsOn !== false;   // default ON
 
@@ -654,6 +697,30 @@ export function placeAssetAt(asset, worldX, worldY) {
 //   move past 4px threshold  → dragging=true, cursor: grabbing
 //   mouseup over canvas      → placeAssetAt at cursor (or gameplay marker)
 //   mouseup elsewhere        → no-op (asset stays selected)
+
+// ── Paste-anchor magnetic snap ──────────────────────────────────────────
+// clipboard.paste uses this to nudge the paste anchor so modular-family
+// pieces land flush against their siblings. `leader` is the pasted piece
+// that will end up leftmost after the paste; `excludeSrcs` is a set of
+// decoration src strings the paste will replace/create (so paste doesn't
+// snap to its own soon-to-exist clones). Uses the same threshold + rules
+// as placeAssetAt. Returns { pos, indicator }.
+export function magneticPasteAnchor(anchor, leaderOffX, leaderOffY, leaderW, leaderH, leaderFamily) {
+  const L = state.level;
+  if (!L || !leaderFamily) return { pos: anchor, indicator: null };
+  const pseudo = { family: leaderFamily, category: '' };
+  const dims = { w: leaderW, h: leaderH };
+  const leaderPos = { x: anchor.x + leaderOffX, y: anchor.y + leaderOffY };
+  const { pos: snappedLeader, indicator } = _magneticEdgeSnap(leaderPos, dims, pseudo, L, null);
+  const dx = snappedLeader.x - leaderPos.x;
+  const dy = snappedLeader.y - leaderPos.y;
+  if (dx === 0 && dy === 0) return { pos: anchor, indicator: null };
+  return { pos: { x: anchor.x + dx, y: anchor.y + dy }, indicator };
+}
+
+// Test-only: expose _applyDragMagnetic so the drag path can be exercised
+// without spinning up DOM. Not part of the public UI contract.
+export const __test = { applyDragMagnetic: _applyDragMagnetic };
 export function startAssetDrag(asset, initialEvt) {
   if (!asset) { console.info('[drag] no asset'); return; }
   const DRAG_THRESHOLD_PX = 4;

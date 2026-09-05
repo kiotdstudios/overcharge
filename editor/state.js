@@ -434,6 +434,17 @@ export function flashPlacementReject(worldX, worldY, msg = 'blocked') {
   notify();
 }
 
+// Snap indicator overlay — set every time magnetic edge snap FIRES, cleared
+// when the snap goes away. Renderer picks up state.snapIndicator and draws
+// a bright green edge-line at the abut edge plus row-align tick marks.
+//   { edgeAxis: 'x'|'y', edgeVal, y0, y1, x0, x1 }  in world coords
+// Cleared by tools whenever no snap is active (drag ends OR mouse moves
+// out of magnetic range). Not time-based — reflects the CURRENT snap.
+export function setSnapIndicator(payload) {
+  state.snapIndicator = payload || null;
+  notify();
+}
+
 // Camera helpers
 export function panCamera(dxScreen, dyScreen) {
   state.camera.x -= dxScreen / state.camera.zoom;
