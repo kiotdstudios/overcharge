@@ -1286,6 +1286,297 @@
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object \u2014 linked to generator/switches by ID"
       }
+    },
+    {
+      "id": "rooftop_edge_left",
+      "category": "edge",
+      "path": "assets/tilesets/purple_city/edges/rooftop_edge_left.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "rooftop",
+        "edge",
+        "structural",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "dense",
+        "stackable": false
+      }
+    },
+    {
+      "id": "rooftop_edge_mid",
+      "category": "edge",
+      "path": "assets/tilesets/purple_city/edges/rooftop_edge_mid.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "rooftop",
+        "edge",
+        "structural",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "rooftop_edge_right",
+      "category": "edge",
+      "path": "assets/tilesets/purple_city/edges/rooftop_edge_right.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "rooftop",
+        "edge",
+        "structural",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "dense",
+        "stackable": false
+      }
+    },
+    {
+      "id": "facade_panel_window",
+      "category": "facade",
+      "path": "assets/tilesets/purple_city/facades/facade_panel_window.png",
+      "frame_width": 32,
+      "frame_height": 64,
+      "tags": [
+        "facade",
+        "wall",
+        "decorative",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "wall_face",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "facade_panel_solid",
+      "category": "facade",
+      "path": "assets/tilesets/purple_city/facades/facade_panel_solid.png",
+      "frame_width": 32,
+      "frame_height": 64,
+      "tags": [
+        "facade",
+        "wall",
+        "structural",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "wall_face",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "stairwell_housing",
+      "category": "structure",
+      "path": "assets/tilesets/purple_city/structures/stairwell_housing.png",
+      "frame_width": 64,
+      "frame_height": 64,
+      "tags": [
+        "rooftop",
+        "structure",
+        "access",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "large"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "gate_electric_open",
+      "category": "electrical",
+      "path": "assets/objects/gate_electric_open.png",
+      "frame_width": 64,
+      "frame_height": 128,
+      "tags": [
+        "gate",
+        "electrical",
+        "open",
+        "deactivated"
+      ],
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical; linked to generator + switches by ID; open/closed state is scripted"
+      }
+    },
+    {
+      "id": "sign_neon_a",
+      "category": "sign",
+      "path": "assets/tilesets/purple_city/signs/sign_neon_a.png",
+      "frame_width": 64,
+      "frame_height": 16,
+      "tags": [
+        "sign",
+        "neon",
+        "rooftop",
+        "decorative",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "sign_neon_b",
+      "category": "sign",
+      "path": "assets/tilesets/purple_city/signs/sign_neon_b.png",
+      "frame_width": 48,
+      "frame_height": 16,
+      "tags": [
+        "sign",
+        "neon",
+        "rooftop",
+        "decorative",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "sign_neon_c",
+      "category": "sign",
+      "path": "assets/tilesets/purple_city/signs/sign_neon_c.png",
+      "frame_width": 16,
+      "frame_height": 48,
+      "tags": [
+        "sign",
+        "neon",
+        "rooftop",
+        "decorative",
+        "purple_city",
+        "vertical"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "bg_building_tall",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/bg_building_tall.png",
+      "frame_width": 48,
+      "frame_height": 96,
+      "tags": [
+        "background",
+        "building",
+        "skyline",
+        "tall",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "bg_building_wide",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/bg_building_wide.png",
+      "frame_width": 96,
+      "frame_height": 64,
+      "tags": [
+        "background",
+        "building",
+        "skyline",
+        "wide",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
     }
   ]
 }
