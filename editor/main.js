@@ -13,6 +13,7 @@ import * as History from './history.js';
 import * as Clipboard from './clipboard.js';
 import * as Selection from './selection.js';
 import * as Persistence from './persistence.js';
+import * as Generator   from './generator.js';
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -97,6 +98,74 @@ btnUndo?.addEventListener('click', () => History.undo());
 btnRedo?.addEventListener('click', () => History.redo());
 btnNew?.addEventListener('click', async () => { await Persistence.newLevel(); });
 btnDuplicate?.addEventListener('click', async () => { await Persistence.duplicateLevel(); });
+
+// ── Generator modal wiring ────────────────────────────────────────────────
+const genDialog     = document.getElementById('gen-dialog');
+const btnGenerate   = document.getElementById('btn-generate');
+const genStyle      = document.getElementById('gen-style');
+const genLength     = document.getElementById('gen-length');
+const genComplexity = document.getElementById('gen-complexity');
+const genProps      = document.getElementById('gen-props');
+const genElectrical = document.getElementById('gen-electrical');
+const genCheckpoint = document.getElementById('gen-checkpoint');
+const genEnemies    = document.getElementById('gen-enemies');
+const genSeedInput  = document.getElementById('gen-seed');
+const genSeedCopy   = document.getElementById('gen-seed-copy');
+const genCancel     = document.getElementById('gen-cancel');
+const genGo         = document.getElementById('gen-go');
+const genRegenerate = document.getElementById('gen-regenerate');
+const genStatus     = document.getElementById('gen-status');
+
+function collectGenOpts() {
+  const seedStr = (genSeedInput?.value || '').trim();
+  const seedNum = seedStr ? parseInt(seedStr, 10) : null;
+  return {
+    style:      genStyle?.value      || 'Balanced',
+    length:     genLength?.value     || 'Medium',
+    complexity: genComplexity?.value || 'Moderate',
+    props:      !!genProps?.checked,
+    electrical: !!genElectrical?.checked,
+    checkpoint: !!genCheckpoint?.checked,
+    enemies:    !!genEnemies?.checked,
+    seed:       (Number.isFinite(seedNum) && seedNum > 0) ? seedNum : null,
+  };
+}
+async function runGeneration(opts) {
+  try {
+    const result = Generator.generateLevel(opts);
+    const ok = await Persistence.loadInMemoryLevel(result.level, {
+      confirmMessage: 'Discard unsaved changes and load a generated level?',
+    });
+    if (ok) {
+      // Reflect seed back into the input so Chief can copy or regenerate deterministically.
+      if (genSeedInput) genSeedInput.value = String(result.seed);
+      genStatus.textContent = `✓ ${result.name} · seed ${result.seed} · ${result.retries} internal retries`;
+    }
+  } catch (err) {
+    console.error('[generator]', err);
+    genStatus.textContent = `✗ ${err.message}`;
+  }
+}
+btnGenerate?.addEventListener('click', () => {
+  if (!genDialog) return;
+  if (genStatus) genStatus.textContent = '';
+  genDialog.showModal();
+});
+genCancel?.addEventListener('click', () => genDialog.close());
+genGo?.addEventListener('click', async () => {
+  await runGeneration(collectGenOpts());
+});
+genRegenerate?.addEventListener('click', async () => {
+  // Regenerate = ignore any manually entered seed, use fresh random seed.
+  if (genSeedInput) genSeedInput.value = '';
+  await runGeneration(collectGenOpts());
+});
+genSeedCopy?.addEventListener('click', async () => {
+  const v = genSeedInput?.value || '';
+  if (!v) return;
+  try { await navigator.clipboard.writeText(v); genStatus.textContent = `Copied seed ${v}`; }
+  catch { genStatus.textContent = `Seed: ${v} (clipboard unavailable)`; }
+});
 btnSave?.addEventListener('click', async () => {
   const r = await Persistence.saveCurrentLevel();
   showSaveFlash(r);

@@ -85,6 +85,7 @@
     <select id="level-select" title="Switch level (warns on unsaved changes)"></select>
     <button id="btn-new"       title="New empty level">NEW</button>
     <button id="btn-duplicate" title="Duplicate current level">DUPLICATE</button>
+    <button id="btn-generate" title="Generate a random level idea">🎲 GENERATE</button>
     <button id="btn-save" class="primary" title="Save current level (Ctrl+S)">💾 SAVE</button>
     <span id="save-flash"></span>
     <div class="divider"></div>
@@ -127,6 +128,45 @@
     </div>
   </div>
 </div>
+
+<!-- Generator modal — hidden until btn-generate opens it. Native <dialog>. -->
+<dialog id="gen-dialog" style="background: #0f1420; color: #cdd; border: 1px solid #2a3448; padding: 18px 22px; font-family: monospace; min-width: 360px;">
+  <h2 style="font-size: 14px; letter-spacing: 3px; color: #ffee00; margin-bottom: 14px;">🎲 GENERATE IDEA</h2>
+  <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px 12px; align-items: center; font-size: 12px;">
+    <label>STYLE</label>
+    <select id="gen-style">
+      <option>Balanced</option><option>Rooftops</option><option>Vertical</option>
+      <option>Dense City</option><option>Sparse / Open</option>
+    </select>
+    <label>LENGTH</label>
+    <select id="gen-length">
+      <option>Short</option><option selected>Medium</option><option>Long</option>
+    </select>
+    <label>COMPLEXITY</label>
+    <select id="gen-complexity">
+      <option>Simple</option><option selected>Moderate</option><option>Complex</option>
+    </select>
+    <label>OPTIONS</label>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <label style="font-size: 11px;"><input type="checkbox" id="gen-props" checked> Props</label>
+      <label style="font-size: 11px;"><input type="checkbox" id="gen-electrical" checked> Electrical Objects</label>
+      <label style="font-size: 11px;"><input type="checkbox" id="gen-checkpoint"> Checkpoint</label>
+      <label style="font-size: 11px;"><input type="checkbox" id="gen-enemies" disabled> Enemies (not yet)</label>
+    </div>
+    <label>SEED</label>
+    <div style="display: flex; gap: 4px; align-items: center;">
+      <input type="text" id="gen-seed" placeholder="random" style="flex: 1; background: #1a2030; color: #cdd; border: 1px solid #2a3448; padding: 4px; font-family: monospace; font-size: 11px;" />
+      <button id="gen-seed-copy" type="button" title="Copy seed" style="padding: 4px 8px;">COPY</button>
+    </div>
+  </div>
+  <div style="display: flex; gap: 8px; margin-top: 18px; justify-content: flex-end;">
+    <button id="gen-cancel" type="button">CANCEL</button>
+    <button id="gen-regenerate" type="button" title="New layout, same settings">🎲 REGENERATE</button>
+    <button id="gen-go" type="button" class="primary" style="background: #223250; border: 1px solid #44ccff; color: #cceeff; padding: 4px 12px;">GENERATE</button>
+  </div>
+  <div id="gen-status" style="margin-top: 10px; font-size: 10px; color: #779;"></div>
+</dialog>
+
 <script type="module" src="editor/main.js"></script>
 </body>
 </html>

@@ -164,6 +164,18 @@ export async function switchToLevel(path) {
   return true;
 }
 
+// ── Load a level object directly (used by the generator) ────────────────
+// Non-destructive: prompts to discard unsaved changes first. On accept,
+// swaps in the given level as if it were a NEW/DUPLICATE. Chief can then
+// SAVE AS or regenerate.
+export async function loadInMemoryLevel(levelObj, opts = {}) {
+  const label = opts.confirmMessage || 'Discard unsaved changes and load this level?';
+  if (!await _confirmDiscardIfDirty(label)) return false;
+  const key = opts.syntheticKey || `generated:${levelObj?.number ?? Date.now()}`;
+  _loadInMemory(levelObj, key);
+  return true;
+}
+
 // ── Helpers ──────────────────────────────────────────────────────────────
 
 function _canonicalEmptyLevel(name, number) {
