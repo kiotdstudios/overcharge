@@ -47,6 +47,8 @@ export function copy() {
       // Preserve family tag so pasted modular pieces stay magnetically
       // compatible with their peers.
       family: d.family || null,
+      // Preserve rotation so pasted pieces retain their orientation.
+      rotation: d.rotation || 0,
     })),
     // Tiles stored with column/row offsets AND the current value at that cell.
     tiles: tiles.map(t => {
@@ -174,6 +176,7 @@ export function paste(targetWorld = null) {
       snap: (typeof c.snap === 'number') ? c.snap : SNAP_DECORATION_DEFAULT,
     };
     if (c.family) dec.family = c.family;
+    if (c.rotation) dec.rotation = c.rotation;
     const a = Actions.addDecoration(dec);
     if (a) { actions.push(a); newDecs.push(dec); }
   }

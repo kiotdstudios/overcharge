@@ -32,7 +32,9 @@ export class Level {
     this.decorations = (def.decorations || []).map(d => {
       const img = new Image();
       img.src = d.src;
-      return { img, x: d.x, y: d.y, w: d.w, h: d.h };
+      // Preserve rotation ({0,90,180,270} deg) so TEST mode renders
+      // decorations exactly as authored in the editor.
+      return { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0 };
     });
 
     this.playerStart = def.playerStart || { x: 48, y: 354 };
@@ -109,8 +111,22 @@ export class Level {
   draw(ctx, t) {
     // 1. Background decorations (buildings, props) — behind everything
     for (const dec of this.decorations) {
-      if (dec.img.complete && dec.img.naturalWidth > 0) {
+      if (!(dec.img.complete && dec.img.naturalWidth > 0)) continue;
+      const rot = dec.rotation || 0;
+      if (rot === 0) {
         ctx.drawImage(dec.img, dec.x, dec.y, dec.w, dec.h);
+      } else {
+        // Rotation swaps the visual bbox — source draw dims are h,w when
+        // rotation is 90/270 (matches editor rotate action's bbox swap).
+        const isHoriz = (rot % 180) === 0;
+        const srcW = isHoriz ? dec.w : dec.h;
+        const srcH = isHoriz ? dec.h : dec.w;
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        ctx.translate(dec.x + dec.w / 2, dec.y + dec.h / 2);
+        ctx.rotate(rot * Math.PI / 180);
+        ctx.drawImage(dec.img, -srcW / 2, -srcH / 2, srcW, srcH);
+        ctx.restore();
       }
     }
 
