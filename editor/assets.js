@@ -103,8 +103,9 @@ function _populateThumbs() {
     // we track pointerdown here and let tools.startAssetDrag manage the rest.
     cell.addEventListener('pointerdown', (e) => {
       if (e.button !== 0) return;
-      setSelectedAsset(it);          // click semantics preserved even if user doesn't drag
-      startAssetDrag(it, e);
+      e.preventDefault();              // stop scroll/text-select/native drag
+      setSelectedAsset(it);            // click semantics preserved
+      startAssetDrag(it, e, cell);     // cell captures pointer for reliable move/up
     });
 
     // Preview thumb. If asset is an animation with {dir}/{n} placeholders,

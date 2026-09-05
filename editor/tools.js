@@ -343,6 +343,32 @@ export function placeAssetAt(asset, worldX, worldY) {
   const pos  = snapPoint(worldX, worldY, snap);
   const img  = getCachedImage(asset.path);
   const dims = decoDimensions(asset, img);
+
+  // ── Floating-placement guard ─────────────────────────────────────────
+  // Reject decorations that would float in mid-air. Requires a solid tile
+  // within N tiles below the decoration's bottom, spanning any col in its
+  // x-range. N=3 tolerance so slightly-high clicks still register (they
+  // won't auto-snap yet — Chief just gets a rejection console note).
+  const L = state.level;
+  if (L) {
+    const MAX_FALL_TILES = 3;
+    const rows = Math.floor(L.tiles.length / L.cols);
+    const bottomRow = Math.floor((pos.y + dims.h) / TILE_SIZE);
+    const startCol  = Math.max(0, Math.floor(pos.x / TILE_SIZE));
+    const endCol    = Math.min(L.cols - 1, Math.floor((pos.x + Math.max(1, dims.w) - 1) / TILE_SIZE));
+    let hasGround = false;
+    for (let r = bottomRow; r <= Math.min(bottomRow + MAX_FALL_TILES, rows - 1) && !hasGround; r++) {
+      if (r < 0) continue;
+      for (let c = startCol; c <= endCol; c++) {
+        if (L.tiles[r * L.cols + c] === 1) { hasGround = true; break; }
+      }
+    }
+    if (!hasGround) {
+      console.info('[editor] floating placement rejected — need solid tile below', asset.id, pos);
+      return false;
+    }
+  }
+
   const dec = {
     src:  asset.path,
     x:    pos.x,
@@ -368,15 +394,26 @@ export function placeAssetAt(asset, worldX, worldY) {
 //   move past 4px threshold     → enter drag mode, cursor: grabbing
 //   pointerup over canvas       → placeAssetAt at cursor
 //   pointerup elsewhere         → do nothing (asset stays selected via click)
-export function startAssetDrag(asset, initialEvt) {
+export function startAssetDrag(asset, initialEvt, sourceEl) {
   if (!asset || asset.isAnimation) return;
+  if (!sourceEl) sourceEl = initialEvt.currentTarget || initialEvt.target;
+  if (!sourceEl) return;
+
   const DRAG_THRESHOLD_PX = 4;
   const startClientX = initialEvt.clientX;
   const startClientY = initialEvt.clientY;
+  const pointerId    = initialEvt.pointerId;
   let dragging = false;
-  const prevCursor = document.body.style.cursor;
+  const prevBodyCursor = document.body.style.cursor;
+
+  // setPointerCapture routes ALL subsequent pointermove/pointerup for this
+  // pointerId to `sourceEl`, regardless of which element the cursor is over.
+  // This prevents scroll gestures, text selection, and native image drag
+  // from stealing the pointer mid-drag. Firefox in particular needs this.
+  try { sourceEl.setPointerCapture(pointerId); } catch {}
 
   const onMove = (e) => {
+    if (e.pointerId !== pointerId) return;
     if (!dragging) {
       const dx = e.clientX - startClientX;
       const dy = e.clientY - startClientY;
@@ -386,22 +423,23 @@ export function startAssetDrag(asset, initialEvt) {
     }
   };
   const cleanup = () => {
-    document.removeEventListener('pointermove', onMove);
-    document.removeEventListener('pointerup',   onUp);
-    document.removeEventListener('pointercancel', onUp);
-    document.body.style.cursor = prevCursor;
+    sourceEl.removeEventListener('pointermove',   onMove);
+    sourceEl.removeEventListener('pointerup',     onUp);
+    sourceEl.removeEventListener('pointercancel', onUp);
+    document.body.style.cursor = prevBodyCursor;
+    try { sourceEl.releasePointerCapture(pointerId); } catch {}
   };
   const onUp = (e) => {
+    if (e.pointerId !== pointerId) return;
     const wasDragging = dragging;
     cleanup();
-    if (!wasDragging) return;                                // click, not drag
+    if (!wasDragging) return;                                 // click, not drag
     const canvas = document.getElementById('editor-canvas');
     if (!canvas) return;
     const r = canvas.getBoundingClientRect();
     const inCanvas = e.clientX >= r.left && e.clientX < r.right
                   && e.clientY >= r.top  && e.clientY < r.bottom;
-    if (!inCanvas) return;                                   // released outside canvas
-    // Convert to world coords using SAME CSS→backing scaling as click coord.
+    if (!inCanvas) return;                                    // released outside canvas
     const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
     const scaleY = r.height > 0 ? canvas.height / r.height : 1;
     const sx = (e.clientX - r.left) * scaleX;
@@ -409,9 +447,10 @@ export function startAssetDrag(asset, initialEvt) {
     const w  = screenToWorld(sx, sy);
     placeAssetAt(asset, w.x, w.y);
   };
-  document.addEventListener('pointermove',   onMove);
-  document.addEventListener('pointerup',     onUp);
-  document.addEventListener('pointercancel', onUp);
+  // Listen on the captured element so the browser routes events reliably.
+  sourceEl.addEventListener('pointermove',   onMove);
+  sourceEl.addEventListener('pointerup',     onUp);
+  sourceEl.addEventListener('pointercancel', onUp);
 }
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
 // Behavior:

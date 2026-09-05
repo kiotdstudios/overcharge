@@ -41,7 +41,10 @@
   .ab-category { width: 100%; background: #1a2030; color: #cdd; border: 1px solid #2a3448; padding: 4px; font-size: 12px; margin-bottom: 6px; font-family: monospace; }
   .ab-status { font-size: 10px; color: #557; padding: 4px 0; }
   .ab-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; }
-  .ab-cell { background: #131826; border: 1px solid #1c2436; padding: 4px; cursor: grab; text-align: center; overflow: hidden; }
+  /* touch-action:none + user-select:none prevent browsers from stealing the
+     pointer for scroll/text-select/native-image-drag when Chief starts a
+     drag from a thumbnail. Without these, Firefox in particular hijacks. */
+  .ab-cell { background: #131826; border: 1px solid #1c2436; padding: 4px; cursor: grab; text-align: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; }
   .ab-cell:active { cursor: grabbing; }
   .ab-cell:hover { border-color: #ffee00; }
   .ab-cell.selected { border-color: #ffee00; background: #1a1f0a; }
