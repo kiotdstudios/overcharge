@@ -89,44 +89,78 @@ export function generateName(rng) {
 }
 
 // ── Manifest asset classification (Path Z inference layer) ───────────────
-// Aki will later add explicit generationRole and tags to manifest entries.
-// Until then, we infer from category. Once the manifest carries the fields,
-// the explicit values silently win via ?? fallback.
+// Reads Aki's contract from a.generation:
+//   eligible: bool          — false = skip entirely
+//   roles:    string[]      — [decorative, structural, rooftop, small, walkable,
+//                              grounded, large, background]
+//   surface:  string        — [rooftop, ground_level, wall_face, floating,
+//                              background, grid]
+//   layer:    string        — [foreground, midground, background]
+//   density:  string        — [anchor, dense, medium, sparse]
+//   stackable: bool
+// Falls back to category inference for legacy entries lacking generation.
 export function classifyAssets(manifest) {
   const out = { building: [], wall: [], platform: [], prop: [], electrical: [] };
   if (!manifest || !Array.isArray(manifest.items)) return out;
   for (const a of manifest.items) {
-    if (!a || !a.category || a.isAnimation) continue;
-    const role = a.generationRole ?? _inferRole(a);
-    // 'skip' is a first-class role meaning "not a placeable decoration":
-    // tileset reference atlases, painted terrain tiles, backgrounds, sprites,
-    // and giant assets that would swamp the level. They never enter any pool.
-    if (role === 'skip') continue;
-    if (out[role]) out[role].push(a);
+    if (!a) continue;
+    // Skip animated sprites — they're never scattered as decoration.
+    // Gameplay electrical items pass through even if animated (generator anim).
+    const g = a.generation || null;
+
+    // (1) Explicit Aki gate: eligible=false means DO NOT USE.
+    if (g && g.eligible === false) continue;
+
+    // (2) Never-scatter categories regardless of eligible flag.
+    if (a.category === 'tileset' || a.category === 'tile' ||
+        a.category === 'terrain' || a.category === 'background' ||
+        a.category === 'player'  || a.category === 'sprite') continue;
+    if (a.category === 'enemy') continue;   // enemies come from a different pass
+
+    // (3) Route by Aki metadata first, category second.
+    const pool = _poolFor(a, g);
+    if (pool && out[pool]) out[pool].push(a);
   }
   return out;
 }
-function _inferRole(a) {
-  const c = a.category || '';
-  const p = a.path || '';
-  // Explicit skip list — assets that must NEVER be scattered as decorations:
-  //   'tileset'    — the raw purple_city atlas reference sheet (800x800)
-  //   'tile'       — painted terrain tiles, used by paint tool not deco
-  //   'background' — parallax background, drawn separately
-  //   'player','enemy' — sprite animation categories
-  if (c === 'tileset' || c === 'tile' || c === 'terrain' ||
-      c === 'background' || c === 'player' || c === 'enemy' ||
-      /purplecity_full|\/tiles\//.test(p)) return 'skip';
-  // Defensive size cap — anything larger than 200px on either axis is almost
-  // certainly a sheet, background, or oversized art unfit for scatter.
-  if ((a.width && a.width > 200) || (a.height && a.height > 200)) return 'skip';
 
-  if (c === 'building' || /\/buildings\//.test(p)) return 'building';
-  if (c === 'wall'     || /\/walls\//.test(p))     return 'wall';
-  if (c === 'platform' || /\/platforms\//.test(p)) return 'platform';
-  if (c === 'electrical' || /generator|switch|source|gate/i.test(a.id || '')) return 'electrical';
-  if (c === 'prop' || c === 'container' || /\/props\//.test(p) || /\/containers\//.test(p)) return 'prop';
-  return 'skip';   // safer catch-all — unknown category, don't scatter
+// Return the target pool name (or null to skip). Consults Aki's generation
+// contract if present, else falls back to category inference.
+function _poolFor(a, g) {
+  const roles = (g && Array.isArray(g.roles)) ? g.roles : [];
+  const surface = g && g.surface;
+  const cat = a.category || '';
+  const p = a.path || '';
+
+  // Puzzle-critical: electrical is ALWAYS routed to the electrical pass,
+  // never scattered as decoration — regardless of any decorative role tags.
+  if (cat === 'electrical' || /generator|switch|source|gate/i.test(a.id || '')) {
+    return 'electrical';
+  }
+
+  // Walls stay their own pool (used for wall category).
+  if (cat === 'wall' || /\/walls\//.test(p)) return 'wall';
+
+  // Aki-role driven routing.
+  if (roles.includes('structural') && roles.includes('grounded'))  return 'building';
+  if (roles.includes('structural') && roles.includes('large'))     return 'building';
+  if (roles.includes('walkable'))                                  return 'platform';
+
+  // Aki rooftop props: any decorative with surface=rooftop OR
+  // roles containing 'rooftop' feeds Stage 4 prop-dressing. This is where
+  // Batch 1 rooftop_ac_unit, rooftop_vent_unit, antenna_tall, etc. land.
+  if (surface === 'rooftop' || roles.includes('rooftop')) return 'prop';
+
+  // Legacy category inference (Batch 0 entries without generation metadata).
+  if (cat === 'building' || /\/buildings\//.test(p)) return 'building';
+  if (cat === 'platform' || /\/platforms\//.test(p)) return 'platform';
+  if (cat === 'prop' || cat === 'container' || cat === 'rooftop' ||
+      /\/props\//.test(p) || /\/containers\//.test(p) || /\/rooftop\//.test(p)) return 'prop';
+
+  // Defensive size cap — anything oversized is almost certainly a sheet.
+  if ((a.width && a.width > 200) || (a.height && a.height > 200)) return null;
+
+  return null;   // unknown → skip
 }
 
 // ── Public API ───────────────────────────────────────────────────────────

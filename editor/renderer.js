@@ -98,10 +98,10 @@ export function render(ctx, canvas) {
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
       if (v === 1 && readyImgs.length > 0) {
         // Per-cell hashed pick from the tile-art pool for visual variety
-        // (matches game runtime). Source rect (1,1,16,16) crops the PixelLab
-        // 1px transparent margin so tiles render flush at any zoom.
+        // (matches game runtime). Tiles are true 16×16 as of Aki Batch 1,
+        // so we blit the full source at (0,0,16,16) — no margin crop.
         const idx = tileHash(col, r) % readyImgs.length;
-        ctx.drawImage(readyImgs[idx], 1, 1, 16, 16, p.x, p.y, tsz, tsz);
+        ctx.drawImage(readyImgs[idx], 0, 0, 16, 16, p.x, p.y, tsz, tsz);
       } else {
         ctx.fillStyle = v === 1 ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
         ctx.fillRect(p.x, p.y, tsz, tsz);
