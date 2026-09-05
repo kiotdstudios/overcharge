@@ -94,3 +94,56 @@ export function moveObject(obj, dx, dy) {
 
 // Legacy alias. Deprecated — use moveObject.
 export function moveDecoration(dec, dx, dy) { return moveObject(dec, dx, dy); }
+
+// ── ReorderDecorationsAction ─────────────────────────────────────────────
+// Move a set of decorations to new positions in L.decorations. Renderer
+// iterates decorations in array order → later index draws on top.
+//   'bring-forward'  → each selected shifts +1 index
+//   'send-backward'  → each selected shifts −1 index
+//   'bring-to-front' → all selected move to array end
+//   'send-to-back'   → all selected move to array start
+// Records the full prior array so undo is O(1) and always exact.
+export function reorderDecorations(decs, op) {
+  const L = state.level;
+  if (!L || !Array.isArray(L.decorations) || !decs || decs.length === 0) return null;
+  const arr = L.decorations;
+  const prior = arr.slice();
+  const next  = _applyReorder(arr, decs, op);
+  if (!next) return null;
+  let same = next.length === prior.length;
+  if (same) for (let i = 0; i < next.length; i++) if (next[i] !== prior[i]) { same = false; break; }
+  if (same) return null;    // no-op — already at edge
+  return {
+    type: 'reorder_decorations',
+    forward() { L.decorations.length = 0; for (const d of next)  L.decorations.push(d); notify(); },
+    inverse() { L.decorations.length = 0; for (const d of prior) L.decorations.push(d); notify(); },
+  };
+}
+
+function _applyReorder(arr, decs, op) {
+  const selected = new Set(decs);
+  const selectedInOrder = arr.filter(d => selected.has(d));
+  const unselected      = arr.filter(d => !selected.has(d));
+  if (op === 'bring-to-front') return [...unselected, ...selectedInOrder];
+  if (op === 'send-to-back')   return [...selectedInOrder, ...unselected];
+  if (op === 'bring-forward') {
+    // End → start pass, swap each selected with the unselected sibling above.
+    const out = arr.slice();
+    for (let i = out.length - 2; i >= 0; i--) {
+      if (selected.has(out[i]) && !selected.has(out[i + 1])) {
+        [out[i], out[i + 1]] = [out[i + 1], out[i]];
+      }
+    }
+    return out;
+  }
+  if (op === 'send-backward') {
+    const out = arr.slice();
+    for (let i = 1; i < out.length; i++) {
+      if (selected.has(out[i]) && !selected.has(out[i - 1])) {
+        [out[i], out[i - 1]] = [out[i - 1], out[i]];
+      }
+    }
+    return out;
+  }
+  return null;
+}

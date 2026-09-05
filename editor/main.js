@@ -4,6 +4,7 @@ import {
   state, subscribe,
   loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
+  setGuardsOn, setSnapOverride,
 } from './state.js';
 import { render } from './renderer.js';
 import { mountAssetBrowser } from './assets.js';
@@ -11,8 +12,8 @@ import { TOOLS, middleMousePan, wheelZoom } from './tools.js';
 import * as History from './history.js';
 import * as Clipboard from './clipboard.js';
 import * as Selection from './selection.js';
-import * as Persistence from './persistence.js';
 import * as Generator   from './generator.js';
+import * as Actions     from './actions.js';
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -38,6 +39,12 @@ const saveFlash    = document.getElementById('save-flash');
 const editorRoot     = document.getElementById('editor-root');
 const btnInspHide    = document.getElementById('btn-inspector-hide');
 const inspShowTab    = document.getElementById('inspector-show-tab');
+const guardsToggle   = document.getElementById('guards-toggle');
+const snapSelect     = document.getElementById('snap-select');
+const btnLayerFront    = document.getElementById('btn-layer-front');
+const btnLayerForward  = document.getElementById('btn-layer-forward');
+const btnLayerBackward = document.getElementById('btn-layer-backward');
+const btnLayerBack     = document.getElementById('btn-layer-back');
 
 // ── Inspector collapse ────────────────────────────────────────────────────
 // UI-only layout toggle. Selection/state is untouched — CSS just hides the
@@ -92,6 +99,25 @@ zoomInBtn ?.addEventListener('click', () => zoomCamera(1.25, canvas.width/2, can
 zoomOutBtn?.addEventListener('click', () => zoomCamera(1/1.25, canvas.width/2, canvas.height/2));
 zoomResetBtn?.addEventListener('click', () => resetZoom());
 gridToggle?.addEventListener('change', () => setShowGrid(gridToggle.checked));
+guardsToggle?.addEventListener('change', () => setGuardsOn(guardsToggle.checked));
+snapSelect?.addEventListener('change', (e) => {
+  const v = e.target.value;
+  setSnapOverride(v === 'auto' ? 'auto' : Number(v));
+});
+
+// ── Layer ordering wiring ─────────────────────────────────────────────────
+// Operates on the current decoration selection. Bring/Send are undoable via
+// Actions.reorderDecorations. No-ops silently when nothing selected.
+function _applyLayerOp(op) {
+  const decs = Selection.selectedDecorations();
+  if (decs.length === 0) return;
+  const a = Actions.reorderDecorations(decs, op);
+  if (a) History.apply(a);
+}
+btnLayerFront   ?.addEventListener('click', () => _applyLayerOp('bring-to-front'));
+btnLayerForward ?.addEventListener('click', () => _applyLayerOp('bring-forward'));
+btnLayerBackward?.addEventListener('click', () => _applyLayerOp('send-backward'));
+btnLayerBack    ?.addEventListener('click', () => _applyLayerOp('send-to-back'));
 
 // ── Level workflow wiring ─────────────────────────────────────────────────
 btnUndo?.addEventListener('click', () => History.undo());
@@ -200,13 +226,22 @@ genSeedCopy?.addEventListener('click', async () => {
 btnSave?.addEventListener('click', async () => {
   const r = await Persistence.saveCurrentLevel();
   showSaveFlash(r);
+  // Refresh dropdown so a newly-created custom filename appears immediately.
+  if (r.ok) {
+    try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
+  }
 });
 levelSelect?.addEventListener('change', async (e) => {
-  const path = e.target.value;
-  // Snapshot for revert-on-cancel
-  const priorPath = state.levelPath;
-  const ok = await Persistence.switchToLevel(path);
-  if (!ok && priorPath) e.target.value = priorPath;
+  // Value is an index into state.availableLevels; the array is (re)populated
+  // by refreshLevelSelect from Persistence.discoverLevels().
+  const idx = Number(e.target.value);
+  const list = state.availableLevels || [];
+  const entry = list[idx];
+  const priorValue = levelSelect._priorValue || '';
+  if (!entry) return;
+  const ok = await Persistence.switchToLevel(entry);
+  if (!ok) e.target.value = priorValue;
+  else levelSelect._priorValue = e.target.value;
 });
 
 function showSaveFlash(result) {
@@ -250,6 +285,9 @@ window.addEventListener('keydown', async (e) => {
       e.preventDefault();
       const r = await Persistence.saveCurrentLevel();
       showSaveFlash(r);
+      if (r.ok) {
+        try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
+      }
       return;
     }
     if (e.key === 'a' || e.key === 'A') {
@@ -275,9 +313,13 @@ window.addEventListener('keydown', async (e) => {
   if (e.key === '3') setTool('place');
   if (e.key === '4') setTool('erase');
   if (e.key === '5') setTool('pan');
+  if (e.key === '6') setTool('rect');
   if (e.key === 'g' || e.key === 'G') { gridToggle.checked = !state.showGrid; setShowGrid(gridToggle.checked); }
   if (e.key === '0') resetZoom();
   if (e.key === 'i' || e.key === 'I') { e.preventDefault(); toggleInspector(); }
+  // Layer ordering shortcuts
+  if (e.key === ']') { e.preventDefault(); _applyLayerOp(shift ? 'bring-to-front' : 'bring-forward'); }
+  if (e.key === '[') { e.preventDefault(); _applyLayerOp(shift ? 'send-to-back'  : 'send-backward'); }
 });
 
 // beforeunload — warn on unsaved changes (Ctrl+R, tab close, etc.)
@@ -315,13 +357,13 @@ function refreshLevelSelect() {
   const list = state.availableLevels || [];
   const isInMemory = state.level && !state.levelPath;
 
-  // Rebuild options only when the set of paths changes (avoid focus loss)
-  const currentOptions = Array.from(levelSelect.options).map(o => o.value).join('|');
-  const desiredValues = [];
-  if (isInMemory) desiredValues.push('__inmemory__');
-  for (const l of list) desiredValues.push(l.path);
-  const desiredSig = desiredValues.join('|');
-  if (currentOptions !== desiredSig) {
+  // Rebuild options only when the set of entries changes (avoid focus loss).
+  // Option `value` is the entry's index in availableLevels — kept simple
+  // because entries can be directory-handle-backed with no stable string key.
+  const desiredSig = (isInMemory ? '__inmemory__|' : '')
+                   + list.map(l => (l.source || 'x') + ':' + (l.filename || l.path || '')).join('|');
+  const currentSig = levelSelect._sig || '';
+  if (currentSig !== desiredSig) {
     levelSelect.innerHTML = '';
     if (isInMemory) {
       const o = document.createElement('option');
@@ -329,15 +371,26 @@ function refreshLevelSelect() {
       o.textContent = `(unsaved) ${state.level.name || 'new level'}`;
       levelSelect.appendChild(o);
     }
-    for (const l of list) {
+    list.forEach((l, i) => {
       const o = document.createElement('option');
-      o.value = l.path;
-      o.textContent = `${l.number ?? '?'} — ${l.name}`;
+      o.value = String(i);
+      const src = l.source === 'dir' ? '📂' : '📦';
+      o.textContent = `${src} ${l.number ?? '?'} — ${l.name}`;
       levelSelect.appendChild(o);
-    }
+    });
+    levelSelect._sig = desiredSig;
   }
-  // Sync selected value
-  levelSelect.value = isInMemory ? '__inmemory__' : (state.levelPath || '');
+  // Sync selected value based on current levelPath / in-memory flag.
+  if (isInMemory) {
+    levelSelect.value = '__inmemory__';
+  } else {
+    const path = state.levelPath || '';
+    const idx = list.findIndex(l =>
+      (l.source === 'dir' && ('dir:' + l.filename) === path) ||
+      (l.source === 'bundled' && l.path === path));
+    levelSelect.value = idx >= 0 ? String(idx) : '';
+    levelSelect._priorValue = levelSelect.value;
+  }
 }
 
 function refreshLevelInfo() {

@@ -90,22 +90,88 @@ export function saveFolderName() {
 }
 
 // ── Level discovery (dropdown population) ────────────────────────────────
-// Probes level1.json → level10.json. Stops at the first 404. Returns an array
-// of { path, name, number } sorted by number. Safe to call at boot.
+// Two paths:
+//   • Chief has picked a save folder (Chrome, cached directory handle) →
+//     enumerate every *.json in that folder. This makes custom-named saves
+//     like 847291_WIRED_SPIRE.json show up in the dropdown.
+//   • No directory handle (fresh session, Firefox, Safari) → fall back to
+//     probing levelN.json in src_scroll/levels/ so bundled levels always
+//     appear even before Chief picks a folder.
+// Each entry: { source, name, number, path?, handle? }.
 export async function discoverLevels() {
   const found = [];
-  for (let i = 1; i <= 20; i++) {   // upper bound 20 — Chief will never author more than that in one session
+
+  // Tier 1: enumerate the chosen save folder.
+  if (_saveDirHandle && typeof _saveDirHandle.values === 'function') {
+    try {
+      const q = await _saveDirHandle.queryPermission?.({ mode: 'read' });
+      if (q === 'granted' || q === undefined) {
+        for await (const entry of _saveDirHandle.values()) {
+          if (entry.kind !== 'file' || !/\.json$/i.test(entry.name)) continue;
+          try {
+            const file = await entry.getFile();
+            const text = await file.text();
+            const data = JSON.parse(text);
+            found.push({
+              source:  'dir',
+              handle:  entry,
+              name:    data.name || entry.name.replace(/\.json$/i, ''),
+              number:  data.number ?? 999,
+              filename: entry.name,
+            });
+          } catch { /* malformed JSON — skip silently */ }
+        }
+      }
+    } catch { /* handle revoked — fall through to bundled probe */ }
+  }
+
+  // Tier 2: bundled level probe. Only used to append levels not already
+  // discovered from the save folder (so Chief's local edits win).
+  const seen = new Set(found.map(f => (f.name || '') + '|' + (f.number || '')));
+  for (let i = 1; i <= 20; i++) {
     const path = `src_scroll/levels/level${i}.json`;
     try {
       const res = await fetch(path, { cache: 'no-store' });
-      if (!res.ok) break;   // first 404 stops the walk
+      if (!res.ok) break;
       const data = await res.json();
-      found.push({ path, name: data.name || `Level ${i}`, number: data.number ?? i });
-    } catch {
-      break;
-    }
+      const key = (data.name || `Level ${i}`) + '|' + (data.number ?? i);
+      if (seen.has(key)) continue;
+      found.push({
+        source: 'bundled',
+        path,
+        name:   data.name || `Level ${i}`,
+        number: data.number ?? i,
+      });
+    } catch { break; }
   }
+
+  found.sort((a, b) => (a.number || 0) - (b.number || 0));
   return found;
+}
+
+// Load a level entry produced by discoverLevels(). Returns the loaded level
+// object or null on failure. Handles both directory-handle-backed entries
+// and legacy bundled-path entries.
+export async function loadLevelEntry(entry) {
+  if (!entry) return null;
+  try {
+    let data;
+    if (entry.source === 'dir' && entry.handle) {
+      const file = await entry.handle.getFile();
+      data = JSON.parse(await file.text());
+      state.levelPath = 'dir:' + entry.filename;    // sentinel — save uses dir handle
+    } else if (entry.path) {
+      const res = await fetch(entry.path, { cache: 'no-store' });
+      if (!res.ok) return null;
+      data = await res.json();
+      state.levelPath = entry.path;
+    } else return null;
+    state.level = data;
+    state.camera.x = 0; state.camera.y = 0;
+    state.dirty = false;
+    notify();
+    return data;
+  } catch (err) { console.error('[persistence] loadLevelEntry failed:', err); return null; }
 }
 
 // ── Save ─────────────────────────────────────────────────────────────────
@@ -235,10 +301,17 @@ export async function duplicateLevel() {
 }
 
 // ── Switch to a discovered level (dropdown change) ───────────────────────
-export async function switchToLevel(path) {
-  if (state.levelPath === path) return true;
+// Accepts either an entry object from discoverLevels() OR a legacy string
+// path (bundled fetch). If Chief has an unsaved-dirty state, prompts first.
+export async function switchToLevel(entryOrPath) {
+  const entry = (typeof entryOrPath === 'string')
+    ? { source: 'bundled', path: entryOrPath }
+    : entryOrPath;
+  const key = entry.source === 'dir' ? ('dir:' + entry.filename) : entry.path;
+  if (state.levelPath === key) return true;
   if (!await _confirmDiscardIfDirty('Discard unsaved changes and switch level?')) return false;
-  await loadLevel(path);
+  const data = await loadLevelEntry(entry);
+  if (!data) return false;
   History.clearAll();
   Selection.clearSelection();
   state.dirty = false;

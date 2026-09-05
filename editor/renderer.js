@@ -237,6 +237,28 @@ export function render(ctx, canvas) {
     ctx.strokeRect(p.x + 0.5, p.y + 0.5, pw - 1, ph - 1);
     ctx.setLineDash([]);
   }
+
+  // Rectangle paint preview (during Rect tool drag).
+  if (state.paintRect && state.paintRect.active) {
+    const r = state.paintRect;
+    const cLo = Math.min(r.startCol, r.endCol);
+    const rLo = Math.min(r.startRow, r.endRow);
+    const cHi = Math.max(r.startCol, r.endCol);
+    const rHi = Math.max(r.startRow, r.endRow);
+    const p = worldToScreen(cLo * TILE_SIZE, rLo * TILE_SIZE);
+    const pw = (cHi - cLo + 1) * TILE_SIZE * c.zoom;
+    const ph = (rHi - rLo + 1) * TILE_SIZE * c.zoom;
+    ctx.fillStyle = 'rgba(102,255,150,0.20)';
+    ctx.fillRect(p.x, p.y, pw, ph);
+    ctx.strokeStyle = '#66ff96';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(p.x + 0.5, p.y + 0.5, pw - 1, ph - 1);
+    // Cell count badge
+    const count = (cHi - cLo + 1) * (rHi - rLo + 1);
+    ctx.fillStyle = '#66ff96';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText(`${cHi - cLo + 1}×${rHi - rLo + 1} = ${count}`, p.x + 4, p.y - 4);
+  }
 }
 
 function _drawMarkers(ctx, arr, kind, glyph) {

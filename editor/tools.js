@@ -15,7 +15,7 @@ import {
   screenToWorld, worldToTile, TILE_SIZE,
   panCamera, zoomCamera, state, notify,
   snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
-  SNAP_DECORATION_DEFAULT,
+  SNAP_DECORATION_DEFAULT, effectiveSnap,
   decoDimensions, getCachedImage,
   tileValueForAssetId, tileIsSolid,
 } from './state.js';
@@ -137,7 +137,7 @@ export const pointerTool = {
     // whichever kind was hit (decoration.snap, or 16 for gameplay markers).
     const dxRaw = w.x - this._startWorld.x;
     const dyRaw = w.y - this._startWorld.y;
-    const s = this._snap ?? SNAP_DECORATION_DEFAULT;
+    const s = effectiveSnap(this._snap ?? SNAP_DECORATION_DEFAULT);
     const { dx, dy } = snapDelta(dxRaw, dyRaw, s);
     for (const [ref, orig] of this._origPositions.entries()) {
       ref.x = orig.x + dx;
@@ -263,7 +263,7 @@ export const selectTool = {
       // ref. 32 is a multiple of 16 so mixed groups still land on valid grids.
       const dxRaw = w.x - this._startWorld.x;
       const dyRaw = w.y - this._startWorld.y;
-      const { dx, dy } = snapDelta(dxRaw, dyRaw, this._groupSnap ?? SNAP_DECORATION_DEFAULT);
+      const { dx, dy } = snapDelta(dxRaw, dyRaw, effectiveSnap(this._groupSnap ?? SNAP_DECORATION_DEFAULT));
       for (const [ref, orig] of this._origPositions.entries()) {
         ref.x = orig.x + dx;
         ref.y = orig.y + dy;
@@ -421,19 +421,20 @@ export function placeAssetAt(asset, worldX, worldY) {
   // and cannot overlap another wall in the same cell. This makes brick walls
   // stackable into structures like normal terrain tiles.
   const isWall = asset.category === 'wall';
-  const snap   = isWall ? TILE_SIZE : snapForAsset(asset);
-  const pos    = snapPoint(worldX, worldY, snap);
-  const img    = getCachedImage(asset.path);
+  const autoSnap = isWall ? TILE_SIZE : snapForAsset(asset);
+  const snap     = effectiveSnap(autoSnap);            // Chief override wins
+  const pos      = snapPoint(worldX, worldY, snap);
+  const img      = getCachedImage(asset.path);
   const nativeDims = decoDimensions(asset, img);
   const dims   = isWall ? { w: TILE_SIZE, h: TILE_SIZE } : nativeDims;
 
   const L = state.level;
+  const guardsOn = state.guardsOn !== false;   // default ON
 
   // ── Wall overlap guard ───────────────────────────────────────────────
   // Reject placing a wall on top of another wall in the same 32×32 cell.
-  // Detected by path pattern (we don't currently store category on the
-  // decoration itself); good enough for the walls/ folder in purple_city.
-  if (isWall && L && Array.isArray(L.decorations)) {
+  // Skipped entirely when Chief has toggled guards OFF.
+  if (guardsOn && isWall && L && Array.isArray(L.decorations)) {
     const cellCol = Math.floor(pos.x / TILE_SIZE);
     const cellRow = Math.floor(pos.y / TILE_SIZE);
     const clash = L.decorations.some(d => {
@@ -449,11 +450,8 @@ export function placeAssetAt(asset, worldX, worldY) {
   }
 
   // ── Floating-placement guard ─────────────────────────────────────────
-  // Reject decorations that would float in mid-air. Requires a solid tile
-  // within N tiles below the decoration's bottom (or below the cell for
-  // walls, which are effectively terrain). Walls placed as part of a stack
-  // count each other as ground, so consult existing wall decorations too.
-  if (L) {
+  // Reject decorations floating in mid-air. Skipped when guards are OFF.
+  if (guardsOn && L) {
     const MAX_FALL_TILES = isWall ? 1 : 3;
     const rows = Math.floor(L.tiles.length / L.cols);
     const bottomRow = Math.floor((pos.y + dims.h) / TILE_SIZE);
@@ -606,7 +604,18 @@ export const placeTool = {
     const key = col + ',' + row;
     if (this._paintedThisDrag.has(key)) return;
     this._paintedThisDrag.add(key);
-    const a = Actions.setTile(col, row, state.selectedTile);
+    // Compute the correct tile value from the currently selected asset. When
+    // a specific tile art is selected (env_tile_purple_a etc.) we look it up
+    // in the permanent registry so the painted cell stores exactly that
+    // variant. Empty selection or non-terrain selection falls back to
+    // state.selectedTile (currently 1) which renders as art[0].
+    const asset = state.selectedAsset;
+    let val = state.selectedTile;
+    if (asset && isTerrainCategory(asset.category)) {
+      const registered = tileValueForAssetId(asset.id);
+      if (registered >= 0) val = registered;
+    }
+    const a = Actions.setTile(col, row, val);
     if (a) { a.forward(); this._dragActions.push(a); }   // apply live, batch record
   },
 };
@@ -673,6 +682,91 @@ export const eraseTool = {
   },
 };
 
+// ── RECTANGLE TOOL ───────────────────────────────────────────────────────
+// Drag a rectangle → fill every cell in the rectangle with the currently-
+// selected terrain variant. One release = one composite action, one Undo.
+// Live preview drawn by renderer.js reading state.paintRect while dragging.
+//
+// Behavior:
+//   • Selected asset must be a terrain-category tile (env_tile_*). Otherwise
+//     the tool no-ops on mousedown (guards Chief against accidentally
+//     rectangle-placing decoration assets which don't make sense here).
+//   • Empty selection = paints legacy value 1 (art[0] default).
+//   • Only cells that CHANGE value are recorded, so a rect over
+//     already-matching cells is a no-op undo entry.
+export const rectTool = {
+  name:   'rect',
+  cursor: 'crosshair',
+  _startCell: null,   // {col, row}
+  _endCell:   null,
+
+  onMouseDown(evt, canvas) {
+    if (evt.button !== 0) return;
+    // Only accept terrain OR empty selection. Non-terrain selection: no-op.
+    const asset = state.selectedAsset;
+    if (asset && !isTerrainCategory(asset.category)) return;
+    const t = tileUnderMouse(evt, canvas);
+    this._startCell = { col: t.col, row: t.row };
+    this._endCell   = { col: t.col, row: t.row };
+    // Publish preview for renderer.
+    state.paintRect = {
+      active: true,
+      startCol: t.col, startRow: t.row,
+      endCol:   t.col, endRow:   t.row,
+    };
+    notify();
+  },
+
+  onMouseMove(evt, canvas) {
+    if (!this._startCell) return;
+    const t = tileUnderMouse(evt, canvas);
+    if (this._endCell.col === t.col && this._endCell.row === t.row) return;
+    this._endCell = { col: t.col, row: t.row };
+    state.paintRect.endCol = t.col;
+    state.paintRect.endRow = t.row;
+    notify();
+  },
+
+  onMouseUp(_evt, _canvas) {
+    if (!this._startCell || !this._endCell) return;
+    const L = state.level;
+    if (!L) { this._reset(); return; }
+    // Resolve the tile value from the selected asset (same rule as _paintCell).
+    const asset = state.selectedAsset;
+    let val = 1;
+    if (asset && isTerrainCategory(asset.category)) {
+      const registered = tileValueForAssetId(asset.id);
+      if (registered >= 0) val = registered;
+    } else if (typeof state.selectedTile === 'number') {
+      val = state.selectedTile;
+    }
+    // Rectangle bounds inclusive, clipped to level grid.
+    const rows = Math.floor(L.tiles.length / L.cols);
+    const c0 = Math.max(0, Math.min(L.cols - 1, Math.min(this._startCell.col, this._endCell.col)));
+    const c1 = Math.max(0, Math.min(L.cols - 1, Math.max(this._startCell.col, this._endCell.col)));
+    const r0 = Math.max(0, Math.min(rows   - 1, Math.min(this._startCell.row, this._endCell.row)));
+    const r1 = Math.max(0, Math.min(rows   - 1, Math.max(this._startCell.row, this._endCell.row)));
+    const actions = [];
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        const a = Actions.setTile(c, r, val);
+        if (a) { a.forward(); actions.push(a); }
+      }
+    }
+    if (actions.length > 0) {
+      History.record(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'rect-paint'));
+    }
+    this._reset();
+  },
+
+  _reset() {
+    this._startCell = null;
+    this._endCell   = null;
+    state.paintRect = null;
+    notify();
+  },
+};
+
 // ── PAN TOOL ─────────────────────────────────────────────────────────────
 export const panTool = {
   name:   'pan',
@@ -703,6 +797,7 @@ export const TOOLS = {
   pointer: pointerTool,
   select:  selectTool,
   place:   placeTool,
+  rect:    rectTool,
   erase:   eraseTool,
   pan:     panTool,
 };

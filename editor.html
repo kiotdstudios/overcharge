@@ -106,8 +106,16 @@
     <button data-tool="pointer" title="Pointer — click to select, drag to move (1)">🖱 Pointer</button>
     <button data-tool="select"  title="Select — marquee + shift-additive multi-select (2)">▤ Select</button>
     <button data-tool="place"   title="Place tile / asset (3)">▮ Place</button>
+    <button data-tool="rect"    title="Rectangle — drag to fill a terrain block (6)">▬ Rect</button>
     <button data-tool="erase"   title="Erase tile / asset (4)">▢ Erase</button>
     <button data-tool="pan"     title="Pan camera (5)">✋ Pan</button>
+    <div class="divider"></div>
+
+    <!-- Layer ordering (visible only when a decoration is selected) ─── -->
+    <button id="btn-layer-front" title="Bring to Front (Shift+])">⤒ Front</button>
+    <button id="btn-layer-forward" title="Bring Forward (])">↑ Forward</button>
+    <button id="btn-layer-backward" title="Send Backward ([)">↓ Backward</button>
+    <button id="btn-layer-back" title="Send to Back (Shift+[)">⤓ Back</button>
     <div class="divider"></div>
 
     <button id="zoom-out"   title="Zoom out (-)">−</button>
@@ -116,6 +124,18 @@
     <div class="divider"></div>
 
     <label><input type="checkbox" id="grid-toggle" checked> grid (G)</label>
+    <label title="Authoring guards — reject floating/overlap placements">
+      <input type="checkbox" id="guards-toggle" checked> guards
+    </label>
+    <label title="Snap override for placement + drag. AUTO uses per-item defaults.">
+      snap
+      <select id="snap-select" style="min-width: 70px;">
+        <option value="auto">AUTO</option>
+        <option value="32">32</option>
+        <option value="16">16</option>
+        <option value="1">1</option>
+      </select>
+    </label>
     <div id="level-info">loading...</div>
   </div>
   <div id="asset-browser"></div>

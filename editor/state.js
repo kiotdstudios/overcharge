@@ -236,6 +236,13 @@ export const state = {
 
   // UI toggles
   showGrid: true,
+  guardsOn: true,       // when false, disables authoring-time placement guards
+                        // (floating placement, wall-overlap, decoration-in-air)
+                        // — runtime collision is unaffected. Toolbar checkbox.
+  snapOverride: 'auto', // 'auto' | 1 | 16 | 32. Chief-controlled override for
+                        // placement snap and drag delta. 'auto' preserves the
+                        // per-ref default behavior (terrain=32, gameplay=16,
+                        // decoration=1 or asset-defined).
 
   // ── Level workflow / persistence ─────────────────────────────────────
   dirty:           false,   // true when unsaved changes exist since load/save
@@ -331,6 +338,22 @@ export function setSelectedTile(n)      { state.selectedTile = n; notify(); }
 export function setFilterCategory(c)    { state.filter.category = c; notify(); }
 export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
+export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
+export function setSnapOverride(v) {
+  // Accept 'auto' | 1 | 16 | 32. Anything else falls back to 'auto'.
+  if (v === 'auto' || v === 1 || v === 16 || v === 32) state.snapOverride = v;
+  else state.snapOverride = 'auto';
+  notify();
+}
+// Effective snap for a placement/drag: Chief's override wins over the per-ref
+// default. Terrain always stays at TILE_SIZE regardless of override — the game
+// grid is inviolable.
+export function effectiveSnap(fallback) {
+  if (fallback === SNAP_TERRAIN) return SNAP_TERRAIN;
+  const o = state.snapOverride;
+  if (o === 1 || o === 16 || o === 32) return o;
+  return fallback;
+}
 
 // Camera helpers
 export function panCamera(dxScreen, dyScreen) {
