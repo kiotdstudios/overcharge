@@ -234,6 +234,10 @@ async function _mirrorSave(L, filename, method) {
     savedAt: Date.now(),
     method,
   });
+  // Point the editor at the copy that will actually survive a restart. Without
+  // this the LEVEL dropdown keeps highlighting the committed entry after a save,
+  // so the UI claims to be on the committed level while showing local edits.
+  state.levelPath = 'idb:' + levelKey;
 }
 
 // Look up the mirrored save for a level number. Returns the record or null.

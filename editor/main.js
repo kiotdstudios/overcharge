@@ -261,12 +261,6 @@ btnSave?.addEventListener('click', async () => {
   const r = await Persistence.saveCurrentLevel();
   // A successful save writes to local disk + IndexedDB, never to the server.
   // Record that so the parity strip stops claiming "in sync with committed".
-  if (r.ok) {
-    _localSaveInfo = { savedAt: Date.now() };
-    // saveCurrentLevel() already ran notify() before returning, so the
-    // parity strip was rendered before we knew this was a local save.
-    refreshParityStatus();
-  }
   showSaveFlash(r);
   // Refresh dropdown so a newly-created custom filename appears immediately.
   if (r.ok) {
@@ -476,10 +470,10 @@ function refreshLevelInfo() {
 // "what the game will load".
 const parityStatus = document.getElementById('parity-status');
 
-// Set when the loaded level came from (or was written to) local-only storage
-// rather than the committed server copy. Without this the strip would report
-// "IN SYNC WITH COMMITTED" for a clean-but-local level, which is false.
-let _localSaveInfo = null;
+// True when the loaded level came from local-only storage rather than the
+// committed server copy. Derived from state.levelPath rather than tracked in a
+// flag, so it cannot go stale when Chief switches back to a committed level.
+const _isLocalOnly = () => String(state.levelPath || '').startsWith('idb:');
 
 // Reopen on the user's own latest work. A save from a previous session lives
 // in IndexedDB (localstore.js), not on the server, so bootstrap must look for
@@ -496,7 +490,6 @@ async function _restoreLocalSaveIfAny() {
     state.level     = local;
     state.levelPath = 'idb:' + rec.levelKey;
     state.dirty     = false;
-    _localSaveInfo  = { savedAt: rec.savedAt, filename: rec.filename };
     notify();
     const when = rec.savedAt ? new Date(rec.savedAt).toLocaleString() : 'earlier';
     if (saveFlash) {
@@ -523,7 +516,7 @@ function refreshParityStatus() {
       '<span style="color:#556"> \u2502 </span>' +
       '<span style="color:#44ccff">editor checksum ' + sum + '</span>';
     parityStatus.title = 'Your edits are local only. The normal game still loads the committed src_scroll/levels/level1.json until you SAVE and commit it.';
-  } else if (_localSaveInfo) {
+  } else if (_isLocalOnly()) {
     parityStatus.innerHTML =
       '<span style="color:#ffee00">\u25CF LOCAL SAVE \u2014 NOT COMMITTED</span>' +
       '<span style="color:#556"> \u2502 </span>' +
