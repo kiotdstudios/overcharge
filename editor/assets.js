@@ -96,16 +96,16 @@ function _populateThumbs() {
     if (it.isAnimation) tipParts.push('(animation — placement disabled in Phase 1)');
     cell.title = tipParts.join('\n');
     cell.addEventListener('click', () => setSelectedAsset(it));
-
-    // Pointer-based drag from sidebar → canvas. Deliberately NOT using HTML5
-    // native drag-and-drop — it's unreliable across browsers, sensitive to
-    // popup-block state, and depends on child element pointer-events. Instead
-    // we track pointerdown here and let tools.startAssetDrag manage the rest.
-    cell.addEventListener('pointerdown', (e) => {
+    // Sidebar → canvas drag. Uses plain mousedown/move/up (not pointer events)
+    // because Firefox has quirks routing pointer capture from scrollable
+    // containers. Document-level move/up so cursor position anywhere on the
+    // page is captured. Debug logs so failures are diagnosable.
+    cell.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
-      e.preventDefault();              // stop scroll/text-select/native drag
-      setSelectedAsset(it);            // click semantics preserved
-      startAssetDrag(it, e, cell);     // cell captures pointer for reliable move/up
+      e.preventDefault();              // stop text-selection / native image drag
+      console.info('[drag] mousedown on', it.id);
+      setSelectedAsset(it);
+      startAssetDrag(it, e);
     });
 
     // Preview thumb. If asset is an animation with {dir}/{n} placeholders,

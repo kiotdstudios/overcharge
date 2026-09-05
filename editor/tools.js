@@ -316,6 +316,45 @@ export const selectTool = {
   },
 };
 
+// ── Gameplay marker placement ────────────────────────────────────────────
+// Adds a source/gate/switch/enemy to the level's typed collection. Snaps to
+// 16px (gameplay default). Wraps the array push in an Action so it undoes.
+function _placeGameplayMarker(asset, worldX, worldY) {
+  const L = state.level;
+  if (!L) return false;
+  const pos = snapPoint(worldX, worldY, 16);
+  const idBase = (asset.id || 'obj').toLowerCase();
+  let arr, ref;
+  if (/gate/i.test(idBase)) {
+    arr = L.gates = L.gates || [];
+    ref = { id: `gate_${arr.length + 1}`, x: pos.x, y: pos.y, w: 32, h: 64, label: 'GATE' };
+  } else if (/switch/i.test(idBase)) {
+    arr = L.switches = L.switches || [];
+    ref = { id: `sw_${arr.length + 1}`, x: pos.x, y: pos.y, label: 'SW' };
+  } else if (asset.category === 'enemy') {
+    arr = L.enemies = L.enemies || [];
+    ref = { id: `en_${arr.length + 1}`, x: pos.x, y: pos.y, type: /drone/i.test(idBase) ? 'drone' : 'drain', patrolLeft: pos.x - 64, patrolRight: pos.x + 64 };
+  } else {
+    // default: electrical source / generator
+    arr = L.sources = L.sources || [];
+    ref = { id: `src_${arr.length + 1}`, x: pos.x, y: pos.y, charge: 5, label: 'GEN' };
+  }
+  // Wrap the add in a reversible action so Ctrl+Z removes it.
+  const action = {
+    type: 'add_gameplay_marker',
+    forward() { arr.push(ref); state.notify?.(); },
+    inverse() { const i = arr.indexOf(ref); if (i >= 0) arr.splice(i, 1); state.notify?.(); },
+  };
+  action.forward();
+  // Also route to History via notify
+  import('./history.js').then(H => {
+    // Retrofit history recording — action already applied above, record only
+    H.record({ type: action.type, forward: action.forward, inverse: action.inverse });
+  });
+  import('./state.js').then(m => m.notify());
+  return true;
+}
+
 // ── Asset placement primitive ────────────────────────────────────────────
 // Shared single-point placement used by BOTH the Place tool click path AND
 // the drag-and-drop drop handler. Keeps their behavior identical.
@@ -334,8 +373,19 @@ export function placeAssetAt(asset, worldX, worldY) {
     if (a) { History.apply(a); return true; }
     return false;
   }
+  // ── Gameplay marker assets ──────────────────────────────────────────
+  // Assets in the 'electrical' or 'enemy' category represent gameplay
+  // objects (sources / gates / enemies), not visual decorations. Route
+  // them to the correct level.<collection> instead of level.decorations.
+  // Placement snaps to 16 (gameplay-marker default snap).
+  if (asset.category === 'electrical' || asset.category === 'enemy' ||
+      /generator|source/i.test(asset.id || '') ||
+      /\bgate\b/i.test(asset.id || '')) {
+    return _placeGameplayMarker(asset, worldX, worldY);
+  }
+  // Animated decoration (player anims etc.) — not placeable.
   if (asset.isAnimation) {
-    console.warn('[editor] animation asset placement not supported in Phase 1:', asset.id);
+    console.warn('[editor] animation asset not placeable:', asset.id);
     return false;
   }
   // ── Static non-terrain decoration ─────────────────────────────────────
@@ -419,74 +469,64 @@ export function placeAssetAt(asset, worldX, worldY) {
 }
 
 // ── Asset drag from sidebar ──────────────────────────────────────────────
-// HTML5 native drag-and-drop is unreliable across browsers (Firefox in
-// particular has quirks with drag from children of scrollable containers,
-// and popup-block/permission state can interfere). Instead we use raw
-// pointer events, tracking mousedown → move → up on the document. This is
-// deterministic and browser-neutral.
+// Uses plain mousedown / mousemove / mouseup (NOT pointer events, NOT
+// setPointerCapture, NOT HTML5 DnD). Mouse events are the oldest, most
+// broadly-compatible interaction API and don't get hijacked by scroll
+// containers or browser drag heuristics. Document-level move/up listeners
+// so cursor movement anywhere on the page reaches us.
+//
+// Debug logs at each stage — if Chief reports drag still not working, the
+// console tells us EXACTLY where it stops.
 //
 // UX:
-//   pointerdown on thumbnail    → arm potential drag
-//   move past 4px threshold     → enter drag mode, cursor: grabbing
-//   pointerup over canvas       → placeAssetAt at cursor
-//   pointerup elsewhere         → do nothing (asset stays selected via click)
-export function startAssetDrag(asset, initialEvt, sourceEl) {
-  if (!asset || asset.isAnimation) return;
-  if (!sourceEl) sourceEl = initialEvt.currentTarget || initialEvt.target;
-  if (!sourceEl) return;
-
+//   mousedown on thumbnail   → arm potential drag, select asset
+//   move past 4px threshold  → dragging=true, cursor: grabbing
+//   mouseup over canvas      → placeAssetAt at cursor (or gameplay marker)
+//   mouseup elsewhere        → no-op (asset stays selected)
+export function startAssetDrag(asset, initialEvt) {
+  if (!asset) { console.info('[drag] no asset'); return; }
   const DRAG_THRESHOLD_PX = 4;
   const startClientX = initialEvt.clientX;
   const startClientY = initialEvt.clientY;
-  const pointerId    = initialEvt.pointerId;
   let dragging = false;
   const prevBodyCursor = document.body.style.cursor;
 
-  // setPointerCapture routes ALL subsequent pointermove/pointerup for this
-  // pointerId to `sourceEl`, regardless of which element the cursor is over.
-  // This prevents scroll gestures, text selection, and native image drag
-  // from stealing the pointer mid-drag. Firefox in particular needs this.
-  try { sourceEl.setPointerCapture(pointerId); } catch {}
-
   const onMove = (e) => {
-    if (e.pointerId !== pointerId) return;
     if (!dragging) {
       const dx = e.clientX - startClientX;
       const dy = e.clientY - startClientY;
       if (dx * dx + dy * dy < DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) return;
       dragging = true;
       document.body.style.cursor = 'grabbing';
+      console.info('[drag] entered drag mode');
     }
   };
   const cleanup = () => {
-    sourceEl.removeEventListener('pointermove',   onMove);
-    sourceEl.removeEventListener('pointerup',     onUp);
-    sourceEl.removeEventListener('pointercancel', onUp);
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onUp);
     document.body.style.cursor = prevBodyCursor;
-    try { sourceEl.releasePointerCapture(pointerId); } catch {}
   };
   const onUp = (e) => {
-    if (e.pointerId !== pointerId) return;
     const wasDragging = dragging;
     cleanup();
+    console.info('[drag] mouseup (dragging=' + wasDragging + ')');
     if (!wasDragging) return;                                 // click, not drag
     const canvas = document.getElementById('editor-canvas');
-    if (!canvas) return;
+    if (!canvas) { console.info('[drag] canvas not found'); return; }
     const r = canvas.getBoundingClientRect();
     const inCanvas = e.clientX >= r.left && e.clientX < r.right
                   && e.clientY >= r.top  && e.clientY < r.bottom;
-    if (!inCanvas) return;                                    // released outside canvas
+    if (!inCanvas) { console.info('[drag] released outside canvas'); return; }
     const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
     const scaleY = r.height > 0 ? canvas.height / r.height : 1;
     const sx = (e.clientX - r.left) * scaleX;
     const sy = (e.clientY - r.top)  * scaleY;
     const w  = screenToWorld(sx, sy);
-    placeAssetAt(asset, w.x, w.y);
+    const ok = placeAssetAt(asset, w.x, w.y);
+    console.info('[drag] placeAssetAt →', ok ? 'PLACED' : 'REJECTED');
   };
-  // Listen on the captured element so the browser routes events reliably.
-  sourceEl.addEventListener('pointermove',   onMove);
-  sourceEl.addEventListener('pointerup',     onUp);
-  sourceEl.addEventListener('pointercancel', onUp);
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onUp);
 }
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
 // Behavior:
