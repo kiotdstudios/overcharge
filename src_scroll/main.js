@@ -62,8 +62,10 @@ window.addEventListener('resize', resize);
 
 // Parallax background — sized to the loaded level's width so tests of any
 // length (Short/Medium/Long from the generator) get proper parallax range.
+// SKIPPED in test mode per Chief: the neon-windows layers compete with the
+// authored level content while iterating. Normal LEVEL1 game unaffected.
 const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;
-bgInit(_bgW);
+if (!_TEST_LEVEL) bgInit(_bgW);
 
 // ── State ──────────────────────────────────────
 const STATES = { TITLE: 0, PLAYING: 1, LEVEL_COMPLETE: 2, GAME_OVER: 3 };
@@ -212,7 +214,7 @@ function _render() {
 }
 
 function _drawScrollGame() {
-  bgUpdate(camX);
+  if (!_TEST_LEVEL) bgUpdate(camX);
   // Scanlines — fixed, not scrolled
   ctx.save();
   ctx.globalAlpha = 0.03;
