@@ -1,11 +1,19 @@
-# LEVEL SCHEMA — PROVISIONAL DRAFT
+# LEVEL SCHEMA
 
-**Owner:** Aki (documentation) + Orcha (runtime confirmation)  
-**Status:** PROVISIONAL — fields marked ✅ confirmed in runtime, ⚠️ provisional until Orcha review  
-**Last updated:** 2026-09-04
+**Owner:** Aki (documentation) + Orcha (runtime)  
+**Status:** CONFIRMED AGAINST THE RUNTIME — every ⚠️ below was resolved by reading
+`src_scroll/constants.js`, `src_scroll/level.js`, `src_scroll/entities.js` and
+`src_scroll/levels/level1.json` rather than waiting on review. Anything still
+undecided is called out as OPEN, not left implied.  
+**Last updated:** 2026-09-05 (Aki, acting owner while Orcha is out)
 
-Orcha must review and confirm or amend every field before either agent expands the schema.  
 Do not add new fields without cross-agent agreement. Do not silently rename existing fields.
+
+> **Correction, 2026-09-05:** this document previously described `tiles` as a 2D
+> array (`number[][]`). It is not, and never was. Both the runtime
+> (`Level.tileAt`) and the editor (`Actions.setTile`) index it as a FLAT array.
+> Anyone who had written a tool against the old text would have produced levels
+> the game cannot read.
 
 ---
 
@@ -16,36 +24,64 @@ Do not add new fields without cross-agent agreement. Do not silently rename exis
   name:        string,          // ✅ Display name, e.g. "NEON DISTRICT"
   number:      integer,         // ✅ Level number (1-based)
   cols:        integer,         // ✅ Width in tile columns (1 col = 32px)
-  tiles:       number[][],      // ✅ 2D tilemap. See Tilemap section below
+  tiles:       number[],        // ✅ FLAT tilemap, length cols × 14. See Tilemap
   playerStart: { x, y },       // ✅ World pixel coords for player spawn
   decorations: Decoration[],   // ✅ Visual-only rooftop props (no collision)
   sources:     Source[],        // ✅ Electrical charge sources (generators)
   gates:       Gate[],          // ✅ Power gates and barriers
   switches:    Switch[],        // ✅ Charge-spending switch objects
-  checkpoints: Checkpoint[],   // ⚠️ Empty in current levels — schema TBD
-  platforms:   Platform[],     // ⚠️ Empty in current levels — schema TBD
-  enemies:     Enemy[],         // ⚠️ Empty in current levels — schema TBD
+  checkpoints: Checkpoint[],   // ✅ In use — level 1 authors one ("CP1")
+  platforms:   Platform[],     // ✅ Schema confirmed from MovingPlatform; none authored yet
+  enemies:     Enemy[],         // ✅ Schema confirmed from DrainEnemy/DroneEnemy; none authored yet
 }
 ```
 
 **Derived constants (not stored in level data — computed at runtime):**
-- Tile size: `TILE = 32px` (Orcha to confirm exact value from constants.js)
+- Tile size: `TILE = 32` ✅ confirmed, `src_scroll/constants.js`
 - World width: `cols × TILE`
-- World height: fixed at `14 rows × TILE = 448px` (Orcha to confirm)
+- World height: fixed at `ROWS = 14` rows → `448px` ✅ confirmed, `constants.js`.
+  There is no `rows` field in the level JSON and the runtime never reads one;
+  height is not authorable.
+- Camera viewport is `W = 800 × H = 450`; `viewport.js` may reveal MORE world
+  horizontally on a wide window, which changes nothing about level geometry.
 
 ---
 
 ## Tilemap
 
 ```js
-tiles: number[][]
+tiles: number[]     // FLAT, length === cols * 14
 ```
 
-- Outer array = rows (top to bottom)
-- Inner array = columns (left to right)
-- Tile values: `0` = empty/sky, `1` = solid mass
+- Index formula: `idx = row * cols + col` (row 0 = top). ✅ Confirmed identical in
+  `Level.tileAt()` and `Actions.setTile()`.
+- Length is exactly `cols * 14`. Level 1: `cols = 100` → 1400 entries.
 
-**Orcha to confirm:** Are additional tile type values (2, 3, etc.) reserved or in use?
+**Tile values** ✅ confirmed from `Level.isSolid()`:
+
+| Value | Meaning |
+|-------|---------|
+| `0` | empty / sky, no collision |
+| `1` | solid, LEGACY untextured mass — still supported, still collides |
+| `2`–`9` | **RESERVED. Do not emit.** Not solid, not drawn — silently becomes a hole |
+| `>= 10` | solid AND textured. The value selects the tile art |
+
+Variant values are assigned by the editor's tile registry
+(`editor/state.js`, `tileValueForAssetId`). Currently registered:
+
+| Value | Asset id |
+|-------|----------|
+| `10` | `env_tile_dark_a` |
+| `11` | `env_tile_dark_b` |
+| `12` | `env_tile_purple_a` |
+| `13` | `env_tile_purple_b` |
+
+Adding art to the manifest does NOT make it paintable — it must be added to the
+registry to get a value. Unregistered tile assets map to `-1` and place nothing.
+
+**OPEN:** nothing blocking. If we ever need non-solid decorative tiles, they
+need a value band below 10 that `isSolid()` explicitly excludes; `2`–`9` is the
+obvious home and is why it stays reserved.
 
 ---
 
@@ -96,16 +132,25 @@ Asset: `gate_electric_closed` (see ASSET_MANIFEST.json)
 ```js
 {
   id:        string,   // ✅ Unique ID within level, e.g. "SW1"
-  x:         number,   // ✅ World pixel X (center of switch)
-  y:         number,   // ✅ World pixel Y (center of switch)
+  x:         number,   // ✅ World pixel X — TOP-LEFT, not center (see correction)
+  y:         number,   // ✅ World pixel Y — TOP-LEFT, not center
   required:  number,   // ✅ Charge units needed to activate
   linkedId:  string,   // ✅ ID of the Gate this switch controls
   label:     string,   // ✅ Display label, e.g. "OPEN"
 }
 ```
 
-Runtime hitbox: `22×22px` centered at `(x, y)`.  
-**Note:** Switch x/y appear to be the center point, not top-left corner. Orcha to confirm.
+Runtime hitbox: `22×22px` with its TOP-LEFT at `(x, y)`.
+
+> **Correction, 2026-09-05:** this section previously said x/y "appear to be the
+> center point". They are not. `Switch` in `src_scroll/electricity.js` sets
+> `this.w = this.h = 22` and exposes `get cx() { return this.x + this.w / 2; }` —
+> the centre is *derived*, so the stored value is the top-left. An editor that
+> wrote centre coords would place every switch 11px down and right of where it
+> was dropped.
+
+`w`/`h` are NOT authorable — the runtime hardcodes 22×22 and ignores any values
+in the JSON.
 
 ---
 
@@ -121,75 +166,133 @@ Runtime hitbox: `22×22px` centered at `(x, y)`.
 }
 ```
 
-Built by level data via the `prp()` helper function (internal to level files).  
-`prp(file, srcW, srcH, x, groundY)` — computes y so the prop bottom sits on groundY.  
-Scale factor `S2` is defined in the level file. **Orcha to expose S2 value.**
+Decorations carry an extra field the old text omitted:
 
-Props reference assets from `assets/tilesets/purple_city/props/` by filename (no extension in helper call).
+```js
+  snap: number,   // ✅ Editor-only. Grid the prop was snapped to (1 = freeform pixel)
+```
+
+The runtime ignores `snap`; it exists so reopening the editor preserves the snap
+mode a prop was placed with.
+
+> **Correction, 2026-09-05:** the `prp()` helper and the `S2` scale factor are
+> GONE. They belonged to the old hand-authored JS level files, which no longer
+> exist — the runtime fetches JSON only. There is no `S2` to expose. Decorations
+> now store final `w`/`h` in pixels, resolved at placement time in the editor.
+
+`src` is a full repo-relative path including the extension, e.g.
+`assets/tilesets/purple_city/edges/rooftop_edge_left.png` — not a bare filename.
 
 ---
 
 ## Checkpoint
 
+✅ Confirmed from `Checkpoint` in `src_scroll/entities.js`. Level 1 authors one.
+
 ```js
-// ⚠️ SCHEMA NOT YET DEFINED — no checkpoints exist in current levels
-// Provisional fields (Orcha to define):
 {
-  id: string,
-  x:  number,
-  y:  number,
-  // ... Orcha owns runtime behavior definition
+  id:    string,   // ⚠️ AUTHORED BUT IGNORED by the runtime constructor. Editor bookkeeping
+  x:     number,   // ✅ World pixel X — CENTRE of the trigger zone (±40px horizontal)
+  y:     number,   // ✅ World pixel Y — GROUND level (top of a player standing here)
+  label: string,   // ⚠️ AUTHORED BUT IGNORED by the runtime. Editor display only
 }
 ```
+
+Trigger zone is `±40px` horizontally, hardcoded (`this._range = 40`), not
+authorable. Fires once — `activated` latches so re-crossing does nothing.
+
+Note the coordinate convention differs from Gate and Switch: checkpoint `x` is a
+CENTRE, gate/switch `x` is a TOP-LEFT. That is a runtime inconsistency, not a
+documentation error. See STILL OPEN below.
 
 ---
 
 ## Platform
 
+✅ Confirmed from `MovingPlatform` in `src_scroll/entities.js`. None authored yet,
+but the runtime is ready — the editor simply has no tool for it.
+
 ```js
-// ⚠️ SCHEMA NOT YET DEFINED — no moving platforms in current levels
-// Provisional fields (Orcha to define):
 {
-  id: string,
-  x:  number,
-  y:  number,
-  w:  number,
-  h:  number,
-  // ... Orcha owns: patrolDistance, speed, direction, etc.
+  x:     number,   // ✅ World pixel X, top-left. Starting position
+  y:     number,   // ✅ World pixel Y, top-left
+  w:     number,   // ✅ Width.  Defaults to 96 if omitted
+  h:     number,   // ✅ Height. Defaults to 12 if omitted
+  x1:    number,   // ✅ Left end of the horizontal sweep
+  x2:    number,   // ✅ Right end of the horizontal sweep
+  speed: number,   // ✅ px/sec. Defaults to 80
 }
 ```
+
+Movement is horizontal only — there is no `y1`/`y2` and no vertical mode. There
+is no `id` field.
 
 ---
 
 ## Enemy
 
+✅ Confirmed from `Level` (type dispatch) plus the three enemy classes. None
+authored yet. The editor CAN place them — verified 2026-09-05.
+
 ```js
-// ⚠️ SCHEMA NOT YET DEFINED — no enemies in current levels
-// Provisional fields (Orcha to define):
 {
-  id:   string,
-  type: string,   // e.g. "drain_enemy", "drone"
-  x:    number,
-  y:    number,
-  // ... Orcha owns: patrol, drainAmount, health, activationDelay, etc.
+  type:        string,   // ✅ "drain" | "drone" | anything else → PatrolEnemy
+  x:           number,   // ✅ World pixel X, top-left
+  y:           number,   // ✅ World pixel Y, top-left
+  patrolLeft:  number,   // ✅ Left limit of the patrol, world px
+  patrolRight: number,   // ✅ Right limit of the patrol, world px
+  speed:       number,   // ✅ px/sec. Default depends on type (see table)
 }
 ```
 
+| `type` | Class | Default `speed` |
+|--------|-------|-----------------|
+| `"drain"` | `DrainEnemy` | 60 |
+| `"drone"` | `DroneEnemy` | 55 |
+| anything else / omitted | `PatrolEnemy` (20×26) | 50 |
+
+Two traps worth stating plainly:
+
+- The dispatch values are `"drain"` and `"drone"`, **not** the asset ids
+  `enemy_drain_walk` / `drone`. A typo does not error — it silently falls through
+  to a generic `PatrolEnemy`.
+- There is no `id` field. `drainAmount`, `health` and `activationDelay` do not
+  exist; they were speculative. Do not emit them.
+
 ---
 
-## NOTES FOR ORCHA
+## RESOLVED QUESTIONS
 
-Please confirm or amend the following before either agent expands the schema:
+All eight items that were waiting on Orcha were answered by reading the runtime
+on 2026-09-05. Two of them turned out to be documentation errors, not gaps.
 
-1. **Tile size** — is `TILE = 32px` correct? Level1 comment says "100 cols × 14 rows = 3200 × 448 px" which implies 32px/tile.
-2. **Tile values** — are values beyond 0 and 1 reserved or planned?
-3. **World height** — is 448px (14 rows × 32px) the fixed canvas height, or does it vary?
-4. **Switch x/y** — center or top-left?
-5. **S2 scale factor** — what is its value? Should it be in level data or stay internal?
-6. **Checkpoint schema** — define fields when implementing.
-7. **Platform schema** — define `patrolDistance`, `speed`, etc. when implementing moving platforms.
-8. **Enemy schema** — define `drainAmount`, `health`, `activationDelay` etc. when implementing.
+| # | Question | Answer |
+|---|----------|--------|
+| 1 | Tile size | `TILE = 32`. Confirmed, `constants.js` |
+| 2 | Tile values beyond 0/1 | `>= 10` in use for textured variants; `2`–`9` reserved, must not be emitted |
+| 3 | World height | Fixed `ROWS = 14` → 448px. Not authorable, no `rows` field |
+| 4 | Switch x/y | **TOP-LEFT.** The old "appears to be centre" note was wrong |
+| 5 | `S2` scale factor | **Obsolete.** Belonged to the deleted hand-authored JS levels. Decorations store final `w`/`h` |
+| 6 | Checkpoint schema | Defined above. `id`/`label` are authored but ignored by the runtime |
+| 7 | Platform schema | Defined above: `x1`/`x2`/`speed`. Horizontal only |
+| 8 | Enemy schema | Defined above: `type`/`patrolLeft`/`patrolRight`/`speed`. No `health`/`drainAmount` |
+
+## STILL OPEN — needs a decision, not research
+
+1. **Coordinate convention is inconsistent.** Checkpoint `x` is a centre; gate and
+   switch `x` are top-left. Normalising would invalidate existing level JSON, so
+   it is Chief's call, not an agent's.
+2. **Vertical moving platforms** are not supported by the runtime. Feature
+   request, not a schema fix.
+3. **Non-solid decorative tiles** have no value band. `2`–`9` is the natural home
+   and is reserved for it.
+4. **`gate_electric_open` art** still does not exist.
+5. **The editor has no tool** for platforms or switches, so two confirmed runtime
+   features are currently unauthorable.
 
 ---
 
-*This document is the agreed contract between editor (Aki) and runtime (Orcha). Neither agent expands it unilaterally.*
+*This document is the agreed contract between editor (Aki) and runtime (Orcha).
+Neither agent expands it unilaterally. Corrections that bring the document into
+line with what the runtime already does are not expansions — they are bug fixes,
+and are marked inline with a dated correction note.*
