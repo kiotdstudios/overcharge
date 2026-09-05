@@ -96,6 +96,21 @@ function _populateThumbs() {
     cell.title = tipParts.join('\n');
     cell.addEventListener('click', () => setSelectedAsset(it));
 
+    // Drag-and-drop: dragging a thumbnail onto the canvas places it. Set
+    // dataTransfer with the asset id (canvas drop handler in main.js reads
+    // it back) AND select the asset up-front, so a cancelled drag still
+    // leaves the user in the same state as a click.
+    cell.draggable = !it.isAnimation;   // animations aren't placeable yet
+    cell.addEventListener('dragstart', (e) => {
+      setSelectedAsset(it);
+      try {
+        e.dataTransfer.effectAllowed = 'copy';
+        e.dataTransfer.setData('application/x-overcharge-asset-id', it.id);
+        // Some browsers only expose text/plain fallback — set both.
+        e.dataTransfer.setData('text/plain', it.id);
+      } catch { /* ignore — click-select still works */ }
+    });
+
     // Preview thumb. If asset is an animation with {dir}/{n} placeholders,
     // substitute the first frame of east-facing so the thumbnail resolves.
     const previewPath = it.isAnimation
@@ -106,6 +121,7 @@ function _populateThumbs() {
     img.loading = 'lazy';
     img.decoding = 'async';
     img.className = 'ab-thumb';
+    img.draggable = false;   // let the parent cell own the drag, not the child img
     cell.appendChild(img);
 
     const label = document.createElement('div');

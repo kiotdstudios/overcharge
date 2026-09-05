@@ -316,6 +316,46 @@ export const selectTool = {
   },
 };
 
+// ── Asset placement primitive ────────────────────────────────────────────
+// Shared single-point placement used by BOTH the Place tool click path AND
+// the drag-and-drop drop handler. Keeps their behavior identical.
+//
+//   terrain-category asset (or null): paint a single tile-1 at (wx, wy)
+//   non-terrain static asset:         create a decoration at (wx, wy) with
+//                                     asset-defined snap + native dims
+//   animation asset:                  skipped (Phase 5 territory)
+//
+// Every mutation goes through History.apply so undo works.
+// Returns true if a placement action was applied, false otherwise.
+export function placeAssetAt(asset, worldX, worldY) {
+  if (isTerrainCategory(asset?.category) || !asset) {
+    const t = { col: Math.floor(worldX / TILE_SIZE), row: Math.floor(worldY / TILE_SIZE) };
+    const a = Actions.setTile(t.col, t.row, 1);
+    if (a) { History.apply(a); return true; }
+    return false;
+  }
+  if (asset.isAnimation) {
+    console.warn('[editor] animation asset placement not supported in Phase 1:', asset.id);
+    return false;
+  }
+  // Static non-terrain decoration
+  const snap = snapForAsset(asset);
+  const pos  = snapPoint(worldX, worldY, snap);
+  const img  = getCachedImage(asset.path);
+  const dims = decoDimensions(asset, img);
+  const dec = {
+    src:  asset.path,
+    x:    pos.x,
+    y:    pos.y,
+    w:    dims.w,
+    h:    dims.h,
+    snap,     // remember so drag-move / paste use the same resolution
+  };
+  const a = Actions.addDecoration(dec);
+  if (a) { History.apply(a); return true; }
+  return false;
+}
+
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
 // Behavior:
 //   • Terrain-category asset (or none): paint tile-1 into grid (drag OK)
@@ -340,28 +380,11 @@ export const placeTool = {
       this._paintedThisDrag = new Set();
       const t = tileUnderMouse(evt, canvas);
       this._paintCell(t.col, t.row);
-    } else if (asset.isAnimation) {
-      console.warn('[editor] animation asset placement not supported in Phase 1:', asset.id);
     } else {
-      // Non-terrain decoration. Snap resolution comes from the asset
-      // (manifest asset.snap → SNAP_DECORATION_DEFAULT of 16). Dimensions
-      // come from the manifest when present, otherwise the preloaded image's
-      // naturalWidth/Height, otherwise TILE_SIZE as a last-resort fallback.
-      const wPt  = worldUnderMouse(evt, canvas);
-      const snap = snapForAsset(asset);
-      const pos  = snapPoint(wPt.x, wPt.y, snap);
-      const img  = getCachedImage(asset.path);
-      const dims = decoDimensions(asset, img);
-      const dec = {
-        src:  asset.path,
-        x:    pos.x,
-        y:    pos.y,
-        w:    dims.w,
-        h:    dims.h,
-        snap: snap,     // remember so drag-move / paste use the same resolution
-      };
-      const a = Actions.addDecoration(dec);
-      if (a) History.apply(a);
+      // Non-terrain single-shot placement via shared primitive so click-place
+      // and drop-place behave identically.
+      const wPt = worldUnderMouse(evt, canvas);
+      placeAssetAt(asset, wPt.x, wPt.y);
     }
   },
 
