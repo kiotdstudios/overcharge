@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-04T20:54:52.362Z",
-  "count": 622,
+  "generated": "2026-09-05T21:39:02.480Z",
+  "count": 661,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -55,126 +55,6 @@
       "name": "frame_008",
       "category": "electrical/generator",
       "size": 3720
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_000.png",
-      "name": "frame_000",
-      "category": "enemy/drain",
-      "size": 1819
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_001.png",
-      "name": "frame_001",
-      "category": "enemy/drain",
-      "size": 1903
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_002.png",
-      "name": "frame_002",
-      "category": "enemy/drain",
-      "size": 2026
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_003.png",
-      "name": "frame_003",
-      "category": "enemy/drain",
-      "size": 1915
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_004.png",
-      "name": "frame_004",
-      "category": "enemy/drain",
-      "size": 1821
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_005.png",
-      "name": "frame_005",
-      "category": "enemy/drain",
-      "size": 2116
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_006.png",
-      "name": "frame_006",
-      "category": "enemy/drain",
-      "size": 2247
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/east/frame_007.png",
-      "name": "frame_007",
-      "category": "enemy/drain",
-      "size": 2071
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_000.png",
-      "name": "frame_000",
-      "category": "enemy/drain",
-      "size": 1904
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_001.png",
-      "name": "frame_001",
-      "category": "enemy/drain",
-      "size": 2055
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_002.png",
-      "name": "frame_002",
-      "category": "enemy/drain",
-      "size": 2099
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_003.png",
-      "name": "frame_003",
-      "category": "enemy/drain",
-      "size": 2034
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_004.png",
-      "name": "frame_004",
-      "category": "enemy/drain",
-      "size": 1879
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_005.png",
-      "name": "frame_005",
-      "category": "enemy/drain",
-      "size": 2294
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_006.png",
-      "name": "frame_006",
-      "category": "enemy/drain",
-      "size": 2313
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/animations/drain_walk/west/frame_007.png",
-      "name": "frame_007",
-      "category": "enemy/drain",
-      "size": 2146
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/east.png",
-      "name": "east",
-      "category": "enemy/drain",
-      "size": 1663
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/north.png",
-      "name": "north",
-      "category": "enemy/drain",
-      "size": 2220
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/south.png",
-      "name": "south",
-      "category": "enemy/drain",
-      "size": 2447
-    },
-    {
-      "path": "assets/sprites/drain_enemy/Idle/rotations/west.png",
-      "name": "west",
-      "category": "enemy/drain",
-      "size": 1654
     },
     {
       "path": "assets/sprites/drone/idle/frame_000.png",
@@ -285,16 +165,22 @@
       "size": 1662
     },
     {
-      "path": "assets/backgrounds/mid_city.png",
-      "name": "mid_city",
-      "category": "other",
-      "size": 6142
-    },
-    {
       "path": "assets/objects/gate_closed.png",
       "name": "gate_closed",
       "category": "other",
       "size": 4498
+    },
+    {
+      "path": "assets/objects/gate_electric_open.png",
+      "name": "gate_electric_open",
+      "category": "other",
+      "size": 2340
+    },
+    {
+      "path": "assets/objects/gate_electric_spritesheet.png",
+      "name": "gate_electric_spritesheet",
+      "category": "other",
+      "size": 127281
     },
     {
       "path": "assets/sprites/charge_anim/east/frame_000.png",
@@ -3405,28 +3291,46 @@
       "size": 3043
     },
     {
-      "path": "assets/tiles/concrete_godot.png",
-      "name": "concrete_godot",
-      "category": "other",
-      "size": 29537
-    },
-    {
-      "path": "assets/tiles/concrete_wang.png",
-      "name": "concrete_wang",
-      "category": "other",
-      "size": 7844
-    },
-    {
-      "path": "assets/tiles/concrete.png",
-      "name": "concrete",
-      "category": "other",
-      "size": 7099
+      "path": "assets/tilesets/purple_city/props/_test_strip_waste_platform.png",
+      "name": "_test_strip_waste_platform",
+      "category": "prop",
+      "size": 408
     },
     {
       "path": "assets/tilesets/purple_city/props/bracket_corner.png",
       "name": "bracket_corner",
       "category": "prop",
       "size": 95
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
+      "name": "env_prop_arrow_box_up",
+      "category": "prop",
+      "size": 728
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_prop_arrow_up.png",
+      "name": "env_prop_arrow_up",
+      "category": "prop",
+      "size": 171
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_prop_box_purple.png",
+      "name": "env_prop_box_purple",
+      "category": "prop",
+      "size": 662
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
+      "name": "env_waste_platform_long",
+      "category": "prop",
+      "size": 377
+    },
+    {
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_short.png",
+      "name": "env_waste_platform_short",
+      "category": "prop",
+      "size": 346
     },
     {
       "path": "assets/tilesets/purple_city/props/pipe_elbow.png",
@@ -3453,6 +3357,12 @@
       "size": 722
     },
     {
+      "path": "assets/tilesets/purple_city/props/sign_arrow_up.png",
+      "name": "sign_arrow_up",
+      "category": "prop",
+      "size": 1088
+    },
+    {
       "path": "assets/tilesets/purple_city/props/street_lamp.png",
       "name": "street_lamp",
       "category": "prop",
@@ -3463,6 +3373,96 @@
       "name": "tool_hammer",
       "category": "prop",
       "size": 625
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_barrel_damaged.png",
+      "name": "env_waste_barrel_damaged",
+      "category": "prop",
+      "size": 707
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_barrel_leaking.png",
+      "name": "env_waste_barrel_leaking",
+      "category": "prop",
+      "size": 763
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_barrel.png",
+      "name": "env_waste_barrel",
+      "category": "prop",
+      "size": 662
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_drain.png",
+      "name": "env_waste_drain",
+      "category": "prop",
+      "size": 961
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_grate.png",
+      "name": "env_waste_grate",
+      "category": "prop",
+      "size": 775
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_outflow.png",
+      "name": "env_waste_outflow",
+      "category": "prop",
+      "size": 314
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_pipe_corner.png",
+      "name": "env_waste_pipe_corner",
+      "category": "prop",
+      "size": 1730
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_pipe_h.png",
+      "name": "env_waste_pipe_h",
+      "category": "prop",
+      "size": 790
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_pipe_v.png",
+      "name": "env_waste_pipe_v",
+      "category": "prop",
+      "size": 936
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_tank.png",
+      "name": "env_waste_tank",
+      "category": "prop",
+      "size": 1873
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_valve.png",
+      "name": "env_waste_valve",
+      "category": "prop",
+      "size": 263
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/props/env_waste_warning.png",
+      "name": "env_waste_warning",
+      "category": "prop",
+      "size": 1814
+    },
+    {
+      "path": "assets/tilesets/purple_city/_contact_sheet_batch2.png",
+      "name": "_contact_sheet_batch2",
+      "category": "terrain",
+      "size": 28423
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/bg_building_tall.png",
+      "name": "bg_building_tall",
+      "category": "terrain",
+      "size": 2795
+    },
+    {
+      "path": "assets/tilesets/purple_city/buildings/bg_building_wide.png",
+      "name": "bg_building_wide",
+      "category": "terrain",
+      "size": 2880
     },
     {
       "path": "assets/tilesets/purple_city/buildings/building_bar_sign.png",
@@ -3531,6 +3531,78 @@
       "size": 2112
     },
     {
+      "path": "assets/tilesets/purple_city/construction/_contact_sheet_construction.png",
+      "name": "_contact_sheet_construction",
+      "category": "terrain",
+      "size": 26447
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_a.png",
+      "name": "env_construction_ledge_a",
+      "category": "terrain",
+      "size": 478
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_b.png",
+      "name": "env_construction_ledge_b",
+      "category": "terrain",
+      "size": 512
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_left.png",
+      "name": "env_edge_purple_bottom_left",
+      "category": "terrain",
+      "size": 1746
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_right.png",
+      "name": "env_edge_purple_bottom_right",
+      "category": "terrain",
+      "size": 1741
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom.png",
+      "name": "env_edge_purple_bottom",
+      "category": "terrain",
+      "size": 1817
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_fill.png",
+      "name": "env_edge_purple_fill",
+      "category": "terrain",
+      "size": 1944
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_left.png",
+      "name": "env_edge_purple_left",
+      "category": "terrain",
+      "size": 1852
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_right.png",
+      "name": "env_edge_purple_right",
+      "category": "terrain",
+      "size": 1854
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_left.png",
+      "name": "env_edge_purple_top_left",
+      "category": "terrain",
+      "size": 1720
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_right.png",
+      "name": "env_edge_purple_top_right",
+      "category": "terrain",
+      "size": 1736
+    },
+    {
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
+      "name": "env_edge_purple_top",
+      "category": "terrain",
+      "size": 1800
+    },
+    {
       "path": "assets/tilesets/purple_city/containers/container_small_a.png",
       "name": "container_small_a",
       "category": "terrain",
@@ -3561,10 +3633,46 @@
       "size": 1324
     },
     {
+      "path": "assets/tilesets/purple_city/edges/rooftop_edge_left.png",
+      "name": "rooftop_edge_left",
+      "category": "terrain",
+      "size": 551
+    },
+    {
+      "path": "assets/tilesets/purple_city/edges/rooftop_edge_mid.png",
+      "name": "rooftop_edge_mid",
+      "category": "terrain",
+      "size": 484
+    },
+    {
+      "path": "assets/tilesets/purple_city/edges/rooftop_edge_right.png",
+      "name": "rooftop_edge_right",
+      "category": "terrain",
+      "size": 330
+    },
+    {
+      "path": "assets/tilesets/purple_city/facades/facade_panel_solid.png",
+      "name": "facade_panel_solid",
+      "category": "terrain",
+      "size": 252
+    },
+    {
+      "path": "assets/tilesets/purple_city/facades/facade_panel_window.png",
+      "name": "facade_panel_window",
+      "category": "terrain",
+      "size": 922
+    },
+    {
       "path": "assets/tilesets/purple_city/platforms/platform_long_a.png",
       "name": "platform_long_a",
       "category": "terrain",
       "size": 896
+    },
+    {
+      "path": "assets/tilesets/purple_city/platforms/platform_long_b.png",
+      "name": "platform_long_b",
+      "category": "terrain",
+      "size": 778
     },
     {
       "path": "assets/tilesets/purple_city/platforms/platform_medium.png",
@@ -3591,28 +3699,142 @@
       "size": 58498
     },
     {
+      "path": "assets/tilesets/purple_city/rooftop/_contact_sheet_batch1.png",
+      "name": "_contact_sheet_batch1",
+      "category": "terrain",
+      "size": 20094
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/antenna_tall.png",
+      "name": "antenna_tall",
+      "category": "terrain",
+      "size": 353
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
+      "name": "catwalk_section",
+      "category": "terrain",
+      "size": 531
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/conduit_cluster.png",
+      "name": "conduit_cluster",
+      "category": "terrain",
+      "size": 198
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/electrical_box.png",
+      "name": "electrical_box",
+      "category": "terrain",
+      "size": 589
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/fire_escape_section.png",
+      "name": "fire_escape_section",
+      "category": "terrain",
+      "size": 1946
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/ladder_section.png",
+      "name": "ladder_section",
+      "category": "terrain",
+      "size": 553
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/roof_access_hatch.png",
+      "name": "roof_access_hatch",
+      "category": "terrain",
+      "size": 300
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_ac_unit.png",
+      "name": "rooftop_ac_unit",
+      "category": "terrain",
+      "size": 706
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_door.png",
+      "name": "rooftop_door",
+      "category": "terrain",
+      "size": 1339
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_railing.png",
+      "name": "rooftop_railing",
+      "category": "terrain",
+      "size": 692
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_vent_large.png",
+      "name": "rooftop_vent_large",
+      "category": "terrain",
+      "size": 921
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/rooftop_vent_unit.png",
+      "name": "rooftop_vent_unit",
+      "category": "terrain",
+      "size": 458
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/satellite_dish.png",
+      "name": "satellite_dish",
+      "category": "terrain",
+      "size": 687
+    },
+    {
+      "path": "assets/tilesets/purple_city/rooftop/water_tower.png",
+      "name": "water_tower",
+      "category": "terrain",
+      "size": 1925
+    },
+    {
+      "path": "assets/tilesets/purple_city/signs/sign_neon_a.png",
+      "name": "sign_neon_a",
+      "category": "terrain",
+      "size": 823
+    },
+    {
+      "path": "assets/tilesets/purple_city/signs/sign_neon_b.png",
+      "name": "sign_neon_b",
+      "category": "terrain",
+      "size": 375
+    },
+    {
+      "path": "assets/tilesets/purple_city/signs/sign_neon_c.png",
+      "name": "sign_neon_c",
+      "category": "terrain",
+      "size": 354
+    },
+    {
+      "path": "assets/tilesets/purple_city/structures/stairwell_housing.png",
+      "name": "stairwell_housing",
+      "category": "terrain",
+      "size": 1595
+    },
+    {
       "path": "assets/tilesets/purple_city/tiles/tile_dark_a.png",
       "name": "tile_dark_a",
       "category": "terrain",
-      "size": 422
+      "size": 404
     },
     {
       "path": "assets/tilesets/purple_city/tiles/tile_dark_b.png",
       "name": "tile_dark_b",
       "category": "terrain",
-      "size": 559
+      "size": 522
     },
     {
       "path": "assets/tilesets/purple_city/tiles/tile_purple_a.png",
       "name": "tile_purple_a",
       "category": "terrain",
-      "size": 606
+      "size": 566
     },
     {
       "path": "assets/tilesets/purple_city/tiles/tile_purple_b.png",
       "name": "tile_purple_b",
       "category": "terrain",
-      "size": 666
+      "size": 637
     },
     {
       "path": "assets/tilesets/purple_city/walls/wall_brick_a.png",
@@ -3633,106 +3855,118 @@
       "size": 918
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_fill.png",
-      "name": "env_edge_purple_fill",
-      "category": "construction_tile",
-      "size": 1944
+      "path": "assets/tilesets/purple_city/waste/_qa/waste_qa_pool_10wide.png",
+      "name": "waste_qa_pool_10wide",
+      "category": "terrain",
+      "size": 5671
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
-      "name": "env_edge_purple_top",
-      "category": "construction_tile",
-      "size": 1800
+      "path": "assets/tilesets/purple_city/waste/_qa/waste_qa_test_strip.png",
+      "name": "waste_qa_test_strip",
+      "category": "terrain",
+      "size": 13967
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom.png",
-      "name": "env_edge_purple_bottom",
-      "category": "construction_tile",
-      "size": 1817
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_ceiling.png",
+      "name": "env_waste_ceiling",
+      "category": "terrain",
+      "size": 2011
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_left.png",
-      "name": "env_edge_purple_left",
-      "category": "construction_tile",
-      "size": 1852
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_bl.png",
+      "name": "env_waste_corner_bl",
+      "category": "terrain",
+      "size": 1906
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_right.png",
-      "name": "env_edge_purple_right",
-      "category": "construction_tile",
-      "size": 1854
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_br.png",
+      "name": "env_waste_corner_br",
+      "category": "terrain",
+      "size": 1913
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_left.png",
-      "name": "env_edge_purple_top_left",
-      "category": "construction_tile",
-      "size": 1720
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_tl.png",
+      "name": "env_waste_corner_tl",
+      "category": "terrain",
+      "size": 1765
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_right.png",
-      "name": "env_edge_purple_top_right",
-      "category": "construction_tile",
-      "size": 1736
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_corner_tr.png",
+      "name": "env_waste_corner_tr",
+      "category": "terrain",
+      "size": 1784
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_left.png",
-      "name": "env_edge_purple_bottom_left",
-      "category": "construction_tile",
-      "size": 1746
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_floor.png",
+      "name": "env_waste_floor",
+      "category": "terrain",
+      "size": 2036
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_right.png",
-      "name": "env_edge_purple_bottom_right",
-      "category": "construction_tile",
-      "size": 1741
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_platform_left.png",
+      "name": "env_waste_platform_left",
+      "category": "terrain",
+      "size": 1709
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_a.png",
-      "name": "env_construction_ledge_a",
-      "category": "construction_tile",
-      "size": 478
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_platform_mid.png",
+      "name": "env_waste_platform_mid",
+      "category": "terrain",
+      "size": 1774
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_construction_ledge_b.png",
-      "name": "env_construction_ledge_b",
-      "category": "construction_tile",
-      "size": 512
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_platform_right.png",
+      "name": "env_waste_platform_right",
+      "category": "terrain",
+      "size": 1735
     },
     {
-      "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
-      "name": "catwalk_section",
-      "category": "prop",
-      "size": 531
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_wall_left.png",
+      "name": "env_waste_wall_left",
+      "category": "terrain",
+      "size": 1882
     },
     {
-      "path": "assets/tilesets/purple_city/props/env_prop_arrow_up.png",
-      "name": "env_prop_arrow_up",
-      "category": "prop",
-      "size": 171
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_wall_right.png",
+      "name": "env_waste_wall_right",
+      "category": "terrain",
+      "size": 1887
     },
     {
-      "path": "assets/tilesets/purple_city/props/env_prop_box_purple.png",
-      "name": "env_prop_box_purple",
-      "category": "prop",
-      "size": 728
+      "path": "assets/tilesets/purple_city/waste/construction/env_waste_wall.png",
+      "name": "env_waste_wall",
+      "category": "terrain",
+      "size": 2053
     },
     {
-      "path": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
-      "name": "env_prop_arrow_box_up",
-      "category": "prop",
-      "size": 662
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_bubble.png",
+      "name": "env_waste_liquid_bubble",
+      "category": "terrain",
+      "size": 3279
     },
     {
-      "path": "assets/tilesets/purple_city/props/env_waste_platform_short.png",
-      "name": "env_waste_platform_short",
-      "category": "prop",
-      "size": 346
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_calm.png",
+      "name": "env_waste_liquid_calm",
+      "category": "terrain",
+      "size": 2668
     },
     {
-      "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "name": "env_waste_platform_long",
-      "category": "prop",
-      "size": 377
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_drip.png",
+      "name": "env_waste_liquid_drip",
+      "category": "terrain",
+      "size": 2174
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_outflow.png",
+      "name": "env_waste_liquid_outflow",
+      "category": "terrain",
+      "size": 2183
+    },
+    {
+      "path": "assets/tilesets/purple_city/waste/liquid/env_waste_liquid_splash.png",
+      "name": "env_waste_liquid_splash",
+      "category": "terrain",
+      "size": 1977
     }
   ]
 }

@@ -16,6 +16,7 @@ import * as Persistence from './persistence.js';
 import * as Generator   from './generator.js';
 import * as Actions     from './actions.js';
 import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
+import { BUILD } from './buildinfo.js';
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -440,8 +441,27 @@ function refreshLevelInfo() {
   levelInfo.innerHTML = `${L.name || '?'} · #${L.number ?? '?'} · ${L.cols}×${rows} · zoom ${state.camera.zoom.toFixed(2)}x${selPart}${histPart}${dirtyPart}`;
 }
 
-// ── Redraw loop ───────────────────────────────────────────────────────────
 // (needsRedraw declared earlier — hoisted for ResizeObserver access)
+
+// ── Dev build label ───────────────────────────────────────────────────────
+// Two servers on two worktrees were serving two different editors with
+// nothing on screen to tell them apart. This makes the open build obvious.
+(function showBuildLabel() {
+  const el = document.getElementById('build-label');
+  if (!el) return;
+  const dirtyTag = BUILD.dirty
+    ? ' <span style="color:#ff8800">(uncommitted)</span>'
+    : '';
+  el.innerHTML =
+    `BRANCH: <span style="color:#44ccff">${BUILD.branch}</span>` +
+    ` @ <span style="color:#8aaabb">${BUILD.shaShort}</span>${dirtyTag}` +
+    `<br>worktree: <span style="color:#8aaabb">${BUILD.worktree}</span>`;
+  el.title = `full SHA ${BUILD.shaFull}\nbuild info generated ${BUILD.generated}\n` +
+             `Regenerate with: node scripts/build_info.mjs`;
+  console.info(`[editor] BUILD  branch=${BUILD.branch}  sha=${BUILD.shaShort}` +
+               `${BUILD.dirty ? ' (uncommitted changes)' : ''}  worktree=${BUILD.worktree}`);
+})();
+
 // ── Parity status strip ───────────────────────────────────────────────────
 // Chief §2: make it impossible to confuse "what I am testing" with
 // "what the game will load".
