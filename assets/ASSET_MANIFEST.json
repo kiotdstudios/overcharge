@@ -292,13 +292,13 @@
         "purple_city",
         "dark"
       ],
-      "frame_width": 18,
-      "frame_height": 18,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "18x18 \u2014 confirm tile_size with Orcha before using in level data.",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718). Mix with other tile variants.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -320,13 +320,13 @@
         "purple_city",
         "dark"
       ],
-      "frame_width": 18,
-      "frame_height": 18,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718).",
       "generation": {
         "eligible": true,
         "roles": [
@@ -348,13 +348,13 @@
         "purple_city",
         "purple"
       ],
-      "frame_width": 18,
-      "frame_height": 18,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718). Prefer upper / decorated zones.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -376,13 +376,13 @@
         "purple_city",
         "purple"
       ],
-      "frame_width": 18,
-      "frame_height": 18,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "",
+      "notes": "Cropped to 16\u00d716 (was 18\u00d718). Prefer upper / decorated zones.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -811,6 +811,17 @@
         "job_id": "2bc5205d-01ca-40fc-82f7-231d1c047e85",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": false
       }
     },
     {
@@ -832,6 +843,18 @@
         "job_id": "78827de5-0b64-4107-80ca-9dea4e1ada56",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
       }
     },
     {
@@ -853,6 +876,18 @@
         "job_id": "55c156ed-9470-40e4-89ec-35d0357d6a61",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "large"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
       }
     },
     {
@@ -874,6 +909,18 @@
         "job_id": "b8381ef6-7318-41fa-bca7-096e9606895a",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "large"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "anchor",
+        "stackable": false
       }
     },
     {
@@ -895,6 +942,17 @@
         "job_id": "0e29b030-7935-4566-932a-fd9d3eef0d85",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": false
       }
     },
     {
@@ -917,6 +975,18 @@
         "job_id": "dec65484-086f-4932-a6cc-b8a21f0629b0",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
       }
     },
     {
@@ -938,6 +1008,18 @@
         "job_id": "61fb7dc9-98c8-4c72-881b-408b11a38627",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": false
       }
     },
     {
@@ -960,82 +1042,18 @@
         "job_id": "03dc3613-05a2-4339-a86f-7cdf7445ea0d",
         "date": "2026-09-04T22:22:00Z",
         "candidate": 0
-      }
-    },
-    {
-      "id": "tile_dark_a",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "floor",
-        "dark",
-        "purple_city",
-        "16x16",
-        "static"
-      ],
-      "width": 16,
-      "height": 16,
-      "generated": {
-        "tool": "pixellab_pro",
-        "date": "2026-09-04T22:22:00Z"
-      }
-    },
-    {
-      "id": "tile_dark_b",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "floor",
-        "dark",
-        "purple_city",
-        "16x16",
-        "static"
-      ],
-      "width": 16,
-      "height": 16,
-      "generated": {
-        "tool": "pixellab_pro",
-        "date": "2026-09-04T22:22:00Z"
-      }
-    },
-    {
-      "id": "tile_purple_a",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "floor",
-        "purple",
-        "purple_city",
-        "16x16",
-        "static"
-      ],
-      "width": 16,
-      "height": 16,
-      "generated": {
-        "tool": "pixellab_pro",
-        "date": "2026-09-04T22:22:00Z"
-      }
-    },
-    {
-      "id": "tile_purple_b",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "floor",
-        "purple",
-        "purple_city",
-        "16x16",
-        "static"
-      ],
-      "width": 16,
-      "height": 16,
-      "generated": {
-        "tool": "pixellab_pro",
-        "date": "2026-09-04T22:22:00Z"
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
       }
     },
     {
@@ -1056,6 +1074,17 @@
         "job_id": "38b1c2c7-e1dc-4890-b1cf-29cf8f92b342",
         "date": "2026-09-04T22:25:27Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
       }
     },
     {
@@ -1077,6 +1106,17 @@
         "job_id": "e12e35d4-b1a9-43bc-9f04-ba04cb7eb1fa",
         "date": "2026-09-04T22:25:27Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
       }
     },
     {
@@ -1098,6 +1138,18 @@
         "job_id": "fe1d037e-b3fe-4027-b46c-1add26800f0b",
         "date": "2026-09-04T22:25:27Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
       }
     },
     {
@@ -1119,6 +1171,18 @@
         "job_id": "e0d333d0-7566-4dbb-b3dc-8c95836df584",
         "date": "2026-09-04T22:25:27Z",
         "candidate": 0
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
       }
     },
     {
@@ -1140,7 +1204,19 @@
         "job_id": "26261fb3-c31d-4978-b58f-8f74c56fa489",
         "date": "2026-09-04T22:25:27Z",
         "candidate": 0
-      }
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "wall_face",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": false
+      },
+      "notes": "Directional: attaches to vertical wall face. Do not place without adjacent wall."
     },
     {
       "id": "ladder_section",
@@ -1161,7 +1237,18 @@
         "job_id": "a1a8da57-1025-45b9-9e32-8a5d1acd7abf",
         "date": "2026-09-04T22:25:27Z",
         "candidate": 0
-      }
+      },
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural"
+        ],
+        "surface": "wall_face",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": false
+      },
+      "notes": "Wall-mounted. Requires adjacent vertical solid face."
     }
   ]
 }
