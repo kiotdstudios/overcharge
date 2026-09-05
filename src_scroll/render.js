@@ -44,15 +44,19 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false) {
     return;
   }
 
-  if (type !== 1) return;
+  // Solid tile: type === 1 (legacy default) OR type >= 10 (Chief-chosen variant)
+  if (type !== 1 && type < 10) return;
 
-  // ── Base tile texture ──────────────────────────────────────────────────────
-  // Alternate between two dark textures using position — breaks up repetition.
-  const texKey = ((tx + ty) % 2 === 0) ? 'tile_dark_a' : 'tile_dark_b';
+  // ── Base tile texture — pick by variant, not by position ─────────────
+  // Variant order is kept in lockstep with editor state.terrainArtOrder():
+  // sorted-by-id → dark_a, dark_b, purple_a, purple_b. Legacy value 1
+  // renders as art[0] (dark_a). Values 10..13 select exactly variant 0..3.
+  const _TILE_ORDER = ['tile_dark_a', 'tile_dark_b', 'tile_purple_a', 'tile_purple_b'];
+  const artIdx = (type === 1) ? 0 : (type - 10);
+  const texKey = _TILE_ORDER[artIdx] || _TILE_ORDER[0];
   const img    = _pc[texKey];
   if (img.complete && img.naturalWidth > 0) {
     // Tiles are true 16×16 as of Aki Batch 1 — full source blit, no crop.
-    // Destination remains exactly one T-sized grid cell.
     ctx.drawImage(img, 0, 0, 16, 16, x, y, T, T);
   } else {
     ctx.fillStyle = '#0d1520';

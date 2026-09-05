@@ -22,7 +22,8 @@
 // Everything Chief-tunable lives in one const block at the top so future
 // swap-ins (real controller measurements, style presets) is one edit.
 
-import { state, TILE_SIZE, getCachedImage, decoDimensions } from './state.js';
+import { state, TILE_SIZE, getCachedImage, decoDimensions,
+         TILE_VARIANT_BASE, terrainArtOrder, tileIsSolid } from './state.js';
 
 // ── Playability constants (grounded in src_scroll/constants.js physics) ──
 // GRAVITY=900, PLAYER_SPEED=75, JUMP_FORCE=-430, RUN_MULTIPLIER=1.7
@@ -272,10 +273,16 @@ function _buildLevel(rng, ctx) {
   // Paint solid tiles from each section's rooftop row down to GROUND_ROW.
   // Optionally place a Purple City building decoration behind the mass for
   // visual character (its size doesn't affect collision).
+  const artCount = Math.max(1, terrainArtOrder().length);
   for (const s of sections) {
+    // Pick ONE tile variant per section so the section's tile art is
+    // visually cohesive rather than randomized per cell. Deterministic
+    // from the section's start column so seed uniquely determines it.
+    const secVariant = ((s.startCol * 2654435761) >>> 0) % artCount;
+    const tileVal    = TILE_VARIANT_BASE + secVariant;
     for (let c = s.startCol; c <= s.endCol; c++) {
       for (let r = s.roofRow; r <= GROUND_ROW; r++) {
-        tiles[r * cols + c] = 1;
+        tiles[r * cols + c] = tileVal;
       }
     }
     if (classified.building.length > 0 && chance(rng, 0.75)) {
@@ -402,7 +409,7 @@ function _validate(level) {
   const spawnRow = Math.floor(playerStart.y / TILE_SIZE);
   let hasGround = false;
   for (let r = spawnRow; r <= Math.min(spawnRow + 2, rows - 1); r++) {
-    if (tiles[r * cols + spawnCol] === 1) { hasGround = true; break; }
+    if (tileIsSolid(tiles[r * cols + spawnCol])) { hasGround = true; break; }
   }
   if (!hasGround) return false;
 
@@ -413,7 +420,7 @@ function _validate(level) {
   const exRow = Math.floor((exit.y + exit.h) / TILE_SIZE);
   let exitGround = false;
   for (let r = exRow; r <= Math.min(exRow + 2, rows - 1); r++) {
-    if (tiles[r * cols + exCol] === 1) { exitGround = true; break; }
+    if (tileIsSolid(tiles[r * cols + exCol])) { exitGround = true; break; }
   }
   if (!exitGround) return false;
 

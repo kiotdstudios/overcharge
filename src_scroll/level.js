@@ -44,7 +44,11 @@ export class Level {
   }
 
   solidAt(tx, ty) {
-    return this.tileAt(tx, ty) === 1;
+    // Solid = legacy 1 OR any variant-encoded value >= 10.
+    // Value 2 (one-way platform) is intentionally NOT solid for regular
+    // collision — it's handled by the platform-drop-through code path.
+    const v = this.tileAt(tx, ty);
+    return v === 1 || v >= 10;
   }
 
   isFailState(player) {
@@ -112,7 +116,8 @@ export class Level {
       for (let tx = 0; tx < this.cols; tx++) {
         const tile = this.tileAt(tx, ty);
         if (tile !== 0) {
-          const topOpen = this.tileAt(tx, ty - 1) !== 1;
+          const above = this.tileAt(tx, ty - 1);
+          const topOpen = !(above === 1 || above >= 10);
           drawTile(ctx, tx, ty, TILE, tile, topOpen);
         }
       }

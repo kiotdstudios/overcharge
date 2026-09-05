@@ -16,7 +16,42 @@ export const TILE_SIZE = 32;
 // Gameplay markers (sources, gates, switches, checkpoints, enemies,
 // playerStart) use their own default — currently 16 — as a middle ground:
 // finer than terrain, coarser than free-pixel decorations. Adjustable later.
-export const SNAP_TERRAIN            = TILE_SIZE;   // 32 — do not change
+export const SNAP_TERRAIN            = TILE_SIZE;   // 32 - do not change
+
+// ── Terrain tile encoding ────────────────────────────────────────────────
+// The tile grid stores an integer per cell. Values:
+//   0                       empty (non-solid)
+//   1                       LEGACY solid — renders as art[0] (default variant)
+//   2                       one-way platform (not solid for regular collision)
+//   TILE_VARIANT_BASE + N   solid, art variant N (0..k-1) — CHIEF-CHOSEN
+// This encoding lets Chief-authored levels preserve exact tile art while old
+// 0/1 levels still load and render deterministically as art[0]. Collision
+// treats value 1 AND any value >= TILE_VARIANT_BASE as solid. Value 2 stays
+// reserved for one-way platforms.
+export const TILE_VARIANT_BASE = 10;
+export function tileIsSolid(v) { return v === 1 || v >= TILE_VARIANT_BASE; }
+export function tileArtIndex(v) {
+  if (v === 1) return 0;                       // legacy default → art[0]
+  if (v >= TILE_VARIANT_BASE) return v - TILE_VARIANT_BASE;
+  return -1;                                   // not a solid tile
+}
+export function tileValueForVariant(idx) { return TILE_VARIANT_BASE + idx; }
+// Ordered array of tile-category assets, sorted by id for a stable mapping
+// between variant index and asset. Editor + runtime + generator all key off
+// this ordering. If Aki adds a new tile PNG, it appends to the end.
+export function terrainArtOrder() {
+  const m = state.manifest;
+  if (!m || !Array.isArray(m.items)) return [];
+  return m.items
+    .filter(it => it && it.category === 'tile' && !it.isAnimation)
+    .slice()
+    .sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+}
+export function tileVariantForAssetId(id) {
+  if (!id) return -1;
+  const order = terrainArtOrder();
+  return order.findIndex(a => a.id === id);
+}
 export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
 export const SNAP_GAMEPLAY_DEFAULT   = 16;          // spawn/source/gate/switch/checkpoint/enemy
 

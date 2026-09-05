@@ -135,6 +135,7 @@ export function toggleByKind(kind, ref) {
   else if (kind === 'switch')     s.switches.has(ref)    ? s.switches.delete(ref)    : s.switches.add(ref);
   else if (kind === 'checkpoint') s.checkpoints.has(ref) ? s.checkpoints.delete(ref) : s.checkpoints.add(ref);
   else if (kind === 'enemy')      s.enemies.has(ref)     ? s.enemies.delete(ref)     : s.enemies.add(ref);
+  else if (kind === 'tile')       s.tiles.has(ref)       ? s.tiles.delete(ref)       : s.tiles.add(ref);
   else return;
   notify();
 }
@@ -149,6 +150,7 @@ export function isRefSelected(kind, ref) {
   if (kind === 'switch')     return s.switches.has(ref);
   if (kind === 'checkpoint') return s.checkpoints.has(ref);
   if (kind === 'enemy')      return s.enemies.has(ref);
+  if (kind === 'tile')       return s.tiles.has(ref);
   return false;
 }
 
@@ -240,12 +242,26 @@ export function objectAt(worldX, worldY) {
     }
   }
 
-  // Decorations last (bottom of z-order for hit-testing so gameplay markers win)
+  // Decorations next (they sit on top of terrain visually)
   if (Array.isArray(L.decorations)) {
     for (let i = L.decorations.length - 1; i >= 0; i--) {
       const d = L.decorations[i];
       const rect = hitRect('decoration', d);
       if (rect && _hits(rect, worldX, worldY)) return { kind: 'decoration', ref: d };
+    }
+  }
+
+  // Terrain tiles LAST — lowest priority so a prop sitting on terrain is
+  // selected first, and only a click on bare terrain hits the tile beneath.
+  if (Array.isArray(L.tiles) && L.cols) {
+    const col = Math.floor(worldX / TILE_SIZE);
+    const row = Math.floor(worldY / TILE_SIZE);
+    if (col >= 0 && col < L.cols && row >= 0) {
+      const idx = row * L.cols + col;
+      const v = L.tiles[idx];
+      if (v && v !== 0) {                       // solid OR platform
+        return { kind: 'tile', ref: col + ',' + row };
+      }
     }
   }
   return null;

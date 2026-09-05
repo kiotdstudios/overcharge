@@ -237,7 +237,7 @@ export class Player {
       const tBot = Math.floor((this.y + this.h) / TILE);
       for (let tx = tLeft; tx <= tRight; tx++) {
         const tile = level.tileAt(tx, tBot);
-        if (tile === 1) {
+        if (tile === 1 || tile >= 10) {   // legacy 1 OR any variant tile is solid ground
           this.y        = tBot * TILE - this.h;
           this.vy       = 0;
           this.grounded = true;

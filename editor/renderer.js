@@ -5,7 +5,8 @@
 //
 // Any level JSON conforming to SCHEMA.md renders correctly. No Level-1 assumptions.
 
-import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight, worldToScreen } from './state.js';
+import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
+         worldToScreen, tileIsSolid, tileArtIndex } from './state.js';
 import * as Selection from './selection.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
@@ -47,11 +48,8 @@ function terrainImages() {
   _terrainImgs = tiles.map(t => getImage(t.path));
   return _terrainImgs;
 }
-// Same integer mix the game uses (src_scroll/render.js) so editor preview
-// visually matches gameplay. Deterministic per (col,row).
-function tileHash(col, row) {
-  return (((col * 2654435761) ^ (row * 2246822519)) >>> 0);
-}
+// (Hash-based tile variety removed per Chief. Every cell renders EXACTLY
+// the tile art variant its stored value encodes; see tileArtIndex in state.js.)
 
 export function render(ctx, canvas) {
   const w = canvas.width, h = canvas.height;
@@ -96,14 +94,15 @@ export function render(ctx, canvas) {
       if (v === 0) continue;
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
-      if (v === 1 && readyImgs.length > 0) {
-        // Per-cell hashed pick from the tile-art pool for visual variety
-        // (matches game runtime). Tiles are true 16×16 as of Aki Batch 1,
-        // so we blit the full source at (0,0,16,16) — no margin crop.
-        const idx = tileHash(col, r) % readyImgs.length;
-        ctx.drawImage(readyImgs[idx], 0, 0, 16, 16, p.x, p.y, tsz, tsz);
+      if (tileIsSolid(v) && readyImgs.length > 0) {
+        // Chief-chosen variant: art[tileArtIndex(v)]. Value 1 legacy = art[0].
+        // Out-of-range variant falls back to art[0] so a manifest change
+        // that removes an art doesn't blank the level.
+        const artIdx = tileArtIndex(v);
+        const img = readyImgs[artIdx] || readyImgs[0];
+        ctx.drawImage(img, 0, 0, 16, 16, p.x, p.y, tsz, tsz);
       } else {
-        ctx.fillStyle = v === 1 ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
+        ctx.fillStyle = tileIsSolid(v) ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
         ctx.fillRect(p.x, p.y, tsz, tsz);
       }
     }

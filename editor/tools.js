@@ -17,6 +17,7 @@ import {
   snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
   SNAP_DECORATION_DEFAULT,
   decoDimensions, getCachedImage,
+  TILE_VARIANT_BASE, tileVariantForAssetId, tileIsSolid,
 } from './state.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
@@ -387,7 +388,16 @@ function _placeGameplayMarker(asset, worldX, worldY) {
 export function placeAssetAt(asset, worldX, worldY) {
   if (isTerrainCategory(asset?.category) || !asset) {
     const t = { col: Math.floor(worldX / TILE_SIZE), row: Math.floor(worldY / TILE_SIZE) };
-    const a = Actions.setTile(t.col, t.row, 1);
+    // Determine tile value based on selected asset. When Chief selects a
+    // specific tile art (env_tile_purple_a etc.) the cell records that
+    // exact variant so it will render EXACTLY that art forever, not a
+    // hash-randomized pick. Empty selection or generic paint → default 1.
+    let val = 1;
+    if (asset && asset.id) {
+      const variant = tileVariantForAssetId(asset.id);
+      if (variant >= 0) val = TILE_VARIANT_BASE + variant;
+    }
+    const a = Actions.setTile(t.col, t.row, val);
     if (a) { History.apply(a); return true; }
     return false;
   }
@@ -454,7 +464,7 @@ export function placeAssetAt(asset, worldX, worldY) {
     for (let r = bottomRow; r <= Math.min(bottomRow + MAX_FALL_TILES, rows - 1) && !hasGround; r++) {
       if (r < 0) continue;
       for (let c = startCol; c <= endCol; c++) {
-        if (L.tiles[r * L.cols + c] === 1) { hasGround = true; break; }
+        if (tileIsSolid(L.tiles[r * L.cols + c])) { hasGround = true; break; }
       }
     }
     // Walls also treat other walls as ground so vertical stacking works.

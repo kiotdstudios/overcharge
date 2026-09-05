@@ -338,7 +338,7 @@ export class ChargePickup {
       const tx   = Math.floor(this.x / TILE);
       const ty   = Math.floor(foot / TILE);
       const tile = level.tileAt(tx, ty);
-      if ((tile === 1 || tile === 2) && this.vy > 0) {
+      if ((tile === 1 || tile === 2 || tile >= 10) && this.vy > 0) {   // solid or platform
         this.y  = ty * TILE - 7;
         this.vy *= -0.4;
         this.vx *= 0.8;
