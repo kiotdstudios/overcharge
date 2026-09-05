@@ -32,6 +32,7 @@ const levelSelect  = document.getElementById('level-select');
 const btnNew       = document.getElementById('btn-new');
 const btnDuplicate = document.getElementById('btn-duplicate');
 const btnSave      = document.getElementById('btn-save');
+const btnTest      = document.getElementById('btn-test');
 const btnUndo      = document.getElementById('btn-undo');
 const btnRedo      = document.getElementById('btn-redo');
 const saveFlash    = document.getElementById('save-flash');
@@ -98,6 +99,26 @@ btnUndo?.addEventListener('click', () => History.undo());
 btnRedo?.addEventListener('click', () => History.redo());
 btnNew?.addEventListener('click', async () => { await Persistence.newLevel(); });
 btnDuplicate?.addEventListener('click', async () => { await Persistence.duplicateLevel(); });
+
+// ── Test Level ────────────────────────────────────────────────────────────
+// Hand the current in-memory level to the game runtime for a playable
+// preview. Serializes state.level to localStorage under a known key, then
+// opens index.html?test=1 in a new tab. The game (src_scroll/main.js)
+// detects the query param and loads the level def from localStorage instead
+// of the compiled-in LEVEL1. No disk save required — perfect for iterating.
+const TEST_LEVEL_KEY = 'overcharge.testLevel';
+btnTest?.addEventListener('click', () => {
+  if (!state.level) return;
+  try {
+    localStorage.setItem(TEST_LEVEL_KEY, JSON.stringify(state.level));
+  } catch (err) {
+    console.error('[editor] Could not stash test level:', err);
+    return;
+  }
+  // Cache-busting param so any code changes I ship land immediately.
+  const url = 'index.html?test=1&t=' + Date.now();
+  window.open(url, '_blank', 'noopener');
+});
 
 // ── Generator modal wiring ────────────────────────────────────────────────
 const genDialog     = document.getElementById('gen-dialog');

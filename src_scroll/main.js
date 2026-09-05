@@ -9,7 +9,41 @@ import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
 import { LEVEL1 } from './levels/level1.js';
 
-const LEVEL_DEFS = [LEVEL1];
+// ── Editor-driven test mode ──────────────────────────────────────────────
+// When launched with `?test=1`, load the level def from localStorage under
+// the shared key `overcharge.testLevel` — the editor's ▶ TEST button writes
+// the current in-memory level here before opening this tab. Any failure
+// silently falls back to LEVEL1 so a broken localStorage state never blocks
+// launching the normal game.
+const TEST_LEVEL_KEY = 'overcharge.testLevel';
+function _tryLoadTestLevel() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('test') !== '1') return null;
+    const raw = localStorage.getItem(TEST_LEVEL_KEY);
+    if (!raw) return null;
+    const def = JSON.parse(raw);
+    if (!def || !Array.isArray(def.tiles) || !def.playerStart) return null;
+    // Ensure the def has all the arrays Level constructor expects, so an
+    // editor-saved level with missing collections still runs.
+    def.sources     = def.sources     || [];
+    def.gates       = def.gates       || [];
+    def.switches    = def.switches    || [];
+    def.checkpoints = def.checkpoints || [];
+    def.platforms   = def.platforms   || [];
+    def.enemies     = def.enemies     || [];
+    def.decorations = def.decorations || [];
+    def.name        = def.name || 'TEST';
+    def.number      = def.number ?? 0;
+    console.info('[game] Test mode: loaded level from editor', def.name);
+    return def;
+  } catch (err) {
+    console.warn('[game] Test mode requested but level load failed:', err);
+    return null;
+  }
+}
+const _TEST_LEVEL = _tryLoadTestLevel();
+const LEVEL_DEFS = _TEST_LEVEL ? [_TEST_LEVEL] : [LEVEL1];
 
 // ── Canvas ─────────────────────────────────────
 const canvas = document.getElementById('game');
@@ -26,12 +60,14 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-// Parallax background — 3200px = 100 cols × 32px
-bgInit(3200);
+// Parallax background — sized to the loaded level's width so tests of any
+// length (Short/Medium/Long from the generator) get proper parallax range.
+const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;
+bgInit(_bgW);
 
 // ── State ──────────────────────────────────────
 const STATES = { TITLE: 0, PLAYING: 1, LEVEL_COMPLETE: 2, GAME_OVER: 3 };
-let state           = STATES.TITLE;
+let state           = STATES.TITLE;   // startup default; test mode auto-starts below
 let currentLevelIdx = 0;
 let level  = null;
 let player = null;
@@ -216,5 +252,8 @@ function _drawCpFlash() {
   ctx.fillText('\u2713 CHECKPOINT SAVED', W / 2, H / 2 - 40);
   ctx.restore();
 }
+
+// Test mode: auto-start into PLAYING so Chief lands directly in the level.
+if (_TEST_LEVEL) startGame();
 
 requestAnimationFrame(loop);
