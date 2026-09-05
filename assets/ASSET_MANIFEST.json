@@ -1948,32 +1948,6 @@
       }
     },
     {
-      "id": "env_prop_platform_glow",
-      "category": "prop",
-      "path": "assets/tilesets/purple_city/props/platform_glow_green.png",
-      "frame_width": 23,
-      "frame_height": 18,
-      "tags": [
-        "prop",
-        "glow",
-        "green",
-        "detail",
-        "small",
-        "purple_city"
-      ],
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "decorative",
-          "small"
-        ],
-        "surface": "ground_level",
-        "layer": "foreground",
-        "density": "medium",
-        "stackable": true
-      }
-    },
-    {
       "id": "env_prop_sign_arrow_up",
       "category": "prop",
       "path": "assets/tilesets/purple_city/props/sign_arrow_up.png",
@@ -2254,6 +2228,54 @@
         "layer": "midground",
         "density": "dense",
         "stackable": true
+      }
+    },
+    {
+      "id": "env_waste_platform_short",
+      "category": "modular_construction",
+      "family": "waste_platform",
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_short.png",
+      "frame_width": 16,
+      "frame_height": 5,
+      "tags": [
+        "waste",
+        "platform",
+        "slime",
+        "green",
+        "modular",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": false,
+        "roles": [
+          "modular_construction"
+        ],
+        "notes": "Modular waste platform segment \u2014 place via construction system, not random generation."
+      }
+    },
+    {
+      "id": "env_waste_platform_long",
+      "category": "modular_construction",
+      "family": "waste_platform",
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
+      "frame_width": 21,
+      "frame_height": 5,
+      "tags": [
+        "waste",
+        "platform",
+        "slime",
+        "green",
+        "modular",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": false,
+        "roles": [
+          "modular_construction"
+        ],
+        "notes": "Modular waste platform segment \u2014 place via construction system, not random generation."
       }
     }
   ]
