@@ -5,7 +5,7 @@
 import {
   state, subscribe,
   manifestCategories, filteredManifestItems,
-  setFilterCategory, setFilterSearch, setSelectedAsset,
+  setFilterCategory, setFilterSearch, setSelectedAsset, setPurpleCityOnly,
 } from './state.js';
 import { startAssetDrag } from './tools.js';
 
@@ -32,6 +32,22 @@ export function mountAssetBrowser(container) {
   searchInput.className = 'ab-search';
   searchInput.addEventListener('input', () => setFilterSearch(searchInput.value));
   root.appendChild(searchInput);
+
+  // Purple City quick-filter — checkbox that restricts the listing to
+  // /purple_city/ paths. When ON, category dropdown still applies but only
+  // Purple City items match. Convenience row for the primary art pack.
+  const pcRow = document.createElement('label');
+  pcRow.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; color:#9ac; margin: 2px 0 6px 0; user-select:none; cursor:pointer;';
+  const pcBox = document.createElement('input');
+  pcBox.type = 'checkbox';
+  pcBox.id = 'ab-purple-city-only';
+  pcBox.checked = !!state.filter.purpleCityOnly;
+  pcBox.addEventListener('change', () => setPurpleCityOnly(pcBox.checked));
+  pcRow.appendChild(pcBox);
+  const pcLabel = document.createElement('span');
+  pcLabel.textContent = 'Purple City only';
+  pcRow.appendChild(pcLabel);
+  root.appendChild(pcRow);
 
   // Category dropdown — populated from manifest, not hard-coded
   categorySelect = document.createElement('select');
@@ -94,6 +110,7 @@ function _populateThumbs() {
     const tipParts = [it.name, `${it.category}  ${it.width}×${it.height}`, it.path];
     if (it.raw && it.raw.notes) tipParts.push('— ' + it.raw.notes);
     if (it.isAnimation) tipParts.push('(animation — placement disabled in Phase 1)');
+    if (it.source === 'disk-index') tipParts.push('(from disk — not yet in Aki manifest)');
     cell.title = tipParts.join('\n');
     cell.addEventListener('click', () => setSelectedAsset(it));
     // Sidebar → canvas drag. Uses plain mousedown/move/up (not pointer events)

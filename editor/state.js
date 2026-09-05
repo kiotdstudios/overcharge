@@ -236,7 +236,7 @@ export const state = {
   camera: { x: 0, y: 0, zoom: 1 },   // world→screen offset & scale
 
   // Filters
-  filter: { category: 'all', search: '' },
+  filter: { category: 'all', search: '', purpleCityOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -274,24 +274,53 @@ export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
   if (!res.ok) throw new Error('manifest fetch failed: ' + res.status);
   const raw = await res.json();
   const source = Array.isArray(raw.assets) ? raw.assets : (Array.isArray(raw.items) ? raw.items : []);
-  const items = source.map(a => {
-    const path = a.path || '';
-    const isAnimation = path.indexOf('{') >= 0;    // {dir}, {n} placeholders
-    return {
-      id:          a.id || path,
-      path:        path,
-      name:        a.id || (a.name || path.split('/').pop().replace(/\.png$/i, '')),
-      category:    a.category || 'other',
-      width:       a.frame_width  || a.width  || 32,
-      height:      a.frame_height || a.height || 32,
-      tags:        a.tags || [],
-      isAnimation: isAnimation,
-      raw:         a,
-    };
-  });
+  const items = source.map(a => _normalizeManifestEntry(a));
+
+  // ── Purple City disk-index merge ────────────────────────────────────
+  // Aki curates ASSET_MANIFEST.json manually; art files that exist on disk
+  // but haven't been added to the manifest yet are invisible to the editor.
+  // We fetch a static disk-index (PURPLE_CITY_INDEX.json — generated from
+  // the actual filesystem contents) and append any un-manifested entry
+  // as a FALLBACK. If Aki later adds the same file, her metadata wins on
+  // next reload because it's normalized first and we skip by path here.
+  try {
+    const idxRes = await fetch('assets/PURPLE_CITY_INDEX.json');
+    if (idxRes.ok) {
+      const idx = await idxRes.json();
+      const known = new Set(items.map(it => it.path));
+      const added = [];
+      for (const raw of (idx.assets || [])) {
+        if (!raw.path || known.has(raw.path)) continue;
+        const entry = _normalizeManifestEntry(raw);
+        // Mark provenance so the sidebar can badge these as "disk-only".
+        entry.source = 'disk-index';
+        added.push(entry);
+      }
+      items.push(...added);
+      if (added.length > 0) console.info('[editor] purple_city index added', added.length, 'un-manifested asset(s)');
+    }
+  } catch { /* index optional — silent */ }
+
   state.manifest = { source: raw, items, count: items.length };
   notify();
   return state.manifest;
+}
+
+// Extracted so both the main manifest and the disk-index use the same shape.
+function _normalizeManifestEntry(a) {
+  const path = a.path || '';
+  const isAnimation = path.indexOf('{') >= 0;
+  return {
+    id:          a.id || path,
+    path:        path,
+    name:        a.id || (a.name || path.split('/').pop().replace(/\.png$/i, '')),
+    category:    a.category || 'other',
+    width:       a.frame_width  || a.width  || 32,
+    height:      a.frame_height || a.height || 32,
+    tags:        a.tags || [],
+    isAnimation: isAnimation,
+    raw:         a,
+  };
 }
 
 export async function loadLevel(url) {
@@ -327,10 +356,11 @@ export function manifestCategories() {
 // Filter manifest by current filter state.
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search } = state.filter;
+  const { category, search, purpleCityOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     if (category !== 'all' && it.category !== category) return false;
+    if (purpleCityOnly && !/\/purple_city\//.test(it.path || '')) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -342,6 +372,7 @@ export function setSelectedAsset(item)  { state.selectedAsset = item; notify(); 
 export function setSelectedTile(n)      { state.selectedTile = n; notify(); }
 export function setFilterCategory(c)    { state.filter.category = c; notify(); }
 export function setFilterSearch(s)      { state.filter.search = s; notify(); }
+export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
 export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
 export function setSnapOverride(v) {
