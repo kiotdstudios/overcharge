@@ -98,6 +98,10 @@ export function classifyAssets(manifest) {
   for (const a of manifest.items) {
     if (!a || !a.category || a.isAnimation) continue;
     const role = a.generationRole ?? _inferRole(a);
+    // 'skip' is a first-class role meaning "not a placeable decoration":
+    // tileset reference atlases, painted terrain tiles, backgrounds, sprites,
+    // and giant assets that would swamp the level. They never enter any pool.
+    if (role === 'skip') continue;
     if (out[role]) out[role].push(a);
   }
   return out;
@@ -105,12 +109,24 @@ export function classifyAssets(manifest) {
 function _inferRole(a) {
   const c = a.category || '';
   const p = a.path || '';
+  // Explicit skip list — assets that must NEVER be scattered as decorations:
+  //   'tileset'    — the raw purple_city atlas reference sheet (800x800)
+  //   'tile'       — painted terrain tiles, used by paint tool not deco
+  //   'background' — parallax background, drawn separately
+  //   'player','enemy' — sprite animation categories
+  if (c === 'tileset' || c === 'tile' || c === 'terrain' ||
+      c === 'background' || c === 'player' || c === 'enemy' ||
+      /purplecity_full|\/tiles\//.test(p)) return 'skip';
+  // Defensive size cap — anything larger than 200px on either axis is almost
+  // certainly a sheet, background, or oversized art unfit for scatter.
+  if ((a.width && a.width > 200) || (a.height && a.height > 200)) return 'skip';
+
   if (c === 'building' || /\/buildings\//.test(p)) return 'building';
   if (c === 'wall'     || /\/walls\//.test(p))     return 'wall';
   if (c === 'platform' || /\/platforms\//.test(p)) return 'platform';
   if (c === 'electrical' || /generator|switch|source|gate/i.test(a.id || '')) return 'electrical';
   if (c === 'prop' || c === 'container' || /\/props\//.test(p) || /\/containers\//.test(p)) return 'prop';
-  return 'prop';   // catch-all
+  return 'skip';   // safer catch-all — unknown category, don't scatter
 }
 
 // ── Public API ───────────────────────────────────────────────────────────
