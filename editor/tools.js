@@ -17,7 +17,7 @@ import {
   snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
   SNAP_DECORATION_DEFAULT, effectiveSnap,
   decoDimensions, getCachedImage,
-  tileValueForAssetId, tileIsSolid,
+  tileValueForAssetId, tileIsSolid, getTile, levelRows,
   flashPlacementReject,
 } from './state.js';
 import * as Actions from './actions.js';
@@ -473,10 +473,45 @@ export const selectTool = {
   },
 };
 
-// ── Gameplay marker placement ────────────────────────────────────────────
+// ── Gate ground/grid anchoring (Chief QA §6) ─────────────────────────────
+// A gate must never float. Rule:
+//   • X snaps to the 32px construction grid.
+//   • The gate's BOTTOM (feet) anchors to a 32px grid line — NOT its
+//     top-left. Because the visual sprite is taller than the hitbox,
+//     snapping the top-left is what produced hovering gates.
+//   • If a solid floor/roof surface exists in the gate's columns at or
+//     below the cursor, the feet land exactly ON that surface.
+//   • Otherwise the feet fall back to the nearest 32px grid line.
+// Collision dimensions (w/h) are never altered to achieve this.
+function _anchorGateBottom(worldX, worldY, gw, gh) {
+  const L = state.level;
+  const x = Math.round(worldX / TILE_SIZE) * TILE_SIZE;
+
+  // Candidate feet line from plain grid snap of the cursor's implied bottom.
+  let bottom = Math.round((worldY + gh) / TILE_SIZE) * TILE_SIZE;
+
+  // Look for a real supporting surface under the gate's footprint.
+  const rows     = levelRows();
+  const startCol = Math.max(0, Math.floor(x / TILE_SIZE));
+  const endCol   = Math.min((L?.cols ?? 1) - 1, Math.floor((x + Math.max(1, gw) - 1) / TILE_SIZE));
+  const fromRow  = Math.max(0, Math.floor(worldY / TILE_SIZE));
+
+  let surfaceRow = null;
+  for (let r = fromRow; r < rows; r++) {
+    let solid = false;
+    for (let c = startCol; c <= endCol; c++) {
+      if (tileIsSolid(getTile(c, r))) { solid = true; break; }
+    }
+    if (solid) { surfaceRow = r; break; }
+  }
+  if (surfaceRow !== null) bottom = surfaceRow * TILE_SIZE;   // feet rest on the surface top
+
+  return { x, y: bottom - gh };
+}
+
 // Adds a source / gate / switch / enemy / exit / checkpoint to the level's
-// typed collection, or REPLACES playerStart. Snaps to 16px. Wraps in an
-// action so undo works.
+// typed collection, or REPLACES playerStart. Snaps to 16px (gates use the
+// bottom/grid anchor above). Wraps in an action so undo works.
 function _placeGameplayMarker(asset, worldX, worldY) {
   const L = state.level;
   if (!L) return false;
@@ -501,10 +536,13 @@ function _placeGameplayMarker(asset, worldX, worldY) {
   let arr, ref;
   if (/exit/.test(idBase)) {
     arr = L.gates = L.gates || [];
-    ref = { id: `exit_${arr.length + 1}`, x: pos.x, y: pos.y, w: 32, h: 64, isExit: true, label: 'EXIT' };
+    // Gates anchor by their FEET to the grid/floor — never by top-left.
+    const gp = _anchorGateBottom(worldX, worldY, 32, 64);
+    ref = { id: `exit_${arr.length + 1}`, x: gp.x, y: gp.y, w: 32, h: 64, isExit: true, label: 'EXIT' };
   } else if (/gate/.test(idBase)) {
     arr = L.gates = L.gates || [];
-    ref = { id: `gate_${arr.length + 1}`, x: pos.x, y: pos.y, w: 32, h: 64, label: 'GATE' };
+    const gp = _anchorGateBottom(worldX, worldY, 32, 64);
+    ref = { id: `gate_${arr.length + 1}`, x: gp.x, y: gp.y, w: 32, h: 64, label: 'GATE' };
   } else if (/switch/.test(idBase)) {
     arr = L.switches = L.switches || [];
     ref = { id: `sw_${arr.length + 1}`, x: pos.x, y: pos.y, label: 'SW' };

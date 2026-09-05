@@ -93,60 +93,90 @@ export class Player {
     this._updatePipSpend(dt, level);  // F near gate + has pip → instant power
     this._collectPickups(level);
 
-    // BANK RESERVE (Chief directive):
-    // Anywhere the active bar reaches 0 while a banked pip exists,
-    // consume exactly 1 pip and refill the bar to full. This makes each
-    // pip behave like a reserve battery, transparently, regardless of
-    // whether the drain came from discharge, damage, or dev-P.
-    this._applyBankReserve();
+    // NOTE: there is deliberately NO unconditional reserve-pull here.
+    // A previous build called _applyBankReserve() every frame, which
+    // fought the bank-on-full rule: absorb would set (bar=0, pips+1) and
+    // the reserve would immediately undo it (bar=MAX, pips-1) in the same
+    // frame — so pips could never accumulate. The reserve is now pulled
+    // only at points of DEMAND (see _pullReserve callers).
 
     // Tick sprite animator — threshold at 20 avoids idle/walk flicker during decel
     const isMoving = Math.abs(this.vx) > 20;
     this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy);
   }
 
-  // Consume a whole banked pip to top the bar back up. Fires whenever
-  // the bar has been drawn down to zero and there is still a reserve.
-  _applyBankReserve() {
-    if (this.charge <= 1e-9 && this.bankedPips > 0) {
-      this.charge      = MAX_CHARGE;
-      this.bankedPips  = this.bankedPips - 1;
-      this._pipSpendFx = 0.45;   // brief pip-rack flash to signal the promote
-    }
+  // ══ CANONICAL ENERGY MODEL ════════════════════════════════════════
+  // A banked pip IS one stored full battery. Two rules, and only two:
+  //
+  //   INGEST  (giveEnergy)  bar fills → hits MAX → becomes +1 pip,
+  //                         bar resets to 0 → keeps filling.
+  //   SPEND   (_pullReserve) bar hits 0 and a pip exists → consume 1 pip,
+  //                         bar refills to MAX. Demand-driven ONLY.
+  //
+  // Every energy-gain path in the game routes through giveEnergy().
+  // Every affordability question routes through `usableEnergy`.
+
+  // Total energy the player can actually deliver right now. This is THE
+  // authority — HUD prompts and gameplay both read it, so UI can never
+  // disagree with what the interaction will actually do.
+  get usableEnergy() { return this.charge + this.bankedPips * MAX_CHARGE; }
+
+  canAfford(amount) { return this.usableEnergy >= amount - 1e-9; }
+
+  // How much more energy the player can physically accept.
+  get energyHeadroom() {
+    return (MAX_CHARGE - this.charge) + (MAX_BANKED_PIPS - this.bankedPips) * MAX_CHARGE;
   }
 
-  // Deposit `amount` energy into the player using the SAME rules the game
-  // uses when absorbing from a source: fill the bar first, then bank a pip
-  // when the bar tops out. Used by dev-P (real energy, not a shortcut) and
-  // any future in-game reward that awards raw energy.
+  // ── INGEST ────────────────────────────────────────────────────────
+  // Deposit energy: fill the active bar, and each time the bar tops out
+  // convert that full bar into +1 banked pip and reset the bar to 0.
+  // Returns the amount ACTUALLY accepted so callers (e.g. a source being
+  // drained) can refund what wouldn't fit instead of destroying it.
+  //
+  // At the pip cap we stop accepting and leave the bar sitting at full —
+  // energy is refused, never silently deleted (Chief directive §1).
   giveEnergy(amount) {
-    let remain = amount;
-    // Fill any headroom left in the bar first.
-    if (remain > 0) {
+    let remain   = Math.max(0, amount);
+    let accepted = 0;
+
+    while (remain > 1e-9) {
       const space = MAX_CHARGE - this.charge;
-      const take  = Math.min(remain, space);
-      this.charge += take;
-      remain      -= take;
+
+      if (space > 1e-9) {
+        // Room in the bar — pour in.
+        const take = Math.min(remain, space);
+        this.charge += take;
+        remain      -= take;
+        accepted    += take;
+      }
+
+      // Bar topped out? Convert it to a stored battery and start a new bar.
+      if (this.charge >= MAX_CHARGE - 1e-9) {
+        if (this.bankedPips < MAX_BANKED_PIPS) {
+          this.bankedPips++;
+          this.charge     = 0;
+          this._pipBankFx = 0.5;      // pip rack flashes on bank
+        } else {
+          // Pip cap reached: hold the bar at full and refuse the rest.
+          this.charge = MAX_CHARGE;
+          break;
+        }
+      }
     }
-    // Convert whole-bar chunks into banked pips.
-    while (remain >= MAX_CHARGE && this.bankedPips < MAX_BANKED_PIPS) {
-      this.bankedPips++;
-      this._pipBankFx = 0.5;
-      // The bar was already full; a pip has been banked, so the bar reads
-      // MAX_CHARGE. To be able to accept another chunk we leave it there
-      // and the next iteration will exit (headroom = 0 again). Any excess
-      // spills; we don't over-fill past the cap.
-      remain -= MAX_CHARGE;
-    }
-    // If the bar is exactly at MAX_CHARGE and we still have residual, roll
-    // the bar over into a pip so residual can be absorbed as bar-charge.
-    if (remain > 0 && this.charge >= MAX_CHARGE - 1e-9 && this.bankedPips < MAX_BANKED_PIPS) {
-      this.bankedPips++;
-      this._pipBankFx = 0.5;
-      this.charge = Math.min(remain, MAX_CHARGE);
-    }
-    // Anything still left beyond the max-pip cap is discarded — matches
-    // the absorb path (source drain silently clamps at the ceiling).
+    return accepted;
+  }
+
+  // ── SPEND-SIDE RESERVE ────────────────────────────────────────────
+  // Pull one stored battery into the active bar. Called ONLY when
+  // something actually demands energy and the bar is dry, so idle
+  // walking never reshuffles the player's reserve.
+  _pullReserve() {
+    if (this.charge > 1e-9 || this.bankedPips <= 0) return false;
+    this.bankedPips--;
+    this.charge      = MAX_CHARGE;
+    this._pipSpendFx = 0.45;
+    return true;
   }
 
   // ── Movement & jump ──────────────────────────
@@ -326,6 +356,9 @@ export class Player {
   }
 
   // ── Absorb (hold E near source) ──────────────
+  // Routes 100% through giveEnergy(), so the fill → bank → reset loop is
+  // identical to every other energy-gain path. Anything giveEnergy refuses
+  // (pip cap reached) is refunded to the source rather than destroyed.
   _updateAbsorb(dt, level) {
     const holdE = Input.heldAny('KeyE');
 
@@ -338,20 +371,23 @@ export class Player {
       }
     }
 
-    if (holdE && this.nearSource && (this.charge < MAX_CHARGE || this.bankedPips < MAX_BANKED_PIPS)) {
+    // Note: headroom is total capacity (bar + remaining pip slots), NOT
+    // just bar headroom. The old `MAX_CHARGE - this.charge` clamp stalled
+    // absorption dead the instant the bar filled, which is why banking
+    // never happened in live play.
+    if (holdE && this.nearSource && this.energyHeadroom > 1e-9) {
       this.absorbing    = true;
       this.absorbTarget = this.nearSource;
-      const rate    = ABSORB_RATE;
-      const amount  = Math.min(rate * dt, MAX_CHARGE - this.charge, this.nearSource.charge);
-      const gained  = this.nearSource.drain(amount);
-      this.charge   += gained;
-      this._absorbFx = 0.15;
-      // Bar full → bank one pip and reset so absorbing continues
-      if (this.charge >= MAX_CHARGE && this.bankedPips < MAX_BANKED_PIPS) {
-        this.charge     = 0;
-        this.bankedPips++;
-        this._pipBankFx = 0.5;
+      const request  = Math.min(ABSORB_RATE * dt, this.nearSource.charge, this.energyHeadroom);
+      const drained  = this.nearSource.drain(request);
+      const accepted = this.giveEnergy(drained);
+      // Refund whatever wouldn't fit — energy is conserved, never deleted.
+      const refund = drained - accepted;
+      if (refund > 1e-9) {
+        this.nearSource.charge += refund;
+        this.nearSource.drained = this.nearSource.charge <= 0;
       }
+      this._absorbFx = 0.15;
     } else {
       this.absorbing    = false;
       this.absorbTarget = null;
@@ -373,54 +409,54 @@ export class Player {
   // Interaction model:
   //  • E is the universal context-sensitive interact button.
   //     - Near a source: absorb (see _updateAbsorb — runs first).
-  //     - Near a gate/switch with usable charge: discharge here.
-  //  • SPACE no longer discharges. SPACE is attack-only near enemies.
-  //  • Discharge spends from the active bar. When the bar drains to 0
-  //    while pips remain, `_applyBankReserve` at end-of-frame promotes
-  //    one pip to a full bar — same 16.67ms cadence Chief specified
-  //    ("consume 1 pip, immediately refill"). This works generically:
-  //    the same reserve logic covers damage and dev-P.
-  //  • Explicit pip-spend on a gate remains on F (_updatePipSpend).
+  //     - Near a gate/switch with usable energy: discharge here.
+  //  • SPACE is attack-only near enemies; it never touches energy.
+  //  • Discharge spends the active bar. The instant the bar runs dry with
+  //    a pip still stored, _pullReserve() promotes that pip to a full bar
+  //    IN THE SAME FRAME, so the transfer never visibly stalls.
+  //  • Affordability is asked via `usableEnergy` — same authority the HUD
+  //    prompt uses, so UI and gameplay can never disagree.
   _updateDischarge(dt, level) {
-    const holdE     = Input.heldAny('KeyE');
-    const hasCharge = this.charge > 0 || this.bankedPips > 0;
+    const holdE = Input.heldAny('KeyE');
 
     // Absorb takes priority when standing at a source — don't discharge
     // through the same E press that's feeding the bar.
-    if (!holdE || !this.grounded || !this.nearDevice || this.nearSource || !hasCharge) {
+    if (!holdE || !this.grounded || !this.nearDevice || this.nearSource || this.usableEnergy <= 1e-9) {
       this.discharging     = false;
       this.dischargeTarget = null;
       return;
     }
 
     const needed = this.nearDevice.required - this.nearDevice.charged;
-    if (needed <= 0) {
+    if (needed <= 1e-9) {
       this.discharging     = false;
       this.dischargeTarget = null;
       return;
     }
 
-    // Steady discharge rate. Since _applyBankReserve refills the bar to
-    // MAX_CHARGE the moment it empties (when a pip is available), we can
-    // always run at the full rate without the old bar-percent scaling.
-    const rate       = DISCHARGE_RATE;
-    const frameSpend = Math.min(rate * dt, this.charge, needed);
+    // Demand exists — if the bar is dry, pull the next stored battery now.
+    if (this.charge <= 1e-9) this._pullReserve();
 
-    if (frameSpend > 0) {
+    const frameSpend = Math.min(DISCHARGE_RATE * dt, this.charge, needed);
+
+    if (frameSpend > 1e-9) {
       this.charge          -= frameSpend;
       this.discharging      = true;
       this.dischargeTarget  = this.nearDevice;
       this._dischargeFx     = 0.15;
       this.nearDevice.receive(frameSpend);
     } else {
-      // Bar is exactly 0 this frame. If pips exist, _applyBankReserve
-      // will promote one at end-of-frame and discharge resumes next tick.
       this.discharging     = false;
       this.dischargeTarget = null;
     }
   }
 
   // ── Spend a banked pip at a gate (press F) ──────────────────────
+  // One pip = one full battery = MAX_CHARGE of energy. We hand the device
+  // as much of that battery as it still needs, through the SAME
+  // dev.receive() path normal discharge uses (so charged/open/react-anim
+  // all behave identically). Any surplus from the battery is NOT wasted —
+  // it lands in the active bar (Chief directive §4, preferred behavior).
   _updatePipSpend(dt, level) {
     if (!Input.pressedAny('KeyF')) return;
     if (this.bankedPips <= 0) return;
@@ -428,30 +464,33 @@ export class Player {
     const dev = this.nearDevice;
     if (dev.open || dev.on) return;
 
-    // One pip fully powers the device — contribute all remaining charge needed
     const needed = dev.required - dev.charged;
-    if (needed <= 0) return;
-    dev.receive(needed + 0.001);  // epsilon ensures the epsilon-guard inside receive() fires
+    if (needed <= 1e-9) return;
+
+    // Consume exactly one stored battery.
     this.bankedPips--;
-    this._pipSpendFx  = 0.5;
-    dev._pipFlash     = 0.5;     // gate flashes white for clear feedback
+    this._pipSpendFx = 0.5;
+
+    // Transfer up to a full battery's worth, capped by what's still needed.
+    const transfer = Math.min(MAX_CHARGE, needed);
+    dev.receive(transfer);          // same path as discharge → sets charged, fires _reactT, may open
+    dev._pipFlash = 0.5;            // extra white burst so a pip spend reads distinctly
+
+    // Surplus battery energy returns to the player rather than evaporating.
+    const surplus = MAX_CHARGE - transfer;
+    if (surplus > 1e-9) this.giveEnergy(surplus);
   }
 
   // ── Collect dropped charge pickups ───────────
+  // Also routes through giveEnergy() so a pickup that tops the bar out
+  // banks a pip exactly like source absorption does.
   _collectPickups(level) {
     for (const p of level.pickups) {
-      const barFull  = this.charge >= MAX_CHARGE;
-      const pipsFull = this.bankedPips >= MAX_BANKED_PIPS;
-      if (!p.done && p.collectable && p.inRange(this.cx, this.cy) && !(barFull && pipsFull)) {
-        p.done = true;
-        if (!barFull) {
-          this.charge = Math.min(MAX_CHARGE, this.charge + p.value);
-        } else {
-          // Bar full — bank directly into a pip
-          this.bankedPips = Math.min(MAX_BANKED_PIPS, this.bankedPips + 1);
-          this._pipBankFx = 0.3;
-        }
-      }
+      if (p.done || !p.collectable) continue;
+      if (!p.inRange(this.cx, this.cy)) continue;
+      if (this.energyHeadroom <= 1e-9) continue;   // completely full — leave it on the ground
+      const accepted = this.giveEnergy(p.value);
+      if (accepted > 1e-9) p.done = true;
     }
   }
 
@@ -494,22 +533,20 @@ export class Player {
   }
 
   // ── Charge scatter on hit ────────────────────────────────────────
-  // Has bar-charge   → drop 1 unit as a pickup, bar decreases.
-  // Bar empty + pip  → do nothing here; _applyBankReserve will promote
-  //                    a pip to the bar at end-of-frame. Player survived
-  //                    on their reserve, no pickup dropped.
+  // Bar has charge   → drop 1 unit as a recoverable pickup.
+  // Bar dry + pip    → pull one stored battery (demand-driven reserve) and
+  //                    drop 1 from the fresh bar. Player survives on reserve.
   // Nothing at all   → die.
   scatter(level) {
-    if (this.charge > 0) {
+    if (this.charge <= 1e-9) this._pullReserve();   // demand: taking a hit
+    if (this.charge > 1e-9) {
       this.charge = Math.max(0, this.charge - 1);
       const xDir = this._facingRight ? -1 : 1;
       const vx   = xDir * (110 + Math.random() * 70);
       const vy   = -170 - Math.random() * 60;
       level.pickups.push(new ChargePickup(this.cx, this.cy, 1, vx, vy));
-    } else if (this.bankedPips <= 0) {
-      // No bar, no pips → dead. If pips > 0, we intentionally do nothing;
-      // the shared bank-reserve promoter will fire end-of-frame, keeping
-      // the player alive on a full bar drawn from the pip reserve.
+    } else {
+      // No bar, no pips → dead.
       this.dead = true;
     }
   }

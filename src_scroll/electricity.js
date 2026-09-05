@@ -263,10 +263,17 @@ export class PowerGate {
       ctx.shadowBlur = 0;
       return;
     }
-    // Horizontal progress bar pinned just above ground level — always visible
+    // Charge progress bar — anchored to THIS GATE, just under its hitbox.
+    //
+    // BUGFIX (Chief QA §5 "stray graphic far below the gate"): this bar
+    // used to be drawn at a hardcoded world Y of 362 — a leftover from when
+    // every gate stood at ground level. Level 1's gate sits on a rooftop, so
+    // the bar rendered ~140px BELOW the gate as a detached purple sliver
+    // that read like a stray spritesheet fragment. It was never sprite bleed;
+    // it was this HUD element orphaned at a fixed Y. Now gate-relative.
     const barW = 48, barH = 6;
     const barX = this.cx - barW / 2;
-    const barY = 362;
+    const barY = this.y + this.h + 6;
     ctx.fillStyle = '#1a0030';
     ctx.fillRect(barX, barY, barW, barH);
     if (fill > 0) {
@@ -277,9 +284,9 @@ export class PowerGate {
       ctx.shadowBlur  = 0;
     }
 
-    // EXIT label only — no numbers, bar above conveys progress
+    // EXIT label — sits below the progress bar, also gate-relative.
     if (this.isExit) {
-      const labelY = Math.min(this.y + this.h + 14, 435);
+      const labelY = barY + barH + 11;
       ctx.fillStyle = '#aa44ff';
       ctx.font      = 'bold 10px monospace';
       ctx.textAlign = 'center';

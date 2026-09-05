@@ -253,9 +253,10 @@ function _drawContextPrompts(ctx, player, t) {
     const cx        = dev.cx;
     const cy        = dev.y - 20;
     const needed    = dev.required - dev.charged;
-    // Total energy the player could send here right now.
-    const usable    = player.charge + player.bankedPips * MAX_CHARGE;
-    const hasEnough = usable >= needed - 1e-9;
+    // SINGLE AUTHORITY: player.usableEnergy is the same getter the
+    // gameplay interaction uses. UI can never disagree with what pressing
+    // E will actually accomplish.
+    const hasEnough = player.canAfford(needed);
 
     ctx.save();
     ctx.globalAlpha = pulse;
