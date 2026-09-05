@@ -356,6 +356,63 @@ export function placeAssetAt(asset, worldX, worldY) {
   return false;
 }
 
+// ── Asset drag from sidebar ──────────────────────────────────────────────
+// HTML5 native drag-and-drop is unreliable across browsers (Firefox in
+// particular has quirks with drag from children of scrollable containers,
+// and popup-block/permission state can interfere). Instead we use raw
+// pointer events, tracking mousedown → move → up on the document. This is
+// deterministic and browser-neutral.
+//
+// UX:
+//   pointerdown on thumbnail    → arm potential drag
+//   move past 4px threshold     → enter drag mode, cursor: grabbing
+//   pointerup over canvas       → placeAssetAt at cursor
+//   pointerup elsewhere         → do nothing (asset stays selected via click)
+export function startAssetDrag(asset, initialEvt) {
+  if (!asset || asset.isAnimation) return;
+  const DRAG_THRESHOLD_PX = 4;
+  const startClientX = initialEvt.clientX;
+  const startClientY = initialEvt.clientY;
+  let dragging = false;
+  const prevCursor = document.body.style.cursor;
+
+  const onMove = (e) => {
+    if (!dragging) {
+      const dx = e.clientX - startClientX;
+      const dy = e.clientY - startClientY;
+      if (dx * dx + dy * dy < DRAG_THRESHOLD_PX * DRAG_THRESHOLD_PX) return;
+      dragging = true;
+      document.body.style.cursor = 'grabbing';
+    }
+  };
+  const cleanup = () => {
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup',   onUp);
+    document.removeEventListener('pointercancel', onUp);
+    document.body.style.cursor = prevCursor;
+  };
+  const onUp = (e) => {
+    const wasDragging = dragging;
+    cleanup();
+    if (!wasDragging) return;                                // click, not drag
+    const canvas = document.getElementById('editor-canvas');
+    if (!canvas) return;
+    const r = canvas.getBoundingClientRect();
+    const inCanvas = e.clientX >= r.left && e.clientX < r.right
+                  && e.clientY >= r.top  && e.clientY < r.bottom;
+    if (!inCanvas) return;                                   // released outside canvas
+    // Convert to world coords using SAME CSS→backing scaling as click coord.
+    const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
+    const scaleY = r.height > 0 ? canvas.height / r.height : 1;
+    const sx = (e.clientX - r.left) * scaleX;
+    const sy = (e.clientY - r.top)  * scaleY;
+    const w  = screenToWorld(sx, sy);
+    placeAssetAt(asset, w.x, w.y);
+  };
+  document.addEventListener('pointermove',   onMove);
+  document.addEventListener('pointerup',     onUp);
+  document.addEventListener('pointercancel', onUp);
+}
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
 // Behavior:
 //   • Terrain-category asset (or none): paint tile-1 into grid (drag OK)

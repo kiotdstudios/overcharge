@@ -7,8 +7,7 @@ import {
 } from './state.js';
 import { render } from './renderer.js';
 import { mountAssetBrowser } from './assets.js';
-import { TOOLS, middleMousePan, wheelZoom, placeAssetAt } from './tools.js';
-import { screenToWorld } from './state.js';
+import { TOOLS, middleMousePan, wheelZoom } from './tools.js';
 import * as History from './history.js';
 import * as Clipboard from './clipboard.js';
 import * as Selection from './selection.js';
@@ -223,34 +222,10 @@ window.addEventListener('mouseup',   (e) => TOOLS[state.tool]?.onMouseUp?.  (e, 
 middleMousePan(canvas);
 wheelZoom(canvas);
 
-// ── Drag-and-drop from asset browser ─────────────────────────────────────
-// Assets in the sidebar are draggable (see assets.js). The canvas accepts
-// their drop and places the asset at the drop coordinate using the same
-// placement primitive the Place tool uses (tools.js placeAssetAt), so the
-// two paths cannot drift apart. Terrain assets paint a tile; non-terrain
-// assets create a decoration with native dims + snap.
-canvas.addEventListener('dragover', (e) => {
-  // Must preventDefault to allow the drop event to fire.
-  e.preventDefault();
-  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy';
-});
-canvas.addEventListener('drop', (e) => {
-  e.preventDefault();
-  const id = e.dataTransfer?.getData('application/x-overcharge-asset-id')
-          || e.dataTransfer?.getData('text/plain');
-  if (!id) return;
-  const asset = state.manifest?.items?.find(a => a.id === id);
-  if (!asset) return;
-  // Convert drop screen coord to world using the SAME scaling we use for
-  // mouse clicks — CSS pixels → backing pixels → world.
-  const r = canvas.getBoundingClientRect();
-  const sxCSS = e.clientX - r.left;
-  const syCSS = e.clientY - r.top;
-  const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
-  const scaleY = r.height > 0 ? canvas.height / r.height : 1;
-  const w = screenToWorld(sxCSS * scaleX, syCSS * scaleY);
-  placeAssetAt(asset, w.x, w.y);
-});
+// Note: asset drag from sidebar → canvas is handled entirely in tools.js
+// (startAssetDrag) via pointer events, called from assets.js on pointerdown.
+// HTML5 native drag-and-drop was removed here because it was unreliable
+// across browsers.
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────
 window.addEventListener('keydown', async (e) => {
