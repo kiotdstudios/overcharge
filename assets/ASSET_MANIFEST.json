@@ -480,11 +480,14 @@
       }
     },
     {
-      "id": "env_platform_long_a",
+      "id": "env_pipe_segment_long_a",
       "path": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "category": "platform",
+      "category": "prop",
       "tags": [
-        "platform",
+        "pipe",
+        "conduit",
+        "rooftop",
+        "detail",
         "purple_city"
       ],
       "frame_width": 45,
@@ -497,22 +500,25 @@
       "generation": {
         "eligible": true,
         "roles": [
-          "structural",
-          "walkable",
-          "grounded"
+          "decorative",
+          "rooftop",
+          "small"
         ],
-        "surface": "floating",
-        "layer": "midground",
-        "density": "sparse",
-        "stackable": false
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
       }
     },
     {
-      "id": "env_platform_medium",
+      "id": "env_pipe_segment_medium",
       "path": "assets/tilesets/purple_city/platforms/platform_medium.png",
-      "category": "platform",
+      "category": "prop",
       "tags": [
-        "platform",
+        "pipe",
+        "conduit",
+        "rooftop",
+        "detail",
         "purple_city"
       ],
       "frame_width": 39,
@@ -525,22 +531,25 @@
       "generation": {
         "eligible": true,
         "roles": [
-          "structural",
-          "walkable",
-          "grounded"
+          "decorative",
+          "rooftop",
+          "small"
         ],
-        "surface": "floating",
-        "layer": "midground",
+        "surface": "rooftop",
+        "layer": "foreground",
         "density": "medium",
-        "stackable": false
+        "stackable": true
       }
     },
     {
-      "id": "env_platform_short_a",
+      "id": "env_pipe_segment_short_a",
       "path": "assets/tilesets/purple_city/platforms/platform_short_a.png",
-      "category": "platform",
+      "category": "prop",
       "tags": [
-        "platform",
+        "pipe",
+        "conduit",
+        "rooftop",
+        "detail",
         "purple_city"
       ],
       "frame_width": 21,
@@ -553,14 +562,14 @@
       "generation": {
         "eligible": true,
         "roles": [
-          "structural",
-          "walkable",
+          "decorative",
+          "rooftop",
           "small"
         ],
-        "surface": "floating",
-        "layer": "midground",
+        "surface": "rooftop",
+        "layer": "foreground",
         "density": "medium",
-        "stackable": false
+        "stackable": true
       }
     },
     {
@@ -651,13 +660,14 @@
       }
     },
     {
-      "id": "env_crate_large",
+      "id": "env_tile_purple_edge_ref",
       "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "category": "container",
+      "category": "construction_tile",
       "tags": [
-        "container",
-        "purple_city",
-        "crate"
+        "construction",
+        "purple_edge",
+        "reference",
+        "purple_city"
       ],
       "frame_width": 50,
       "frame_height": 50,
@@ -667,17 +677,8 @@
       "loop": false,
       "notes": "",
       "generation": {
-        "eligible": true,
-        "roles": [
-          "decorative",
-          "grounded",
-          "structural",
-          "large"
-        ],
-        "surface": "ground_level",
-        "layer": "foreground",
-        "density": "medium",
-        "stackable": true
+        "eligible": false,
+        "ineligible_reason": "50\u00d750 visual reference for the env_edge_purple_* construction family; use env_edge_purple_* tiles for level building"
       }
     },
     {
@@ -1576,6 +1577,705 @@
         "layer": "background",
         "density": "sparse",
         "stackable": false
+      }
+    },
+    {
+      "id": "env_building_bar_sign",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_bar_sign.png",
+      "frame_width": 22,
+      "frame_height": 35,
+      "tags": [
+        "background",
+        "building",
+        "sign",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_brick_windows",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_brick_windows.png",
+      "frame_width": 45,
+      "frame_height": 28,
+      "tags": [
+        "background",
+        "building",
+        "brick",
+        "windows",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_door",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_door.png",
+      "frame_width": 30,
+      "frame_height": 24,
+      "tags": [
+        "background",
+        "building",
+        "door",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_neon_door",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_neon_door.png",
+      "frame_width": 54,
+      "frame_height": 55,
+      "tags": [
+        "background",
+        "building",
+        "neon",
+        "door",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_building_neon_panel",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_neon_panel.png",
+      "frame_width": 30,
+      "frame_height": 53,
+      "tags": [
+        "background",
+        "building",
+        "neon",
+        "panel",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_building_striped_tall",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_striped_tall.png",
+      "frame_width": 51,
+      "frame_height": 62,
+      "tags": [
+        "background",
+        "building",
+        "tall",
+        "striped",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background",
+          "large"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_building_teal_sign",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_teal_sign.png",
+      "frame_width": 33,
+      "frame_height": 42,
+      "tags": [
+        "background",
+        "building",
+        "sign",
+        "teal",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_building_windows_wide",
+      "category": "background",
+      "path": "assets/tilesets/purple_city/buildings/building_windows_wide.png",
+      "frame_width": 45,
+      "frame_height": 30,
+      "tags": [
+        "background",
+        "building",
+        "windows",
+        "wide",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "background"
+        ],
+        "surface": "background",
+        "layer": "background",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_container_small_b",
+      "category": "container",
+      "path": "assets/tilesets/purple_city/containers/container_small_b.png",
+      "frame_width": 18,
+      "frame_height": 16,
+      "tags": [
+        "container",
+        "small",
+        "clutter",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "small"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_tile_purple_edge_hollow_ref",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/containers/crate_large_hollow.png",
+      "frame_width": 50,
+      "frame_height": 50,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "hollow",
+        "reference",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Hollow variant of env_tile_purple_edge_ref; part of purple-edge construction reference set. Use env_edge_purple_* for building."
+      }
+    },
+    {
+      "id": "env_tech_panel_wide",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/containers/crates_double.png",
+      "frame_width": 60,
+      "frame_height": 34,
+      "tags": [
+        "prop",
+        "tech",
+        "panel",
+        "equipment",
+        "ground_level",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded",
+          "large"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_pipe_segment_long_b",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/platforms/platform_long_b.png",
+      "frame_width": 49,
+      "frame_height": 12,
+      "tags": [
+        "pipe",
+        "conduit",
+        "rooftop",
+        "detail",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_platform_short_b",
+      "category": "platform",
+      "path": "assets/tilesets/purple_city/platforms/platform_short_b.png",
+      "frame_width": 24,
+      "frame_height": 12,
+      "tags": [
+        "platform",
+        "short",
+        "walkable",
+        "small",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "grounded",
+          "small"
+        ],
+        "surface": "floating",
+        "layer": "midground",
+        "density": "medium",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_prop_bracket_corner",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/bracket_corner.png",
+      "frame_width": 8,
+      "frame_height": 9,
+      "tags": [
+        "prop",
+        "bracket",
+        "rooftop",
+        "small",
+        "detail",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop",
+          "small"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_prop_pipe_elbow",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/pipe_elbow.png",
+      "frame_width": 19,
+      "frame_height": 27,
+      "tags": [
+        "prop",
+        "pipe",
+        "rooftop",
+        "detail",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "rooftop"
+        ],
+        "surface": "rooftop",
+        "layer": "foreground",
+        "density": "medium",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_prop_sign_arrow_up",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/sign_arrow_up.png",
+      "frame_width": 31,
+      "frame_height": 47,
+      "tags": [
+        "prop",
+        "sign",
+        "arrow",
+        "up",
+        "directional",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_prop_tool_hammer",
+      "category": "prop",
+      "path": "assets/tilesets/purple_city/props/tool_hammer.png",
+      "frame_width": 25,
+      "frame_height": 20,
+      "tags": [
+        "prop",
+        "tool",
+        "hammer",
+        "detail",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decorative",
+          "grounded"
+        ],
+        "surface": "ground_level",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_edge_purple_fill",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_fill.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "fill",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_top",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "top",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_bottom",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "bottom",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_left",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_left.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "left",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_right",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_right.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "right",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_top_left",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_left.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "top_left",
+        "corner",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_top_right",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_right.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "top_right",
+        "corner",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_bottom_left",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_left.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "bottom_left",
+        "corner",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_edge_purple_bottom_right",
+      "category": "construction_tile",
+      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_right.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "tags": [
+        "construction",
+        "purple_edge",
+        "bottom_right",
+        "corner",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_waste_platform_short",
+      "category": "modular_construction",
+      "family": "waste_platform",
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_short.png",
+      "frame_width": 16,
+      "frame_height": 5,
+      "tags": [
+        "waste",
+        "platform",
+        "slime",
+        "green",
+        "modular",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": false,
+        "roles": [
+          "modular_construction"
+        ],
+        "notes": "Modular waste platform segment \u2014 place via construction system, not random generation."
+      }
+    },
+    {
+      "id": "env_waste_platform_long",
+      "category": "modular_construction",
+      "family": "waste_platform",
+      "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
+      "frame_width": 21,
+      "frame_height": 5,
+      "tags": [
+        "waste",
+        "platform",
+        "slime",
+        "green",
+        "modular",
+        "tileable",
+        "purple_city"
+      ],
+      "generation": {
+        "eligible": false,
+        "roles": [
+          "modular_construction"
+        ],
+        "notes": "Modular waste platform segment \u2014 place via construction system, not random generation."
       }
     }
   ]
