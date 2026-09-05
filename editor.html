@@ -165,6 +165,19 @@
     <button id="gen-go" type="button" class="primary" style="background: #223250; border: 1px solid #44ccff; color: #cceeff; padding: 4px 12px;">GENERATE</button>
   </div>
   <div id="gen-status" style="margin-top: 10px; font-size: 10px; color: #779;"></div>
+
+</dialog>
+
+<!-- Confirm-discard dialog — used by NEW / DUPLICATE / GENERATE / level-switch
+     when the current level is dirty. Uses native <dialog> instead of
+     window.confirm() so it can't be disabled by Chrome's popup-block chip. -->
+<dialog id="confirm-dialog" style="background: #0f1420; color: #cdd; border: 1px solid #ff8800; padding: 18px 22px; font-family: monospace; min-width: 320px;">
+  <h2 style="font-size: 13px; letter-spacing: 2px; color: #ff8800; margin-bottom: 10px;">⚠ UNSAVED CHANGES</h2>
+  <p id="confirm-message" style="font-size: 12px; line-height: 1.5; color: #cdd; margin-bottom: 16px;">You have unsaved changes. Continue anyway?</p>
+  <div style="display: flex; gap: 8px; justify-content: flex-end;">
+    <button id="confirm-cancel" type="button">CANCEL</button>
+    <button id="confirm-ok" type="button" style="background: #442200; border: 1px solid #ff8800; color: #ffcc88; padding: 4px 12px;">DISCARD & CONTINUE</button>
+  </div>
 </dialog>
 
 <script type="module" src="editor/main.js"></script>

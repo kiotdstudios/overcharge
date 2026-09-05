@@ -221,7 +221,38 @@ function _promptNumber(msg, def) {
   return n;
 }
 
+// In-page confirm using <dialog id="confirm-dialog"> so browser popup-block
+// permissions can't silently kill our flows. Falls back to window.confirm
+// only if the dialog element is missing from the page.
 async function _confirmDiscardIfDirty(msg) {
   if (!state.dirty) return true;
-  return window.confirm(msg);
+
+  const dialog = typeof document !== 'undefined' && document.getElementById('confirm-dialog');
+  const msgEl  = typeof document !== 'undefined' && document.getElementById('confirm-message');
+  const okBtn  = typeof document !== 'undefined' && document.getElementById('confirm-ok');
+  const cxBtn  = typeof document !== 'undefined' && document.getElementById('confirm-cancel');
+
+  if (!dialog || !okBtn || !cxBtn || typeof dialog.showModal !== 'function') {
+    // Fallback for browsers without <dialog> support or missing DOM.
+    return window.confirm(msg);
+  }
+
+  if (msgEl) msgEl.textContent = msg;
+
+  return new Promise((resolve) => {
+    const cleanup = (v) => {
+      okBtn.removeEventListener('click', onOk);
+      cxBtn.removeEventListener('click', onCancel);
+      dialog.removeEventListener('close', onClose);
+      try { if (dialog.open) dialog.close(); } catch {}
+      resolve(v);
+    };
+    const onOk     = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    const onClose  = () => cleanup(false);   // Esc / backdrop dismiss = cancel
+    okBtn.addEventListener('click', onOk);
+    cxBtn.addEventListener('click', onCancel);
+    dialog.addEventListener('close', onClose);
+    dialog.showModal();
+  });
 }

@@ -133,17 +133,26 @@ function collectGenOpts() {
 async function runGeneration(opts) {
   try {
     const result = Generator.generateLevel(opts);
+    // Close the generator dialog BEFORE the persistence layer may open the
+    // confirm-discard dialog. Two <dialog>.showModal() calls stacked without
+    // closing the first throws InvalidStateError in most browsers.
+    const wasOpen = genDialog && genDialog.open;
+    if (wasOpen) try { genDialog.close(); } catch {}
     const ok = await Persistence.loadInMemoryLevel(result.level, {
       confirmMessage: 'Discard unsaved changes and load a generated level?',
     });
+    // Reopen the generator dialog so Chief can immediately regenerate or copy the seed.
+    if (wasOpen && genDialog && !genDialog.open) try { genDialog.showModal(); } catch {}
     if (ok) {
       // Reflect seed back into the input so Chief can copy or regenerate deterministically.
       if (genSeedInput) genSeedInput.value = String(result.seed);
       genStatus.textContent = `✓ ${result.name} · seed ${result.seed} · ${result.retries} internal retries`;
+    } else if (genStatus) {
+      genStatus.textContent = 'Cancelled — no changes.';
     }
   } catch (err) {
     console.error('[generator]', err);
-    genStatus.textContent = `✗ ${err.message}`;
+    if (genStatus) genStatus.textContent = `✗ ${err.message}`;
   }
 }
 btnGenerate?.addEventListener('click', () => {
