@@ -25,32 +25,64 @@
 // never on bootstrap. Level JSON stored here needs no permission at all,
 // which is what makes automatic restore-on-boot possible.
 
-const DB_NAME    = 'overcharge-editor';
-const DB_VERSION = 1;
-const STORE      = 'kv';
+// ── Shared database ───────────────────────────────────────────────────────
+// THIS MODULE OWNS THE CONNECTION. Both this module and snapshots.js use the
+// same IndexedDB database, so the version and the upgrade path MUST live in
+// exactly one place.
+//
+// Why: an earlier split had localstore open v1 while snapshots opened v2. If
+// localstore connected first, its open v1 connection BLOCKED the v2 upgrade and
+// the editor hung forever waiting on `onblocked`. If snapshots connected first,
+// localstore's v1 open failed with VersionError and silently lost save mirroring.
+// One version + one upgrade function + one cached connection removes both
+// failure modes. snapshots.js imports openDB() from here rather than opening
+// its own.
+export const DB_NAME    = 'overcharge-editor';
+export const DB_VERSION = 2;          // v1: kv only. v2: + snapshots store.
+export const STORE_KV   = 'kv';       // save mirror + save-folder handle
+export const STORE_SNAP = 'snapshots';// level version history (snapshots.js)
 
+const STORE = STORE_KV;               // this module's own store
+
+// Keys within the kv store.
 const KEY_DIR_HANDLE = 'saveDirHandle';
-const LEVEL_PREFIX   = 'level:';   // level:<levelKey>
+const LEVEL_PREFIX   = 'level:';      // level:<levelKey>
 
 let _dbPromise = null;
 
-function _open() {
+/** Open (once) and return the shared connection. Creates every object store. */
+export function openDB() {
   if (_dbPromise) return _dbPromise;
   _dbPromise = new Promise((resolve, reject) => {
     if (typeof indexedDB === 'undefined') { reject(new Error('IndexedDB unavailable')); return; }
     const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE);
+      // Guarded creates: a v1 database keeps its existing kv contents and only
+      // gains the snapshots store.
+      if (!db.objectStoreNames.contains(STORE_KV)) db.createObjectStore(STORE_KV);
+      if (!db.objectStoreNames.contains(STORE_SNAP)) {
+        const os = db.createObjectStore(STORE_SNAP, { keyPath: 'id' });
+        os.createIndex('levelKey',  'levelKey',  { unique: false });
+        os.createIndex('createdAt', 'createdAt', { unique: false });
+      }
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      const db = req.result;
+      // If another tab requests a newer version, close so it is not blocked.
+      db.onversionchange = () => { try { db.close(); } catch {} _dbPromise = null; };
+      resolve(db);
+    };
     req.onerror   = () => reject(req.error);
+    req.onblocked = () => reject(new Error('IndexedDB upgrade blocked by another open tab'));
   });
   // Never cache a rejected promise — a transient failure would poison every
   // later call for the lifetime of the page.
   _dbPromise.catch(() => { _dbPromise = null; });
   return _dbPromise;
 }
+
+const _open = openDB;   // internal alias, keeps the rest of this file unchanged
 
 async function _tx(mode, fn) {
   const db = await _open();

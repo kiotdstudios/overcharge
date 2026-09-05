@@ -17,6 +17,7 @@ import * as Generator   from './generator.js';
 import * as Actions     from './actions.js';
 import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
 import { BUILD } from './buildinfo.js';
+import * as SnapUI from './snapshotui.js';
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -149,8 +150,14 @@ btnRotate?.addEventListener('click', () => _applyRotate(90));
 // ── Level workflow wiring ─────────────────────────────────────────────────
 btnUndo?.addEventListener('click', () => History.undo());
 btnRedo?.addEventListener('click', () => History.redo());
-btnNew?.addEventListener('click', async () => { await Persistence.newLevel(); });
-btnDuplicate?.addEventListener('click', async () => { await Persistence.duplicateLevel(); });
+btnNew?.addEventListener('click', async () => {
+  await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_NEW);
+  await Persistence.newLevel();
+});
+btnDuplicate?.addEventListener('click', async () => {
+  await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_REPLACE);
+  await Persistence.duplicateLevel();
+});
 
 // ── Test Level ────────────────────────────────────────────────────────────
 // Hand the current in-memory level to the game runtime for a playable
@@ -219,6 +226,7 @@ async function runGeneration(opts) {
     // closing the first throws InvalidStateError in most browsers.
     const wasOpen = genDialog && genDialog.open;
     if (wasOpen) try { genDialog.close(); } catch {}
+    await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_GENERATE);
     const ok = await Persistence.loadInMemoryLevel(result.level, {
       confirmMessage: 'Discard unsaved changes and load a generated level?',
     });
@@ -259,6 +267,9 @@ genSeedCopy?.addEventListener('click', async () => {
 });
 btnSave?.addEventListener('click', async () => {
   const r = await Persistence.saveCurrentLevel();
+  // Snapshot on a SUCCESSFUL save, but only if the level changed since the last
+  // snapshot — repeated saves of identical content must not fill history.
+  if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
   // A successful save writes to local disk + IndexedDB, never to the server.
   // Record that so the parity strip stops claiming "in sync with committed".
   showSaveFlash(r);
@@ -275,6 +286,8 @@ levelSelect?.addEventListener('change', async (e) => {
   const entry = list[idx];
   const priorValue = levelSelect._priorValue || '';
   if (!entry) return;
+  // Loading another level replaces everything on screen — snapshot first.
+  await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_LOAD);
   const ok = await Persistence.switchToLevel(entry);
   if (!ok) e.target.value = priorValue;
   else levelSelect._priorValue = e.target.value;
@@ -321,6 +334,7 @@ window.addEventListener('keydown', async (e) => {
       e.preventDefault();
       const r = await Persistence.saveCurrentLevel();
       showSaveFlash(r);
+      if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
       if (r.ok) {
         try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
       }
@@ -594,6 +608,7 @@ uploadInput?.addEventListener('change', async () => {
     const err = _validateLevelShape(parsed);
     if (err) throw new Error('rejected — ' + err);
     const normalized = _normalizeUploadedLevel(parsed);
+    await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_IMPORT);
     const ok = await Persistence.loadInMemoryLevel(normalized, {
       confirmMessage: `Discard unsaved changes and load "${normalized.name}" from ${file.name}?`,
       syntheticKey:   'upload:' + file.name,
@@ -704,6 +719,10 @@ async function _handleRecoveryOnBoot() {
     const normalized = _normalizeUploadedLevel(snap.level);
     // Force-load: recovery has its own confirm dialog; bypass the "dirty" prompt.
     state.dirty = false;
+    // Crash recovery is about to replace the committed level that just loaded.
+    // Snapshot it first: recovery and snapshots are separate systems, and one
+    // must never destroy the other's evidence.
+    await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_RECOVERY);
     await Persistence.loadInMemoryLevel(normalized, {
       confirmMessage: '',   // never actually shown; state.dirty=false forces bypass
       syntheticKey:   'recovery:' + (snap.savedAt || Date.now()),
@@ -748,6 +767,11 @@ async function bootstrap() {
     // true until after the prompt resolves so we don't overwrite the
     // recovery with the freshly-loaded default level.
     logLevelSource('[editor] BUILDER', DEFAULT_LEVEL_URL + '  (authoritative committed JSON)', state.level);
+    // Snapshot system: wire the UI, then record the freshly-loaded level as the
+    // baseline so an immediate SAVE of an unmodified level does not create a
+    // pointless "on save" snapshot.
+    SnapUI.initSnapshotUI();
+    SnapUI.seedBaseline(state.level);
     await _handleRecoveryOnBoot();
     _recoverySuppress = false;
     console.info(`[editor] Boot OK — ${state.availableLevels.length} level(s), FSA save: ${Persistence.hasFSA() ? 'yes' : 'no (download-only)'}`);
