@@ -31,9 +31,62 @@ import * as Selection from './selection.js';
 // (`new:<number>`) for NEW/DUPLICATE levels not yet saved anywhere.
 const _handles = new Map();
 
+// Directory handle for the levels folder Chief picks on first save.
+// Once set, ALL saves silently write levelN.json into this folder — no
+// per-file picker. Chief picks src_scroll/levels/ once, done.
+let _saveDirHandle = null;
+
 // Tier-1 available? Chrome/Edge yes, Firefox/Safari no.
 export function hasFSA() {
   return typeof window !== 'undefined' && typeof window.showSaveFilePicker === 'function';
+}
+// Does the browser support the directory-picker flow?
+function _hasDirPicker() {
+  return typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+}
+
+// Ensure we have a writable directory handle to save levels into.
+// Chief picks the folder ONCE via the browser's native folder picker; the
+// handle is cached for the whole session and every subsequent save writes
+// directly, no additional prompts. Returns the handle or null on decline.
+async function _ensureSaveDir() {
+  // If we already have a handle, verify permission is still granted.
+  if (_saveDirHandle) {
+    try {
+      const q = await _saveDirHandle.queryPermission({ mode: 'readwrite' });
+      if (q === 'granted') return _saveDirHandle;
+      const r = await _saveDirHandle.requestPermission({ mode: 'readwrite' });
+      if (r === 'granted') return _saveDirHandle;
+      // Permission revoked — clear and re-pick.
+      _saveDirHandle = null;
+    } catch { _saveDirHandle = null; }
+  }
+  if (!_hasDirPicker()) return null;
+  try {
+    // `id` groups these picks so browsers remember the last-chosen location
+    // across editor sessions (Chrome does; result is: after the first pick,
+    // future editor reboots open the picker directly at the levels folder).
+    _saveDirHandle = await window.showDirectoryPicker({
+      id: 'overcharge-levels',
+      startIn: 'documents',
+      mode: 'readwrite',
+    });
+    return _saveDirHandle;
+  } catch (err) {
+    if (err && err.name === 'AbortError') return null;   // user cancelled
+    console.error('[persistence] Directory picker failed:', err);
+    return null;
+  }
+}
+
+// Public: let the user re-pick the save folder (e.g. moved repo, wrong pick).
+export async function chooseSaveFolder() {
+  _saveDirHandle = null;
+  return await _ensureSaveDir();
+}
+// Public: current save folder name for UI display.
+export function saveFolderName() {
+  return _saveDirHandle ? _saveDirHandle.name : null;
 }
 
 // ── Level discovery (dropdown population) ────────────────────────────────
@@ -61,21 +114,49 @@ export async function saveCurrentLevel() {
   const L = state.level;
   if (!L) return { ok: false, method: 'none', message: 'No level loaded.' };
   const json = JSON.stringify(L, null, 2);
-  const key = state.levelPath || `new:${L.number ?? 'x'}`;
+  const filename = `level${L.number ?? ''}.json`;
 
-  // Tier 1: File System Access API
+  // ── Preferred path: write into the chosen save folder ────────────────
+  // Chief picks the folder once (via native folder picker). Subsequent
+  // saves for every level silently write levelN.json into it. No per-file
+  // picker after first pick.
+  const dir = await _ensureSaveDir();
+  if (dir) {
+    try {
+      const fh = await dir.getFileHandle(filename, { create: true });
+      const w  = await fh.createWritable();
+      await w.write(json);
+      await w.close();
+      state.dirty = false;
+      state.lastSavedAt = Date.now();
+      notify();
+      return { ok: true, method: 'fsa-dir', message: `Saved to ${dir.name}/${filename}` };
+    } catch (err) {
+      // Permission revoked / disk full / whatever — clear the dir and try
+      // the per-file picker below as a last-ditch effort.
+      console.error('[persistence] Directory write failed, falling back:', err);
+      _saveDirHandle = null;
+    }
+  }
+
+  // ── Legacy tier: per-file showSaveFilePicker ────────────────────────
+  // Only used if the browser doesn't support showDirectoryPicker
+  // (Firefox/Safari today), OR Chief cancelled the folder pick above.
+  const key = state.levelPath || `new:${L.number ?? 'x'}`;
   if (hasFSA()) {
     let handle = _handles.get(key);
     if (!handle) {
       try {
         handle = await window.showSaveFilePicker({
-          suggestedName: `level${L.number ?? ''}.json`,
+          id: 'overcharge-levels',
+          startIn: 'documents',
+          suggestedName: filename,
           types: [{ description: 'Level JSON', accept: { 'application/json': ['.json'] } }],
         });
       } catch (err) {
-        // User cancelled the picker — no error, no save.
-        if (err.name === 'AbortError') return { ok: false, method: 'fsa', message: 'Save cancelled.' };
-        // Any other error — fall through to blob tier.
+        if (err && err.name === 'AbortError') {
+          return { ok: false, method: 'fsa', message: 'Save cancelled.' };
+        }
       }
     }
     if (handle) {
@@ -89,20 +170,21 @@ export async function saveCurrentLevel() {
         notify();
         return { ok: true, method: 'fsa', message: `Saved to ${handle.name}` };
       } catch (err) {
-        // Permission revoked, disk full, etc. Drop the handle, retry via blob.
         _handles.delete(key);
-        console.error('[persistence] FSA write failed, falling back to download:', err);
+        console.error('[persistence] FSA write failed, falling back:', err);
       }
     }
   }
 
-  // Tier 2: Blob download
+  // ── Final tier: Blob download ───────────────────────────────────────
+  // Firefox/Safari, or when both prior paths failed. Chief manually places
+  // the downloaded file into src_scroll/levels/.
   try {
     const blob = new Blob([json], { type: 'application/json' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
     a.href = url;
-    a.download = `level${L.number ?? ''}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -110,7 +192,7 @@ export async function saveCurrentLevel() {
     state.dirty = false;
     state.lastSavedAt = Date.now();
     notify();
-    return { ok: true, method: 'download', message: `Downloaded ${a.download} — place in src_scroll/levels/ and refresh.` };
+    return { ok: true, method: 'download', message: `Downloaded ${filename} — place in src_scroll/levels/ and refresh.` };
   } catch (err) {
     console.error('[persistence] Blob download failed:', err);
     return { ok: false, method: 'error', message: 'Save failed: ' + err.message };
