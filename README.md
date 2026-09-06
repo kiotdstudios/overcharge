@@ -17,8 +17,8 @@ No install. Works in any modern browser.
 | ↑ / W | Jump |
 | ↓ / S + jump | Drop through one-way platform |
 | **E** (hold, near source) | Absorb electricity |
+| **E** (hold, near gate or switch) | Discharge usable energy |
 | **Space** (near enemy) | Attack |
-| **Space** (hold, near gate) | Discharge into gate |
 | X | Brake |
 | R | Retry on Game Over |
 
