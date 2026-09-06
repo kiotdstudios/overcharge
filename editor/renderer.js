@@ -395,41 +395,57 @@ function _drawSources(ctx, arr) {
   }
 }
 
-// Gate: filled semi-transparent rect with border + diagonal hatching so it is
-// obviously a gate even at low zoom. Color by type.
+// Gate: render the 64×128 gate sprite matching the game draw call.
+// Sprite: horizontally centered on hitbox, bottom-aligned to hitbox bottom.
+// dX = cx - 32 = (g.x + g.w/2) - 32
+// dY = (g.y + g.h) - 128
+// Falls back to filled+hatched rect while image loads.
 function _drawGates(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
+  const SPRITE_W = 64, SPRITE_H = 128;
   for (const g of arr) {
-    const p  = worldToScreen(g.x, g.y);
-    const gw = g.w * z, gh = g.h * z;
+    const cx = g.x + g.w / 2;
+    const spriteX = cx - SPRITE_W / 2;
+    const spriteY = (g.y + g.h) - SPRITE_H;
+    const sp = worldToScreen(spriteX, spriteY);
+    const sw = SPRITE_W * z, sh = SPRITE_H * z;
     const color = g.isExit ? MARKER.exitGate : (g.blockOnly ? MARKER.barrier : MARKER.gate);
-    // Subtle fill
-    ctx.fillStyle = color; ctx.globalAlpha = 0.15;
-    ctx.fillRect(p.x, p.y, gw, gh);
-    ctx.globalAlpha = 1;
-    // Diagonal hatch inside gate so it reads as a solid barrier
-    ctx.save();
-    ctx.beginPath(); ctx.rect(p.x, p.y, gw, gh); ctx.clip();
-    ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
-    const step = Math.max(8, 14 * z);
-    for (let i = -gh; i < gw + gh; i += step) {
-      ctx.beginPath(); ctx.moveTo(p.x + i, p.y); ctx.lineTo(p.x + i + gh, p.y + gh); ctx.stroke();
+
+    const img = getImage('assets/objects/gate_closed.png');
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, sp.x, sp.y, sw, sh);
+    } else {
+      // Fallback: hatched rect over the hitbox while image loads
+      const hp = worldToScreen(g.x, g.y);
+      const gw = g.w * z, gh = g.h * z;
+      ctx.fillStyle = color; ctx.globalAlpha = 0.15;
+      ctx.fillRect(hp.x, hp.y, gw, gh);
+      ctx.globalAlpha = 1;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(hp.x, hp.y, gw, gh); ctx.clip();
+      ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
+      const step = Math.max(8, 14 * z);
+      for (let i = -gh; i < gw + gh; i += step) {
+        ctx.beginPath(); ctx.moveTo(hp.x + i, hp.y); ctx.lineTo(hp.x + i + gh, hp.y + gh); ctx.stroke();
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = color; ctx.lineWidth = 2;
+      ctx.strokeRect(hp.x, hp.y, gw, gh);
+      img.onload = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event('_editorRepaint')); };
     }
-    ctx.restore();
-    ctx.globalAlpha = 1;
-    // Solid border
-    ctx.strokeStyle = color; ctx.lineWidth = 2;
-    ctx.strokeRect(p.x, p.y, gw, gh);
-    // Label centred in gate
-    const lx = p.x + gw / 2, ly = p.y + Math.min(14 * z, gh / 2);
+    // Label + required charge below sprite
+    const lp = worldToScreen(cx, g.y + g.h);
     ctx.fillStyle = color;
     ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(g.label || g.id || 'GATE', lx, ly);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const label = g.label || g.id || 'GATE';
+    ctx.fillText(label, lp.x, lp.y + 4);
     if (g.required != null) {
       ctx.font = `${Math.max(8, Math.round(9 * z))}px monospace`;
-      ctx.fillText('\u26a1' + g.required, lx, ly + Math.max(12, 13 * z));
+      ctx.fillText('\u26a1' + g.required, lp.x, lp.y + 4 + Math.max(11, 12 * z));
     }
   }
 }
