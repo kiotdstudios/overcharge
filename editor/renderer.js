@@ -14,6 +14,11 @@ function getImage(path) {
   let img = imgCache.get(path);
   if (!img) {
     img = new Image();
+    // Wire the repaint trigger BEFORE setting src so the load event is never missed,
+    // even if the image is in the browser cache and fires synchronously.
+    img.addEventListener('load', () => {
+      window.dispatchEvent(new Event('_editorRepaint'));
+    }, { once: true });
     img.src = path;
     imgCache.set(path, img);
   }
@@ -397,29 +402,37 @@ function _drawSources(ctx, arr) {
   }
 }
 
-// Gate: render the 64×128 gate sprite matching the game draw call.
-// Sprite: horizontally centered on hitbox, bottom-aligned to hitbox bottom.
-// dX = cx - 32 = (g.x + g.w/2) - 32
-// dY = (g.y + g.h) - 128
-// Falls back to filled+hatched rect while image loads.
+// Gate: render the 64×128 gate sprite (gate_closed.png, no transparent rows).
+// Sprite anchor: horizontally centred on hitbox, bottom aligned to hitbox bottom.
+// Type-specific colour tint overlaid on the sprite so GATE/EXIT/BARRIER are
+// visually distinct despite sharing the same art.
+//   GATE    → cyan  (#44ccff)
+//   EXIT    → magenta (#ff44ff) — the gate that ends the level
+//   BARRIER → orange (#ff8800) — switch-only, player cannot charge directly
 function _drawGates(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   const SPRITE_W = 64, SPRITE_H = 128;
   for (const g of arr) {
-    const cx = g.x + g.w / 2;
-    const spriteX = cx - SPRITE_W / 2;
-    const spriteY = (g.y + g.h) - SPRITE_H;
+    const gcx = g.x + g.w / 2;
+    const spriteX = gcx - SPRITE_W / 2;
+    const spriteY = (g.y + g.h) - SPRITE_H;   // bottom-aligned, no padding offset
     const sp = worldToScreen(spriteX, spriteY);
     const sw = SPRITE_W * z, sh = SPRITE_H * z;
     const color = g.isExit ? MARKER.exitGate : (g.blockOnly ? MARKER.barrier : MARKER.gate);
 
     const img = getImage('assets/objects/gate_closed.png');
+    ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      ctx.imageSmoothingEnabled = false;
+      // Sprite
       ctx.drawImage(img, sp.x, sp.y, sw, sh);
+      // Colour tint so types are distinguishable (multiply-like: overlay at low alpha)
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = color;
+      ctx.fillRect(sp.x, sp.y, sw, sh);
+      ctx.globalAlpha = 1;
     } else {
-      // Fallback: hatched rect over the hitbox while image loads
+      // Hatched fallback (image is loading — getImage already wired the repaint)
       const hp = worldToScreen(g.x, g.y);
       const gw = g.w * z, gh = g.h * z;
       ctx.fillStyle = color; ctx.globalAlpha = 0.15;
@@ -436,38 +449,98 @@ function _drawGates(ctx, arr) {
       ctx.globalAlpha = 1;
       ctx.strokeStyle = color; ctx.lineWidth = 2;
       ctx.strokeRect(hp.x, hp.y, gw, gh);
-      img.onload = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event('_editorRepaint')); };
     }
-    // Label + required charge below sprite
-    const lp = worldToScreen(cx, g.y + g.h);
+    // Type badge + label + required charge below sprite
+    const lp = worldToScreen(gcx, g.y + g.h);
+    const tag = g.isExit ? 'EXIT' : (g.blockOnly ? 'BARRIER' : 'GATE');
     ctx.fillStyle = color;
     ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    const label = g.label || g.id || 'GATE';
-    ctx.fillText(label, lp.x, lp.y + 4);
+    ctx.fillText(tag + (g.label && g.label !== tag ? ' · ' + g.label : ''), lp.x, lp.y + 3);
     if (g.required != null) {
       ctx.font = `${Math.max(8, Math.round(9 * z))}px monospace`;
-      ctx.fillText('\u26a1' + g.required, lp.x, lp.y + 4 + Math.max(11, 12 * z));
+      ctx.fillText('\u26a1' + g.required, lp.x, lp.y + 3 + Math.max(11, 12 * z));
     }
   }
 }
 
-// Generic marker renderer — delegates sources to _drawSources, renders other
-// kinds as hitbox-sized filled+outlined boxes.
+// Switches: replicate the game's orange glow-rect with inner fill.
+// Switch x,y = top-left, 22×22 hitbox (matches Switch runtime).
+function _drawSwitches(ctx, arr) {
+  if (!Array.isArray(arr)) return;
+  const z = state.camera.zoom;
+  for (const o of arr) {
+    const p  = worldToScreen(o.x, o.y);
+    const sw = 22 * z, sh = 22 * z;
+    // Outer glow border
+    ctx.strokeStyle = MARKER.switch; ctx.lineWidth = Math.max(1.5, 2 * z);
+    ctx.shadowBlur  = Math.max(6, 8 * z); ctx.shadowColor = MARKER.switch;
+    ctx.strokeRect(p.x, p.y, sw, sh);
+    ctx.shadowBlur = 0;
+    // Inner fill
+    ctx.fillStyle = 'rgba(255,140,0,0.55)';
+    ctx.fillRect(p.x + 2, p.y + 2, sw - 4, sh - 4);
+    // "SW" glyph
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('SW', p.x + sw / 2, p.y + sh / 2);
+    // Label below
+    if (o.label || o.id) {
+      ctx.fillStyle = MARKER.switch;
+      ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(o.label || o.id, p.x + sw / 2, p.y + sh + 2);
+    }
+    if (o.required != null) {
+      ctx.fillStyle = '#aa5500';
+      ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
+      ctx.textAlign = 'center';
+      ctx.fillText('\u26a1' + o.required, p.x + sw / 2, p.y + sh + 2 + Math.max(10, 11 * z));
+    }
+  }
+}
+
+// Checkpoints: green flag column (x,y = CENTRE of trigger zone).
+function _drawCheckpoints(ctx, arr) {
+  if (!Array.isArray(arr)) return;
+  const z = state.camera.zoom;
+  for (const o of arr) {
+    // Draw a vertical pole with a small flag at top
+    const bx = o.x - 11, by = o.y - 11;
+    const p  = worldToScreen(bx, by);
+    const sw = 22 * z, sh = 22 * z;
+    ctx.fillStyle = MARKER.checkpoint; ctx.globalAlpha = 0.3;
+    ctx.fillRect(p.x, p.y, sw, sh);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = MARKER.checkpoint; ctx.lineWidth = 2;
+    ctx.strokeRect(p.x, p.y, sw, sh);
+    ctx.fillStyle = MARKER.checkpoint;
+    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('CP', p.x + sw / 2, p.y + sh / 2);
+    if (o.label || o.id) {
+      ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(o.label || o.id, p.x + sw / 2, p.y + sh + 2);
+    }
+  }
+}
+
+// Generic marker renderer — delegates to type-specific draws.
 // Switch: x,y = top-left, 22×22.
 // Checkpoint: x,y = CENTRE (runtime inconsistency, see LEVEL_SCHEMA.md §Checkpoint).
 function _drawMarkers(ctx, arr, kind, glyph) {
   if (!Array.isArray(arr)) return;
-  if (kind === 'source') { _drawSources(ctx, arr); return; }
+  if (kind === 'source')     { _drawSources(ctx, arr);     return; }
+  if (kind === 'switch')     { _drawSwitches(ctx, arr);    return; }
+  if (kind === 'checkpoint') { _drawCheckpoints(ctx, arr); return; }
+  // Fallback for any future kinds
   const z     = state.camera.zoom;
   const color = MARKER[kind] || '#888';
-  const isCP  = kind === 'checkpoint';
   const bw = 22, bh = 22;
   for (const o of arr) {
-    // Checkpoint x,y = centre; switch x,y = top-left
-    const bx = isCP ? o.x - bw / 2 : o.x;
-    const by = isCP ? o.y - bh / 2 : o.y;
-    const p  = worldToScreen(bx, by);
+    const p = worldToScreen(o.x, o.y);
     const sw = bw * z, sh = bh * z;
     ctx.fillStyle = color; ctx.globalAlpha = 0.3;
     ctx.fillRect(p.x, p.y, sw, sh);
@@ -478,11 +551,6 @@ function _drawMarkers(ctx, arr, kind, glyph) {
     ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(glyph, p.x + sw / 2, p.y + sh / 2);
-    if (o.label || o.id) {
-      ctx.font = `${Math.max(8, Math.round(9 * z))}px monospace`;
-      ctx.textAlign = 'left';
-      ctx.fillText(o.label || o.id, p.x + sw + 3, p.y + sh / 2);
-    }
   }
 }
 
