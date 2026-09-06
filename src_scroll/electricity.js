@@ -61,9 +61,11 @@ export class ElectricalSource {
     const img = this._frames[fi];
 
     if (img && img.complete && img.naturalWidth > 0) {
-      // Draw 64x64 sprite centered on hitbox, bottom of sprite = bottom of hitbox
+      // Draw 64x64 sprite. Sprite has 1px fully-transparent bottom row (row 63),
+      // so visual feet are at dY+62. To land on the floor (y+h) we need dY+62 = y+h
+      // → dY = y+h-62. Using -64 floated the generator 2px above the surface.
       const dX = this.cx - 32;
-      const dY = this.y + this.h - 64;
+      const dY = this.y + this.h - 62;
       ctx.drawImage(img, dX, dY, 64, 64);
     } else {
       // Fallback box while images load
@@ -73,7 +75,7 @@ export class ElectricalSource {
 
     // Drain bar above — full→empty as player absorbs (hidden when drained)
     if (!this.drained) {
-      const dY2 = this.y + this.h - 64;
+      const dY2 = this.y + this.h - 62;   // matches sprite anchor above
       const bW = 64, bH = 5;
       const bX = this.cx - 32, bY = dY2 - 8;
       const fill = this.max > 0 ? this.charge / this.max : 0;

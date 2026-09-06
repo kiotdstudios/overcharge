@@ -364,7 +364,9 @@ function _drawSources(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const o of arr) {
-    const spriteX = o.x - 18, spriteY = o.y - 36;
+    // spriteY: -34 = -(62-28). 62 because sprite has 1px transparent bottom row;
+    // visual feet at row 62, so dY+62 = o.y+h = o.y+28 → dY = o.y-34.
+    const spriteX = o.x - 18, spriteY = o.y - 34;
     const sp = worldToScreen(spriteX, spriteY);
     const sw = 64 * z, sh = 64 * z;
     const img = getImage('assets/sprites/generator 1/frame_000.png');
