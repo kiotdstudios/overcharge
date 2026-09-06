@@ -513,7 +513,7 @@ function refreshLevelInfo() {
     : '';
   el.innerHTML =
     `BRANCH: <span style="color:#44ccff">${BUILD.branch}</span>` +
-    ` @ <span style="color:#8aaabb">${BUILD.shaShort}</span>${dirtyTag}` +
+    ` · BASE SHA: <span style="color:#8aaabb" title="SHA at build time — not necessarily HEAD">${BUILD.shaShort}</span>${dirtyTag}` +
     `<br>worktree: <span style="color:#8aaabb">${BUILD.worktree}</span>`;
   el.title = `full SHA ${BUILD.shaFull}\nbuild info generated ${BUILD.generated}\n` +
              `Regenerate with: node scripts/build_info.mjs`;
@@ -593,7 +593,52 @@ function refreshParityStatus() {
   }
 }
 
-subscribe(() => { needsRedraw = true; refreshUI(); refreshParityStatus(); });
+// ── Level status strip (top of Tools Panel) ───────────────────────────
+// Shows: level name+number, dirty state, checksum, snapshot count.
+// Answers: "I am editing Level N, SAVED/UNSAVED, checksum X, Y backups".
+let _statusSnapCount = null;   // cached to avoid async on every keystroke
+let _statusSnapTimer = null;
+async function _fetchSnapCount() {
+  try {
+    const { listForLevel, levelKeyOf } = await import('./snapshots.js');
+    const rows = await listForLevel(levelKeyOf(state.level));
+    _statusSnapCount = rows.length;
+  } catch { _statusSnapCount = null; }
+  refreshStatusStrip();
+}
+function refreshStatusStrip() {
+  const nameEl  = document.getElementById('lss-name');
+  const stateEl = document.getElementById('lss-state');
+  const snapEl  = document.getElementById('lss-snaps');
+  if (!nameEl) return;
+  if (!state.level) { nameEl.textContent = 'No level loaded'; if (stateEl) stateEl.textContent = ''; return; }
+  const L = state.level;
+  const num  = L.number != null ? '#' + L.number : '';
+  const name = L.name || 'Untitled';
+  nameEl.innerHTML = `<span>${name}</span> <span style="color:#667;font-size:10px">${num}</span>`;
+  if (stateEl) {
+    const sum = levelChecksum(L);
+    const dirtyMark = state.dirty
+      ? '<span class="lss-dirty">● UNSAVED</span>'
+      : '<span class="lss-saved">✓ SAVED</span>';
+    const local = _isLocalOnly()
+      ? ' <span style="color:#ffee00">· LOCAL</span>'
+      : '';
+    stateEl.innerHTML = `${dirtyMark}${local} <span class="lss-chk">· ${sum}</span>`;
+  }
+  if (snapEl) {
+    snapEl.innerHTML = _statusSnapCount != null
+      ? `<span class="lss-snaps">📷 ${_statusSnapCount} snapshot${_statusSnapCount !== 1 ? 's' : ''}</span>`
+      : '';
+  }
+  // Debounce the async snap count fetch (don't hit IDB on every keystroke)
+  if (_statusSnapCount === null) {
+    clearTimeout(_statusSnapTimer);
+    _statusSnapTimer = setTimeout(_fetchSnapCount, 800);
+  }
+}
+
+subscribe(() => { needsRedraw = true; refreshUI(); refreshParityStatus(); refreshStatusStrip(); });
 function frame() {
   if (needsRedraw) { render(ctx, canvas); needsRedraw = false; }
   requestAnimationFrame(frame);
@@ -776,6 +821,37 @@ async function _handleRecoveryOnBoot() {
     _clearRecoverySnapshot();
   }
 }
+
+// ── DEV QA quick-action buttons ────────────────────────────────
+document.getElementById('qa-play')?.addEventListener('click', () => {
+  window.open('index.html?dev=1&t=' + Date.now(), '_blank', 'noopener');
+});
+document.getElementById('qa-test')?.addEventListener('click', () => btnTest?.click());
+document.getElementById('qa-snapshot')?.addEventListener('click', () => document.getElementById('btn-snapshot')?.click());
+document.getElementById('qa-history')?.addEventListener('click', () => document.getElementById('btn-history')?.click());
+
+// ── EXPORT / IMPORT BACKUP in Tools Panel ──────────────────────────
+document.getElementById('btn-export-backups')?.addEventListener('click', () => {
+  // Delegate to the history-export button inside the history dialog
+  document.getElementById('history-export')?.click();
+});
+document.getElementById('btn-import-backups')?.addEventListener('click', () => {
+  document.getElementById('import-backups-input')?.click();
+});
+document.getElementById('import-backups-input')?.addEventListener('change', async e => {
+  // Delegate to the history-import-input handler via a synthetic click on it
+  const f = e.target.files && e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  // Transfer the file to the history-import-input and fire its handler
+  const dt = new DataTransfer();
+  dt.items.add(f);
+  const hi = document.getElementById('history-import-input');
+  if (hi) {
+    hi.files = dt.files;
+    hi.dispatchEvent(new Event('change'));
+  }
+});
 
 // ── Tools Panel: collapsible sections ──────────────────────────────
 document.querySelectorAll('.tp-hdr').forEach(hdr => {

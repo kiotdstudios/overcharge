@@ -102,6 +102,20 @@
   }
   #inspector-show-tab:hover { color: #ffee00; border-color: #ffee00; }
   #editor-root.inspector-collapsed #inspector-show-tab { display: block; }
+
+
+  /* Level status strip — always-visible summary at top of Tools Panel */
+  #level-status-strip { padding: 6px 10px 5px; background: #060910; border-bottom: 1px solid #1c2436; font-family: monospace; font-size: 10px; line-height: 1.5; }
+  #lss-name { font-size: 11px; font-weight: bold; color: #cdd; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #lss-state { color: #779; font-size: 10px; }
+  #lss-state .dirty { color: #ff8800; font-weight: bold; }
+  #lss-state .saved { color: #44cc88; }
+  #lss-snaps { color: #446; font-size: 10px; }
+
+  /* DEV QA checklist */
+  .qa-check { display: block; font-size: 10px; color: #779; font-family: monospace; margin: 2px 0; cursor: pointer; line-height: 1.4; }
+  .qa-check input { accent-color: #44ccff; margin-right: 4px; vertical-align: middle; }
+  .qa-check:hover { color: #cdd; }
 </style>
 </head>
 <body>
@@ -133,6 +147,13 @@
       <button id="btn-inspector-hide" title="Hide Inspector (I)">◀ HIDE</button>
     </div>
         <div id="inspector-body">
+
+      <!-- Level status strip: always visible summary -->
+      <div id="level-status-strip">
+        <div id="lss-name" class="lss-name">No level loaded</div>
+        <div id="lss-state"></div>
+        <div id="lss-snaps"></div>
+      </div>
 
       <!-- TOOLS -->
       <div class="tp-section">
@@ -213,6 +234,11 @@
           <div class="tp-row">
             <button class="tp-btn warn" id="btn-revert-local" title="Revert to git version">↺ REVERT TO GIT</button>
           </div>
+          <div class="tp-row" style="margin-top:5px;border-top:1px solid #1c2436;padding-top:5px">
+            <button class="tp-btn" id="btn-export-backups" title="Download all snapshots as one backup package">⬇ EXPORT BACKUPS</button>
+            <button class="tp-btn" id="btn-import-backups" title="Import a snapshot backup package">⬆ IMPORT BACKUP</button>
+            <input type="file" id="import-backups-input" accept="application/json,.json" style="display:none">
+          </div>
         </div>
       </div>
 
@@ -221,6 +247,33 @@
         <div class="tp-hdr" data-sec="leveltest">LEVEL TEST <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-leveltest">
           <div id="parity-status" style="font-family:monospace;font-size:10px;letter-spacing:0.3px;line-height:1.6;margin-bottom:6px;"></div>
+        </div>
+      </div>
+
+      <!-- DEV QA -->
+      <div class="tp-section" style="border-bottom:none">
+        <div class="tp-hdr" data-sec="devqa">DEV QA <span class="ch">▼</span></div>
+        <div class="tp-body hidden" id="tp-devqa">
+          <div class="tp-row">
+            <button class="tp-btn primary" id="qa-play">&#9654; PLAY LEVEL</button>
+            <button class="tp-btn" id="qa-test">&#9654; TEST LIVE</button>
+          </div>
+          <div class="tp-row">
+            <button class="tp-btn" id="qa-snapshot">&#128247; SNAPSHOT NOW</button>
+            <button class="tp-btn" id="qa-history">&#128340; HISTORY</button>
+          </div>
+          <div style="margin-top:8px;padding-top:6px;border-top:1px solid #1c2436">
+            <div style="font-size:9px;letter-spacing:2px;color:#446;margin-bottom:5px;">CHIEF MUST VISUALLY VERIFY:</div>
+            <label class="qa-check"><input type="checkbox"> Saved edit appears in PLAY (not TEST)</label>
+            <label class="qa-check"><input type="checkbox"> Objects sit on terrain surface</label>
+            <label class="qa-check"><input type="checkbox"> Gate: no purple strip at rest</label>
+            <label class="qa-check"><input type="checkbox"> Gate: cannot be jumped over (closed)</label>
+            <label class="qa-check"><input type="checkbox"> Gate: opens when fully charged</label>
+            <label class="qa-check"><input type="checkbox"> Open gate: player passes through</label>
+            <label class="qa-check"><input type="checkbox"> L1 &#8594; L2 switch via [ key</label>
+            <label class="qa-check"><input type="checkbox"> L2 &#8594; L1 switch via ] key</label>
+            <label class="qa-check"><input type="checkbox"> Each switch: player/state fully reset</label>
+          </div>
         </div>
       </div>
 
@@ -274,12 +327,12 @@
 <!-- Confirm-discard dialog — used by NEW / DUPLICATE / GENERATE / level-switch
      when the current level is dirty. Uses native <dialog> instead of
      window.confirm() so it can't be disabled by Chrome's popup-block chip. -->
-<dialog id="confirm-dialog" style="background: #0f1420; color: #cdd; border: 1px solid #ff8800; padding: 18px 22px; font-family: monospace; min-width: 320px;">
-  <h2 style="font-size: 13px; letter-spacing: 2px; color: #ff8800; margin-bottom: 10px;">⚠ UNSAVED CHANGES</h2>
-  <p id="confirm-message" style="font-size: 12px; line-height: 1.5; color: #cdd; margin-bottom: 16px;">You have unsaved changes. Continue anyway?</p>
+<dialog id="confirm-dialog" style="background: #0f1420; color: #cdd; border: 1px solid #ff8800; padding: 18px 22px; font-family: monospace; min-width: 340px;">
+  <h2 id="confirm-title" style="font-size: 13px; letter-spacing: 2px; color: #ff8800; margin-bottom: 10px;">⚠ CONFIRM</h2>
+  <p id="confirm-body" style="font-size: 12px; line-height: 1.5; color: #cdd; margin-bottom: 16px;"></p>
   <div style="display: flex; gap: 8px; justify-content: flex-end;">
     <button id="confirm-cancel" type="button">CANCEL</button>
-    <button id="confirm-ok" type="button" style="background: #442200; border: 1px solid #ff8800; color: #ffcc88; padding: 4px 12px;">DISCARD & CONTINUE</button>
+    <button id="confirm-ok" type="button" style="background: #442200; border: 1px solid #ff8800; color: #ffcc88; padding: 4px 12px;">CONFIRM</button>
   </div>
 </dialog>
 
@@ -344,14 +397,7 @@
 </dialog>
 
 <!-- Generic confirm used for RESTORE / DELETE / CLEAR. No one-click destruction. -->
-<dialog id="confirm-dialog" style="background:#0f1420;color:#cdd;border:1px solid #ff8800;padding:18px 22px;font-family:monospace;min-width:420px;">
-  <h2 id="confirm-title" style="font-size:13px;letter-spacing:2px;color:#ff8800;margin-bottom:10px;">CONFIRM</h2>
-  <p id="confirm-body" style="font-size:12px;line-height:1.6;color:#cdd;margin-bottom:16px;"></p>
-  <div style="display:flex;gap:8px;justify-content:flex-end;">
-    <button id="confirm-cancel" type="button">CANCEL</button>
-    <button id="confirm-ok" type="button" class="primary" style="background:#2a1500;border:1px solid #ff8800;color:#ffddaa;padding:4px 12px;">CONFIRM</button>
-  </div>
-</dialog>
+
 <script type="module" src="editor/main.js"></script>
 </body>
 </html>

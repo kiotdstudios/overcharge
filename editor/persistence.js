@@ -504,7 +504,8 @@ async function _confirmDiscardIfDirty(msg) {
   if (!state.dirty) return true;
 
   const dialog = typeof document !== 'undefined' && document.getElementById('confirm-dialog');
-  const msgEl  = typeof document !== 'undefined' && document.getElementById('confirm-message');
+  const titleEl = typeof document !== 'undefined' && document.getElementById('confirm-title');
+  const bodyEl  = typeof document !== 'undefined' && document.getElementById('confirm-body');
   const okBtn  = typeof document !== 'undefined' && document.getElementById('confirm-ok');
   const cxBtn  = typeof document !== 'undefined' && document.getElementById('confirm-cancel');
 
@@ -513,7 +514,8 @@ async function _confirmDiscardIfDirty(msg) {
     return window.confirm(msg);
   }
 
-  if (msgEl) msgEl.textContent = msg;
+  if (titleEl) titleEl.textContent = '⚠ UNSAVED CHANGES';
+  if (bodyEl)  bodyEl.textContent  = msg;
 
   return new Promise((resolve) => {
     const cleanup = (v) => {
