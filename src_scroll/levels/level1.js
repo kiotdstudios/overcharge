@@ -148,10 +148,15 @@ export const LEVEL1 = {
     prp('street_lamp',       22, 43,  3040, 192),   // col 95
   ],
 
-  // ── Puzzle elements — intentionally empty for architecture pass ───────────────
-  // Do not populate until traversal and silhouette are approved.
-  sources:     [],
-  gates:       [],
+  // ── Puzzle elements ─────────────────────────────────────────────────────────
+  // First Spark: absorb the rooftop generator, carry its full charge to Building F,
+  // then hold E (or Space) beside the exit gate to open it.
+  sources: [
+    { id: 'src_rooftop_generator', x: 384, y: 196, charge: 10, label: 'GENERATOR' },
+  ],
+  gates: [
+    { id: 'gate_exit', x: 3136, y: 128, w: 32, h: 64, required: 10, isExit: true, label: 'EXIT' },
+  ],
   switches:    [],
   checkpoints: [],
   platforms:   [],

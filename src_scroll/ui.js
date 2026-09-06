@@ -250,7 +250,7 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.globalAlpha = pulse;
 
     if (player.discharging) {
-      // Show live transfer feedback while holding Space
+      // Show live transfer feedback while holding E or Space
       ctx.fillStyle   = '#cc44ff';
       ctx.font        = 'bold 11px monospace';
       ctx.textAlign   = 'center';
@@ -263,7 +263,7 @@ function _drawContextPrompts(ctx, player, t) {
       ctx.textAlign   = 'center';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#cc44ff';
-      ctx.fillText('[SPACE] HOLD TO CHARGE', cx, cy);
+      ctx.fillText('[E / SPACE] HOLD TO CHARGE', cx, cy);
     } else {
       ctx.fillStyle   = '#ff4444';
       ctx.font        = 'bold 11px monospace';

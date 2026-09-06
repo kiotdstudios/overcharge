@@ -317,16 +317,15 @@ export class Player {
     }
   }
 
-  // ── Discharge (hold SPACE near device — only when no enemy nearby) ────
-  // Charge drains gradually — same feel as absorbing, just reversed.
-  // Banked pips auto-feed: when the bar empties mid-discharge, pop a pip
-  // and refill to MAX_CHARGE so the transfer continues uninterrupted.
+  // ── Discharge (hold E or Space near device — only when no enemy nearby) ──
+  // E is context-sensitive: it absorbs at sources and charges gates/switches.
+  // Space remains available for backwards-compatible gate charging and attacks.
   _updateDischarge(dt, level) {
-    const holdSpace = Input.heldAny('Space');
+    const holdDischarge = Input.heldAny('KeyE', 'Space');
     const hasCharge = this.charge > 0 || this.bankedPips > 0;
 
     // Enemy takes priority — Space is attack when a target is in range
-    if (!holdSpace || !this.grounded || !this.nearDevice || !hasCharge || this.nearEnemy) {
+    if (!holdDischarge || !this.grounded || !this.nearDevice || !hasCharge || this.nearEnemy) {
       this.discharging     = false;
       this.dischargeTarget = null;
       return;

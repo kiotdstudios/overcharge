@@ -198,7 +198,7 @@ function _drawDevBar() {
   ctx.font      = '10px monospace';
   ctx.textAlign = 'center';
   ctx.fillText(
-    '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB   SPACE CHARGE   [F2] skip   [P] +charge',
+    '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB / CHARGE   SPACE ATTACK / CHARGE   [F2] skip   [P] +charge',
     W / 2, 13
   );
 }
