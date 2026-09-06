@@ -174,6 +174,15 @@ export class PowerGate {
              ry + rh <= this.y || ry >= this.y + this.h);
   }
 
+  // Returns true if the player's X range overlaps the gate column, regardless
+  // of Y. Used for horizontal movement collision so the player cannot jump
+  // over a closed gate — the gate is treated as a floor-to-ceiling barrier.
+  // The regular blocks() AABB is still used for _resolveY (landing on top).
+  blocksHorizontal(rx, rw) {
+    if (this.open) return false;
+    return !(rx + rw <= this.x || rx >= this.x + this.w);
+  }
+
   draw(ctx) {
     const t = this._t;
 
@@ -263,25 +272,22 @@ export class PowerGate {
       ctx.shadowBlur = 0;
       return;
     }
-    // Charge progress bar — anchored to THIS GATE, just under its hitbox.
-    //
-    // BUGFIX (Chief QA §5 "stray graphic far below the gate"): this bar
-    // used to be drawn at a hardcoded world Y of 362 — a leftover from when
-    // every gate stood at ground level. Level 1's gate sits on a rooftop, so
-    // the bar rendered ~140px BELOW the gate as a detached purple sliver
-    // that read like a stray spritesheet fragment. It was never sprite bleed;
-    // it was this HUD element orphaned at a fixed Y. Now gate-relative.
+    // Charge progress bar — only draw when the gate is actively being charged.
+    // Drawing the dark background unconditionally produced a permanent purple
+    // strip below the gate that read as a stray tile/artefact (P4 fix).
     const barW = 48, barH = 6;
     const barX = this.cx - barW / 2;
-    const barY = this.y + this.h + 6;
-    ctx.fillStyle = '#1a0030';
-    ctx.fillRect(barX, barY, barW, barH);
-    if (fill > 0) {
-      ctx.shadowBlur  = 8;
-      ctx.shadowColor = '#cc44ff';
-      ctx.fillStyle   = '#cc44ff';
-      ctx.fillRect(barX, barY, Math.round(barW * fill), barH);
-      ctx.shadowBlur  = 0;
+    const barY = this.y + this.h + 4;
+    if (fill > 0 || this._reactT > 0) {
+      ctx.fillStyle = '#0e0018';
+      ctx.fillRect(barX, barY, barW, barH);
+      if (fill > 0) {
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#cc44ff';
+        ctx.fillStyle   = '#cc44ff';
+        ctx.fillRect(barX, barY, Math.round(barW * fill), barH);
+        ctx.shadowBlur  = 0;
+      }
     }
 
     // EXIT label — sits below the progress bar, also gate-relative.

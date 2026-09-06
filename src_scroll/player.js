@@ -280,9 +280,12 @@ export class Player {
         }
       }
     }
-    // Also check gate collisions (dynamic solid rects)
+    // Gate horizontal collision: use blocksHorizontal (X-only) so the player
+    // cannot jump over a closed gate — it acts as a full-height wall for
+    // horizontal movement. The AABB-based blocks() is still used for
+    // vertical landing (see _resolveY) so Chief can still stand on top.
     for (const gate of level.gates) {
-      if (gate.blocks(this.x, this.y, this.w, this.h)) {
+      if (gate.blocksHorizontal(this.x, this.w)) {
         if (this.vx > 0) this.x = gate.x - this.w;
         else if (this.vx < 0) this.x = gate.x + gate.w;
         this.vx = 0;

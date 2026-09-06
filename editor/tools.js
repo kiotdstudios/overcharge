@@ -483,6 +483,27 @@ export const selectTool = {
 //     below the cursor, the feet land exactly ON that surface.
 //   • Otherwise the feet fall back to the nearest 32px grid line.
 // Collision dimensions (w/h) are never altered to achieve this.
+// Generic bottom-anchor for standing objects: finds the first solid tile
+// below the click point and returns the top-left position so the object's
+// feet sit flush on that surface. Falls back to plain 16px grid snap when no
+// tile is found below (e.g. placing in empty air is intentional).
+function _anchorObjBottom(worldX, worldY, ow, oh) {
+  const L = state.level;
+  const rows = levelRows();
+  const x = Math.round(worldX / TILE_SIZE) * TILE_SIZE;
+  const fromRow = Math.max(0, Math.floor(worldY / TILE_SIZE));
+  const footCol = Math.max(0, Math.min(Math.floor((worldX + ow / 2) / TILE_SIZE), (L?.cols ?? 1) - 1));
+  let surfaceY = null;
+  for (let r = fromRow; r < rows; r++) {
+    if (tileIsSolid(footCol, r)) { surfaceY = r * TILE_SIZE; break; }
+  }
+  if (surfaceY == null) {
+    // No floor found below — snap top to 16px grid (place in air)
+    return { x, y: Math.round(worldY / 16) * 16 };
+  }
+  return { x, y: surfaceY - oh };
+}
+
 function _anchorGateBottom(worldX, worldY, gw, gh) {
   const L = state.level;
   const x = Math.round(worldX / TILE_SIZE) * TILE_SIZE;
@@ -552,11 +573,17 @@ function _placeGameplayMarker(asset, worldX, worldY) {
   } else if (cat === 'enemy') {
     arr = L.enemies = L.enemies || [];
     const kind = /drone/.test(idBase) ? 'drone' : 'drain';
-    ref = { id: `en_${arr.length + 1}`, x: pos.x, y: pos.y, type: kind, patrolLeft: pos.x - 64, patrolRight: pos.x + 64 };
+    // Bottom-anchor: enemy y is TOP-LEFT. Without anchoring, clicks near a floor
+    // land the enemy floating above it. Standard enemy height is ~26px.
+    const ep = _anchorObjBottom(worldX, worldY, 20, 26);
+    ref = { id: `en_${arr.length + 1}`, x: ep.x, y: ep.y, type: kind, patrolLeft: ep.x - 64, patrolRight: ep.x + 64 };
   } else {
-    // default: electrical source / generator
+    // Electrical source / generator. Runtime draws it centered at (x,y)
+    // with a 28×28 hitbox and 64×64 sprite. Bottom-anchor so it sits on
+    // a tile surface, then adjust to store the CENTER (matching the runtime).
+    const sp = _anchorObjBottom(worldX, worldY, 28, 28);
     arr = L.sources = L.sources || [];
-    ref = { id: `src_${arr.length + 1}`, x: pos.x, y: pos.y, charge: 5, label: 'GEN' };
+    ref = { id: `src_${arr.length + 1}`, x: sp.x + 14, y: sp.y + 14, charge: 5, label: 'GEN' };
   }
 
   const action = {

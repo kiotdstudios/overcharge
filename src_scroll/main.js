@@ -210,6 +210,12 @@ function _update(dt) {
 
       // Dev shortcuts
       if (Input.pressed('F2')) advanceLevel();
+      // Dev level switcher [ / ]
+      if (_DEV_MODE && _DEV_LEVELS.length > 1) {
+        if (Input.pressed('BracketLeft'))  _devSwitchLevel(_devIdx - 1);
+        if (Input.pressed('BracketRight')) _devSwitchLevel(_devIdx + 1);
+      }
+
       // Dev P now feeds energy through the SAME rule the game uses
       // (fill bar first, roll to pip when bar tops out). No shortcut
       // that bypasses the charge model.
@@ -293,7 +299,9 @@ function _drawDevBar() {
   ctx.font      = '10px monospace';
   ctx.textAlign = 'center';
   ctx.fillText(
-    '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB/DISCHARGE   SPACE ATTACK   F SPEND PIP   [F2] skip   [P] +charge',
+    (_DEV_MODE && _DEV_LEVELS.length > 1
+      ? '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB/DISCHARGE   F SPEND PIP   [F2] skip   [[] PREV   []] NEXT'
+      : '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB/DISCHARGE   SPACE ATTACK   F SPEND PIP   [F2] skip   [P] +charge'),
     viewW() / 2, 13
   );
 }
@@ -357,6 +365,45 @@ function _showLevelSourceBadge(kind, detail) {
     el.textContent  = detail;
     document.body.appendChild(el);
   } catch { /* badge is informational — never block boot */ }
+}
+
+// ── Dev-mode multi-level switcher ───────────────────────────────────────
+// Activated on localhost or ?dev=1.  [ / ] switch levels.  ?level=N to jump.
+const _DEV_MODE = (() => {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    return location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+        || p.get('dev') === '1';
+  } catch { return false; }
+})();
+let _DEV_LEVELS = [];   // [{num, def, kind}] populated by _discoverDevLevels
+let _devIdx     = 0;    // index into _DEV_LEVELS currently shown
+
+async function _discoverDevLevels() {
+  _DEV_LEVELS = [];
+  for (let n = 1; n <= 9; n++) {
+    const local = await _tryLocalSave(n);
+    if (local) { _DEV_LEVELS.push({ num: n, def: local, kind: 'local' }); continue; }
+    try {
+      const def = await _loadJsonLevel('src_scroll/levels/level' + n + '.json', 'LEVEL ' + n, n);
+      _DEV_LEVELS.push({ num: n, def, kind: 'committed' });
+    } catch { break; }   // 404 → no more levels
+  }
+}
+
+function _devSwitchLevel(idx) {
+  if (!_DEV_LEVELS.length) return;
+  _devIdx = ((idx % _DEV_LEVELS.length) + _DEV_LEVELS.length) % _DEV_LEVELS.length;
+  const entry = _DEV_LEVELS[_devIdx];
+  LEVEL_DEFS = [entry.def];
+  loadLevel(0);
+  state = STATES.PLAYING;
+  const old = document.getElementById('level-source-badge');
+  if (old) old.remove();
+  _showLevelSourceBadge(entry.kind,
+    'DEV \u00b7 LEVEL ' + entry.num + '/' + _DEV_LEVELS.length
+    + ' [' + (entry.kind === 'local' ? 'LOCAL SAVE' : 'COMMITTED') + ']'
+    + '\n[ prev   ] next  \u2014 ?level=N to jump');
 }
 
 // ── Boot: fetch level JSON, then launch ──────────
@@ -435,6 +482,27 @@ async function _bootAsync() {
   // implicitly. It is now opt-in per level via the JSON `background` field.
   // Level 1 does not set it, so neither boot path shows a city. background.js
   // itself is untouched and stays available for levels that ask for it.
+  // Dev mode: discover all levels, update badge with dev context
+  if (_DEV_MODE && !_TEST_LEVEL) {
+    await _discoverDevLevels();
+    const _devParams = new URLSearchParams(window.location.search);
+    const _startN    = parseInt(_devParams.get('level') || '0', 10);
+    if (_DEV_LEVELS.length) {
+      const startEntry = _startN
+        ? (_DEV_LEVELS.find(e => e.num === _startN) || _DEV_LEVELS[0])
+        : _DEV_LEVELS[0];
+      _devIdx = Math.max(0, _DEV_LEVELS.indexOf(startEntry));
+      LEVEL_DEFS = [_DEV_LEVELS[_devIdx].def];
+      const old = document.getElementById('level-source-badge');
+      if (old) old.remove();
+      const _de = _DEV_LEVELS[_devIdx];
+      _showLevelSourceBadge(_de.kind,
+        'DEV \u00b7 LEVEL ' + _de.num + '/' + _DEV_LEVELS.length
+        + ' [' + (_de.kind === 'local' ? 'LOCAL SAVE' : 'COMMITTED') + ']'
+        + '\n[ prev   ] next  \u2014 ?level=N to jump');
+    }
+  }
+
   const bgKind = LEVEL_DEFS[0] && LEVEL_DEFS[0].background;
   if (bgKind) {
     const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;

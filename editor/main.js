@@ -36,6 +36,7 @@ const levelSelect  = document.getElementById('level-select');
 const btnNew       = document.getElementById('btn-new');
 const btnDuplicate = document.getElementById('btn-duplicate');
 const btnSave      = document.getElementById('btn-save');
+const btnPlay      = document.getElementById('btn-play');
 const btnTest      = document.getElementById('btn-test');
 const btnUndo      = document.getElementById('btn-undo');
 const btnRedo      = document.getElementById('btn-redo');
@@ -184,6 +185,11 @@ btnTest?.addEventListener('click', () => {
   // Cache-busting param so any code changes I ship land immediately.
   const url = 'index.html?test=1&t=' + Date.now();
   window.open(url, '_blank', 'noopener');
+});
+
+// ── ▶ PLAY: open game in dev mode (plays local save if present) ─────────
+btnPlay?.addEventListener('click', () => {
+  window.open('index.html?dev=1&t=' + Date.now(), '_blank', 'noopener');
 });
 
 // ── Generator modal wiring ────────────────────────────────────────────────
@@ -770,6 +776,16 @@ async function _handleRecoveryOnBoot() {
     _clearRecoverySnapshot();
   }
 }
+
+// ── Tools Panel: collapsible sections ──────────────────────────────
+document.querySelectorAll('.tp-hdr').forEach(hdr => {
+  hdr.addEventListener('click', () => {
+    const body = document.getElementById('tp-' + hdr.dataset.sec);
+    if (!body) return;
+    const hidden = body.classList.toggle('hidden');
+    hdr.classList.toggle('collapsed', hidden);
+  });
+});
 
 // Hook the debounced saver into the state change stream. Fires only when
 // state.dirty is true — clean loads don't overwrite the previous recovery.

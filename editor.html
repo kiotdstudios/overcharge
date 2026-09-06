@@ -58,6 +58,29 @@
   #main-area { grid-area: main; position: relative; overflow: hidden; background: #0a0d14; }
   #editor-canvas { display: block; width: 100%; height: 100%; }
 
+  /* Tools Panel ─────────────────────────────────────────────────────────── */
+  .tp-section { margin-bottom: 2px; border-bottom: 1px solid #1c2436; }
+  .tp-hdr { font-size: 10px; letter-spacing: 2px; color: #446; padding: 5px 12px 4px;
+    cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+    user-select: none; }
+  .tp-hdr:hover { color: #779; }
+  .tp-hdr .ch { font-size: 8px; transition: transform .15s; }
+  .tp-hdr.collapsed .ch { transform: rotate(-90deg); }
+  .tp-body { padding: 7px 10px 8px; }
+  .tp-body.hidden { display: none; }
+  .tp-row { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 4px; }
+  .tp-btn { background: #1a2030; color: #cdd; border: 1px solid #2a3448;
+    padding: 4px 8px; cursor: pointer; font-size: 11px; font-family: monospace; white-space: nowrap; }
+  .tp-btn:hover:not(:disabled) { background: #26304a; }
+  .tp-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .tp-btn.active { background: #ffee00; color: #0a0d14; border-color: #ffee00; font-weight: bold; }
+  .tp-btn.primary { background: #223250; border-color: #44ccff; color: #cceeff; }
+  .tp-btn.primary:hover:not(:disabled) { background: #2c4266; }
+  .tp-btn.warn { border-color: #ff6644; color: #ff8866; }
+  .tp-lbl { display: flex; align-items: center; gap: 5px; font-size: 11px; color: #889;
+    font-family: monospace; }
+  .tp-sel { background: #1a2030; color: #cdd; border: 1px solid #2a3448;
+    padding: 3px 5px; font-size: 11px; font-family: monospace; }
   /* Inspector (Phase 3 placeholder) */
   #inspector { grid-area: inspector; background: #0d1119; border-left: 1px solid #1c2436; padding: 0; overflow-y: auto; }
   #inspector-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid #1c2436; }
@@ -85,73 +108,18 @@
 <div id="editor-root">
   <div id="toolbar">
     <h1>◆ OVERCHARGE</h1>
-
-    <!-- Level workflow controls ─────────────────────────────────────── -->
+    <div class="divider"></div>
     <label for="level-select">LEVEL</label>
     <select id="level-select" title="Switch level (warns on unsaved changes)"></select>
-    <button id="btn-new"       title="New empty level">NEW</button>
-    <button id="btn-duplicate" title="Duplicate current level">DUPLICATE</button>
-    <button id="btn-upload"    title="Upload an exported OVERCHARGE level JSON — loads as DIRTY / UNSAVED so you can review before saving">⬆ UPLOAD</button>
-    <input id="upload-input" type="file" accept=".json,application/json" style="display:none">
-    <button id="btn-generate" title="Generate a random level idea">🎲 GENERATE</button>
-    <button id="btn-test" title="Test the current level in the game (opens new tab)">▶ TEST</button>
+    <div class="divider"></div>
+    <button id="btn-play" title="Open game in dev mode — plays your local save (?dev=1)">▶ PLAY</button>
+    <button id="btn-test" title="Test the current in-editor level in the game (opens new tab)">▶ TEST LIVE</button>
     <button id="btn-save" class="primary" title="Save current level (Ctrl+S)">💾 SAVE</button>
-    <button id="btn-revert-local" title="Delete your local save for this level and go back to the version committed in git. Does not touch files in your save folder.">↺ REVERT TO GIT</button>
-    <button id="btn-snapshot" title="Save an immutable snapshot of the current level to long-term version history (separate from Undo and from crash recovery)">📸 SNAPSHOT</button>
-    <button id="btn-history" title="Open LEVEL VERSION HISTORY — preview, restore, download or delete saved snapshots">🕔 HISTORY</button>
     <span id="save-flash"></span>
+    <input id="upload-input" type="file" accept=".json,application/json" style="display:none">
     <div class="divider"></div>
-
-    <!-- Undo / Redo ─────────────────────────────────────────────────── -->
-    <button id="btn-undo" title="Undo (Ctrl+Z)">↶ UNDO</button>
-    <button id="btn-redo" title="Redo (Ctrl+Y or Ctrl+Shift+Z)">↷ REDO</button>
-    <div class="divider"></div>
-
-    <!-- Tools ───────────────────────────────────────────────────────── -->
-    <button data-tool="pointer" title="Pointer — click to select, drag to move (1)">🖱 Pointer</button>
-    <button data-tool="select"  title="Select — marquee + shift-additive multi-select (2)">▤ Select</button>
-    <button data-tool="place"   title="Place tile / asset (3)">▮ Place</button>
-    <button data-tool="rect"    title="Rectangle — drag to fill a terrain block (6)">▬ Rect</button>
-    <button data-tool="erase"   title="Erase tile / asset (4)">▢ Erase</button>
-    <button data-tool="pan"     title="Pan camera (5)">✋ Pan</button>
-    <div class="divider"></div>
-
-    <!-- Layer ordering (visible only when a decoration is selected) ─── -->
-    <button id="btn-layer-front" title="Bring to Front (Shift+])">⤒ Front</button>
-    <button id="btn-layer-forward" title="Bring Forward (])">↑ Forward</button>
-    <button id="btn-layer-backward" title="Send Backward ([)">↓ Backward</button>
-    <button id="btn-layer-back" title="Send to Back (Shift+[)">⤓ Back</button>
-    <button id="btn-rotate" title="Rotate selected decorations 90° CW (R). Shift+R = CCW.">↻ Rotate</button>
-    <div class="divider"></div>
-
-    <button id="zoom-out"   title="Zoom out (-)">−</button>
-    <button id="zoom-reset" title="Reset zoom (0)">100%</button>
-    <button id="zoom-in"    title="Zoom in (+)">+</button>
-    <div class="divider"></div>
-
-    <label><input type="checkbox" id="grid-toggle" checked> grid (G)</label>
-    <label title="Authoring guards — reject floating/overlap placements">
-      <input type="checkbox" id="guards-toggle"> guards
-    </label>
-    <label title="Magnetic edge snap — decoration placement abuts/aligns to same-family siblings within ±12px">
-      <input type="checkbox" id="magnetic-toggle" checked> magnetic
-    </label>
-    <label title="Snap override for placement + drag. AUTO uses per-item defaults.">
-      snap
-      <select id="snap-select" style="min-width: 70px;">
-        <option value="auto">AUTO</option>
-        <option value="32">32</option>
-        <option value="16">16</option>
-        <option value="1">1</option>
-      </select>
-    </label>
     <div id="level-info">loading...</div>
-    <!-- Parity strip (Chief §2): removes any ambiguity about whether TEST is
-         previewing local unsaved edits or the committed authoritative JSON. -->
-    <div id="parity-status" style="font-family:monospace;font-size:10px;letter-spacing:0.3px;margin-top:6px;line-height:1.5;"></div>
-    <!-- Dev build label: which worktree/branch/commit is actually open.
-         Populated by editor/buildinfo.js (regenerated by scripts/build_info.mjs). -->
-    <div id="build-label" style="font-family:monospace;font-size:10px;color:#667;margin-top:4px;letter-spacing:0.3px;"></div>
+    <div id="build-label" style="font-family:monospace;font-size:10px;color:#667;letter-spacing:0.3px;margin-left:8px;"></div>
   </div>
   <div id="asset-browser"></div>
   <div id="main-area">
@@ -161,12 +129,101 @@
   </div>
   <div id="inspector">
     <div id="inspector-header">
-      <h3>INSPECTOR</h3>
+      <h3>TOOLS</h3>
       <button id="btn-inspector-hide" title="Hide Inspector (I)">◀ HIDE</button>
     </div>
-    <div id="inspector-body">
-      <p>Object properties will appear here.</p>
-      <p style="margin-top: 12px; color: #446;">Phase 3.</p>
+        <div id="inspector-body">
+
+      <!-- TOOLS -->
+      <div class="tp-section">
+        <div class="tp-hdr" data-sec="tools">TOOLS <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-tools">
+          <div class="tp-row">
+            <button class="tp-btn" data-tool="pointer" title="Pointer — select/move (1)">🖱 Ptr</button>
+            <button class="tp-btn" data-tool="select"  title="Select — marquee (2)">▤ Sel</button>
+            <button class="tp-btn" data-tool="place"   title="Place tile/asset (3)">▮ Plc</button>
+            <button class="tp-btn" data-tool="rect"    title="Rectangle fill (6)">▬ Rct</button>
+            <button class="tp-btn" data-tool="erase"   title="Erase (4)">⬜ Ers</button>
+            <button class="tp-btn" data-tool="pan"     title="Pan camera (5)">✋ Pan</button>
+          </div>
+          <div class="tp-row" style="margin-top:5px">
+            <label class="tp-lbl"><input type="checkbox" id="grid-toggle" checked> grid (G)</label>
+            <label class="tp-lbl" title="Authoring guards"><input type="checkbox" id="guards-toggle"> guards</label>
+            <label class="tp-lbl" title="Magnetic snap"><input type="checkbox" id="magnetic-toggle" checked> magnetic</label>
+          </div>
+          <div class="tp-row" style="margin-top:4px;align-items:center">
+            <label class="tp-lbl">snap
+              <select id="snap-select" class="tp-sel" style="margin-left:4px">
+                <option value="auto">AUTO</option>
+                <option value="32">32</option>
+                <option value="16">16</option>
+                <option value="1">1</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ARRANGE -->
+      <div class="tp-section">
+        <div class="tp-hdr" data-sec="arrange">ARRANGE <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-arrange">
+          <div class="tp-row">
+            <button class="tp-btn" id="btn-layer-front"    title="Bring to Front (Shift+])">⤒ Front</button>
+            <button class="tp-btn" id="btn-layer-forward"  title="Bring Forward (])">⇑ Fwd</button>
+            <button class="tp-btn" id="btn-layer-backward" title="Send Backward ([)">⇓ Bwd</button>
+            <button class="tp-btn" id="btn-layer-back"     title="Send to Back (Shift+[)">⤓ Back</button>
+            <button class="tp-btn" id="btn-rotate"         title="Rotate 90° CW (R)">↻ Rot</button>
+          </div>
+          <div class="tp-row" style="margin-top:4px">
+            <button class="tp-btn" id="zoom-out"   title="Zoom out (-)">- Zoom</button>
+            <button class="tp-btn" id="zoom-reset" title="Reset zoom (0)">100%</button>
+            <button class="tp-btn" id="zoom-in"    title="Zoom in (+)">+ Zoom</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- EDIT -->
+      <div class="tp-section">
+        <div class="tp-hdr" data-sec="edit">EDIT <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-edit">
+          <div class="tp-row">
+            <button class="tp-btn" id="btn-undo" title="Undo (Ctrl+Z)">↶ UNDO</button>
+            <button class="tp-btn" id="btn-redo" title="Redo (Ctrl+Y)">↷ REDO</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEVEL -->
+      <div class="tp-section">
+        <div class="tp-hdr" data-sec="level">LEVEL <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-level">
+          <div class="tp-row">
+            <button class="tp-btn" id="btn-new"       title="New empty level">NEW</button>
+            <button class="tp-btn" id="btn-duplicate" title="Duplicate current level">DUPE</button>
+          </div>
+          <div class="tp-row">
+            <button class="tp-btn" id="btn-upload"   title="Upload a level JSON">⬆ UPLOAD</button>
+            <button class="tp-btn" id="btn-generate" title="Generate a random level">⚡ GEN</button>
+          </div>
+          <div class="tp-row">
+            <button class="tp-btn" id="btn-snapshot" title="Save snapshot to history">📷 SNAP</button>
+            <button class="tp-btn" id="btn-history"  title="Level version history">🕔 HIST</button>
+          </div>
+          <div class="tp-row">
+            <button class="tp-btn warn" id="btn-revert-local" title="Revert to git version">↺ REVERT TO GIT</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEVEL TEST -->
+      <div class="tp-section" style="border-bottom:none">
+        <div class="tp-hdr" data-sec="leveltest">LEVEL TEST <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-leveltest">
+          <div id="parity-status" style="font-family:monospace;font-size:10px;letter-spacing:0.3px;line-height:1.6;margin-bottom:6px;"></div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
