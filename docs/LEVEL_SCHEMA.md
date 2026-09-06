@@ -97,7 +97,12 @@ obvious home and is why it stays reserved.
 }
 ```
 
-Runtime hitbox: `28×28px` centered at `(x, y)`. Sprite drawn `64×64px` above hitbox.  
+Runtime hitbox: `28×28px` with TOP-LEFT at `(x, y)`. Sprite drawn `64×64px`, centered horizontally on hitbox, bottom aligned with hitbox bottom.
+
+> **Correction, 2026-09-06:** the earlier note "centered at (x, y)" was wrong. The runtime
+> sets `this.x = x` and derives centre as `cx = x + w/2`. Editor stores top-left to match.
+> Previous editor builds stored centre (x+14, y+14) — those placements were 14px off.
+> All committed levels (level1, level2) were hand-authored correctly as top-left.  
 Asset: `electrical_generator` (see ASSET_MANIFEST.json)
 
 ---

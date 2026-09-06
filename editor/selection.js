@@ -190,11 +190,14 @@ export function boundingRect(kind, ref) {
   if (!ref) return null;
   if (kind === 'decoration') return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
   if (kind === 'gate')       return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
-  // Markers are drawn as centered squares at (x, y) — visual box mirrors that.
-  if (kind === 'source')     return { x: ref.x - 7, y: ref.y - 7, w: 14, h: 14 };
-  if (kind === 'switch')     return { x: ref.x - 7, y: ref.y - 7, w: 14, h: 14 };
-  if (kind === 'checkpoint') return { x: ref.x - 7, y: ref.y - 7, w: 14, h: 14 };
-  if (kind === 'enemy')      return { x: ref.x - 6, y: ref.y - 6, w: 12, h: 12 };
+  // Source: x,y = top-left of 28×28 hitbox (matches ElectricalSource runtime).
+  if (kind === 'source')     return { x: ref.x,      y: ref.y,      w: 28, h: 28 };
+  // Switch: x,y = top-left, runtime hitbox 22×22.
+  if (kind === 'switch')     return { x: ref.x,      y: ref.y,      w: 22, h: 22 };
+  // Checkpoint: x,y = CENTRE (runtime inconsistency, documented in LEVEL_SCHEMA.md).
+  if (kind === 'checkpoint') return { x: ref.x - 11, y: ref.y - 11, w: 22, h: 22 };
+  // Enemy: x,y = top-left. w/h carried on the ref if present.
+  if (kind === 'enemy')      return { x: ref.x, y: ref.y, w: ref.w || 22, h: ref.h || 24 };
   // SPAWN triangle points right — 14x14 rect from (x, y).
   if (kind === 'playerStart') return { x: ref.x, y: ref.y, w: 14, h: 14 };
   return null;

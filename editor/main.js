@@ -314,6 +314,66 @@ btnRevertLocal?.addEventListener('click', async () => {
     : `Local save discarded, but the git version failed to load.` });
 });
 
+
+// ── Delete level handler ──────────────────────────────────────────────────
+// Removes the IDB local save for the current level. Cannot remove committed
+// git versions — those require a git commit (REVERT just drops the local copy).
+const btnDeleteLevel = document.getElementById('btn-delete-level');
+btnDeleteLevel?.addEventListener('click', async () => {
+  const num = state.level?.number;
+  if (num == null) {
+    showSaveFlash({ ok: false, message: 'No level loaded.' });
+    return;
+  }
+  const rec = await Persistence.getPersistedLevel(num);
+  if (!rec) {
+    showSaveFlash({ ok: false, message: `Level ${num} has no local save — nothing to delete.` });
+    return;
+  }
+  const when = rec.savedAt ? new Date(rec.savedAt).toLocaleString() : 'unknown time';
+  const title = 'DELETE LOCAL SAVE?';
+  const body  = `Delete your local save of level ${num} (saved ${when})?
+
+This cannot be undone. Snapshots in history are NOT affected. Committed git version is not affected.`;
+  const dlg = document.getElementById('confirm-dialog');
+  if (dlg) {
+    const titleEl = document.getElementById('confirm-title');
+    const bodyEl  = document.getElementById('confirm-body');
+    if (titleEl) titleEl.textContent = title;
+    if (bodyEl)  bodyEl.textContent  = body;
+    dlg.showModal();
+    const ok = await new Promise(res => {
+      const onOk     = () => { dlg.close(); cleanup(); res(true); };
+      const onCancel = () => { dlg.close(); cleanup(); res(false); };
+      const cleanup  = () => {
+        document.getElementById('confirm-ok')?.removeEventListener('click', onOk);
+        document.getElementById('confirm-cancel')?.removeEventListener('click', onCancel);
+      };
+      document.getElementById('confirm-ok')?.addEventListener('click', onOk);
+      document.getElementById('confirm-cancel')?.addEventListener('click', onCancel);
+    });
+    if (!ok) return;
+  } else if (!window.confirm(body)) return;
+
+  await Persistence.forgetPersistedLevel(num);
+  // After delete: try committed version of this level, then first available, then new
+  state.availableLevels = await Persistence.discoverLevels();
+  const committed = (state.availableLevels || [])
+    .find(l => l.source === 'bundled' && l.number === num);
+  if (committed) {
+    await Persistence.switchToLevel(committed);
+  } else {
+    const next = (state.availableLevels || []).find(l => l.number !== num) || state.availableLevels?.[0];
+    if (next) await Persistence.switchToLevel(next);
+    else await Persistence.newLevel();
+  }
+  state.availableLevels = await Persistence.discoverLevels();
+  refreshLevelSelect();
+  _statusSnapCount = null;
+  refreshStatusStrip();
+  showSaveFlash({ ok: true, message: `Level ${num} local save deleted.` });
+});
+
 levelSelect?.addEventListener('change', async (e) => {
   // Value is an index into state.availableLevels; the array is (re)populated
   // by refreshLevelSelect from Persistence.discoverLevels().
@@ -639,6 +699,8 @@ function refreshStatusStrip() {
 }
 
 subscribe(() => { needsRedraw = true; refreshUI(); refreshParityStatus(); refreshStatusStrip(); });
+// Sprite images loaded async — trigger a canvas repaint when they finish loading.
+window.addEventListener('_editorRepaint', () => { needsRedraw = true; });
 function frame() {
   if (needsRedraw) { render(ctx, canvas); needsRedraw = false; }
   requestAnimationFrame(frame);

@@ -578,12 +578,12 @@ function _placeGameplayMarker(asset, worldX, worldY) {
     const ep = _anchorObjBottom(worldX, worldY, 20, 26);
     ref = { id: `en_${arr.length + 1}`, x: ep.x, y: ep.y, type: kind, patrolLeft: ep.x - 64, patrolRight: ep.x + 64 };
   } else {
-    // Electrical source / generator. Runtime draws it centered at (x,y)
-    // with a 28×28 hitbox and 64×64 sprite. Bottom-anchor so it sits on
-    // a tile surface, then adjust to store the CENTER (matching the runtime).
+    // Electrical source / generator. x,y stored as TOP-LEFT of the 28×28 hitbox,
+    // matching the runtime (ElectricalSource uses x,y as top-left, not center).
+    // Bottom-anchor so the hitbox feet land flush on the nearest solid tile surface.
     const sp = _anchorObjBottom(worldX, worldY, 28, 28);
     arr = L.sources = L.sources || [];
-    ref = { id: `src_${arr.length + 1}`, x: sp.x + 14, y: sp.y + 14, charge: 5, label: 'GEN' };
+    ref = { id: `src_${arr.length + 1}`, x: sp.x, y: sp.y, charge: 5, label: 'GEN' };
   }
 
   const action = {

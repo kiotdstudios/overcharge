@@ -199,10 +199,12 @@ export function render(ctx, canvas) {
 
     // Gameplay markers — hit-box footprints match the visible marker size
     // (see selection.js::boundingRect for the source of truth).
-    for (const o of state.selection.sources)     drawOutline({ x: o.x - 7, y: o.y - 7, w: 14, h: 14 });
-    for (const o of state.selection.switches)    drawOutline({ x: o.x - 7, y: o.y - 7, w: 14, h: 14 });
-    for (const o of state.selection.checkpoints) drawOutline({ x: o.x - 7, y: o.y - 7, w: 14, h: 14 });
-    for (const o of state.selection.enemies)     drawOutline({ x: o.x - 6, y: o.y - 6, w: 12, h: 12 });
+    // Source: outline the 64×64 sprite footprint (matches _drawSources render area)
+    for (const o of state.selection.sources)     drawOutline({ x: o.x - 18, y: o.y - 36, w: 64, h: 64 });
+    // Switch + Enemy: top-left hitbox
+    for (const o of state.selection.switches)    drawOutline({ x: o.x,      y: o.y,      w: 22,            h: 22 });
+    for (const o of state.selection.checkpoints) drawOutline({ x: o.x - 11, y: o.y - 11, w: 22,            h: 22 });
+    for (const o of state.selection.enemies)     drawOutline({ x: o.x,      y: o.y,      w: o.w || 22,     h: o.h || 24 });
     for (const o of state.selection.gates)       drawOutline({ x: o.x,     y: o.y,     w: o.w, h: o.h });
 
     // playerStart triangle bounds
@@ -352,62 +354,152 @@ export function render(ctx, canvas) {
   }
 }
 
-function _drawMarkers(ctx, arr, kind, glyph) {
+// ── Gameplay object renderers ─────────────────────────────────────────────
+
+// Source (generator): render the 64×64 sprite matching the game's own draw call.
+// o.x, o.y = TOP-LEFT of the 28×28 hitbox (confirmed from ElectricalSource runtime).
+// Sprite: 64px wide, centered on hitbox centre-X; bottom aligned with hitbox bottom.
+// Sprite TL in world: (o.x - 18, o.y - 36).
+function _drawSources(ctx, arr) {
   if (!Array.isArray(arr)) return;
-  const color = MARKER[kind] || '#888';
+  const z = state.camera.zoom;
   for (const o of arr) {
-    const p = worldToScreen(o.x, o.y);
-    ctx.fillStyle = color;
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1;
-    const s = 14;
-    ctx.fillRect(p.x - s/2, p.y - s/2, s, s);
-    ctx.strokeRect(p.x - s/2, p.y - s/2, s, s);
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 10px monospace';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(glyph, p.x, p.y);
-    if (o.label || o.id) {
-      ctx.fillStyle = color;
-      ctx.textAlign = 'left';
-      ctx.font = '10px monospace';
-      ctx.fillText(o.label || o.id, p.x + s/2 + 3, p.y);
+    const spriteX = o.x - 18, spriteY = o.y - 36;
+    const sp = worldToScreen(spriteX, spriteY);
+    const sw = 64 * z, sh = 64 * z;
+    const img = getImage('assets/sprites/generator 1/frame_000.png');
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, sp.x, sp.y, sw, sh);
+    } else {
+      // Fallback: yellow hitbox rect while sprite loads (triggers redraw next frame)
+      const hp = worldToScreen(o.x, o.y);
+      ctx.fillStyle = MARKER.source;
+      ctx.globalAlpha = 0.7;
+      ctx.fillRect(hp.x, hp.y, 28 * z, 28 * z);
+      ctx.globalAlpha = 1;
+      // Trigger repaint once image loads
+      img.onload = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event('_editorRepaint')); };
+    }
+    // Label + charge count above sprite
+    const lp = worldToScreen(o.x + 14, spriteY);
+    const fontSize = Math.max(8, Math.round(10 * z));
+    ctx.font = `bold ${fontSize}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillStyle = '#ffee00';
+    ctx.fillText(o.label || 'GEN', lp.x, lp.y - 2);
+    if (o.charge != null) {
+      ctx.fillStyle = '#aa8800';
+      ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
+      ctx.fillText('\u26a1' + o.charge, lp.x, lp.y - 2 - fontSize - 1);
     }
   }
 }
+
+// Gate: filled semi-transparent rect with border + diagonal hatching so it is
+// obviously a gate even at low zoom. Color by type.
 function _drawGates(ctx, arr) {
   if (!Array.isArray(arr)) return;
-  const c = state.camera;
+  const z = state.camera.zoom;
   for (const g of arr) {
-    const p = worldToScreen(g.x, g.y);
+    const p  = worldToScreen(g.x, g.y);
+    const gw = g.w * z, gh = g.h * z;
     const color = g.isExit ? MARKER.exitGate : (g.blockOnly ? MARKER.barrier : MARKER.gate);
+    // Subtle fill
+    ctx.fillStyle = color; ctx.globalAlpha = 0.15;
+    ctx.fillRect(p.x, p.y, gw, gh);
+    ctx.globalAlpha = 1;
+    // Diagonal hatch inside gate so it reads as a solid barrier
+    ctx.save();
+    ctx.beginPath(); ctx.rect(p.x, p.y, gw, gh); ctx.clip();
+    ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
+    const step = Math.max(8, 14 * z);
+    for (let i = -gh; i < gw + gh; i += step) {
+      ctx.beginPath(); ctx.moveTo(p.x + i, p.y); ctx.lineTo(p.x + i + gh, p.y + gh); ctx.stroke();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    // Solid border
     ctx.strokeStyle = color; ctx.lineWidth = 2;
-    ctx.strokeRect(p.x, p.y, g.w * c.zoom, g.h * c.zoom);
-    ctx.fillStyle = color; ctx.font = '10px monospace'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    ctx.fillText(g.label || g.id || 'GATE', p.x + 2, p.y + 2);
+    ctx.strokeRect(p.x, p.y, gw, gh);
+    // Label centred in gate
+    const lx = p.x + gw / 2, ly = p.y + Math.min(14 * z, gh / 2);
+    ctx.fillStyle = color;
+    ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(g.label || g.id || 'GATE', lx, ly);
+    if (g.required != null) {
+      ctx.font = `${Math.max(8, Math.round(9 * z))}px monospace`;
+      ctx.fillText('\u26a1' + g.required, lx, ly + Math.max(12, 13 * z));
+    }
   }
 }
+
+// Generic marker renderer — delegates sources to _drawSources, renders other
+// kinds as hitbox-sized filled+outlined boxes.
+// Switch: x,y = top-left, 22×22.
+// Checkpoint: x,y = CENTRE (runtime inconsistency, see LEVEL_SCHEMA.md §Checkpoint).
+function _drawMarkers(ctx, arr, kind, glyph) {
+  if (!Array.isArray(arr)) return;
+  if (kind === 'source') { _drawSources(ctx, arr); return; }
+  const z     = state.camera.zoom;
+  const color = MARKER[kind] || '#888';
+  const isCP  = kind === 'checkpoint';
+  const bw = 22, bh = 22;
+  for (const o of arr) {
+    // Checkpoint x,y = centre; switch x,y = top-left
+    const bx = isCP ? o.x - bw / 2 : o.x;
+    const by = isCP ? o.y - bh / 2 : o.y;
+    const p  = worldToScreen(bx, by);
+    const sw = bw * z, sh = bh * z;
+    ctx.fillStyle = color; ctx.globalAlpha = 0.3;
+    ctx.fillRect(p.x, p.y, sw, sh);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = color; ctx.lineWidth = 2;
+    ctx.strokeRect(p.x, p.y, sw, sh);
+    ctx.fillStyle = color;
+    ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(glyph, p.x + sw / 2, p.y + sh / 2);
+    if (o.label || o.id) {
+      ctx.font = `${Math.max(8, Math.round(9 * z))}px monospace`;
+      ctx.textAlign = 'left';
+      ctx.fillText(o.label || o.id, p.x + sw + 3, p.y + sh / 2);
+    }
+  }
+}
+
+// Enemy: top-left hitbox rect + patrol range line.
 function _drawEnemies(ctx, arr) {
   if (!Array.isArray(arr)) return;
-  const c = state.camera;
+  const z = state.camera.zoom;
   for (const e of arr) {
-    const p = worldToScreen(e.x, e.y);
+    const p  = worldToScreen(e.x, e.y);
+    const ew = (e.w || 22) * z, eh = (e.h || 24) * z;
+    ctx.fillStyle = MARKER.enemy; ctx.globalAlpha = 0.3;
+    ctx.fillRect(p.x, p.y, ew, eh);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = MARKER.enemy; ctx.lineWidth = 2;
+    ctx.strokeRect(p.x, p.y, ew, eh);
     ctx.fillStyle = MARKER.enemy;
-    ctx.fillRect(p.x - 6, p.y - 6, 12, 12);
+    ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('E', p.x + ew / 2, p.y + eh / 2);
     if (e.patrolLeft != null && e.patrolRight != null) {
-      const y = worldToScreen(0, e.y).y;
+      const py = worldToScreen(0, e.y + (e.h || 24)).y;
       const pl = worldToScreen(e.patrolLeft,  0).x;
       const pr = worldToScreen(e.patrolRight, 0).x;
       ctx.strokeStyle = 'rgba(255,80,110,0.5)';
-      ctx.setLineDash([4,3]); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(pl, y); ctx.lineTo(pr, y); ctx.stroke();
+      ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pl, py); ctx.lineTo(pr, py); ctx.stroke();
       ctx.setLineDash([]);
     }
-    ctx.fillStyle = MARKER.enemy; ctx.font = '9px monospace'; ctx.textAlign = 'left';
-    ctx.fillText(e.type || '?', p.x + 8, p.y - 2);
+    ctx.fillStyle = MARKER.enemy;
+    ctx.font = `${Math.max(8, Math.round(9 * z))}px monospace`;
+    ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(e.type || '?', p.x + ew + 2, p.y);
   }
 }
+
 function _drawPlayerStart(ctx, ps) {
   if (!ps) return;
   const p = worldToScreen(ps.x, ps.y);
