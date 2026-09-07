@@ -23,6 +23,7 @@ export const SNAP_TERRAIN            = TILE_SIZE;   // 32 - do not change
 //   0                       empty (non-solid)
 //   1                       LEGACY solid — renders as TILE_ID_REGISTRY[10] (default)
 //   2                       one-way platform (not solid for regular collision)
+//   3-9                     RESERVED — Builder must not emit. Not solid, not rendered.
 //   >= 10                   solid, ID looks up TILE_ID_REGISTRY (Chief-chosen)
 //
 // TILE ID REGISTRY (PERMANENT BINDING — CHIEF-LOCKED):

@@ -210,11 +210,6 @@ function _update(dt) {
 
       // Dev shortcuts
       if (Input.pressed('F2')) advanceLevel();
-      // Dev level switcher [ / ]
-      if (_DEV_MODE && _DEV_LEVELS.length > 1) {
-        if (Input.pressed('BracketLeft'))  _devSwitchLevel(_devIdx - 1);
-        if (Input.pressed('BracketRight')) _devSwitchLevel(_devIdx + 1);
-      }
 
       // Dev P now feeds energy through the SAME rule the game uses
       // (fill bar first, roll to pip when bar tops out). No shortcut
@@ -249,6 +244,13 @@ function _update(dt) {
       if (Input.pressedAny('KeyR')) { _respawn(); player.dead = false; state = STATES.PLAYING; }
       if (Input.pressedAny('Space'))  state = STATES.TITLE;
       break;
+  }
+
+  // Dev level switcher — runs in ALL states (title, game-over, complete, etc.)
+  // so Chief can flip between levels regardless of game state.
+  if (_DEV_MODE && _DEV_LEVELS.length > 1) {
+    if (Input.pressed('BracketLeft'))  _devSwitchLevel(_devIdx - 1);
+    if (Input.pressed('BracketRight')) _devSwitchLevel(_devIdx + 1);
   }
 }
 

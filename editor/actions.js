@@ -9,7 +9,7 @@
 // wherever the mutation originates. Layers/inspector/collision/links will
 // add their own action types without touching history.js.
 
-import { state, notify, levelRows } from './state.js';
+import { state, notify, levelRows, TILE_VARIANT_BASE } from './state.js';
 
 // ── SetTileAction ────────────────────────────────────────────────────────
 // Sets a single tile (col,row) to `newVal`, remembers `oldVal` for undo.
@@ -18,6 +18,11 @@ export function setTile(col, row, newVal) {
   if (!L) return null;
   const rows = levelRows();
   if (col < 0 || col >= L.cols || row < 0 || row >= rows) return null;
+  // 3-9 are RESERVED — never let the editor emit them.
+  if (newVal >= 3 && newVal < TILE_VARIANT_BASE) {
+    console.warn(`[editor] setTile rejected: value ${newVal} is RESERVED (3–9). Use 0=empty, 1/2=legacy, >=10=variant.`);
+    return null;
+  }
   const idx = row * L.cols + col;
   const oldVal = L.tiles[idx];
   if (oldVal === newVal) return null;
@@ -67,6 +72,23 @@ export function removeFromArray(arr, obj, label = 'remove_from_array') {
       notify();
     },
     inverse() { arr.splice(idx, 0, obj); notify(); },
+  };
+}
+
+// ── AddToArrayAction (generic) ──────────────────────────────────────────
+// Appends an object to a specific level array (L.enemies, L.switches, etc.).
+// Mirrors removeFromArray so undo/redo works symmetrically.
+export function addToArray(arr, obj, label = 'add_to_array') {
+  if (!Array.isArray(arr)) return null;
+  return {
+    type: label,
+    obj,
+    forward()  { arr.push(obj); notify(); },
+    inverse()  {
+      const i = arr.indexOf(obj);
+      if (i >= 0) arr.splice(i, 1);
+      notify();
+    },
   };
 }
 

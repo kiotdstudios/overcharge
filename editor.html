@@ -112,6 +112,16 @@
   #lss-state .saved { color: #44cc88; }
   #lss-snaps { color: #446; font-size: 10px; }
 
+  /* Spawn mode status */
+  #spawn-status.active { color: #44ccff; animation: spawnBlink 1s ease-in-out infinite alternate; }
+  @keyframes spawnBlink { from { opacity:0.7 } to { opacity:1 } }
+  /* Property editor rows */
+  .prop-row { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; font-size: 11px; font-family: monospace; }
+  .prop-label { color: #779; min-width: 72px; flex-shrink: 0; }
+  .prop-input { background: #1a2030; color: #cdd; border: 1px solid #2a3448; padding: 3px 5px; font-size: 11px; font-family: monospace; flex: 1; min-width: 0; }
+  .prop-input:focus { outline: none; border-color: #44ccff; }
+  .prop-select { background: #1a2030; color: #cdd; border: 1px solid #2a3448; padding: 3px 5px; font-size: 11px; font-family: monospace; flex: 1; }
+  .prop-type-badge { font-size: 9px; letter-spacing: 1.5px; font-family: monospace; padding: 2px 6px; margin-bottom: 8px; border: 1px solid; display: inline-block; }
   /* DEV QA checklist */
   .qa-check { display: block; font-size: 10px; color: #779; font-family: monospace; margin: 2px 0; cursor: pointer; line-height: 1.4; }
   .qa-check input { accent-color: #44ccff; margin-right: 4px; vertical-align: middle; }
@@ -249,6 +259,34 @@
         <div class="tp-body" id="tp-leveltest">
           <div id="parity-status" style="font-family:monospace;font-size:10px;letter-spacing:0.3px;line-height:1.6;margin-bottom:6px;"></div>
         </div>
+      </div>
+
+      <!-- SPAWN OBJECTS -->
+      <div class="tp-section">
+        <div class="tp-hdr" data-sec="spawn">SPAWN OBJECTS <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-spawn">
+          <div class="tp-row">
+            <button class="tp-btn" id="spawn-drain"    title="Place Drain Enemy (22×24, hp=2, drops 2 charge)">+ Drain</button>
+            <button class="tp-btn" id="spawn-patrol"   title="Place Patrol Enemy (20×26, hp=1, drops 1 charge)">+ Patrol</button>
+            <button class="tp-btn" id="spawn-drone"    title="Place Drone Enemy (40×36, hp=2, sprite)">+ Drone</button>
+          </div>
+          <div class="tp-row">
+            <button class="tp-btn" id="spawn-source"      title="Place Electrical Source">+ Source</button>
+            <button class="tp-btn" id="spawn-switch"      title="Place Switch (22×22)">+ Switch</button>
+            <button class="tp-btn" id="spawn-gate"        title="Place Gate (32w × 96h)">+ Gate</button>
+          </div>
+          <div class="tp-row">
+            <button class="tp-btn" id="spawn-checkpoint"  title="Place Checkpoint (click = center X)">+ Checkpoint</button>
+            <button class="tp-btn" id="spawn-platform"    title="Place Moving Platform (96×12)">+ Platform</button>
+          </div>
+          <div id="spawn-status" style="font-family:monospace;font-size:10px;color:#44ccff;margin-top:4px;min-height:14px;letter-spacing:0.5px;"></div>
+        </div>
+      </div>
+
+      <!-- SELECTED OBJECT PROPERTIES -->
+      <div class="tp-section" id="tp-selected-section" style="display:none">
+        <div class="tp-hdr" data-sec="selected">SELECTED OBJECT <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-selected"></div>
       </div>
 
       <!-- DEV QA -->

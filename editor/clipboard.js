@@ -12,7 +12,7 @@
 import { state, TILE_SIZE, levelRows, snapPoint, lcmSnap, SNAP_DECORATION_DEFAULT } from './state.js';
 import {
   selectedDecorations, selectedTiles, clearSelection, selectDecoration, selectTile,
-  selectedSources, selectedGates, selectedSwitches, selectedCheckpoints, selectedEnemies,
+  selectedSources, selectedGates, selectedSwitches, selectedCheckpoints, selectedEnemies, selectedPlatforms,
 } from './selection.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
@@ -94,6 +94,7 @@ export function deleteSelection(label = 'delete') {
     ['switches',    selectedSwitches()],
     ['checkpoints', selectedCheckpoints()],
     ['enemies',     selectedEnemies()],
+    ['platforms',   selectedPlatforms()],
   ]) {
     const arr = L && Array.isArray(L[arrName]) ? L[arrName] : null;
     if (!arr) continue;

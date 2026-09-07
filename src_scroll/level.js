@@ -50,8 +50,8 @@ export class Level {
 
   solidAt(tx, ty) {
     // Solid = legacy 1 OR any variant-encoded value >= 10.
-    // Value 2 (one-way platform) is intentionally NOT solid for regular
-    // collision — it's handled by the platform-drop-through code path.
+    // Value 2 (one-way platform) is intentionally NOT solid.
+    // Values 3-9 are RESERVED — treated as non-solid by design.
     const v = this.tileAt(tx, ty);
     return v === 1 || v >= 10;
   }

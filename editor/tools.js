@@ -448,6 +448,7 @@ export const selectTool = {
         for (const o of gp.switches)    Selection.selectByKind('switch',     o, true);
         for (const o of gp.checkpoints) Selection.selectByKind('checkpoint', o, true);
         for (const o of gp.enemies)     Selection.selectByKind('enemy',      o, true);
+        for (const o of (gp.platforms||[])) Selection.selectByKind('platform', o, true);
         if (gp.playerStart) Selection.selectByKind('playerStart', null, true);
       }
       state.marquee = null;
