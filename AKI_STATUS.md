@@ -1,47 +1,37 @@
-# OVERCHARGE — AKI STATUS
+# AKI STATUS — OVERCHARGE
+_Updated: 2026-09-10 ET_
 
-## Project
-- Studio: KIOTD Studios
-- Repo: (local only for now — Documents\OVERCHARGE)
-- Engine: Vanilla JS + HTML5 Canvas, ES modules
-- Entry: index.html → src/main.js
+---
 
-## Current State
-- BRANCH: local/main
-- COMMIT: initial scaffold
-- BUILD: not yet committed to git
+## PRESERVATION: wip/aki-waste-zone-legacy — COMPLETE
 
-## Completed
-- ✅ Full project scaffold created from GDD v1.0
-- ✅ Core architecture: constants, input, render, electricity, player, level, ui, main
-- ✅ Level 1: "First Spark" — absorb + discharge tutorial, fully playable
-- ✅ Level 2: "Split Decision" — resource routing puzzle (switch unlock mechanic)
-- ✅ Title screen (KIOTD branding: glow, chroma aberration)
-- ✅ Charge meter HUD (segmented, color-coded: red/yellow/cyan)
-- ✅ Context prompts ([E] ABSORB, [F] DISCHARGE)
-- ✅ Level Complete overlay
-- ✅ Game Over screen
-- ✅ Absorb animation (lightning arc to source)
-- ✅ Charge pickup system (scattered on damage)
-- ✅ DrainEnemy + PatrolEnemy stubs (used in Level 3+)
-- ✅ All tests: 25/25 PASS
+**Branch:** `wip/aki-waste-zone-legacy`
+**Commit:** `9f4ef2421eef07c26642552fb910d828460b4bb9`
+**Pushed:** YES
+**Worktree source:** `C:/Users/diepowel/Documents/OVERCHARGE` (branch was `agent/aki-editor`)
 
-## Test Results (last run)
-All 25 assertions pass — see _dev/test_electricity.mjs
+### Files preserved
 
-## Next Steps
-- [ ] Level 3: "Don't Get Hit" — add DrainEnemy, charge scatter + recovery
-- [ ] Level 4: "Carry Current" — traversal section, platforms
-- [ ] Level 5: "Power and Position" — conductive crate object
-- [ ] Pixel art sprites for player + enemies
-- [ ] Sound effects (absorb hum, discharge crack, charge meter sfx)
-- [ ] Camera scroll for larger levels
-- [ ] Git init + first commit
+| File | Type |
+|------|------|
+| `src_scroll/entities.js` | modified — DrainEnemy overhaul |
+| `src_scroll/levels/level1.js` | modified — legacy JS level edits |
+| `src_scroll/main.js` | modified — parallax system + LEVEL2 registration |
+| `index.html` | modified — favicon |
+| `src_scroll/levels/level2.js` | new file — untracked |
+| `src_scroll/parallax.js` | new file — untracked |
+| `assets/tiles/concrete.png` | deleted |
+| `assets/tiles/concrete_godot.png` | deleted |
+| `assets/tiles/concrete_wang.png` | deleted |
+| `pixellab-tileset-cracked-urban-concrete-with-faded-spray-paint-c63ef818.png` | deleted |
+| `pixellab-tileset-cracked-urban-concrete-with-faded-spray-paint-godot-c63ef818.png` | deleted |
+| `pixellab-tileset-cracked-urban-concrete-with-faded-spray-paint-wang-c63ef818.png` | deleted |
 
-## Known Warnings
-- One-way platform drop-through uses `pressedAny` which may feel sticky — may need held check
-- Enemies in entities.js have simplified gravity (snap, not physics) — revisit for Level 3
-- No death-by-falling animation yet (teleports to game over screen)
+### Notes
+- This is **legacy JS-era WIP** — predates the current JSON level pipeline
+- **NOT approved for merging** into `agent/aki-editor` or `agent/orcha-gameplay`
+- Porting useful content into modern JSON architecture is a **separate assignment** pending Chief review
+- No rebase, squash, cherry-pick, or merge of this branch without explicit GO from Chief
 
-## Rollback
-- No prior commit — this is the initial build
+---
+
