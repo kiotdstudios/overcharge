@@ -37,6 +37,11 @@ const _handles = new Map();
 // per-file picker. Chief picks src_scroll/levels/ once, done.
 let _saveDirHandle = null;
 
+// Tracks which level numbers have already been confirmed for overwrite this
+// session. The first save of each level always prompts; repeated saves of the
+// same level within the same session skip the prompt (normal iteration loop).
+const _sessionConfirmedOverwrites = new Set();
+
 // Tier-1 available? Chrome/Edge yes, Firefox/Safari no.
 export function hasFSA() {
   return typeof window !== 'undefined' && typeof window.showSaveFilePicker === 'function';
@@ -265,6 +270,29 @@ export async function saveCurrentLevel() {
   const dir = await _ensureSaveDir();
   if (dir) {
     try {
+      // ── Overwrite guard ───────────────────────────────────────────────
+      // Check whether the canonical file already exists BEFORE writing.
+      // "canonical" is derived further down — compute it early for the check.
+      const earlyCanonical = L.number != null ? `level${L.number}.json` : null;
+      const checkFile = earlyCanonical || filename;
+      const sessionKey = L.number != null ? L.number : checkFile;
+      if (!_sessionConfirmedOverwrites.has(sessionKey)) {
+        let alreadyExists = false;
+        try {
+          await dir.getFileHandle(checkFile);   // no { create: true } — throws if missing
+          alreadyExists = true;
+        } catch (existErr) {
+          if (existErr && existErr.name !== 'NotFoundError') throw existErr;
+        }
+        if (alreadyExists) {
+          const ok = await _confirmOverwrite(L.name || filename, checkFile);
+          if (!ok) {
+            return { ok: false, method: 'fsa-dir', message: 'Save cancelled — existing file kept.' };
+          }
+          _sessionConfirmedOverwrites.add(sessionKey);
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────
       const fh = await dir.getFileHandle(filename, { create: true });
       const w  = await fh.createWritable();
       await w.write(json);
@@ -495,6 +523,45 @@ function _promptNumber(msg, def) {
   const n = parseInt(s.trim(), 10);
   if (!Number.isFinite(n) || n < 1) { window.alert('Level number must be a positive integer.'); return null; }
   return n;
+}
+
+// Overwrite-confirmation dialog. Uses the same <dialog id="confirm-dialog">
+// as _confirmDiscardIfDirty; title and body are swapped to reflect context.
+// Returns true if Chief chose to overwrite, false to cancel.
+async function _confirmOverwrite(levelName, canonical) {
+  const msg = `${canonical} already exists (${levelName}). Overwrite it?`;
+
+  const dialog = typeof document !== 'undefined' && document.getElementById('confirm-dialog');
+  const titleEl = typeof document !== 'undefined' && document.getElementById('confirm-title');
+  const bodyEl  = typeof document !== 'undefined' && document.getElementById('confirm-body');
+  const okBtn  = typeof document !== 'undefined' && document.getElementById('confirm-ok');
+  const cxBtn  = typeof document !== 'undefined' && document.getElementById('confirm-cancel');
+
+  if (!dialog || !okBtn || !cxBtn || typeof dialog.showModal !== 'function') {
+    return window.confirm(msg);
+  }
+
+  if (titleEl) titleEl.textContent = 'Overwrite file?';
+  if (bodyEl)  bodyEl.textContent  = msg;
+  if (okBtn)   okBtn.textContent   = 'Overwrite';
+
+  return new Promise((resolve) => {
+    const cleanup = (v) => {
+      okBtn.removeEventListener('click', onOk);
+      cxBtn.removeEventListener('click', onCancel);
+      dialog.removeEventListener('close', onClose);
+      if (okBtn) okBtn.textContent = 'OK';   // restore default label
+      try { if (dialog.open) dialog.close(); } catch {}
+      resolve(v);
+    };
+    const onOk     = () => cleanup(true);
+    const onCancel = () => cleanup(false);
+    const onClose  = () => cleanup(false);   // Esc / backdrop dismiss = cancel
+    okBtn.addEventListener('click', onOk);
+    cxBtn.addEventListener('click', onCancel);
+    dialog.addEventListener('close', onClose);
+    dialog.showModal();
+  });
 }
 
 // In-page confirm using <dialog id="confirm-dialog"> so browser popup-block
