@@ -3,13 +3,15 @@
 import * as Input from './input.js';
 import { clear } from './render.js';
 import { Level }  from './level.js';
-import { init as bgInit, update as bgUpdate } from './background.js';
+// import { init as bgInit, update as bgUpdate } from './background.js';  // DISABLED — replaced by parallax.js
+import * as Parallax from './parallax.js';
 import { Player } from './player.js';
 import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
 import { LEVEL1 } from './levels/level1.js';
+import { LEVEL2 } from './levels/level2.js';
 
-const LEVEL_DEFS = [LEVEL1];
+const LEVEL_DEFS = [LEVEL1, LEVEL2];
 
 // ── Canvas ─────────────────────────────────────
 const canvas = document.getElementById('game');
@@ -27,7 +29,15 @@ resize();
 window.addEventListener('resize', resize);
 
 // Parallax background — 3200px = 100 cols × 32px
-bgInit(3200);
+// Parallax background layers — canvas-based, tileable PNG strips.
+// Layer PNGs live in assets/backgrounds/. Missing images render as nothing
+// (parallax.js skips unloaded images), so it's safe to register a layer
+// before its PNG exists on disk — it just doesn't show until PixelLab
+// generates the art.
+// Factors: 0.15 far, 0.35 mid, 0.60 near. Higher = scrolls faster with camera.
+Parallax.addLayer('assets/backgrounds/mid_city.png',  0.35, 100, 256);
+// Parallax.addLayer('assets/backgrounds/far_city.png',  0.15,  40, 256);
+// Parallax.addLayer('assets/backgrounds/near_city.png', 0.60, 180, 256);
 
 // ── State ──────────────────────────────────────
 const STATES = { TITLE: 0, PLAYING: 1, LEVEL_COMPLETE: 2, GAME_OVER: 3 };
@@ -176,7 +186,7 @@ function _render() {
 }
 
 function _drawScrollGame() {
-  bgUpdate(camX);
+  Parallax.draw(ctx, camX);   // Tileable parallax layers behind the world
   // Scanlines — fixed, not scrolled
   ctx.save();
   ctx.globalAlpha = 0.03;

@@ -38,23 +38,94 @@ export class DrainEnemy {
     this.maxHp       = 2;
     this._hitFlash   = 0;
 
+    // AI state ─────────────────────────────────────────
+    // Aggro is a timer, not a boolean — it decays after losing sight so the enemy
+    // "remembers" the player for a bit and doesn't drop chase the instant you flee.
+    this._aggroTimer = 0;         // seconds of aggro remaining (0 = calm)
+    this._aggroDir   = 1;         // last known player direction: -1 left, +1 right
+    this._homeX      = x;         // spawn position — where to walk back to post-chase
+    this._returning  = false;     // walking back to post
+    this._facing     = 1;         // which way sprite faces (independent of vx)
+
     // Drop table — extend with new types later
     this.drops = [{ type: 'charge', value: 2 }];
+
+    // Sprite frames (PixelLab-generated walk cycle, 8 frames per direction)
+    const load = (dir) => Array.from({ length: 8 }, (_, i) => {
+      const img = new Image();
+      img.src = `assets/sprites/drain_enemy/Idle/animations/drain_walk/${dir}/frame_${String(i).padStart(3,'0')}.png`;
+      return img;
+    });
+    this._walkE = load('east');
+    this._walkW = load('west');
+    this._frame = 0;
+    this._fps   = 10;
   }
 
   get cx() { return this.x + this.w / 2; }
   get cy() { return this.y + this.h / 2; }
+  get _aggro() { return this._aggroTimer > 0; }
 
   update(dt, level) {
     if (!this.alive) return;
-    this._t        += dt;
-    this._cooldown  = Math.max(0, this._cooldown - dt);
-    this._hitFlash  = Math.max(0, this._hitFlash  - dt);
-    this.x += this.vx * dt;
-    if (this.x < this.patrolLeft)  { this.x = this.patrolLeft;  this.vx =  this.speed; }
-    if (this.x + this.w > this.patrolRight) {
-      this.x = this.patrolRight - this.w; this.vx = -this.speed;
+    this._t          += dt;
+    this._cooldown    = Math.max(0, this._cooldown    - dt);
+    this._hitFlash    = Math.max(0, this._hitFlash    - dt);
+
+    // Was aggro'd last frame? Detect the exact moment it drops so we can
+    // transition into "returning to post" behavior.
+    const wasAggro = this._aggroTimer > 0;
+    this._aggroTimer = Math.max(0, this._aggroTimer - dt);
+    if (wasAggro && this._aggroTimer <= 0) {
+      // Lost the player — begin walking back to spawn spot
+      this._returning = true;
     }
+
+    // ── Movement decision ──────────────────────────────
+    if (this._aggro) {
+      // CHASE — sprint toward player. If pinned against patrol edge in the
+      // chase direction, hold position rather than oscillate (looks intentional,
+      // not broken). Facing still tracks player so red glow reads correctly.
+      const goingRight = this._aggroDir > 0;
+      const atRightEdge = this.x + this.w >= this.patrolRight - 0.5;
+      const atLeftEdge  = this.x            <= this.patrolLeft  + 0.5;
+      const pinnedAgainstBound = (goingRight && atRightEdge) || (!goingRight && atLeftEdge);
+      this.vx     = pinnedAgainstBound ? 0 : this._aggroDir * this.speed * 1.7;
+      this._facing = this._aggroDir;
+    } else if (this._returning) {
+      // RETURN — walk back toward spawn position at normal speed
+      const dx = this._homeX - this.x;
+      if (Math.abs(dx) < 6) {
+        // Arrived — resume normal patrol from here
+        this._returning = false;
+        this.vx = this.speed;         // resume moving right by default
+      } else {
+        this.vx = dx > 0 ? this.speed : -this.speed;
+      }
+      this._facing = this.vx >= 0 ? 1 : -1;
+    } else {
+      // PATROL — cruise back and forth at base speed, direction preserved
+      this.vx = this.vx >= 0 ? this.speed : -this.speed;
+      this._facing = this.vx >= 0 ? 1 : -1;
+    }
+
+    this.x += this.vx * dt;
+
+    // Hard patrol bounds — only flip vx if we were moving INTO the wall
+    if (this.x < this.patrolLeft) {
+      this.x = this.patrolLeft;
+      if (this.vx < 0) this.vx = Math.abs(this.vx);
+    }
+    if (this.x + this.w > this.patrolRight) {
+      this.x = this.patrolRight - this.w;
+      if (this.vx > 0) this.vx = -Math.abs(this.vx);
+    }
+
+    // Animate walk cycle — faster steps when chasing (fps stays > 0 even when
+    // pinned at edge, so the enemy still looks angrily agitated)
+    const fpsScale = this._aggro ? 1.7 : 1.0;
+    this._frame += dt * this._fps * fpsScale;
+    if (this._frame >= 8) this._frame -= 8;
   }
 
   overlaps(px, py, pw, ph) {
@@ -62,7 +133,6 @@ export class DrainEnemy {
              this.y + this.h <= py || this.y >= py + ph);
   }
 
-  // Called by player attack
   hit(level) {
     if (!this.alive) return;
     this.hp--;
@@ -74,7 +144,23 @@ export class DrainEnemy {
   }
 
   tryContact(player, level) {
-    if (!this.alive || this._cooldown > 0) return;
+    if (!this.alive) return;
+
+    // Refresh aggro timer whenever player is inside detection bubble.
+    // We don't clear aggro when player leaves range — the timer decays in update(),
+    // giving the enemy a ~3s memory of where it saw you.
+    const dx  = player.cx - this.cx;
+    const dy  = player.cy - this.cy;
+    const inX = Math.abs(dx) < 160;
+    const inY = Math.abs(dy) < 40;   // roughly same rooftop
+    if (inX && inY) {
+      this._aggroTimer = 3.0;              // seconds until aggro decays
+      this._aggroDir   = dx >= 0 ? 1 : -1;
+      this._returning  = false;            // spotting player cancels any return-to-post
+    }
+
+    // Contact damage — stun + scatter charge (the "drain attack")
+    if (this._cooldown > 0) return;
     if (this.overlaps(player.x, player.y, player.w, player.h)) {
       const dir = player.cx <= this.cx ? -1 : 1;
       player.stun(STUN_DURATION, dir * 300);
@@ -85,27 +171,39 @@ export class DrainEnemy {
 
   draw(ctx) {
     if (!this.alive) return;
-    const t     = this._t;
-    const flash = this._hitFlash > 0;
-    const pulse = 0.5 + 0.5 * Math.sin(t * 7);
+    const flash  = this._hitFlash > 0;
+    // Face based on _facing (not vx) — enemy pinned at edge still faces player
+    const frames = this._facing >= 0 ? this._walkE : this._walkW;
+    const fi     = Math.floor(this._frame) % 8;
+    const img    = frames[fi];
 
-    drawGlowRect(ctx, this.x, this.y, this.w, this.h,
-      flash ? '#ffffff' : '#2a0010',
-      flash ? '#ffffff' : '#ff3355',
-      flash ? 20 : 12 * pulse);
+    // Render sprite at native 92x92 (matches player). Feet at pixel row 84 within
+    // the 92px frame — drain enemy is hunched so feet sit lower than the player's 78.
+    const dw = 92, dh = 92;
+    const SPRITE_FEET_Y = 84;
+    const dx = Math.round(this.x + this.w / 2 - dw / 2);
+    const dy = Math.round(this.y + this.h - SPRITE_FEET_Y);
 
-    ctx.fillStyle = flash
-      ? `rgba(255,255,255,0.9)`
-      : `rgba(255,50,80,${0.7 * pulse})`;
-    ctx.fillRect(this.x + 3, this.y + 3, this.w - 6, this.h - 6);
+    ctx.save();
+    if (flash) ctx.globalAlpha = 0.5 + 0.5 * Math.sin(this._t * 40);
+    // Aggro glow — pulsing red halo signals "hostile, closing in"
+    if (this._aggro && !flash) {
+      ctx.shadowBlur  = 10 + 4 * Math.sin(this._t * 12);
+      ctx.shadowColor = '#ff2244';
+    }
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, dx, dy, dw, dh);
+    } else {
+      ctx.fillStyle = flash ? '#ffffff' : '#2a0010';
+      ctx.fillRect(this.x, this.y, this.w, this.h);
+    }
+    ctx.restore();
 
-    // Eye antennae
-    ctx.fillStyle = flash ? '#ffffff' : '#ff88aa';
-    ctx.fillRect(this.x + 4,          this.y - 4, 3, 5);
-    ctx.fillRect(this.x + this.w - 7, this.y - 4, 3, 5);
-
-    // HP bar
-    _drawHpBar(ctx, this.x, this.y, this.w, this.hp, this.maxHp);
+    // HP bar centered above the visible character
+    const hpW  = 32;
+    const hpX  = Math.round(this.x + this.w / 2 - hpW / 2);
+    const hpY  = dy + 18;
+    _drawHpBar(ctx, hpX, hpY, hpW, this.hp, this.maxHp);
   }
 }
 

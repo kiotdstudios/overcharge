@@ -64,8 +64,7 @@ function tileRow(specs = [], cols = 100) {
 
 // ── Row data ────────────────────────────────────────────────────────────
 // Phase 1 redesign: added setback tiers to A, B, D, F for reference-style
-// silhouette variety. Now 6 buildings have MULTIPLE roof heights each,
-// creating a denser rooftop skyline.
+// silhouette variety.
 const SKY = tileRow();   // pure sky — rows 0, 1, 2
 
 //  Row 3: E-tower peak + B-upper peak
@@ -74,23 +73,21 @@ const R3  = tileRow([22, 27, 1,   80, 85, 1]);
 //  Row 4: C-tower + E-tower body + B-upper body + F-setback peak
 const R4  = tileRow([22, 27, 1,   48, 53, 1,   80, 85, 1,   96, 99, 1]);
 
-//  Row 5: B main rooftop, tower bodies, F-setback body,
-//         + NEW setback rooftops: A-east (cols 12-16), D-east (65-72)
+//  Row 5: setback rooftops (A-east, D-east) + B main + tower bodies + F-setback body
 const R5  = tileRow([12, 16, 1,   19, 34, 1,   48, 53, 1,   65, 72, 1,   75, 90, 1,   96, 99, 1]);
 
-//  Row 6: C main rooftop, E main rooftop, F main rooftop, B body,
-//         + setback bodies on A and D
+//  Row 6: C main, E main, F main + B body + setback bodies (A, D)
 const R6  = tileRow([12, 16, 1,   19, 34, 1,   37, 53, 1,   65, 72, 1,   75, 90, 1,   93, 99, 1]);
 
-//  Row 7: A main rooftop, B body, C body, D main rooftop, E body, F body
+//  Row 7: A main + B body + C body + D main + E body + F body
 const R7  = tileRow([0, 16, 1,   19, 34, 1,   37, 53, 1,   57, 72, 1,   75, 90, 1,   93, 99, 1]);
 
-// Rows 8–13: same building bodies, no new rooftops
+// Rows 8–13: same bodies as R7
 const R8  = R7;
 
-export const LEVEL1 = {
-  name:   'NEON DISTRICT',
-  number: 1,
+export const LEVEL2 = {
+  name:   'SPLIT DECISION',
+  number: 2,
   cols:   100,
 
   // ── Tilemap ──────────────────────────────────────────────────────────────────
@@ -122,89 +119,67 @@ export const LEVEL1 = {
   // Props (lamps, signs, pipes) sit on the tile surface and extend upward.
   // groundY = row * 32 (top face of that row's tile).
   decorations: [
-    // Phase 1: dense rooftop clutter — industrial pipes, HVAC, antennas,
-    // signs. Every rooftop tier gets 2-4 props for reference-style detail.
-
-    // ── Building A main (row 7, groundY=224) ──────────────────────────────
-    prp('street_lamp',      22, 43,    96, 224),   // col  3 — spawn-area lamp
-    prp('pipe_elbow',       19, 27,   224, 224),   // col  7 — HVAC
-    prp('pipe_thin',         5, 13,   320, 224),   // col 10 — small vent
-
-    // ── Building A setback (row 5, groundY=160) ───────────────────────────
-    prp('street_lamp',      22, 43,   416, 160),   // col 13
-    prp('bracket_corner',    8,  9,   512, 160),   // col 16 — edge detail
-
-    // ── Building B main (row 5, groundY=160) ──────────────────────────────
-    prp('street_lamp',      22, 43,   640, 160),   // col 20
-    prp('tool_hammer',      25, 20,   800, 160),   // col 25 — industrial rooftop
-    prp('pipe_thin',         5, 13,   960, 160),   // col 30
-    prp('sign_arrow_right', 21, 34,  1056, 160),   // col 33 — nudge toward C
-
-    // ── Building B upper setback (row 3, groundY=96) ──────────────────────
-    prp('sign_arrow_up',    31, 47,   768, 96),    // col 24 — tall neon signage
-    prp('pipe_thin',         5, 13,   832, 96),    // col 26 — antenna
-
-    // ── Building C main (row 6, groundY=192) ──────────────────────────────
-    prp('street_lamp',      22, 43,  1248, 192),   // col 39
-    prp('pipe_elbow',       19, 27,  1376, 192),   // col 43 — HVAC
-    prp('platform_glow_green', 23, 18, 1472, 192), // col 46 — beacon light
-    prp('pipe_thin',         5, 13,  1536, 192),   // col 48
-
-    // ── Building C tower top (row 4, groundY=128) ─────────────────────────
-    prp('sign_arrow_up',    31, 47,  1568, 128),   // col 49
-    prp('pipe_thin',         5, 13,  1632, 128),   // col 51 — antenna
-
-    // ── Building D main (row 7, groundY=224) ──────────────────────────────
-    prp('street_lamp',      22, 43,  1888, 224),   // col 59
-    prp('tool_hammer',      25, 20,  1984, 224),   // col 62 — workshop feel
-
-    // ── Building D setback (row 5, groundY=160) ───────────────────────────
-    prp('street_lamp',      22, 43,  2112, 160),   // col 66
-    prp('pipe_elbow',       19, 27,  2208, 160),   // col 69 — HVAC
-    prp('sign_arrow_right', 21, 34,  2272, 160),   // col 71 — toward E
-
-    // ── Building E main (row 5, groundY=160) ──────────────────────────────
-    prp('street_lamp',      22, 43,  2432, 160),   // col 76
-    prp('pipe_thin',         5, 13,  2496, 160),   // col 78 — vent
-
-    // ── Building E tower top (row 3, groundY=96) ──────────────────────────
-    prp('sign_arrow_up',    31, 47,  2592, 96),    // col 81 — highest point
-    prp('pipe_thin',         5, 13,  2688, 96),    // col 84 — antenna
-
-    // ── Building E main east of tower (row 5, groundY=160) ────────────────
-    prp('pipe_elbow',       19, 27,  2784, 160),   // col 87 — HVAC
-    prp('platform_glow_green', 23, 18, 2848, 160), // col 89 — landing beacon
-
-    // ── Building F main (row 6, groundY=192) ──────────────────────────────
-    prp('street_lamp',      22, 43,  3008, 192),   // col 94
-
-    // ── Building F setback (row 4, groundY=128) ───────────────────────────
-    prp('sign_arrow_up',    31, 47,  3104, 128),   // col 97 — EXIT beacon
-    prp('pipe_thin',         5, 13,  3168, 128),   // col 99 — antenna
+    // Phase 1: dense rooftop clutter matching Level 1 v2.
+    prp('street_lamp',      22, 43,    96, 224),
+    prp('pipe_elbow',       19, 27,   224, 224),
+    prp('pipe_thin',         5, 13,   320, 224),
+    prp('street_lamp',      22, 43,   416, 160),
+    prp('bracket_corner',    8,  9,   512, 160),
+    prp('street_lamp',      22, 43,   640, 160),
+    prp('tool_hammer',      25, 20,   800, 160),
+    prp('pipe_thin',         5, 13,   960, 160),
+    prp('sign_arrow_right', 21, 34,  1056, 160),
+    prp('sign_arrow_up',    31, 47,   768, 96),
+    prp('pipe_thin',         5, 13,   832, 96),
+    prp('street_lamp',      22, 43,  1248, 192),
+    prp('pipe_elbow',       19, 27,  1376, 192),
+    prp('platform_glow_green', 23, 18, 1472, 192),
+    prp('pipe_thin',         5, 13,  1536, 192),
+    prp('sign_arrow_up',    31, 47,  1568, 128),
+    prp('pipe_thin',         5, 13,  1632, 128),
+    prp('street_lamp',      22, 43,  1888, 224),
+    prp('tool_hammer',      25, 20,  1984, 224),
+    prp('street_lamp',      22, 43,  2112, 160),
+    prp('pipe_elbow',       19, 27,  2208, 160),
+    prp('sign_arrow_right', 21, 34,  2272, 160),
+    prp('street_lamp',      22, 43,  2432, 160),
+    prp('pipe_thin',         5, 13,  2496, 160),
+    prp('sign_arrow_up',    31, 47,  2592, 96),
+    prp('pipe_thin',         5, 13,  2688, 96),
+    prp('pipe_elbow',       19, 27,  2784, 160),
+    prp('platform_glow_green', 23, 18, 2848, 160),
+    prp('street_lamp',      22, 43,  3008, 192),
+    prp('sign_arrow_up',    31, 47,  3104, 128),
+    prp('pipe_thin',         5, 13,  3168, 128),
   ],
   // ── Puzzle elements — intentionally empty for architecture pass ───────────────
   // Do not populate until traversal and silhouette are approved.
-  // ── Puzzle elements — Level 1: "First Spark" (GDD §11) ─────────────────────
-  // Learn to absorb from a single source and spend it on the exit.
+  // ── Puzzle elements — Level 2: "Split Decision" (GDD §11) ─────────────────
+  // Two devices compete for limited power; one opens the route to the energy
+  // needed for the exit. Player MUST spend part of their initial 4 charge on
+  // the switch — otherwise the barrier stays closed and Building E (and thus
+  // the exit) is unreachable.
   //
-  // FLOW: spawn on Building A → walk right → absorb generator → traverse A→F →
-  //       discharge into exit gate on Building F → level complete.
+  // FLOW:
+  //   Bldg A: absorb GEN-A (4 charge)
+  //   Bldg D: discharge 2 into SWITCH → BARRIER opens        (2 charge remain)
+  //   Bldg E: barrier open → absorb GEN-B                    (2 + 6 = 8 charge)
+  //   Bldg F: discharge 6 into EXIT → level complete
   //
-  // Source: Building A rooftop (row 7, groundY=224). Generator sprite is 64x64
-  //         drawn above the 28x28 hitbox, so y = groundY - 28 = 196 puts hitbox
-  //         on the roof.
-  // Gate:   Building F rooftop (row 6, groundY=192). Full-height doorway 40w x 64h.
-  // Source charge = Gate required = 4 (1:1). At ABSORB_RATE=3 units/sec that gives
-  // ~1.3s of tactile hold on [E], player watches the meter fill 4/10 pips — enough
-  // to feel the action but not so much it obscures the tutorial's simplicity.
+  // "Wrong path" (skip switch) is physically prevented: BARRIER blocks the
+  // west edge of Bldg E, so player can't reach GEN-B or F without switch on.
   sources: [
-    { id: 'A1', x: 224, y: 196, charge: 4, label: 'GEN-A' },   // Bldg A col 7 (main roof, before setback)
+    { id: 'A1', x:  224, y: 196, charge: 4, label: 'GEN-A' },   // Bldg A col 7 (main roof)
+    { id: 'E1', x: 2784, y: 132, charge: 6, label: 'GEN-B' },   // Bldg E col 87 (main east, past tower & barrier)
   ],
   gates: [
-    { id: 'EXIT', x: 3040, y: 128, w: 40, h: 64, required: 4, isExit: true, label: 'EXIT' },  // col 95 of Bldg F
+    { id: 'BARRIER', x: 2496, y:  32, w: 32, h: 128, required: 1, blockOnly: true, label: 'BARRIER' }, // Bldg E col 78 wall
+    { id: 'EXIT',    x: 3040, y: 128, w: 40, h:  64, required: 6, isExit: true,    label: 'EXIT' },    // Bldg F col 95 → setback
   ],
-  switches:    [],
+  switches: [
+    { id: 'SW1', x: 1920, y: 202, required: 2, linkedId: 'BARRIER', label: 'OPEN' }, // Bldg D col 60 (main roof)
+  ],
   checkpoints: [],
   platforms:   [],
-  enemies:     [],   // DrainEnemy moved to Level 3 per GDD §11 progression
+  enemies:     [],   // No enemies until Level 3 per GDD §11 progression
 };
