@@ -1,0 +1,134 @@
+// Builder ↔ runtime parity regression harness.
+// Run: node --experimental-default-type=module _dev/parity_regression.mjs
+// This harness tests existing contracts only; it must not change editor/runtime behavior.
+
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+
+class FakeImage {
+  constructor() {
+    this.complete = false;
+    this.naturalWidth = 0;
+    this.naturalHeight = 0;
+    this.src = '';
+  }
+  addEventListener() {}
+}
+globalThis.Image = FakeImage;
+
+const State = await import('../editor/state.js');
+const { Level } = await import('../src_scroll/level.js');
+const { TILE, ROWS, PLAYER_W, PLAYER_H } = await import('../src_scroll/constants.js');
+const { persistKeyForLevel } = await import('../editor/persistence.js');
+
+let passed = 0;
+let failed = 0;
+const defects = [];
+
+function check(condition, message) {
+  if (condition) {
+    passed++;
+    console.log(`  ✓ ${message}`);
+  } else {
+    failed++;
+    console.error(`  ✗ ${message}`);
+  }
+}
+
+function same(actual, expected, message) {
+  check(JSON.stringify(actual) === JSON.stringify(expected), message);
+}
+
+function fixtureLevel() {
+  const cols = 3;
+  const tiles = new Array(cols * ROWS).fill(0);
+  tiles[0] = 1;
+  tiles[1] = 2;
+  tiles[2] = 10;
+  tiles[cols + 1] = 13;
+  return {
+    name: 'PARITY FIXTURE',
+    number: 7,
+    cols,
+    tiles,
+    tileRotations: [0, 90, 180, 270],
+    playerStart: { x: 16, y: 32 },
+    decorations: [{ src: 'assets/test.png', x: 96, y: 128, w: 32, h: 16, snap: 1, rotation: 90 }],
+    sources: [{ id: 'SRC-1', x: 32, y: 352, charge: 5, label: 'GEN' }],
+    gates: [{ id: 'GATE-1', x: 64, y: 320, w: 40, h: 64, required: 5, isExit: true, blockOnly: false, label: 'EXIT' }],
+    checkpoints: [{ id: 'CP-1', x: 112, y: 384, label: 'SAVE' }],
+    platforms: [{ id: 'PLAT-1', x: 128, y: 288, w: 96, h: 12, x1: 96, x2: 256, speed: 80 }],
+    switches: [{ id: 'SW-1', x: 160, y: 336, required: 1, linkedId: 'GATE-1', label: 'OPEN' }],
+    enemies: [{ id: 'EN-1', type: 'patrol', x: 192, y: 320, patrolLeft: 160, patrolRight: 288, speed: 50 }],
+  };
+}
+
+function validateAuthoredLevel(level, label) {
+  check(Number.isInteger(level.cols) && level.cols > 0, `${label}: cols is a positive integer`);
+  check(Array.isArray(level.tiles) && level.tiles.length === level.cols * ROWS, `${label}: tiles is exactly cols × ${ROWS}`);
+  check(level.tiles.every(value => Number.isInteger(value)), `${label}: tiles contain integers`);
+  check(level.tiles.every(value => value === 0 || value === 1 || value === 2 || value >= 10), `${label}: no reserved tile values 3–9 are authored`);
+  check(level.playerStart && Number.isFinite(level.playerStart.x) && Number.isFinite(level.playerStart.y), `${label}: playerStart has numeric top-left coordinates`);
+  for (const field of ['decorations', 'enemies', 'sources', 'gates', 'checkpoints', 'platforms', 'switches']) {
+    check(Array.isArray(level[field]), `${label}: ${field} is serialized as an array`);
+  }
+}
+
+console.log('\n[ Authored JSON round-trip ]');
+const authored = fixtureLevel();
+const serialized = JSON.stringify(authored);
+const reloaded = JSON.parse(serialized);
+same(reloaded, authored, 'loading → serializing → reloading preserves every fixture property');
+validateAuthoredLevel(reloaded, 'fixture');
+check(reloaded.sources[0].id === 'SRC-1' && reloaded.gates[0].id === 'GATE-1' && reloaded.switches[0].id === 'SW-1' && reloaded.checkpoints[0].id === 'CP-1', 'supported authored IDs survive the JSON round-trip');
+
+console.log('\n[ Tile and Builder contract ]');
+check(TILE === 32 && ROWS === 14, 'runtime tile contract is TILE = 32 and ROWS = 14');
+State.state.level = structuredClone(authored);
+check(State.worldToTile(63, 63).col === 1 && State.worldToTile(63, 63).row === 1, 'Builder worldToTile uses floor-based 32px coordinates');
+check(State.getTile(0, 0) === 1 && State.getTile(1, 0) === 2 && State.getTile(2, 0) === 10 && State.getTile(1, 1) === 13, 'Builder indexes flat tiles row-major');
+check(State.getTile(-1, 0) === 0 && !State.setTile(3, 0, 10), 'Builder rejects out-of-bounds tile writes');
+check(State.tileValueForAssetId('env_tile_dark_a') === 10 && State.tileValueForAssetId('env_tile_purple_b') === 13, 'Builder registry emits supported art tile values ≥10');
+check(State.tileValueForAssetId('unregistered_tile') === -1, 'Builder does not map an unregistered art asset to a reserved value');
+check(State.tileIsSolid(1) && State.tileIsSolid(10) && State.tileIsSolid(13) && !State.tileIsSolid(2), 'Builder solidness matches the runtime tile contract');
+
+console.log('\n[ Runtime object projection and anchors ]');
+const runtime = new Level(reloaded);
+check(runtime.pxW === authored.cols * TILE && runtime.pxH === ROWS * TILE, 'runtime derives world dimensions from authored cols and fixed row count');
+check(runtime.tileAt(1, 1) === 13 && runtime.solidAt(2, 0) && !runtime.solidAt(1, 0), 'runtime preserves row-major art tile values and one-way semantics');
+same(runtime.playerStart, authored.playerStart, 'playerStart reaches runtime unchanged as a top-left coordinate');
+check(PLAYER_W === 20 && PLAYER_H === 30, 'playerStart contract uses the runtime player collision dimensions');
+const source = runtime.sources[0];
+const gate = runtime.gates[0];
+const sw = runtime.switches[0];
+const checkpoint = runtime.checkpoints[0];
+const platform = runtime.platforms[0];
+const enemy = runtime.enemies[0];
+check(source.id === 'SRC-1' && source.x === 32 && source.y === 352 && source.w === 28 && source.h === 28, 'source keeps authored top-left coordinates and documented 28×28 hitbox');
+check(source.cx === 46 && source.cy === 366, 'source center is derived from top-left placement');
+check(gate.id === 'GATE-1' && gate.x === 64 && gate.y === 320 && gate.w === 40 && gate.h === 64 && gate.required === 5 && gate.isExit, 'gate properties reach runtime unchanged from authored JSON');
+check(sw.id === 'SW-1' && sw.x === 160 && sw.y === 336 && sw.w === 22 && sw.h === 22 && sw.linkedId === 'GATE-1', 'switch uses authored top-left coordinates and documented 22×22 hitbox');
+check(checkpoint.x === 112 && checkpoint.y === 384 && checkpoint._range === 40, 'checkpoint preserves center-x and standing-ground y contract without top-left conversion');
+check(platform.x === 128 && platform.y === 288 && platform.x1 === 96 && platform.x2 === 256 && platform.w === 96, 'platform authored bounds reach runtime unchanged');
+check(enemy.x === 192 && enemy.y === 320 && enemy.patrolLeft === 160 && enemy.patrolRight === 288 && enemy.speed === 50, 'enemy authored top-left placement and patrol data reach runtime unchanged');
+check(runtime.decorations[0].x === 96 && runtime.decorations[0].y === 128 && runtime.decorations[0].w === 32 && runtime.decorations[0].h === 16 && runtime.decorations[0].rotation === 90, 'decoration render geometry and rotation reach runtime');
+check(!Object.hasOwn(runtime.decorations[0], 'snap'), 'decoration snap remains Builder-only metadata and is intentionally normalized away by runtime');
+
+console.log('\n[ Persistence and local-play contract ]');
+check(persistKeyForLevel({ number: 7 }) === 'num:7', 'editor persistence key is num:<level number>');
+check(`level:${persistKeyForLevel({ number: 7 })}` === 'level:num:7', 'IndexedDB record key matches localstore prefix contract');
+const mainSource = fs.readFileSync(path.resolve('src_scroll/main.js'), 'utf8');
+check(mainSource.includes("const TEST_LEVEL_KEY = 'overcharge.testLevel'"), 'runtime TEST LIVE key matches Builder local-play key');
+check(mainSource.includes("_tryLocalSave(1)") && mainSource.includes("params.get('committed') === '1'"), 'runtime documents Level N local-save lookup and committed override path');
+
+console.log('\n[ Committed canonical levels ]');
+const levelDir = path.resolve('src_scroll/levels');
+const levelFiles = fs.readdirSync(levelDir).filter(name => /^level\d+\.json$/.test(name)).sort();
+check(levelFiles.length > 0, 'canonical level directory contains authored JSON levels');
+for (const filename of levelFiles) {
+  validateAuthoredLevel(JSON.parse(fs.readFileSync(path.join(levelDir, filename), 'utf8')), filename);
+}
+
+console.log(`\nRESULTS: ${passed} passed, ${failed} failed`);
+if (failed > 0) process.exitCode = 1;
