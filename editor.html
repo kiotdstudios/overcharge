@@ -32,6 +32,8 @@
   #save-flash { font-family: monospace; font-size: 11px; color: #44ff88; opacity: 0; transition: opacity .3s; margin-left: 8px; }
   #save-flash.show { opacity: 1; }
   #save-flash.err { color: #ff5566; }
+  #save-folder-name { font-family: monospace; font-size: 10px; color: #556; margin-left: 4px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+  #save-folder-name.set { color: #44aa66; }
   .dirty-star { color: #ff8800; margin-left: 4px; }
 
   /* Sidebar (asset browser) */
@@ -139,6 +141,8 @@
     <button id="btn-play" title="Open game in dev mode — plays your local save (?dev=1)">▶ PLAY</button>
     <button id="btn-test" title="Test the current in-editor level in the game (opens new tab)">▶ TEST LIVE</button>
     <button id="btn-save" class="primary" title="Save current level (Ctrl+S)">💾 SAVE</button>
+    <button id="btn-choose-folder" class="tp-btn" title="Set save folder — pick the git levels folder so saves write directly there instead of downloading">📁 FOLDER</button>
+    <span id="save-folder-name"></span>
     <span id="save-flash"></span>
     <input id="upload-input" type="file" accept=".json,application/json" style="display:none">
     <div class="divider"></div>

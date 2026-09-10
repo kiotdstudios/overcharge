@@ -42,6 +42,8 @@ const btnTest      = document.getElementById('btn-test');
 const btnUndo      = document.getElementById('btn-undo');
 const btnRedo      = document.getElementById('btn-redo');
 const saveFlash    = document.getElementById('save-flash');
+const btnChooseFolder  = document.getElementById('btn-choose-folder');
+const saveFolderName   = document.getElementById('save-folder-name');
 const editorRoot     = document.getElementById('editor-root');
 const btnInspHide    = document.getElementById('btn-inspector-hide');
 const inspShowTab    = document.getElementById('inspector-show-tab');
@@ -284,7 +286,33 @@ btnSave?.addEventListener('click', async () => {
   if (r.ok) {
     try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
   }
+  _updateFolderDisplay();
 });
+// Let Chief pick (or re-pick) the save folder. Once set, all future saves
+// write directly into that folder — no more Downloads downloads.
+btnChooseFolder?.addEventListener('click', async () => {
+  const handle = await Persistence.chooseSaveFolder();
+  if (handle) {
+    showSaveFlash({ ok: true, message: `Save folder set: ${handle.name} — SAVE now writes directly there.` });
+  } else {
+    showSaveFlash({ ok: false, message: 'No folder chosen — saves will download instead.' });
+  }
+  _updateFolderDisplay();
+});
+function _updateFolderDisplay() {
+  if (!saveFolderName) return;
+  const name = Persistence.saveFolderName();
+  if (name) {
+    saveFolderName.textContent = name + '/';
+    saveFolderName.className = 'set';
+    saveFolderName.title = 'Saves write to this folder. Click 📁 FOLDER to change.';
+  } else {
+    saveFolderName.textContent = 'no folder set';
+    saveFolderName.className = '';
+    saveFolderName.title = 'Click 📁 FOLDER to pick the git levels folder (src_scroll/levels/)';
+  }
+}
+_updateFolderDisplay();
 // Escape hatch from a local-only level. The dropdown lets Chief LOOK at the
 // committed copy, but the game keeps preferring the local save until it is
 // either committed or explicitly discarded here.
