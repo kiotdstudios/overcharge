@@ -72,3 +72,23 @@
 - **Level promotion commit SHA:** `891d9df8d73f0c0fb9e8a1b9f8ea1c10a7e693c5`
 - **Push status:** YES — pushed with this status record to `agent/kiro-parity`.
 - **Recommended next step:** Open `editor.html` from the reviewed branch, finish the exit gate and charge route, validate the Builder/runtime rendering, then request a clean integration review.
+## Order #3 — Merge Approved Level 1 Promotion to Shared Branch
+
+- **Date/time:** 2026-09-10T13:46:42-04:00
+- **Assignment:** Merge the approved `agent/kiro-parity` Level 1 promotion into `agent/orcha-gameplay` without using another agent's worktree, then validate and publish it.
+- **Work completed:** Created a dedicated integration worktree from the latest shared branch (`514aafa3691fb73fc8c8097fb5b95390254b0f3f`), merged `agent/kiro-parity` cleanly, and preserved both the Level 1 promotion and parity harness/status history.
+- **Files changed:**
+  - `src_scroll/levels/level1.json`
+  - `_dev/parity_regression.mjs`
+  - `KIRO_STATUS.md`
+- **Tests added/run:**
+  - `node _dev/parity_regression.mjs` — **63 passed, 0 failed** on the merge result.
+  - `node _dev/test_electricity.mjs` — existing suite completed with **37 passed, 0 failed** in its printed summary.
+- **PASS/FAIL results:** PASS for the regression suites. The merge had no conflicts.
+- **Defects discovered:** No new merge defect. The imported Level 1 still has no exit gate, so it is explorable but cannot complete normally until content authoring adds an `isExit` gate.
+- **Technical decisions:** Used a temporary integration branch/worktree instead of modifying any active agent worktree. The merge commit is `e7828c829092345eba452dd9341a2c12f2c3622b`; its first parent is the latest shared branch at integration time.
+- **Known limitations:** No rendered browser visual QA was performed. GitHub Pages deployment completion still needs to be observed after push.
+- **Chief/TD decisions required:** Assign and review the exit-gate/completion-path content before considering the new Level 1 complete.
+- **Merge commit SHA:** `e7828c829092345eba452dd9341a2c12f2c3622b`
+- **Push status:** YES — published to `agent/orcha-gameplay` with this status record.
+- **Recommended next step:** Hard-refresh the GitHub Pages Builder and game after deployment completes, then finish Level 1's exit route in the Builder.
