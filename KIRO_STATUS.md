@@ -72,3 +72,75 @@
 - **Level promotion commit SHA:** `891d9df8d73f0c0fb9e8a1b9f8ea1c10a7e693c5`
 - **Push status:** YES — pushed with this status record to `agent/kiro-parity`.
 - **Recommended next step:** Open `editor.html` from the reviewed branch, finish the exit gate and charge route, validate the Builder/runtime rendering, then request a clean integration review.
+
+---
+
+# ROLE CHANGE — TECHNICAL CHIEF (effective 2026-09-10)
+
+Kiro is now Technical Chief / Project Lead for OVERCHARGE: overall project state, Aki/Orcha coordination, Git/GitHub discipline, source-of-truth protection, and QA gate. Chief/Director remains final authority.
+
+**Permanent project rule:** GitHub is the authoritative source. Every meaningful change follows `EDIT → TEST → COMMIT → PUSH → STATUS → REVIEW`. Local-only work is not complete work.
+
+**Team structure:** KIRO = Technical Chief / architecture + coordination + QA gate. AKI = Builder/editor + asset/content implementation. ORCHA = core gameplay/systems implementation.
+
+## Order 001 — State Audit + New Workflow
+
+- **Date/time:** 2026-09-10T19:18:40-04:00
+- **Assignment:** Full workspace/repo/asset audit, archive setup, skills review, workflow establishment. No feature development, no deletions, no main merges.
+
+### A. Workspace Git audit (nothing deleted, reset, cleaned, or moved)
+
+| Path | Type | Branch / HEAD | State | Risk |
+|---|---|---|---|---|
+| `Documents\GitHub\overcharge` | full clone (CANONICAL) | `agent/orcha-gameplay` @ `3cab1d9` = remote tip | clean | none |
+| `Documents\OVERCHARGE-kiro` | worktree of canonical | `agent/kiro-parity` @ `0e8c1e0` = remote tip | clean | none |
+| `Documents\OVERCHARGE-kiro-merge` | worktree of canonical | `agent/kiro-promote-level1` @ `d866532` | dirty (`AKI_STATUS.md` modified) | LOW — branch is patch-equivalent to remote (`git cherry` all `-`, tip diff empty); no unique commits. Worktree removable after Chief sign-off |
+| `Documents\OVERCHARGE` | **second full clone** (Aki's) | `agent/aki-editor` @ `5192356` = remote tip | **DIRTY: uncommitted gameplay WIP** — modified `entities.js`, `levels/level1.js`, `main.js`, `index.html`; untracked `levels/level2.js`, `parallax.js`; deleted legacy concrete tiles | **HIGH — unique unpushed work. Do not touch. Owner must commit/push or discard explicitly** |
+| `Documents\OVERCHARGE-integration` | worktree of `Documents\OVERCHARGE` | detached @ `e3580fa` (contained in `origin/agent/orcha-gameplay`) | clean | none — removable after sign-off |
+| `Documents\OVERCHARGE-orcha` | worktree of `Documents\OVERCHARGE` | `agent/orcha-gameplay` @ `514aafa` (behind remote) | clean | none — just stale; pull before use |
+| `Documents\_orcha_stage` | **not Git** | 13 loose scripts (camera/HUD/regression/screenshot) | n/a | MEDIUM — possibly active Orcha staging; possibly DRIFTBOUND material. Verify with Orcha before archiving |
+| `Documents\OVERCHARGE-aki`, `Documents\GitHub\overcharge-{aki,kiro,orcha}` | missing | — | — | target structure not yet built |
+
+Safety action taken: pushed local-only branch `wip/pre-orcha-sync` (`cef802a`, my pre-integration snapshot) to origin so it can no longer be lost.
+
+Deviation from target structure: two independent full clones exist (`GitHub\overcharge` and `Documents\OVERCHARGE`), each owning worktrees. Consolidation plan (post-approval, after Aki's dirty work is committed): keep `GitHub\overcharge` as the single repo, recreate agent worktrees beside it as `GitHub\overcharge-{aki,kiro,orcha}`, retire `Documents\OVERCHARGE*`.
+
+### B. Project state
+
+- Functional: scroll runtime (`index.html` → `src_scroll/`), Builder (`editor.html` → `editor/`), JSON level pipeline, GitHub Pages from `agent/orcha-gameplay`, parity harness (63/0), electricity suite (37/0). Aki's overwrite-confirmation + save-folder-button features are live on the shared branch (`e24719b`/`d866532` equivalents pushed as `3cab1d9`).
+- Incomplete: Level 1 (NEON RISE) has no exit gate — non-completable by design until authored. Aki's Waste Zone gameplay WIP sits uncommitted in `Documents\OVERCHARGE`.
+- Known defects: shallow load-time validation on bundled/dir/IDB level paths; stale README architecture section; stale `editor/README.md` manifest claim; `editor/buildinfo.js` staleness (known P3).
+
+### C./D. File & asset audit (proposed dispositions — NO deletions performed)
+
+- KEEP canonical: `index.html`, `editor.html`, `src_scroll/**`, `editor/**`, `src_scroll/levels/level1.json`+`level2.json`, `_dev/parity_regression.mjs`, `_dev/test_electricity.mjs`, `scripts/build_info.mjs`, `scripts/build_manifest.mjs`, `start.bat`, `PUBLISH_LEVELS.bat`, `docs/**`, `assets/ASSET_MANIFEST.json`, `assets/PURPLE_CITY_INDEX.json`, all runtime-referenced sprite folders (`idle_2.0`, `walking`, `jumping`, `running`, `charge_anim`, `discharge`, `drone`, `generator 1`), `assets/objects/*`, `assets/tilesets/purple_city/**`.
+- ARCHIVE unit (single reviewed commit, later): legacy `src/**` + `index_classic.html` + `assets/sprites/idle/` + `assets/sprites/charge/` (quarantined prototype; only `index_classic.html?keep=1` uses it).
+- REMOVE/ARCHIVE candidates (reviewed commit, later): `src_scroll/levels/level1_prev_backup.json` (redundant with Git history), `scripts/convert_levels.mjs` (obsolete one-shot; sources gone), `assets/purple city.zip` (extracted already), raw GIF folders (`Charge Animation`, `running animation`, `helicopter drone`), QA sheets (`waste/_qa/`, contact sheets), `assets/objects/gate_electric_spritesheet.json` (unreferenced), root PDFs (`Vibe Coding`, GDD → archive; **Svor pack PDF: verify license/attribution before touching**).
+- Manifest-referenced but code-unreferenced (Aki's call): `assets/sprites/drain_enemy/`, `assets/backgrounds/mid_city.png`, non-east/west direction folders.
+- Purple City is confirmed the only environmental tileset pack; no foreign environment packs are mixed in.
+- Local archive created at `Documents\Archived` (OUTSIDE Git) with `README_ARCHIVE.md` listing candidates. Nothing moved into it yet — moves await Chief approval and owner verification (`_orcha_stage` ownership unconfirmed).
+
+### E. Skills review (`gamedev-skills/awesome-gamedev-agent-skills`)
+
+- `workflows/prototype-fast` / WHY: keep/kill criteria + spike containment prevent prototypes rotting into `src_scroll` / HOW: I will require a written one-question brief and containment folder for any experimental lane before assigning it. **ADOPTED.**
+- `disciplines/performance-optimization` / WHY: measure-first discipline and frame budgets are the correct QA-gate posture for an entity-heavy canvas game / HOW: perf claims in status reports must carry measured before/after numbers; no speculative optimization assignments. **ADOPTED.**
+- `disciplines/level-design`, `save-systems`, `platformer`, `input-systems`, `game-feel`, `camera-systems`, `game-ui-ux` / previously studied (Order on 2026-09-06, `docs/agent-training/KIRO_SPECIALIZATION.md`) / continue governing parity + level QA gates.
+- Read-when-assigned per standing instruction: `game-ai`, `procedural-gen` — not studied now (no active assignment; Order 001 forbids feature work).
+- No skill repository content was copied into OVERCHARGE.
+
+### F./G. Coordination & workflow
+
+- Assignments now flow: Chief priority → Kiro breaks down + assigns → Aki (Builder/editor/assets) / Orcha (gameplay/systems) in isolated worktrees on `agent/aki-*` / `agent/orcha-*` branches → tests + status file + push → Kiro QA gate → Chief review. No unauthorized `main` merges (verified: `main` untouched at `ec42656`).
+- Completion requires COMMIT + PUSH + status update with test evidence. Local-only work will be rejected at the QA gate.
+
+### H. Safety findings
+
+1. **Aki's uncommitted Waste Zone gameplay WIP in `Documents\OVERCHARGE`** — only real loss risk found. Needs owner commit/push before any consolidation.
+2. `OVERCHARGE-kiro-merge` dirty `AKI_STATUS.md` — trivial, but must be committed or discarded by decision, not cleanup.
+3. `wip/pre-orcha-sync` was local-only — now pushed (resolved).
+4. `Documents\_orcha_stage` is outside Git entirely — anything valuable there is unprotected until claimed or archived.
+
+- **Tests run:** parity 63/0 and electricity 37/0 (verified during Order #2/#3 on current content; no code changed in this order).
+- **Chief decisions required:** approve consolidation plan (A), approve archive/removal candidate list (C/D), confirm `_orcha_stage` ownership, decide Svor PDF license placement.
+- **Push status:** YES — this record pushed to `agent/kiro-parity`.
+- **Recommended next step:** Chief approves the cleanup list; first assignment after approval: Aki commits/pushes her Waste Zone WIP, then workspace consolidation, then the Level 1 exit-gate content lane.
