@@ -144,3 +144,40 @@ Deviation from target structure: two independent full clones exist (`GitHub\over
 - **Chief decisions required:** approve consolidation plan (A), approve archive/removal candidate list (C/D), confirm `_orcha_stage` ownership, decide Svor PDF license placement.
 - **Push status:** YES — this record pushed to `agent/kiro-parity`.
 - **Recommended next step:** Chief approves the cleanup list; first assignment after approval: Aki commits/pushes her Waste Zone WIP, then workspace consolidation, then the Level 1 exit-gate content lane.
+
+## Order 002 — Safe Consolidation + Git Governance
+
+- **Date/time:** 2026-09-10T19:43:14-04:00
+- **Assignment:** Protect Aki's WIP (P1), prepare worktree consolidation (P2), archive safely (P3), formalize cleanup plan (P4), resolve `_orcha_stage` (P5), establish governance (P6/P7). No feature work, no deletions, no main merges.
+
+### P1 — Aki WIP verified and assignment issued (read-only; nothing committed by me)
+
+Inventory of `Documents\OVERCHARGE` uncommitted work (all timestamps 2026-09-04):
+- Modified: `src_scroll/entities.js` (DrainEnemy overhaul), `src_scroll/levels/level1.js`, `src_scroll/main.js` (background.js → new parallax.js, registers LEVEL2), `index.html` (inline SVG favicon)
+- Untracked: `src_scroll/levels/level2.js` ("NEON DISTRICT", legacy JS format), `src_scroll/parallax.js` (tileable layer renderer)
+- Deleted in worktree: 6 obsolete concrete-tileset PNGs
+- No unrelated changes found. **Critical:** the WIP predates the JSON level pipeline and reintroduces forbidden JS level mirrors — it must be preserved on `wip/aki-waste-zone-legacy`, not merged onto active branches. Exact instructions written to `docs/AKI_ORDER_WASTE_ZONE_WIP.md`. **AKI WIP SHA: PENDING — requires Aki's session to execute the commit (Chief forbade me committing it).**
+
+### P2 — Consolidation prepared, execution gated on P1
+
+Current worktree state re-verified (canonical repo clean at remote tip; my worktrees accounted for; duplicate clone = `Documents\OVERCHARGE` + its two worktrees). Target structure (`GitHub\overcharge-{aki,kiro,orcha}`) will be built only after Aki's WIP SHA exists, per order sequencing. No directories moved or deleted.
+
+### P3 — Archive
+
+`Documents\Archived` in place with candidate ledger. The only loose non-Git candidate (`Downloads\1_NEON_RISE.json`) no longer exists on disk; every remaining candidate is Git-tracked (P4 approval path) or excluded (P5). Nothing moved.
+
+### P5 — `_orcha_stage` ownership RESOLVED: NOT OVERCHARGE
+
+Read-only evidence: file headers self-identify as "DRIFTBOUND Phase 3 regression"; 11 `driftbound` references, 0 `overcharge`/`src_scroll` references; Playwright harnesses targeting `localhost:8420`; all files 2026-08-30. It is DRIFTBOUND test staging and is excluded from OVERCHARGE archiving. Untouched.
+
+### P4/P6/P7 — Docs committed this order
+
+- `docs/CLEANUP_PLAN.md` — KEEP / ARCHIVE / REMOVE lists with proof-of-safety per REMOVE item; license hold on Svor PDF; doc-fix assignments. REMOVE execution awaits Chief approval.
+- `docs/GIT_GOVERNANCE.md` — permanent EDIT→TEST→COMMIT→PUSH→STATUS→REVIEW rule, completion definition (pushed SHA + status only), branch/worktree rules, team lanes.
+- `docs/AKI_ORDER_WASTE_ZONE_WIP.md` — P1 assignment.
+
+- **Tests run:** none required (documentation/audit order; no code changed). Parity/electricity suites remain green from Order 001 verification.
+- **Known limitations:** Aki WIP commit and worktree consolidation cannot complete inside my session — they require Aki's session and P1 completion respectively.
+- **Chief decisions required:** approve CLEANUP_PLAN REMOVE list; relay `docs/AKI_ORDER_WASTE_ZONE_WIP.md` to Aki; confirm DRIFTBOUND owns `_orcha_stage` disposal.
+- **Push status:** YES — this record + three docs pushed to `agent/kiro-parity`.
+- **Recommended next step:** Chief opens Aki's session with the P1 order; on receipt of the WIP SHA I execute P2 consolidation and report.
