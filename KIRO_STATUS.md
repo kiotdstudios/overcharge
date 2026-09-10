@@ -28,3 +28,47 @@
 - **Harness commit SHA:** `b466843ba80e0cd1c98e8b1478001ff7e81a8235`
 - **Push status:** YES — pushed with this status record to `agent/kiro-parity`.
 - **Recommended next step:** Chief/TD reviews the tile-value wording and assigns a browser-level Builder/runtime visual smoke lane if end-to-end rendered proof is required.
+## Order #2 — Promote Downloaded Home Level as Canonical Level 1
+
+- **Date/time:** 2026-09-10T10:32:29-04:00
+- **Assignment:** Replace canonical Level 1 with the explicitly approved downloaded home-authored JSON and publish the change from Kiro's isolated branch without directly modifying `agent/orcha-gameplay`.
+- **Work completed:** Copied `C:\Users\diepowel\Downloads\1_NEON_RISE.json` into `src_scroll/levels/level1.json` in the isolated worktree. Verified the destination SHA-256 exactly matches the downloaded source.
+- **Files changed:**
+  - `src_scroll/levels/level1.json`
+  - `KIRO_STATUS.md`
+- **Tests added/run:**
+  - `node _dev/parity_regression.mjs` — **63 passed, 0 failed** after promotion.
+  - `node _dev/test_electricity.mjs` — existing suite completed with **37 passed, 0 failed** in its printed summary.
+- **PASS/FAIL results:** PASS for structural JSON, editor/runtime contract, and existing electricity regression checks.
+- **Defects discovered:** The promoted level has three sources and a checkpoint but no gates, switches, platforms, enemies, or `isExit` gate. The runtime can load and explore it, but it cannot reach normal level completion until an exit gate is authored. This was disclosed before promotion and explicitly approved by the user.
+- **Technical decisions:**
+  - Kept the downloaded file's `number: 1`, flat 100 × 14 tile array, supported textured tile values, and full `tileRotations` array unchanged.
+  - Preserved the prior canonical Level 1 through Git history. Rollback point before this promotion: `00ba0eaa75ab9254ec2c5f0674994fdc4a237906`.
+  - Did not add an exit gate or alter Builder/runtime behavior; completing the level is content work for the assigned owner.
+- **Known limitations:** No rendered browser Builder/game visual QA was performed. The level is intentionally non-completable until its exit path is authored.
+- **Chief/TD decisions required:** Assign the exit-gate and completion-path authoring lane before treating this Level 1 as a finished playable level. Review/merge this isolated branch into `agent/orcha-gameplay` before GitHub Pages uses the new canonical file.
+- **Level promotion commit SHA:** `891d9df8d73f0c0fb9e8a1b9f8ea1c10a7e693c5`
+- **Push status:** YES — pushed with this status record to `agent/kiro-parity`.
+- **Recommended next step:** Open `editor.html` from the reviewed branch, finish the exit gate and charge route, validate the Builder/runtime rendering, then request a clean integration review.
+## Order #2 — Promote Downloaded Home Level as Canonical Level 1
+
+- **Date/time:** 2026-09-10T10:32:29-04:00
+- **Assignment:** Replace canonical Level 1 with the explicitly approved downloaded home-authored JSON and publish the change from Kiro's isolated branch without directly modifying `agent/orcha-gameplay`.
+- **Work completed:** Copied `C:\Users\diepowel\Downloads\1_NEON_RISE.json` into `src_scroll/levels/level1.json` in the isolated worktree. Verified the destination SHA-256 exactly matches the downloaded source.
+- **Files changed:**
+  - `src_scroll/levels/level1.json`
+  - `KIRO_STATUS.md`
+- **Tests added/run:**
+  - `node _dev/parity_regression.mjs` — **63 passed, 0 failed** after promotion.
+  - `node _dev/test_electricity.mjs` — existing suite completed with **37 passed, 0 failed** in its printed summary.
+- **PASS/FAIL results:** PASS for structural JSON, editor/runtime contract, and existing electricity regression checks.
+- **Defects discovered:** The promoted level has three sources and a checkpoint but no gates, switches, platforms, enemies, or `isExit` gate. The runtime can load and explore it, but it cannot reach normal level completion until an exit gate is authored. This was disclosed before promotion and explicitly approved by the user.
+- **Technical decisions:**
+  - Kept the downloaded file's `number: 1`, flat 100 × 14 tile array, supported textured tile values, and full `tileRotations` array unchanged.
+  - Preserved the prior canonical Level 1 through Git history. Rollback point before this promotion: `00ba0eaa75ab9254ec2c5f0674994fdc4a237906`.
+  - Did not add an exit gate or alter Builder/runtime behavior; completing the level is content work for the assigned owner.
+- **Known limitations:** No rendered browser Builder/game visual QA was performed. The level is intentionally non-completable until its exit path is authored.
+- **Chief/TD decisions required:** Assign the exit-gate and completion-path authoring lane before treating this Level 1 as a finished playable level. Review/merge this isolated branch into `agent/orcha-gameplay` before GitHub Pages uses the new canonical file.
+- **Level promotion commit SHA:** `891d9df8d73f0c0fb9e8a1b9f8ea1c10a7e693c5`
+- **Push status:** YES — pushed with this status record to `agent/kiro-parity`.
+- **Recommended next step:** Open `editor.html` from the reviewed branch, finish the exit gate and charge route, validate the Builder/runtime rendering, then request a clean integration review.
