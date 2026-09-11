@@ -252,3 +252,23 @@ Actions: `git worktree remove` for integration/orcha-old/kiro-merge (all gone); 
 - **Chief decisions required:** none blocking. Optional: prune local branch `agent/kiro-promote-level1`; delete the residual empty `Documents\OVERCHARGE` folder after closing the terminal holding it.
 - **Push status:** YES — this record + governance update pushed to `agent/kiro-parity`.
 - **Recommended next step:** reproduce the layout on the home Mac per the new setup section; then Chief prioritizes the first post-cleanup content lane (Level 1 exit gate).
+
+## Coordination — Orcha Order 004 Audit Review + Rulings (QA gate)
+
+- **Date/time:** 2026-09-10T21:09:49-04:00
+- **Context:** Orcha re-onboarded on `agent/orcha-dev` @ `3cab1d9`, ran the protected suites untouched (63/0, 37/0 — matches baseline), audited Order 004 scope, and held with three blockers. I spot-checked the audit read-only in Orcha's worktree: `spendEnergy` absent (0 hits), raw energy writes confirmed at `player.js:546` and `main.js:132/133/147`, tree clean at stated HEAD, pip-surplus behavior documented in code as prior "Chief directive §4, preferred behavior". Audit verified sound.
+
+### Rulings (Technical Chief — Chief may override any of these)
+
+1. **Matrix row `Bar 10 + 10 → Bar 0 + 1 pip`: RULED A TYPO.** The row destroys 10 units and contradicts the same order's §7 conservation invariant. When an example table contradicts a stated invariant, the invariant wins. Current behavior stands: `bar 10 + 10 → bar 0 + 2 pips` (20 usable, conserved, consistent with the fill→bank→reset contract). Test suite must encode the corrected row.
+2. **§8 eager auto-refill: REJECTED — demand-driven stands.** Eager per-frame refill is a previously shipped and fixed regression (fought banking; silently converted pips while standing still; destroyed the "on reserve" UX signal). Reintroducing a known regression to satisfy the letter of §8 fails the QA gate. §8 is amended to: reserve pips are pulled on demand (`_pullReserve`) at the moment of spend/damage, never on idle ticks.
+3. **Partial-pip spend (whole pip consumed, surplus returned to bar): RATIFIED.** Conserves energy and matches the pre-existing Chief directive recorded at `player.js:461-462`. Behavior is now explicit policy, must be covered by a test.
+
+### GO issued to Orcha — Order 004 implementation scope
+
+Approved items 1-6 as proposed: `spendEnergy(amount)` mirror authority; route `scatter()` + `takeDamage()` through it; validating `setEnergyState()` for snapshot/level restore (clamp + warn, never restore impossible state); `_dev/energy_authority` suite covering all 11 matrix rows (row 10 corrected per ruling 1) + the 3 gap regressions; re-run parity 63 + electricity 37 with zero regressions; create `ORCHA_STATUS.md`.
+
+Gate conditions for acceptance: work stays on `agent/orcha-dev`; no editor/`main`/Level-1/legacy-WIP changes; pushed commit + `ORCHA_STATUS.md` entry + full SHA + before/after test evidence. I review before anything reaches `agent/orcha-gameplay`.
+
+- **Chief notification:** rulings 1-3 exercised under delegated authority; flagged for veto. No content pushed to the live branch.
+- **Push status:** YES — this record pushed to `agent/kiro-parity`.
