@@ -129,8 +129,9 @@ function _applySnapshot() {
   if (!_snap) return false;
   level.restore(_snap.level);
   player = new Player(_snap.respawnX, _snap.respawnY);
-  player.charge     = _snap.player.charge;
-  player.bankedPips = _snap.player.bankedPips;
+  // Order 004: restore through the validating authority, never raw assignment.
+  // A corrupt/edited snapshot can no longer install an impossible energy state.
+  player.setEnergyState(_snap.player.charge, _snap.player.bankedPips);
   respawnX = _snap.respawnX;
   respawnY = _snap.respawnY;
   camX = Math.max(0, Math.min(respawnX - viewW() / 2, level.pxW - viewW()));
@@ -144,7 +145,8 @@ function loadLevel(idx, carryCharge = false) {
   const def = LEVEL_DEFS[idx % LEVEL_DEFS.length];
   level  = new Level(def);
   player = new Player(level.playerStart.x, level.playerStart.y);
-  if (carryCharge) { player.charge = savedCharge; player.bankedPips = savedPips; }
+  // Order 004: level-to-level charge carry also goes through the authority.
+  if (carryCharge) player.setEnergyState(savedCharge, savedPips);
   level.complete = false;
   completeTimer  = 0;
   respawnX = level.playerStart.x;

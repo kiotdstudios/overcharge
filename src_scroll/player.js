@@ -105,16 +105,20 @@ export class Player {
     this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy);
   }
 
-  // ══ CANONICAL ENERGY MODEL ════════════════════════════════════════
-  // A banked pip IS one stored full battery. Two rules, and only two:
+  // ══ CANONICAL ENERGY MODEL (Order 004 authority) ══════════════════
+  // A banked pip IS one stored full battery. Four entry points, and only four:
   //
-  //   INGEST  (giveEnergy)  bar fills → hits MAX → becomes +1 pip,
-  //                         bar resets to 0 → keeps filling.
-  //   SPEND   (_pullReserve) bar hits 0 and a pip exists → consume 1 pip,
-  //                         bar refills to MAX. Demand-driven ONLY.
+  //   INGEST   giveEnergy(n)      bar fills → hits MAX → +1 pip, bar resets
+  //                               to 0 → keeps filling. Returns accepted.
+  //   SPEND    spendEnergy(n)     bar drains → hits 0 → pulls 1 pip → keeps
+  //                               draining. Returns actually-spent.
+  //   RESERVE  _pullReserve()     internal, DEMAND-DRIVEN only (see ruling 2).
+  //   RESTORE  setEnergyState()   validated save/load write. Clamps + warns.
   //
-  // Every energy-gain path in the game routes through giveEnergy().
-  // Every affordability question routes through `usableEnergy`.
+  // NOTHING outside this block may assign to `charge` or `bankedPips`.
+  // Every energy-gain path routes through giveEnergy().
+  // Every energy-loss path routes through spendEnergy().
+  // Every affordability question routes through `usableEnergy` / canAfford().
 
   // Total energy the player can actually deliver right now. This is THE
   // authority — HUD prompts and gameplay both read it, so UI can never
@@ -171,12 +175,95 @@ export class Player {
   // Pull one stored battery into the active bar. Called ONLY when
   // something actually demands energy and the bar is dry, so idle
   // walking never reshuffles the player's reserve.
+  //
+  // ORDER 004 RULING 2 (Kiro, 2026-09-11): §8's "eager" auto-refill on any
+  // tick is REJECTED and the order is amended — pips are pulled on demand at
+  // the moment of spend/damage, never on an idle tick. The unconditional
+  // every-frame version was the regression fixed in b558d1b: it fought the
+  // banking logic so pips could never accumulate. Do not reintroduce it.
   _pullReserve() {
     if (this.charge > 1e-9 || this.bankedPips <= 0) return false;
     this.bankedPips--;
     this.charge      = MAX_CHARGE;
     this._pipSpendFx = 0.45;
     return true;
+  }
+
+  // ── SPEND ─────────────────────────────────────────────────────────
+  // The exact mirror of giveEnergy(), and the ONE way energy leaves the
+  // player (Order 004 §9: drains, damage and future devices must not invent
+  // their own arithmetic).
+  //
+  // Drains the active bar first; when the bar runs dry and a stored battery
+  // exists, promotes that pip via _pullReserve() and keeps draining. Returns
+  // the amount ACTUALLY spent, which is <= amount when the player simply does
+  // not have it. Never produces a negative bar and never fabricates energy.
+  //
+  // Callers that must know whether the whole cost was met should compare the
+  // return value, or ask canAfford() first.
+  spendEnergy(amount) {
+    let remain = Math.max(0, amount);
+    let spent  = 0;
+
+    while (remain > 1e-9) {
+      if (this.charge <= 1e-9 && !this._pullReserve()) break;   // truly empty
+      const take = Math.min(remain, this.charge);
+      this.charge -= take;
+      remain      -= take;
+      spent       += take;
+      if (this.charge < 1e-9) this.charge = 0;                  // kill FP dust
+    }
+    return spent;
+  }
+
+  // ── SPEND ONE WHOLE PIP ───────────────────────────────────────────
+  // Withdraw exactly one stored battery (MAX_CHARGE) WITHOUT disturbing the
+  // active bar. Used by the F-key shortcut, where a pip is indivisible at the
+  // point of insertion (ratified partial-pip policy, ruling 3).
+  //
+  // Returns MAX_CHARGE when a pip was withdrawn, 0 when none was stored. The
+  // caller owns that energy and must deliver it or return it via giveEnergy();
+  // it is deliberately NOT left in the bar, so a pip spend can never be
+  // mistaken for the bar draining.
+  spendPip() {
+    if (this.bankedPips <= 0) return 0;
+    this.bankedPips--;
+    return MAX_CHARGE;
+  }
+
+  // ── STATE RESTORE (save/load, checkpoint, level carry) ────────────
+  // The only sanctioned way to write charge/bankedPips from outside.
+  //
+  // Order 004 §13 requires charge state to survive save/load. Round-tripping
+  // the numbers was already correct, but nothing validated them: forcing
+  // charge=999 / pips=99 produced energyHeadroom = -1929, which poisons every
+  // downstream calculation (absorption requests, affordability, HUD widths).
+  // Clamp into the legal envelope and warn loudly rather than accept an
+  // impossible state.
+  //
+  // Returns true when the requested state was already legal, false when it had
+  // to be corrected — so a caller/test can assert on silent corruption.
+  setEnergyState(charge, bankedPips) {
+    const rawC = Number(charge);
+    const rawP = Number(bankedPips);
+
+    const c = Number.isFinite(rawC) ? Math.min(MAX_CHARGE, Math.max(0, rawC)) : 0;
+    // Pips are whole batteries by definition — a fractional pip is nonsense.
+    const p = Number.isFinite(rawP)
+      ? Math.min(MAX_BANKED_PIPS, Math.max(0, Math.floor(rawP)))
+      : 0;
+
+    const clean = (c === rawC) && (p === rawP);
+    if (!clean) {
+      console.warn(
+        `[energy] restored state out of range — clamped charge ${rawC}->${c}, ` +
+        `pips ${rawP}->${p} (MAX_CHARGE=${MAX_CHARGE}, MAX_BANKED_PIPS=${MAX_BANKED_PIPS})`
+      );
+    }
+
+    this.charge     = c;
+    this.bankedPips = p;
+    return clean;
   }
 
   // ── Movement & jump ──────────────────────────
@@ -437,13 +524,15 @@ export class Player {
       return;
     }
 
-    // Demand exists — if the bar is dry, pull the next stored battery now.
-    if (this.charge <= 1e-9) this._pullReserve();
-
-    const frameSpend = Math.min(DISCHARGE_RATE * dt, this.charge, needed);
+    // Order 004 §9: the deduction goes through spendEnergy(), which drains the
+    // bar and promotes a stored battery the instant the bar runs dry — so the
+    // transfer never visibly stalls at a pip boundary and there is no second
+    // copy of the drain arithmetic here. Capped by `needed` so a gate is never
+    // overcharged, and by what the player actually has.
+    const want       = Math.min(DISCHARGE_RATE * dt, needed);
+    const frameSpend = this.spendEnergy(want);
 
     if (frameSpend > 1e-9) {
-      this.charge          -= frameSpend;
       this.discharging      = true;
       this.dischargeTarget  = this.nearDevice;
       this._dischargeFx     = 0.15;
@@ -455,11 +544,17 @@ export class Player {
   }
 
   // ── Spend a banked pip at a gate (press F) ──────────────────────
-  // One pip = one full battery = MAX_CHARGE of energy. We hand the device
-  // as much of that battery as it still needs, through the SAME
-  // dev.receive() path normal discharge uses (so charged/open/react-anim
-  // all behave identically). Any surplus from the battery is NOT wasted —
-  // it lands in the active bar (Chief directive §4, preferred behavior).
+  // One pip = one full battery = MAX_CHARGE of energy. We hand the device as
+  // much of that battery as it still needs, through the SAME dev.receive()
+  // path normal discharge uses (so charged/open/react-anim all behave
+  // identically). Order 004 §11: this is a real transfer through the real
+  // energy path, never a cosmetic UI/state poke.
+  //
+  // PARTIAL-PIP POLICY — RATIFIED (Kiro, Order 004 ruling 3): when a device
+  // needs LESS than a full battery, the whole pip is still consumed and the
+  // surplus returns to the active bar via giveEnergy(). Energy is conserved
+  // (§7); a pip is simply indivisible at the point of insertion. Matches the
+  // pre-existing Chief directive recorded above.
   _updatePipSpend(dt, level) {
     if (!Input.pressedAny('KeyF')) return;
     if (this.bankedPips <= 0) return;
@@ -470,17 +565,18 @@ export class Player {
     const needed = dev.required - dev.charged;
     if (needed <= 1e-9) return;
 
-    // Consume exactly one stored battery.
-    this.bankedPips--;
+    // Withdraw exactly one stored battery through the authority.
+    const battery = this.spendPip();
+    if (battery <= 1e-9) return;             // no pip after all — nothing spent
     this._pipSpendFx = 0.5;
 
     // Transfer up to a full battery's worth, capped by what's still needed.
-    const transfer = Math.min(MAX_CHARGE, needed);
+    const transfer = Math.min(battery, needed);
     dev.receive(transfer);          // same path as discharge → sets charged, fires _reactT, may open
     dev._pipFlash = 0.5;            // extra white burst so a pip spend reads distinctly
 
     // Surplus battery energy returns to the player rather than evaporating.
-    const surplus = MAX_CHARGE - transfer;
+    const surplus = battery - transfer;
     if (surplus > 1e-9) this.giveEnergy(surplus);
   }
 
@@ -535,19 +631,45 @@ export class Player {
     }
   }
 
+  // ── Drop spent charge as recoverable pickups ─────────────────────
+  // Conservation helper (Order 004 §7): the pickups dropped must sum to
+  // EXACTLY the energy deducted. Whole units drop as normal 1-unit pickups;
+  // any fractional remainder drops as one smaller pickup rather than being
+  // rounded away (which would destroy energy) or rounded up (which would
+  // create it).
+  _dropCharge(level, amount, vx = null, vy = null) {
+    let remain = amount;
+    let dropped = 0;
+    while (remain > 1e-9) {
+      const v = Math.min(1, remain);
+      level.pickups.push(vx === null
+        ? new ChargePickup(this.cx, this.cy, v)
+        : new ChargePickup(this.cx, this.cy, v, vx, vy));
+      remain -= v;
+      dropped += v;
+    }
+    return dropped;
+  }
+
   // ── Charge scatter on hit ────────────────────────────────────────
   // Bar has charge   → drop 1 unit as a recoverable pickup.
-  // Bar dry + pip    → pull one stored battery (demand-driven reserve) and
-  //                    drop 1 from the fresh bar. Player survives on reserve.
+  // Bar dry + pip    → spendEnergy pulls one stored battery (demand-driven
+  //                    reserve) and takes the unit from it. Survives on reserve.
   // Nothing at all   → die.
+  //
+  // Order 004 §9: goes through spendEnergy(), so the reserve is reachable and
+  // the amount dropped is exactly the amount actually deducted. The previous
+  // `charge = Math.max(0, charge - 1)` bypassed the authority AND leaked
+  // energy: with a bar of 0.5 it deducted 0.5 but still dropped a full 1-unit
+  // pickup, creating 0.5 out of nothing. Normal full-unit hits behave
+  // identically to before.
   scatter(level) {
-    if (this.charge <= 1e-9) this._pullReserve();   // demand: taking a hit
-    if (this.charge > 1e-9) {
-      this.charge = Math.max(0, this.charge - 1);
+    const lost = this.spendEnergy(1);
+    if (lost > 1e-9) {
       const xDir = this._facingRight ? -1 : 1;
       const vx   = xDir * (110 + Math.random() * 70);
       const vy   = -170 - Math.random() * 60;
-      level.pickups.push(new ChargePickup(this.cx, this.cy, 1, vx, vy));
+      this._dropCharge(level, lost, vx, vy);
     } else {
       // No bar, no pips → dead.
       this.dead = true;
@@ -555,14 +677,19 @@ export class Player {
   }
 
   // ── Take damage (charge scatter) — kept for future use ──────────
-  // Enemy contact no longer calls this; stun() is used instead.
+  // Enemy contact does not call this today; stun() is used instead. Fixed here
+  // because it is live code and a landmine.
+  //
+  // BUG (Order 004 gap 2): it read `this.charge` only, so a player holding
+  // bar 0 + 3 pips took ZERO damage — usable energy 30 stayed 30. Same defect
+  // class as the gate reporting POWER REQUIRED off the bar instead of
+  // usableEnergy. Now routed through spendEnergy(), so the reserve is drained
+  // and the pickups dropped sum to exactly what was lost.
   takeDamage(level, amount = 1) {
-    const lost = Math.min(this.charge, amount);
-    this.charge -= lost;
+    const lost = this.spendEnergy(amount);
     this._hurtFlash = 0.4;
-    for (let i = 0; i < lost; i++) {
-      level.pickups.push(new ChargePickup(this.cx, this.cy, 1));
-    }
+    this._dropCharge(level, lost);
+    return lost;
   }
 
   // ── Draw ──────────────────────────────────────
