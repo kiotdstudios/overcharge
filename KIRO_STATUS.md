@@ -272,3 +272,26 @@ Gate conditions for acceptance: work stays on `agent/orcha-dev`; no editor/`main
 
 - **Chief notification:** rulings 1-3 exercised under delegated authority; flagged for veto. No content pushed to the live branch.
 - **Push status:** YES — this record pushed to `agent/kiro-parity`.
+
+## QA Gate — Order 004 (Orcha) — PASSED
+
+- **Date/time:** 2026-09-11T06:33:06-04:00
+- **Reviewed commit:** `efba5188cbf538703a96ddb6c0edcaa0157eb6bd` on `agent/orcha-dev` (base `3cab1d9`).
+
+### Independent verification (my own runs in Orcha's worktree, not Orcha's numbers)
+
+- Remote tip matches worktree HEAD; tree clean; `agent/orcha-gameplay` untouched at `3cab1d9`; `main` untouched at `ec42656`. Nothing merged.
+- Diff scope exactly as reported: `A ORCHA_STATUS.md`, `A _dev/energy_authority.mjs`, `M src_scroll/main.js`, `M src_scroll/player.js`. `src_scroll/levels/` untouched (Level 1 checksum delta Orcha flagged is upstream of their base, not theirs).
+- Tests re-run by me: **energy_authority 51/51**, **parity 63 exit 0**, **electricity 37 exit 0**.
+- Raw-write audit: every `charge`/`bankedPips` write now sits in the constructor or the authority block (`giveEnergy`/`_pullReserve`/`spendEnergy`/`spendPip`/`setEnergyState`); `main.js` restore sites route through `setEnergyState()`.
+- Code review: authority block is coherent, conservation-safe, FP-dust handled; Rulings 1–3 cited inline at the exact decision points; `_pullReserve` comment forbids reintroducing the eager-refill regression.
+
+### Verdict
+
+**ACCEPTED.** Work meets the gate: pushed commit + `ORCHA_STATUS.md` + full SHA + before/after evidence + explicit observable-change statement (three technically-observable exceptions all justified as correctness fixes). The randomized 400-run conservation invariant is a genuinely valuable permanent guard.
+
+### Dispositions
+
+- **Promotion to `agent/orcha-gameplay`:** RECOMMENDED — awaiting Chief authorization per governance (no dev branch reaches the live line without Chief approval).
+- **Backlog (logged, not actioned):** `ChargePickup.draw()` ignores `value` (cosmetic, sub-1.0 pickups render full size) — future Aki/art lane; energy-model documentation next to `LEVEL_SCHEMA.md` — approved as a docs-only follow-up for Orcha, low priority.
+- **Push status:** YES — this record pushed to `agent/kiro-parity`.
