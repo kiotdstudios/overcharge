@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OVERCHARGE — Purple City Rooftop Mock (5 screens)</title>
+<style>
+  :root {
+    --bg:#070a12; --panel:#0b111c; --line:#1c2738; --txt:#c8d8f0; --dim:#5c7392;
+    --cyan:#37b6ff; --green:#39e07a; --yellow:#ffd23e; --red:#ff4d5e; --purple:#cc44ff;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:2048px; background:var(--bg); color:var(--txt);
+         font-family:Consolas,'Courier New',monospace; }
+  img { image-rendering:pixelated; display:block; }
+  .abs { position:absolute; }
+
+  /* ── TOP BAND: screen labels ─────────────────────────────── */
+  .screens { display:grid; grid-template-columns:repeat(5,1fr); border-bottom:1px solid var(--line); }
+  .screens > div { padding:14px 0 10px; text-align:center; border-right:1px dashed #24344c; }
+  .screens > div:last-child { border-right:none; }
+  .screens b { display:block; color:var(--cyan); font-size:17px; letter-spacing:2px; }
+  .screens span { color:var(--dim); font-size:12px; letter-spacing:1px; }
+  .screens i { display:block; margin:8px auto 0; width:82%; border-bottom:2px solid #24344c;
+               position:relative; height:1px; font-style:normal; }
+  .screens i::before, .screens i::after { content:'◂'; position:absolute; top:-8px; color:#24344c; left:-4px; }
+  .screens i::after { content:'▸'; left:auto; right:-4px; }
+
+  /* ── SCENE ───────────────────────────────────────────────── */
+  .scene { position:relative; height:520px; overflow:hidden;
+           background:linear-gradient(180deg,#05060d 0%,#0a0d1d 45%,#141330 78%,#1d1440 100%); }
+  .scene .backdrop { position:absolute; bottom:110px; left:0; width:2048px; opacity:.5;
+                     filter:brightness(.55) saturate(1.2); }
+  .stars { position:absolute; inset:0;
+    background-image:radial-gradient(1px 1px at 120px 60px,#8fb8ff88 50%,transparent 51%),
+      radial-gradient(1px 1px at 480px 110px,#8fb8ff66 50%,transparent 51%),
+      radial-gradient(2px 2px at 800px 40px,#c0d8ff55 50%,transparent 51%),
+      radial-gradient(1px 1px at 1180px 90px,#8fb8ff77 50%,transparent 51%),
+      radial-gradient(1px 1px at 1540px 50px,#8fb8ff66 50%,transparent 51%),
+      radial-gradient(2px 2px at 1900px 120px,#c0d8ff44 50%,transparent 51%); }
+  .rain { position:absolute; inset:0; opacity:.14;
+    background-image:repeating-linear-gradient(105deg,transparent 0 46px,#9fc4ff 46px 47px,transparent 47px 96px); }
+  .sep { position:absolute; top:0; bottom:0; width:0; border-left:1px dashed #ffffff22; }
+
+  /* rooftops built from real tiles */
+  .roof { position:absolute; overflow:hidden; box-shadow:0 -2px 0 #0008 inset; }
+  .roof .fill { position:absolute; inset:0; background-repeat:repeat; background-size:32px 32px; }
+  .edge { position:absolute; top:-2px; height:32px; width:100%; display:flex; }
+  .glow-top { position:absolute; top:0; left:0; right:0; height:3px;
+              background:linear-gradient(90deg,#cc44ff88,#37b6ff88); filter:blur(.5px); }
+
+  /* labels/markers */
+  .tag  { position:absolute; background:#0e1622ee; border:1px solid #2c3d57; border-radius:4px;
+          padding:7px 10px; font-size:12px; line-height:1.5; color:var(--txt); z-index:40; }
+  .tag .key { display:inline-block; border:1px solid var(--cyan); color:var(--cyan); border-radius:3px;
+              padding:0 5px; font-weight:bold; margin-right:6px; font-size:11px; }
+  .tag small { color:var(--dim); display:block; }
+  .marker { position:absolute; z-index:30; text-align:center; }
+  .marker .dot { width:14px; height:14px; margin:0 auto 4px; border-radius:50%; }
+  .m-start .dot { background:var(--green); box-shadow:0 0 12px var(--green); }
+  .m-label { font-size:11px; letter-spacing:2px; font-weight:bold; }
+  .bolt { position:absolute; z-index:35; width:30px; height:30px; border-radius:50%;
+          border:2px solid var(--cyan); background:#0a1420dd; color:var(--cyan);
+          font-size:16px; line-height:26px; text-align:center;
+          box-shadow:0 0 14px #37b6ff88; }
+  .lock { border-color:var(--purple); color:var(--purple); box-shadow:0 0 14px #cc44ff88; }
+  .exitsign { position:absolute; z-index:35; background:#03170b; border:2px solid var(--green);
+              color:var(--green); font-weight:bold; letter-spacing:3px; padding:4px 12px;
+              font-size:14px; box-shadow:0 0 18px #39e07a99; }
+  .enemy { position:absolute; z-index:32; width:20px; height:26px; background:#3d0a14;
+           border:1px solid var(--red); box-shadow:0 0 10px #ff4d5e66; }
+  .enemy::after { content:''; position:absolute; top:6px; left:4px; width:4px; height:4px; background:var(--red); }
+  .player { position:absolute; z-index:36; width:20px; height:30px;
+            background:linear-gradient(180deg,#dce8ff,#7ab4ff); box-shadow:0 0 10px #7ab4ff99; }
+  .wire { position:absolute; z-index:20; border-top:2px dashed var(--yellow); opacity:.75; }
+  .wire.v { border-top:none; border-left:2px dashed var(--yellow); }
+
+  /* ── BOTTOM: width bar + panels ──────────────────────────── */
+  .widthbar { display:flex; align-items:center; gap:14px; padding:12px 24px; border-top:1px solid var(--line);
+              border-bottom:1px solid var(--line); font-size:13px; letter-spacing:2px; }
+  .widthbar .cap { width:12px; height:12px; border-radius:50%; background:var(--green); box-shadow:0 0 10px var(--green); }
+  .widthbar .rail { flex:1; height:2px; background:var(--green); position:relative; }
+  .widthbar .lbl { color:var(--green); font-weight:bold; }
+  .widthbar .mid { position:absolute; left:50%; top:-22px; transform:translateX(-50%);
+                   color:var(--txt); background:var(--bg); padding:0 14px; letter-spacing:1px; }
+  .panels { display:grid; grid-template-columns:430px 1fr 430px; gap:16px; padding:16px 24px 24px; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px; }
+  .panel h3 { font-size:13px; letter-spacing:2px; color:var(--txt); border-bottom:1px solid var(--line);
+              padding-bottom:8px; margin-bottom:12px; }
+  .lg { display:flex; gap:12px; align-items:center; margin-bottom:10px; font-size:12px; }
+  .lg .ic { width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+            background:#0a0f18; border:1px solid var(--line); border-radius:4px; flex-shrink:0; }
+  .lg b { display:block; font-size:12px; }
+  .lg small { color:var(--dim); font-size:11px; }
+  .flow { display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-top:10px; }
+  .flow > div { text-align:center; font-size:11px; color:var(--dim); position:relative; padding-top:6px;
+                border-top:2px solid #24344c; }
+  .flow b { display:block; font-size:12px; margin-bottom:4px; }
+  .f1 b{color:var(--cyan)} .f2 b{color:var(--yellow)} .f3 b{color:#ffa23e} .f4 b{color:var(--purple)} .f5 b{color:var(--green)}
+  .assetrow { display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end; margin-top:6px; }
+  .assetrow figure { text-align:center; }
+  .assetrow figcaption { font-size:9px; color:var(--dim); margin-top:3px; max-width:74px; }
+  .note { font-size:11px; color:var(--dim); margin-top:12px; line-height:1.6; }
+  .note b { color:var(--yellow); }
+</style>
+</head>
+<body>
+
+<!-- TOP BAND -->
+<div class="screens">
+  <div><b>SCREEN 1</b><span>INTRO / ABSORB</span><i></i></div>
+  <div><b>SCREEN 2</b><span>FIRST CHALLENGE</span><i></i></div>
+  <div><b>SCREEN 3</b><span>PUZZLE / THREAT</span><i></i></div>
+  <div><b>SCREEN 4</b><span>GATE</span><i></i></div>
+  <div><b>SCREEN 5</b><span>EXIT</span><i></i></div>
+</div>
+
+<!-- SCENE -->
+<div class="scene">
+  <div class="stars"></div>
+  <img class="backdrop" src="../../assets/backgrounds/mid_city.png" width="2048">
+  <div class="rain"></div>
+  <div class="sep" style="left:410px"></div>
+  <div class="sep" style="left:820px"></div>
+  <div class="sep" style="left:1230px"></div>
+  <div class="sep" style="left:1640px"></div>
+
+  <!-- distant purple-city buildings -->
+  <img class="abs" src="../../assets/tilesets/purple_city/buildings/building_striped_tall.png" style="left:66px;  bottom:150px; width:96px;  opacity:.65; filter:brightness(.7)">
+  <img class="abs" src="../../assets/tilesets/purple_city/buildings/building_bar_sign.png"     style="left:520px; bottom:190px; width:120px; opacity:.7;  filter:brightness(.75)">
+  <img class="abs" src="../../assets/tilesets/purple_city/buildings/building_neon_panel.png"   style="left:930px; bottom:210px; width:110px; opacity:.7;  filter:brightness(.7)">
+  <img class="abs" src="../../assets/tilesets/purple_city/buildings/building_windows_wide.png" style="left:1310px;bottom:230px; width:150px; opacity:.65; filter:brightness(.7)">
+  <img class="abs" src="../../assets/tilesets/purple_city/buildings/building_teal_sign.png"    style="left:1780px;bottom:190px; width:110px; opacity:.7;  filter:brightness(.75)">
+
+  <!-- ══ SCREEN 1 · Roof A (low, wide) — INTRO / ABSORB ══ -->
+  <div class="roof" style="left:0; bottom:0; width:392px; height:150px">
+    <div class="glow-top"></div>
+    <div class="fill" style="background-image:url('../../assets/tilesets/purple_city/tiles/tile_purple_a.png')"></div>
+  </div>
+  <img class="abs" src="../../assets/tilesets/purple_city/props/street_lamp.png"        style="left:36px;  bottom:150px; width:44px;  z-index:24">
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/rooftop_railing.png"  style="left:96px;  bottom:150px; width:128px; z-index:22">
+  <img class="abs" src="../../assets/sprites/generator 1/frame_001.png"                 style="left:268px; bottom:150px; width:64px;  z-index:26">
+  <div class="player" style="left:150px; bottom:150px"></div>
+  <div class="bolt"  style="left:284px; bottom:230px">⚡</div>
+  <div class="tag"   style="left:120px; bottom:236px"><span class="key">E</span>ABSORB<small>Hold to absorb electric charge.</small></div>
+  <div class="marker m-start" style="left:8px; bottom:96px"><div class="dot"></div></div>
+
+  <!-- ══ SCREEN 2 · Roof B (step up) — FIRST CHALLENGE ══ -->
+  <div class="roof" style="left:452px; bottom:0; width:340px; height:214px">
+    <div class="glow-top"></div>
+    <div class="fill" style="background-image:url('../../assets/tilesets/purple_city/tiles/tile_dark_a.png')"></div>
+  </div>
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/ladder_section.png"  style="left:452px; bottom:64px;  width:32px;  z-index:24">
+  <img class="abs" src="../../assets/tilesets/purple_city/props/env_prop_box_purple.png" style="left:530px; bottom:214px; width:44px; z-index:24">
+  <img class="abs" src="../../assets/tilesets/purple_city/structures/stairwell_housing.png" style="left:648px; bottom:214px; width:110px; z-index:24">
+  <img class="abs" src="../../assets/sprites/generator 1/frame_001.png"                style="left:588px; bottom:214px; width:64px; z-index:26">
+  <div class="bolt" style="left:604px; bottom:294px">⚡</div>
+  <img class="abs" src="../../assets/tilesets/purple_city/props/sign_arrow_right.png"  style="left:756px; bottom:214px; width:36px; z-index:24">
+
+  <!-- ══ SCREEN 3 · Roof C + platforms — PUZZLE / THREAT ══ -->
+  <div class="roof" style="left:862px; bottom:0; width:330px; height:182px">
+    <div class="glow-top"></div>
+    <div class="fill" style="background-image:url('../../assets/tilesets/purple_city/tiles/tile_purple_b.png')"></div>
+  </div>
+  <img class="abs" src="../../assets/tilesets/purple_city/platforms/platform_medium.png" style="left:880px;  bottom:262px; width:96px; z-index:24">
+  <img class="abs" src="../../assets/tilesets/purple_city/platforms/platform_short_a.png" style="left:1030px; bottom:318px; width:64px; z-index:24">
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/catwalk_section.png"  style="left:1096px; bottom:182px; width:96px; z-index:23">
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/rooftop_vent_large.png" style="left:900px; bottom:182px; width:84px; z-index:22">
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/electrical_box.png"   style="left:1140px; bottom:182px; width:40px; z-index:25">
+  <img class="abs" src="../../assets/sprites/generator 1/frame_001.png"                 style="left:1044px; bottom:318px; width:52px; z-index:26">
+  <div class="bolt" style="left:1056px; bottom:384px">⚡</div>
+  <div class="enemy" style="left:948px; bottom:262px"></div>
+  <div class="wire"   style="left:1160px; bottom:200px; width:130px"></div>
+  <div class="wire v" style="left:1290px; bottom:200px; height:120px"></div>
+  <div class="tag" style="left:880px; bottom:410px" ><b style="color:var(--yellow)">SWITCH ROUTE</b><small>Power the electrical box to<br>bridge the catwalk gap.</small></div>
+
+  <!-- ══ SCREEN 4 · Gate tower — GATE ══ -->
+  <div class="roof" style="left:1262px; bottom:0; width:330px; height:238px">
+    <div class="glow-top"></div>
+    <div class="fill" style="background-image:url('../../assets/tilesets/purple_city/tiles/tile_dark_b.png')"></div>
+  </div>
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/fire_escape_section.png" style="left:1262px; bottom:90px; width:44px; z-index:23">
+  <img class="abs" src="../../assets/objects/gate_closed.png"                           style="left:1400px; bottom:238px; width:64px; height:128px; z-index:27; filter:drop-shadow(0 0 12px #cc44ff)">
+  <img class="abs" src="../../assets/sprites/generator 1/frame_001.png"                 style="left:1300px; bottom:238px; width:56px; z-index:26">
+  <div class="bolt" style="left:1312px; bottom:308px">⚡</div>
+  <div class="bolt lock" style="left:1416px; bottom:380px">🔒</div>
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/conduit_cluster.png"  style="left:1500px; bottom:238px; width:28px; z-index:24">
+  <div class="tag" style="left:1470px; bottom:420px"><span class="key">E</span>SPEND CHARGE<small>Discharge into the gate<br>to open it.</small></div>
+
+  <!-- ══ SCREEN 5 · Exit roof — EXIT ══ -->
+  <div class="roof" style="left:1660px; bottom:0; width:388px; height:190px">
+    <div class="glow-top"></div>
+    <div class="fill" style="background-image:url('../../assets/tilesets/purple_city/tiles/tile_purple_a.png')"></div>
+  </div>
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/water_tower.png"      style="left:1932px; bottom:190px; width:84px; z-index:24">
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/antenna_tall.png"     style="left:1700px; bottom:190px; width:26px; z-index:23">
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/rooftop_door.png"     style="left:1800px; bottom:190px; width:56px; z-index:26">
+  <img class="abs" src="../../assets/tilesets/purple_city/rooftop/satellite_dish.png"   style="left:1878px; bottom:190px; width:44px; z-index:23">
+  <div class="exitsign" style="left:1793px; bottom:300px">EXIT</div>
+</div>
+
+<!-- WIDTH BAR -->
+<div class="widthbar">
+  <div class="cap"></div><span class="lbl">START</span>
+  <div class="rail"><span class="mid">LEVEL WIDTH (5 SCREENS)</span></div>
+  <span class="lbl">EXIT</span><div class="cap"></div>
+</div>
+
+<!-- PANELS -->
+<div class="panels">
+  <div class="panel">
+    <h3>LEGEND</h3>
+    <div class="lg"><div class="ic"><img src="../../assets/sprites/generator 1/frame_001.png" width="30"></div><div><b style="color:var(--cyan)">CHARGE SOURCE (GENERATOR)</b><small>Hold E to absorb. Fills the meter; full bars bank pips.</small></div></div>
+    <div class="lg"><div class="ic"><img src="../../assets/objects/gate_closed.png" width="16"></div><div><b style="color:var(--purple)">ELECTRIC GATE</b><small>Hold E to discharge; opens when charge requirement met.</small></div></div>
+    <div class="lg"><div class="ic"><img src="../../assets/tilesets/purple_city/rooftop/electrical_box.png" width="26"></div><div><b style="color:var(--yellow)">SWITCH / DEVICE</b><small>Spend charge to activate and solve the route.</small></div></div>
+    <div class="lg"><div class="ic"><img src="../../assets/tilesets/purple_city/props/env_prop_box_purple.png" width="26"></div><div><b style="color:#ffa23e">MOVABLE CRATE</b><small>Push / pull to reach higher rooftops.</small></div></div>
+    <div class="lg"><div class="ic"><div class="enemy" style="position:static"></div></div><div><b style="color:var(--red)">GROUNDED ENEMY</b><small>Avoid — drains charge on touch.</small></div></div>
+    <div class="lg"><div class="ic"><img src="../../assets/tilesets/purple_city/rooftop/rooftop_door.png" width="22"></div><div><b style="color:var(--green)">EXIT DOOR</b><small>Reach it to complete the level.</small></div></div>
+  </div>
+
+  <div class="panel">
+    <h3>BEAT FLOW — ONE SCREEN, ONE LESSON</h3>
+    <div class="flow">
+      <div class="f1"><b>ABSORB</b>Learn E at the first generator. Safe roof, no threat.</div>
+      <div class="f2"><b>BANK</b>Climb the step-up roof; second generator fills the meter to a pip.</div>
+      <div class="f3"><b>SOLVE</b>Platforms + switch under enemy pressure. Wire shows the link.</div>
+      <div class="f4"><b>SPEND</b>Discharge into the electric gate to unlock the path.</div>
+      <div class="f5"><b>EXIT</b>Rooftop door under the water tower ends the level.</div>
+    </div>
+    <div class="note"><b>ASSET SLOTS FOR THE NEW ARTIST BATCH:</b> the stairwell housing (screen 2), rooftop door (screen 5) and water tower (screen 5) are the current repo versions — the incoming batch (garage door, AC platform, legged water tower, door-huts) drops into those exact anchor positions with no relayout. All geometry sits on the 32px game grid.</div>
+  </div>
+
+  <div class="panel">
+    <h3>PURPLE CITY PIECES USED (REAL FILES)</h3>
+    <div class="assetrow">
+      <figure><img src="../../assets/tilesets/purple_city/tiles/tile_purple_a.png" width="32"><figcaption>tile_purple_a</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/tiles/tile_dark_a.png" width="32"><figcaption>tile_dark_a</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/structures/stairwell_housing.png" width="56"><figcaption>stairwell_housing</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/rooftop/water_tower.png" width="44"><figcaption>water_tower</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/rooftop/rooftop_door.png" width="32"><figcaption>rooftop_door</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/rooftop/catwalk_section.png" width="52"><figcaption>catwalk</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/platforms/platform_medium.png" width="52"><figcaption>platform_medium</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/rooftop/ladder_section.png" width="20"><figcaption>ladder</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/props/street_lamp.png" width="26"><figcaption>street_lamp</figcaption></figure>
+      <figure><img src="../../assets/tilesets/purple_city/rooftop/electrical_box.png" width="28"><figcaption>electrical_box</figcaption></figure>
+      <figure><img src="../../assets/objects/gate_closed.png" width="18"><figcaption>gate_closed</figcaption></figure>
+      <figure><img src="../../assets/sprites/generator 1/frame_001.png" width="36"><figcaption>generator</figcaption></figure>
+    </div>
+    <div class="note">Backdrop: <b>mid_city.png</b> + bg building silhouettes. License: Svor Purple City — free for commercial use, credit appreciated.</div>
+  </div>
+</div>
+
+</body>
+</html>
