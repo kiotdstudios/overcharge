@@ -247,9 +247,10 @@ function _drawContextPrompts(ctx, player, t) {
   }
 
   // ── Near a device (gate/switch) — only shown when no enemy nearby ──
-  // Also suppress if standing at a source: E is absorb there, not discharge,
-  // and the two prompts on the same object would confuse.
-  if (!player.nearEnemy && !player.nearSource && player.nearDevice && !player.nearDevice.open && !player.nearDevice.on) {
+  // [E] DISCHARGE is suppressed when standing at a source (E is busy absorbing).
+  // [F] SPEND PIP is NEVER suppressed by nearSource — it's a different key and
+  // the player must be able to see it even while absorbing next to a generator.
+  if (!player.nearEnemy && player.nearDevice && !player.nearDevice.open && !player.nearDevice.on) {
     const dev       = player.nearDevice;
     const cx        = dev.cx;
     const cy        = dev.y - 20;
@@ -264,38 +265,45 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.textAlign   = 'center';
     ctx.font        = 'bold 11px monospace';
 
-    if (player.discharging) {
-      // Live feedback while actively holding E at the device
-      ctx.fillStyle   = '#cc44ff';
-      ctx.shadowBlur  = 10;
-      ctx.shadowColor = '#cc44ff';
-      ctx.fillText('DISCHARGING...', cx, cy);
-    } else if (hasEnough) {
-      ctx.fillStyle   = '#cc44ff';
-      ctx.shadowBlur  = 8;
-      ctx.shadowColor = '#cc44ff';
-      ctx.fillText('[E] DISCHARGE', cx, cy);
-    } else {
-      // Two-line prompt: POWER REQUIRED / ABSORB MORE ENERGY
-      ctx.fillStyle   = '#ff4444';
-      ctx.shadowBlur  = 8;
-      ctx.shadowColor = '#ff4444';
-      ctx.fillText('POWER REQUIRED', cx, cy);
-      ctx.font        = 'bold 9px monospace';
-      ctx.fillStyle   = '#ff8888';
-      ctx.fillText('ABSORB MORE ENERGY', cx, cy + 12);
+    // E discharge prompt — suppressed when E is occupied absorbing from a source.
+    if (!player.nearSource) {
+      if (player.discharging) {
+        // Live feedback while actively holding E at the device
+        ctx.fillStyle   = '#cc44ff';
+        ctx.shadowBlur  = 10;
+        ctx.shadowColor = '#cc44ff';
+        ctx.fillText('DISCHARGING...', cx, cy);
+      } else if (hasEnough) {
+        ctx.fillStyle   = '#cc44ff';
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#cc44ff';
+        ctx.fillText('[E] DISCHARGE', cx, cy);
+      } else {
+        // Two-line prompt: POWER REQUIRED / ABSORB MORE ENERGY
+        ctx.fillStyle   = '#ff4444';
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = '#ff4444';
+        ctx.fillText('POWER REQUIRED', cx, cy);
+        ctx.font        = 'bold 9px monospace';
+        ctx.fillStyle   = '#ff8888';
+        ctx.fillText('ABSORB MORE ENERGY', cx, cy + 12);
+      }
     }
 
-    // Pip-spend prompt (F) — still available as an intentional one-shot
-    // when the player has stored pips; unaffected by the E rework.
+    // [F] SPEND PIP — always visible near a gate/switch when pips are stored,
+    // even while absorbing. nearSource suppression must never hide this — the
+    // player needs to know F is available regardless of what E is doing.
     if (player.bankedPips > 0) {
       const pipPulse = 0.7 + 0.3 * Math.sin(t * 5);
+      // If E prompt is suppressed (nearSource active), shift F prompt up to cy
+      // so it still appears near the gate rather than floating below empty space.
+      const yOff = player.nearSource ? 0 : 26;
       ctx.globalAlpha = pulse * pipPulse;
       ctx.fillStyle   = '#ffcc00';
       ctx.font        = 'bold 10px monospace';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#ffaa00';
-      ctx.fillText(`[F] SPEND PIP  (${player.bankedPips} stored)`, cx, cy + 26);
+      ctx.fillText(`[F] SPEND PIP  (${player.bankedPips} stored)`, cx, cy + yOff);
     }
     ctx.restore();
   }
