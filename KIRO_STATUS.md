@@ -181,3 +181,45 @@ Read-only evidence: file headers self-identify as "DRIFTBOUND Phase 3 regression
 - **Chief decisions required:** approve CLEANUP_PLAN REMOVE list; relay `docs/AKI_ORDER_WASTE_ZONE_WIP.md` to Aki; confirm DRIFTBOUND owns `_orcha_stage` disposal.
 - **Push status:** YES — this record + three docs pushed to `agent/kiro-parity`.
 - **Recommended next step:** Chief opens Aki's session with the P1 order; on receipt of the WIP SHA I execute P2 consolidation and report.
+
+## Order 002 P2 — Workspace Consolidation EXECUTED
+
+- **Date/time:** 2026-09-10T20:12:29-04:00
+- **P1 clearance verified:** Chief's SHA `9f4ef2421eef07c26642552fb910d828460b4bb9` confirmed as ancestor of `origin/wip/aki-waste-zone-legacy` (tip `1664dae`, Aki's status commit). Aki's clone is now clean with zero unpushed commits. The legacy WIP will not be merged or ported.
+
+### Pre-move re-verification (all workspaces)
+
+- Canonical `GitHub\overcharge`: `agent/orcha-gameplay` @ `3cab1d9` = remote tip, clean.
+- `OVERCHARGE-kiro`: `agent/kiro-parity` @ `f1928ee` = remote tip, clean → safe to move.
+- `OVERCHARGE-kiro-merge`: `agent/kiro-promote-level1` @ `d866532`, patch-equivalent to remote (re-confirmed), dirty only in `AKI_STATUS.md`.
+- Aki clone `Documents\OVERCHARGE`: clean on preservation branch; worktrees `OVERCHARGE-integration` (detached `e3580fa`, contained in remote) and `OVERCHARGE-orcha` (`agent/orcha-gameplay` @ `514aafa`, behind, clean).
+- No stop condition encountered: no unique unpushed work, no divergence, no corruption, no overwrites.
+
+### New structure (all worktrees of the single canonical repository, same remote)
+
+| Path | Branch | HEAD | Sync vs GitHub |
+|---|---|---|---|
+| `Documents\GitHub\overcharge` (CHIEF) | `agent/orcha-gameplay` | `3cab1d9` | 0 behind / 0 ahead |
+| `Documents\GitHub\overcharge-aki` | `agent/aki-editor` (tracks origin) | `5192356` | 0 / 0 |
+| `Documents\GitHub\overcharge-kiro` | `agent/kiro-parity` | `f1928ee` | 0 / 0 |
+| `Documents\GitHub\overcharge-orcha` | `agent/orcha-dev` (NEW — see below) | `3cab1d9` | 0 / 0 vs `origin/agent/orcha-gameplay` |
+
+Method: `git worktree move` for Kiro (preserves Git identity); `git worktree add --track` for Aki/Orcha. All four verified: identical fetch/push URL (`github.com/kiotdstudios/overcharge.git`), linked gitdirs under the canonical repo, clean, fetch-synchronized.
+
+**Branch decision requiring Chief awareness:** Git cannot check out `agent/orcha-gameplay` in two worktrees of one repository, and Chief primary holds it. Orcha's worktree therefore starts on new branch `agent/orcha-dev` created at the Pages tip, tracking `origin/agent/orcha-gameplay` for sync visibility. Orcha's completed work merges to the Pages branch through QA-gate review. If Chief prefers a different arrangement (e.g., Chief primary on a different branch), it is a one-command change.
+
+### Old directories — PRESERVED (retirement candidates, nothing deleted)
+
+- `Documents\OVERCHARGE` — Aki clone; clean; historically the WIP home. Retire after Chief confirms Aki works from `GitHub\overcharge-aki`.
+- `Documents\OVERCHARGE-integration`, `OVERCHARGE-orcha` — worktrees of the Aki clone; clean/contained; retire with it via `git worktree remove`.
+- `Documents\OVERCHARGE-kiro-merge` — canonical worktree; branch has no unique content; dirty `AKI_STATUS.md` needs a keep/discard decision before `git worktree remove`.
+- `Documents\OVERCHARGE-kiro` — no longer exists (relocated, not deleted).
+
+### Archive / cleanup
+
+No changes this phase. `docs/CLEANUP_PLAN.md` remains the authoritative candidate list; REMOVE actions still await Chief approval. Purple City remains the active environmental source.
+
+- **Tests run:** none required (Git-topology work only; no repo content changed). Sync proofs recorded above.
+- **Chief decisions required:** approve `agent/orcha-dev` arrangement; keep-or-discard `OVERCHARGE-kiro-merge`'s dirty `AKI_STATUS.md`; authorize retirement of the four old directories.
+- **Push status:** YES — this record pushed to `agent/kiro-parity` from the new worktree path.
+- **Recommended next step:** Chief blesses the structure on this laptop; identical layout gets reproduced on the home Mac by `git clone` + `git worktree add` (no folder copying).
