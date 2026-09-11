@@ -26,6 +26,62 @@ EDIT → TEST → COMMIT → PUSH → STATUS → REVIEW
 | **ORCHA** | Gameplay systems, runtime systems, core mechanics |
 | **CHIEF** | Final authority on all decisions |
 
+## Permanent branch architecture (Chief-approved, Order 003)
+
+```text
+GitHub (kiotdstudios/overcharge)
+   │
+   ├── agent/orcha-gameplay ← Chief / Pages / live integration line
+   ├── agent/aki-editor     ← Aki
+   ├── agent/kiro-parity    ← Kiro
+   └── agent/orcha-dev      ← Orcha (development; NEVER commits directly to orcha-gameplay)
+```
+
+Development branches do not automatically become the live branch. Work reaches
+`agent/orcha-gameplay` only through Kiro's QA/integration gate with Chief approval.
+
+## Local workspace layout (both laptops)
+
+```text
+Documents\GitHub\
+├── overcharge          ← Chief primary   (agent/orcha-gameplay)
+├── overcharge-aki      ← Aki worktree    (agent/aki-editor)
+├── overcharge-kiro     ← Kiro worktree   (agent/kiro-parity)
+└── overcharge-orcha    ← Orcha worktree  (agent/orcha-dev)
+```
+
+All four are worktrees of the single `overcharge` repository — never independent clones.
+
+## Two-laptop workflow (Chief)
+
+Never copy an OVERCHARGE folder between machines. GitHub carries everything.
+
+When sitting down at either laptop:
+
+```powershell
+cd Documents\GitHub\overcharge
+git fetch origin
+git status                    # must be clean before switching
+git switch agent/orcha-gameplay
+git pull
+```
+
+Same pattern inside any agent worktree with its own branch. If `git status` is dirty,
+commit + push (or explicitly stash) before switching machines — a dirty tree left behind
+is exactly how the Waste Zone near-loss happened.
+
+First-time setup on a new machine:
+
+```powershell
+cd Documents\GitHub
+git clone https://github.com/kiotdstudios/overcharge.git
+cd overcharge
+git switch agent/orcha-gameplay
+git worktree add --track -b agent/aki-editor  ..\overcharge-aki   origin/agent/aki-editor
+git worktree add ..\overcharge-kiro  agent/kiro-parity
+git worktree add --track -b agent/orcha-dev   ..\overcharge-orcha origin/agent/orcha-gameplay
+```
+
 ## Branch & worktree rules
 
 - One repository. Agent worktrees (`overcharge-aki`, `overcharge-kiro`, `overcharge-orcha`) connect to it — never independent clones.

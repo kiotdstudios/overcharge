@@ -223,3 +223,32 @@ No changes this phase. `docs/CLEANUP_PLAN.md` remains the authoritative candidat
 - **Chief decisions required:** approve `agent/orcha-dev` arrangement; keep-or-discard `OVERCHARGE-kiro-merge`'s dirty `AKI_STATUS.md`; authorize retirement of the four old directories.
 - **Push status:** YES — this record pushed to `agent/kiro-parity` from the new worktree path.
 - **Recommended next step:** Chief blesses the structure on this laptop; identical layout gets reproduced on the home Mac by `git clone` + `git worktree add` (no folder copying).
+
+## Order 003 — Finalize Git Workflow + Retire Duplicate Workspaces
+
+- **Date/time:** 2026-09-10T20:42:49-04:00
+- **Approvals received:** P2 consolidation approved; `agent/orcha-dev` approved (Orcha never modifies `agent/orcha-gameplay` directly; Kiro is the QA gate to the Pages line).
+
+### P1 — kiro-merge dirty `AKI_STATUS.md`: RESOLVED with evidence
+
+The dirty file was Aki's rewritten status (dated 2026-09-10) recording the overwrite-confirmation completion. Verified NOT identical to any remote copy (remote blob `4d0b0c4` = old 09-06 content); however, the underlying code commits (`e24719b`/`d866532`) are pushed to the Pages branch as patch-equivalents. Unique text preserved to `Documents\Archived\AKI_STATUS_kiro-merge-worktree_2026-09-10.md` before retirement.
+
+### P2 — Old directory retirement: EXECUTED
+
+Pre-retirement proof per directory (all recorded before deletion):
+- Aki clone `Documents\OVERCHARGE`: all 4 local branches tracked and pushed (`aki-editor`, `orcha-gameplay` behind-only, `main`, `wip/aki-waste-zone-legacy`); zero unpushed commits; zero unique untracked files — `git clean -nd` flagged five directories (`_purple_city_raw`, `gate_charging`, `gate_idle`, `purple_city/electrical`, `purple_city/traversal`) which were verified **empty (0 files)** — leftover shells only.
+- `OVERCHARGE-integration`: detached HEAD contained in remote; only churn was regenerated `buildinfo.js`.
+- `OVERCHARGE-orcha`: clean, behind remote; untracked = `node_modules` only (0 non-node_modules entries).
+- `OVERCHARGE-kiro-merge`: branch patch-equivalent to remote; dirty file archived (above).
+
+Actions: `git worktree remove` for integration/orcha-old/kiro-merge (all gone); Aki clone contents deleted. **Residual:** the empty root folder `Documents\OVERCHARGE` (0 items) is held open by another process (an open terminal/session cwd) and will delete once released — no data inside it.
+
+### P3/P4 — Governance updated
+
+`docs/GIT_GOVERNANCE.md` now carries: the permanent four-branch architecture diagram (Chief-approved), the four-worktree local layout, the two-laptop switch procedure (`fetch → status → switch → pull`, clean-tree rule), and first-time machine setup commands (clone + `git worktree add`, never folder copies).
+
+- **Tests run:** none required (infrastructure only; no game/editor content changed). P5 respected: no gameplay, no Level 1, no WIP porting, no main merge, Purple City untouched.
+- **Unpushed work anywhere:** NONE (local branch `agent/kiro-promote-level1` retained; patch-equivalent to remote — flagged for optional future pruning with Chief approval).
+- **Chief decisions required:** none blocking. Optional: prune local branch `agent/kiro-promote-level1`; delete the residual empty `Documents\OVERCHARGE` folder after closing the terminal holding it.
+- **Push status:** YES — this record + governance update pushed to `agent/kiro-parity`.
+- **Recommended next step:** reproduce the layout on the home Mac per the new setup section; then Chief prioritizes the first post-cleanup content lane (Level 1 exit gate).
