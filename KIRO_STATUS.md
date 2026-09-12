@@ -860,3 +860,15 @@ Chief reported the "CP" schematic box a second time. It was assigned to Aki's in
 **Verified numerically and visually:** `boundingRect('checkpoint')` returns `{1066,168,44,56}` against art bounds left 1066 / right 1110 / top 168 / bottom 224 — exact match, bottom on the ground line, sign midpoint and top both inside (the old 22×22 box contained neither). Screenshot confirms the dashed outline wrapping the whole sign.
 
 **Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK. No test imports `editor/selection.js`, so these rects were unguarded — noted as a coverage gap.
+
+---
+
+## 2026-09-12 — P5 verdict delivered to Aki as a FILE (governance gap of my own, closed)
+
+Aki re-sent her P5 handoff still "standing by for the QA gate." I had gated and merged it, and recorded the verdict in KIRO_STATUS.md — **but never wrote it into `docs/AKI_ORDER_QUEUE.md`, which is the file she actually reads.** That is precisely the failure the "orders are files, never chat relays" rule exists to prevent, and I broke it myself. Closed: the verdict now lives in her queue file.
+
+**Confirmed before writing:** `origin/agent/aki-editor` (`b6df5ea`) is an ancestor of the live line, live HEAD `2503c0c`, and live carries exactly **one** `CP_SRC` declaration — the duplicate is genuinely resolved, not just locally.
+
+**Written into her file:** P5 PASSED with the six verified sprite paths; the `CP_SRC` duplicate-declaration defect that killed the Builder, with the exact boot-smoke output; why her 322/0 was true but blind (the `_dev` suites never import `editor/renderer.js`) and the boot-smoke command to run before every editor handoff; the correction that the `spriteY` bug was her merge artifact rather than my code and was high-probability rather than low; an explicit "do not re-add a second `CP_*` block when you sync"; and notice that selection outlines now derive from `boundingRect` so she changes geometry in one place only. **P6a switch art cleared to start**, with the added requirement that she add the switch's `boundingRect` entry so its box wraps the new sprite instead of the 22×22 hitbox.
+
+She is 3 behind live and was told to sync first.
