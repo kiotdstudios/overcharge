@@ -304,8 +304,8 @@ function _drawDevBar() {
   ctx.textAlign = 'center';
   ctx.fillText(
     (_DEV_MODE && _DEV_LEVELS.length > 1
-      ? '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB/DISCHARGE   F SPEND PIP   [F2] skip   [[] PREV   []] NEXT'
-      : '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB/DISCHARGE   SPACE ATTACK   F SPEND PIP   [F2] skip   [P] +charge'),
+    ? '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K ATTACK   [F2] skip   [[] PREV   []] NEXT'
+    : '\u2190\u2192 MOVE   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K ATTACK   [F2] skip   [P] +charge'),
     viewW() / 2, 13
   );
 }

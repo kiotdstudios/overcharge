@@ -5,6 +5,116 @@ Flow: `agent/orcha-dev` → Kiro QA → `agent/orcha-gameplay` → Pages. No dir
 
 ---
 
+## Order: SPACE_CHARGE — SPACE charges, K attacks, F instant-fill removed
+
+- **Date/time:** 2026-09-11T23:35-04:00
+- **Branch:** `agent/orcha-dev`
+- **Base:** synced fast-forward from `agent/orcha-gameplay` `d344658` (was 21 behind, 0 ahead — lossless)
+- **Order:** `docs/ORCHA_ORDER_SPACE_CHARGE.md` (Kiro, Chief directive 2026-09-12)
+- **Amendment (Chief, 2026-09-11 23:11):** *"k is the projectile button then space is the charge gate button"* — projectile/attack moves to **K**, SPACE is charge-only.
+- **Ruling A (Chief, 23:15):** melee attack moves to K **now**. SPACE is purely gate-charge.
+
+### Why the amendment mattered
+
+The original spec put projectile *and* gate-charge both on SPACE, which forced a
+context-priority rule for "gate and enemy both in range". Splitting onto separate
+keys **deleted that problem** — there is no priority heuristic anywhere in the
+final implementation, and the player never has to guess what SPACE will do.
+
+### Final bindings
+
+| Key | Action |
+|---|---|
+| **SPACE** | hold near gate/switch → gradual charge (`spendEnergy` authority, `dev.receive`, capped by `needed`) |
+| **K** | attack — melee now; projectile slots in as branch 2 later |
+| **E** | absorb / interact at sources **only** |
+| **F** | **unbound** — nothing completes a gate in one press |
+
+**Order §3 decision: charging is SPACE-only.** E does not also discharge. One
+mechanic, one binding — the old E-does-both/F-shortcut split is what made the
+controls unteachable.
+
+### Changes
+
+- **`player.js`**
+  - `_updatePipSpend()` **deleted** (the F instant-fill). `KeyF` is now unbound.
+  - `spendPip()` **retained** in the energy authority — order §2 requires it, and
+    Order 004 ruling 3 asserts against it directly.
+  - `_updateAttack()` rebound `Space` → `KeyK`, restructured as an explicit branch
+    table (branch 1 = melee, branch 2 = future projectile, left inert).
+  - `_updateDischarge()` rebound `KeyE` → `Space`. Mechanic itself unchanged.
+  - **Removed the `nearSource` guard** from `_updateDischarge`. It only existed
+    because E meant both absorb and discharge; with separate keys it would have
+    silently blocked SPACE-charging near a generator.
+- **`ui.js`** — `[E] DISCHARGE` → `[SPACE] CHARGE`; `DISCHARGING...` → `CHARGING...`;
+  `[SPACE] ATTACK` → `[K] ATTACK`; `[F] SPEND PIP` → **`RESERVE: n PIPS`** (information,
+  not a key prompt, since pips still auto-feed the bar via `_pullReserve`).
+  Mirrored the `nearSource` removal so UI and gameplay agree.
+- **`main.js`** — dev help strings → `E ABSORB  SPACE CHARGE  K ATTACK`.
+- **`entities.js`** — stale "killed with Space attack" comment corrected.
+- **`_dev/energy_authority.mjs`** — harness now records `window` listeners and
+  dispatches synthetic keydown/keyup into the **real `input.js`**, so binding
+  assertions exercise shipped key handling rather than a re-implementation.
+  **+21 tests.**
+
+### Tests
+
+| Suite | Baseline (pre-change) | After |
+|---|---|---|
+| `_dev/energy_authority.mjs` | 51 passed, 0 failed | **72 passed, 0 failed** |
+| `_dev/parity_regression.mjs` | 75 passed, 0 failed | **75 passed, 0 failed** |
+| `_dev/test_electricity.mjs` | 37 passed, 0 failed | **37 passed, 0 failed** |
+| Runtime boot smoke | — | **PAGES_RUNTIME_BOOT_OK**, 0 errors |
+
+New coverage: SPACE transfers and conserves exactly; a single frame **cannot**
+open a gate; sustained hold does; release stops transfer; **F does nothing** at
+all (no charge, no cost, no pip consumed) and `_updatePipSpend` is gone;
+`spendPip()` authority survives; K hits, SPACE does not; K neither charges nor
+costs energy; SPACE charges while near a source; charging draws the reserve and
+spends exactly 8 for the 8-cost exit.
+
+Conservation invariant (§7) untouched and still passing: 400 randomized runs,
+worst drift 8.53e-14, 0 illegal states.
+
+### Observable gameplay change
+
+**Intentional and total for controls** — this order is a rebind, so every change
+is user-visible by design:
+1. Gate charging moves from hold-E to hold-SPACE.
+2. Attack moves from SPACE to K.
+3. F does nothing. Level 1's exit can no longer be opened in one press; at
+   `required=8` with `DISCHARGE_RATE=3` it takes ~2.7s of sustained holding.
+4. Standing at a generator no longer suppresses the gate prompt or the ability
+   to charge — both `[E] ABSORB` and `[SPACE] CHARGE` now show together.
+
+No energy-model behavior changed. Every transfer still routes through the Order
+004 authority; no new drain arithmetic was introduced.
+
+### Notes / flagged
+
+- **`573223b`** (*"always show [F] SPEND PIP prompt near gate"*) is **superseded**
+  by this order, not accidentally reverted. Order §4 explicitly requires every
+  F/E prompt to be rewritten. Recorded here because it was recent teammate work.
+- **`input.js` left untouched** per order ("no listener changes expected").
+  `'KeyF'` remains in the `preventDefault` list — harmless dead config now that F
+  is unbound. `KeyK` deliberately not added: K does not scroll the page, so it
+  needs no `preventDefault`.
+- **SPACE / level-complete collision: investigated, no fix needed.** I flagged
+  this as a risk during review and then verified `input.js`: `pressed()` is
+  strictly edge-triggered (`cur && !prev`) and `main.js` additionally guards on
+  `completeTimer > 0.5`. Holding SPACE through gate-open never retriggers
+  `advanceLevel()`. My initial warning was an over-call; withdrawn.
+- **Projectiles NOT built**, per order. Branch 2 of `_updateAttack` is an inert
+  no-op rather than an energy-costing stub, so nothing can silently drain the bar.
+- Level 1 checksum now `0B4F15C6` (Chief's economy change: generators 4, exit 8).
+  I did not touch level content.
+
+### Handoff
+
+- Pushed to `agent/orcha-dev`. **Not merged.** Awaiting Kiro QA gate.
+
+---
+
 ## Order #004 — Charge System Authority
 
 - **Date/time:** 2026-09-11T06:16-04:00

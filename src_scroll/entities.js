@@ -1,5 +1,5 @@
 // Enemy types: DrainEnemy, PatrolEnemy
-// All enemies: contact stuns + scatters charge. Can be killed with Space attack.
+// All enemies: contact stuns + scatters charge. Can be killed with the K attack.
 // Drops are defined as an array — { type: 'charge', value: N } for now;
 // new drop types (keys, upgrades, etc.) get added here later.
 import { TILE, STUN_DURATION, STUN_COOLDOWN } from './constants.js';
