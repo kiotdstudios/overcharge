@@ -295,3 +295,40 @@ Gate conditions for acceptance: work stays on `agent/orcha-dev`; no editor/`main
 - **Promotion to `agent/orcha-gameplay`:** RECOMMENDED — awaiting Chief authorization per governance (no dev branch reaches the live line without Chief approval).
 - **Backlog (logged, not actioned):** `ChargePickup.draw()` ignores `value` (cosmetic, sub-1.0 pickups render full size) — future Aki/art lane; energy-model documentation next to `LEVEL_SCHEMA.md` — approved as a docs-only follow-up for Orcha, low priority.
 - **Push status:** YES — this record pushed to `agent/kiro-parity`.
+
+## Order 005 — Git JSON = Only Authored Level Source + Level-Order Manifest
+
+- **Date/time:** 2026-09-11T21:47:07-04:00
+- **Assignment (Chief Order 005):** remove IndexedDB/localStorage from authored-level discovery/loading, SAVE writes + verifies canonical `levelN.json` in the Git clone, Git-tracked level ordering drives Builder + runtime, audit every editor button, pass the two-computer test. Gameplay promotion gated on this.
+
+### Confirmed defect (pre-change audit)
+
+Three authored-level sources existed: Git JSON, the chosen folder, and an IndexedDB mirror that (a) was appended to Builder discovery, (b) silently replaced the fetched Git level at Builder boot, and (c) was PREFERRED over committed JSON at game boot and in dev discovery. That is exactly why Laptop A could see a level Laptop B could not. Complete button-by-button audit recorded (all toolbar/LEVEL/DEV-QA controls, all dialogs, all storage keys, all boot paths).
+
+### Changes (commit `79e4b14fcc8a7efaf1fc5d5863e2e9d434c98c80`)
+
+- **`editor/persistence.js`** — IDB discovery tier, `idb` load branch, level mirror, and its accessors REMOVED. SAVE now read-backs the canonical file and byte-compares; mismatch → `SAVE FAILED verification`, stays dirty. File-picker tier warns it is not the Git folder; download tier returns `ok:false`, stays dirty (no fake saved state). New Git-tracked manifest API: `loadLevelOrder/writeLevelOrder/ensureInLevelOrder/moveLevelInOrder/removeFromLevelOrder` (write-verified, folder-required by design) + `deleteLevelFiles`, `currentSaveDir`.
+- **`editor/main.js`** — boot IDB restore removed; REVERT reloads from Git JSON; DELETE removes the level's JSON files from the Git folder + drops it from the manifest; dropdown shows 📂 Git-folder / 📦 committed only; new ⬆/⬇ ORDER buttons edit the manifest.
+- **`editor/localstore.js`** — level-mirror accessors deleted; keeps only the folder handle (machine capability) and the snapshots store (edit history, never a level source).
+- **`src_scroll/main.js`** — `_tryLocalSave`/IDB import GONE. Boot = `?test=1` preview else ALL committed levels in manifest order; `advanceLevel` progression and dev `[ / ]` follow the same Git-tracked order; badges updated.
+- **`src_scroll/levels/levels.json`** — NEW Git-tracked manifest (`overcharge-levels-manifest@1`): 1 NEON RISE, 2 SPLIT DECISION.
+- **`_dev/parity_regression.mjs`** — old IDB-contract assertions replaced with 8 Order-005 contract checks (no IDB paths anywhere, save verification present, manifest valid/consistent/no-dupes, both sides read it).
+- **`PUBLISH_LEVELS.bat`** — header rewritten for the new reality (stages whole `src_scroll/levels`, so the manifest publishes automatically).
+
+Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE unsaved preview), `overcharge.editor.recovery` (crash recovery of unsaved state), snapshots store (history), `saveDirHandle` (folder capability), sessionStorage UI flag. None can ever be an authored level source.
+
+### Tests (all my own runs)
+
+- Parity **71/0** (8 new contract checks) · electricity **37/0** · energy **51/0** · module syntax clean.
+- Headless boot smoke (Playwright + local static server): game boots 2 levels `[COMMITTED · MANIFEST ORDER]`, editor lists 📦 1 NEON RISE / 📦 2 SPLIT DECISION with ORDER buttons, **zero page errors**.
+- **Two-computer simulation PASSED:** fresh `git clone` of the pushed branch (= Laptop B pulling) boots the identical levels, identical checksum `0167334D`, from Git JSON alone → `BOOT_SMOKE_OK`.
+
+### Limitations / notes
+
+- FSA folder-write + reorder flows were verified at code level and by contract tests, not by a human clicking in Chrome — Chief visual QA of SAVE→verify and ORDER buttons still required.
+- Descriptive `N_NAME.json` variants in the folder still appear as 📂 entries; canonical `levelN.json` remains what the game loads.
+- Docs (`editor/README.md`, `docs/CHIEF_HANDOFF.md` two-laptop section) still describe the old mirror — follow-up docs fix queued.
+- **Promotion hold honored:** nothing merged to `agent/orcha-gameplay`; the pending Orcha promotion stays held until Chief signs off Order 005 on real hardware.
+
+- **Push status:** YES — implementation `79e4b14` + this record pushed to `agent/kiro-parity`.
+- **Recommended next step:** Chief pulls `agent/kiro-parity` on this laptop, points FOLDER at `Documents\GitHub\overcharge\src_scroll\levels`, saves a level, runs `PUBLISH_LEVELS.bat`, then pulls on the Mac — the real two-computer test.
