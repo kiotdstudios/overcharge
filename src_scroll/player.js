@@ -2,7 +2,7 @@
 import {
   TILE, COLS, ROWS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
   PLAYER_W, PLAYER_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, C,
-  RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN
+  RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS
 } from './constants.js';
 import * as Input from './input.js';
 import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
@@ -334,6 +334,7 @@ export class Player {
     this.y += this.vy * dt;
     this._resolveY(level, prevBottom, dropDown);
     this._resolvePlatforms(level, prevBottom, dt);
+    this._resolveCrates(level, prevBottom);   // crates are solid — land on top (D7)
 
     // Clamp to canvas bounds — ceiling at y=0 prevents jumping above all barriers
     if (this.x < 0) { this.x = 0; this.vx = 0; }
@@ -379,6 +380,50 @@ export class Player {
         if (this.vx > 0) this.x = gate.x - this.w;
         else if (this.vx < 0) this.x = gate.x + gate.w;
         this.vx = 0;
+      }
+    }
+
+    // ── Crate push (ORDER CRATE_TIMED, D6) ────────────────────────────
+    // Walking into a crate pushes it. Resolved HERE, in the same pass gates use,
+    // because the resolution order is what makes the guarantee hold:
+    //   crate destination clear  → crate moves, player follows flush behind it
+    //   crate blocked            → THE PLAYER is blocked instead
+    // So a crate can never be shoved into a tile, a closed gate, another crate,
+    // or off the level edge: it is impossible by construction, not by clamping
+    // afterwards. No vertical push, no grab, no carry (D6).
+    for (const crate of level.crates) {
+      // Must overlap on BOTH axes — you can only push a crate you are beside.
+      // (Y overlap alone would let a player standing ON a crate drag it.)
+      const yOverlap = this.y < crate.y + crate.h && this.y + this.h > crate.y;
+      const xOverlap = this.x < crate.x + crate.w && this.x + this.w > crate.x;
+      if (!yOverlap || !xOverlap) continue;
+
+      if (this.vx > 0) {
+        const intrusion = (this.x + this.w) - crate.x;       // how far we pushed in
+        const moved     = crate.tryMoveX(intrusion, level);
+        this.x = crate.x - this.w;                            // stand flush
+        if (moved === 0) this.vx = 0;                         // crate stuck → we stop
+      } else if (this.vx < 0) {
+        const intrusion = (crate.x + crate.w) - this.x;
+        const moved     = crate.tryMoveX(-intrusion, level);
+        this.x = crate.x + crate.w;
+        if (moved === 0) this.vx = 0;
+      }
+    }
+  }
+
+  // ── Standing on a crate (D7: crates are solid) ────────────────────
+  // Mirrors _resolvePlatforms: land only when falling onto the top face, using
+  // prevBottom from before this frame's y-move so a fast fall cannot tunnel.
+  _resolveCrates(level, prevBottom) {
+    for (const cr of level.crates) {
+      const overlapX = this.x < cr.x + cr.w && this.x + this.w > cr.x;
+      if (!overlapX) continue;
+      const bottom = this.y + this.h;
+      if (this.vy >= 0 && prevBottom <= cr.y + 8 && bottom >= cr.y && bottom <= cr.y + cr.h) {
+        this.y        = cr.y - this.h;
+        this.vy       = 0;
+        this.grounded = true;
       }
     }
   }
@@ -542,35 +587,61 @@ export class Player {
     // player standing between a source and a gate can legitimately do either.
     // Keeping the guard would have silently blocked SPACE-charging near a
     // source — the same class of bug as the old F-prompt suppression.
-    if (!holdCharge || !this.grounded || !this.nearDevice || this.usableEnergy <= 1e-9) {
+    // ── Resolve WHAT this SPACE hold is charging ──────────────────────
+    // Either a device directly, or a device reached THROUGH a crate (D3).
+    // `viaCrate` is the crate acting as the wire, purely so the render layer can
+    // flash it; it plays no part in the arithmetic, because a crate has no
+    // capacity (D1) and adds no rate penalty or loss — v1 is reach, not cost.
+    let target   = this.nearDevice;
+    let viaCrate = null;
+    if (!target && this.nearCrate && this.crateBridge === 'ok' && this.crateTarget) {
+      target   = this.crateTarget;
+      viaCrate = this.nearCrate;
+    }
+    // D4 / D5: a crate bridging NOTHING, or bridging AMBIGUOUSLY, leaves `target`
+    // null — so the guard below refuses and the player keeps every unit of
+    // energy. Refusal is silent in the arithmetic and LOUD in the HUD
+    // (NOT CONNECTED / AMBIGUOUS CONTACT), never a silent no-op.
+
+    if (!holdCharge || !this.grounded || !target || this.usableEnergy <= 1e-9) {
       this.discharging     = false;
       this.dischargeTarget = null;
+      this.chargeViaCrate  = null;
       return;
     }
 
-    const needed = this.nearDevice.required - this.nearDevice.charged;
+    const needed = target.required - target.charged;
     if (needed <= 1e-9) {
       this.discharging     = false;
       this.dischargeTarget = null;
+      this.chargeViaCrate  = null;
       return;
     }
 
     // Order 004 §9: the deduction goes through spendEnergy(), which drains the
     // bar and promotes a stored battery the instant the bar runs dry — so the
     // transfer never visibly stalls at a pip boundary and there is no second
-    // copy of the drain arithmetic here. Capped by `needed` so a gate is never
+    // copy of the drain arithmetic here. Capped by `needed` so a device is never
     // overcharged, and by what the player actually has.
+    //
+    // Crate-routed transfers use this SAME call and the SAME device.receive(),
+    // so dormancy wake, _reactT, charged/open and conservation are identical to
+    // charging the device directly. There is deliberately no second transfer
+    // path for crates.
     const want       = Math.min(DISCHARGE_RATE * dt, needed);
     const frameSpend = this.spendEnergy(want);
 
     if (frameSpend > 1e-9) {
       this.discharging      = true;
-      this.dischargeTarget  = this.nearDevice;
+      this.dischargeTarget  = target;
+      this.chargeViaCrate   = viaCrate;
       this._dischargeFx     = 0.15;
-      this.nearDevice.receive(frameSpend);
+      target.receive(frameSpend);
+      if (viaCrate) viaCrate._bridgeFx = 0.15;   // visual only
     } else {
       this.discharging     = false;
       this.dischargeTarget = null;
+      this.chargeViaCrate  = null;
     }
   }
 
@@ -626,6 +697,45 @@ export class Player {
       for (const sw of level.switches) {
         if (!sw.on && sw.inRange(this.cx, this.cy)) {
           this.nearDevice = sw; break;
+        }
+      }
+    }
+
+    // ── Crate proximity + bridge resolution (ORDER CRATE_TIMED, D3/D4/D5) ──
+    // Resolved here, in the same pass as nearDevice, so the HUD and the SPACE
+    // handler read ONE precomputed answer and cannot disagree about what a crate
+    // is bridging this frame.
+    //
+    //   nearCrate    the crate the player is standing next to (or null)
+    //   crateBridge  'ok' | 'none' | 'ambiguous'  (null when no crate nearby)
+    //   crateTarget  the device energy would flow into, only when 'ok'
+    //
+    // A crate is only offered when the player is NOT already next to a device
+    // directly: charging the device you are touching always wins over routing
+    // through a crate, so a crate can never hijack a normal gate interaction.
+    this.nearCrate   = null;
+    this.crateBridge = null;
+    this.crateTarget = null;
+    if (!this.nearDevice) {
+      for (const cr of level.crates) {
+        const cx = Math.max(cr.x, Math.min(this.cx, cr.x + cr.w));
+        const cy = Math.max(cr.y, Math.min(this.cy, cr.y + cr.h));
+        const dx = this.cx - cx, dy = this.cy - cy;
+        if (Math.sqrt(dx * dx + dy * dy) < INTERACT_RADIUS) {
+          const b = cr.bridgeTarget(level);
+          this.nearCrate   = cr;
+          this.crateBridge = b.state;
+          this.crateTarget = b.target;
+          // D5 (Kiro veto): ambiguity is REFUSED and REPORTED, never guessed.
+          // Warn once per entry into the ambiguous state, not every frame.
+          if (b.state === 'ambiguous' && !cr._warnedAmbiguous) {
+            cr._warnedAmbiguous = true;
+            console.warn(`[crate] "${cr.id}" touches ${b.all.length} chargeable devices ` +
+              `(${b.all.map(d => d.id).join(', ')}) — refusing to conduct. ` +
+              `A crate must bridge exactly ONE device.`);
+          }
+          if (b.state !== 'ambiguous') cr._warnedAmbiguous = false;
+          break;
         }
       }
     }

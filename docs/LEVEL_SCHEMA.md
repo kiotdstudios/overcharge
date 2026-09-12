@@ -301,3 +301,77 @@ on 2026-09-05. Two of them turned out to be documentation errors, not gaps.
 Neither agent expands it unilaterally. Corrections that bring the document into
 line with what the runtime already does are not expansions — they are bug fixes,
 and are marked inline with a dated correction note.*
+
+---
+
+## Crate (Conductive Crate) — ORDER CRATE_TIMED v1
+
+```js
+{
+  id: string,   // ✅ REQUIRED — unique, non-empty, within the level
+  x:  number,   // ✅ REQUIRED — world pixel X (left edge)
+  y:  number,   // ✅ REQUIRED — world pixel Y (top edge)
+  w:  number,   // optional — default 32 (one tile); positive when present
+  h:  number,   // optional — default 32; positive when present
+}
+```
+
+An absent or empty `crates` array means ZERO behavioral change to any level
+authored before this order.
+
+**v1 semantics** (ratified in `docs/KIRO_RULING_CRATE_TIMED_V1.md`):
+
+- **Pure conduit, ZERO capacity.** A crate never stores, buffers or leaks energy.
+  There is no `charge` field. It is a wire, not a power bank.
+- **Contact** = AABB overlap with the crate box inflated by `CRATE_CONTACT_PAD`
+  (2px). Strict inequality, so exactly 2px is the exclusive boundary.
+- **Delivery targets are GATES and SWITCHES ONLY.** `ElectricalSource` has no
+  `receive()` method, so a source is never a target. Absorb-through-crate is
+  deferred to v2.
+- **A crate must bridge EXACTLY ONE device.** Touching none → refuses
+  (`NOT CONNECTED`). Touching two or more → refuses and console-warns
+  (`AMBIGUOUS CONTACT`). It never guesses which device gets the energy.
+- Already-finished devices (open gate / switch already on) and `blockOnly` gates
+  are not eligible targets.
+- **Push:** horizontal only, by walking into it. If the crate's destination is
+  blocked, the PLAYER is blocked instead — a crate can never be shoved into
+  geometry. No lift, no carry, no grab button.
+- Crates fall under gravity, rest on tiles / one-way platforms / movers / other
+  crates, and are solid to the player and to enemies.
+- Crate position is **snapshotted**, so checkpoint restore rewinds it.
+
+**AUTHORING RULE (enforced by the parity harness):** any level containing
+`crates` MUST contain at least one checkpoint. A crate can be pushed into a pit
+or wedged against a wall and v1 has no reset-crate button, so checkpoint restore
+is the only recovery path.
+
+### Not in v1
+magnetization · multi-crate chains · carry/grab · crate-as-battery · vertical
+push · crate-to-crate conduction · riding movers horizontally ·
+absorb-through-crate (draining a source via a crate).
+
+---
+
+## Gate: timed fields — ORDER CRATE_TIMED v1
+
+Optional additions to the Gate object. **Non-timed gates are completely
+unaffected** — every timed branch is gated on `timed`.
+
+```js
+{
+  ...existing gate fields...,
+  timed:    boolean,   // optional, default false
+  duration: number,    // optional, default 3 — seconds it stays open once full
+}
+```
+
+Lifecycle: `DORMANT → charge → OPEN (counting down `duration`) → expiry → drains
+to `charged: 0`, blocking resumes, returns to the **DORMANT** visual state (the
+dedicated TRUE DEAD art, static and unlit — not idle-animated).
+
+- Countdown is drawn in the same strip as the charge bar, flickering under 1s.
+- `_timeLeft` is snapshotted, so a checkpoint taken mid-countdown restores the
+  remaining time rather than handing the player a fresh duration.
+- **`timed` + `isExit` is REFUSED** as an authoring error (console-warn, `timed`
+  ignored): a timed exit could expire during the level-complete transition and
+  strand the player. The parity harness also rejects this combination.

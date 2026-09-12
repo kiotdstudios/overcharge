@@ -107,7 +107,8 @@ export class ElectricalSource {
 // while _reactT > 0 the gate plays the 'charging' animation, otherwise 'idle'.
 // ──────────────────────────────────────────────
 export class PowerGate {
-  constructor({ id, x, y, w, h, required, isExit = false, blockOnly = false, label = '' }) {
+  constructor({ id, x, y, w, h, required, isExit = false, blockOnly = false, label = '',
+                timed = false, duration = 3 }) {
     this.id        = id;
     this.x         = x; this.y = y;
     this.w         = w; this.h = h;
@@ -120,6 +121,25 @@ export class PowerGate {
     this._t        = 0;
     this._openAge  = 0;
     this._pipFlash = 0;  // white flash when powered by a banked pip
+
+    // ── TIMED DEVICE (ORDER CRATE_TIMED System 2, ratified D9) ──────────
+    // A timed gate opens when charged, stays open for `duration` seconds, then
+    // drains to empty and re-blocks. Non-timed gates are COMPLETELY unaffected:
+    // every timed branch below is gated on `this.timed`.
+    //
+    // timed + isExit is REFUSED as an authoring error. A timed exit could expire
+    // during the level-complete transition and strand the player behind a gate
+    // they already paid for. Warn loudly and ignore `timed` rather than shipping
+    // a level that can soft-lock on a race.
+    if (timed && isExit) {
+      console.warn(`[gate] "${id}" declares BOTH timed and isExit — ignoring timed. ` +
+        `A timed exit can expire mid level-completion and strand the player.`);
+      this.timed = false;
+    } else {
+      this.timed = timed;
+    }
+    this.duration  = duration;
+    this._timeLeft = 0;     // >0 only while a timed gate is open and counting down
     // Sprite art — fallback + animated sheet + open frame.
     // Attach onload logging so we can verify in the browser devtools
     // that the sheet actually loaded (prior "static gate" report was
@@ -169,6 +189,23 @@ export class PowerGate {
     if (this.open) this._openAge += dt;
     this._pipFlash = Math.max(0, this._pipFlash - dt);
     this._reactT   = Math.max(0, this._reactT   - dt);
+
+    // ── D9: timed expiry ──────────────────────────────────────────────
+    // Runs BEFORE the isDormant check below, so the frame a timed gate expires
+    // it is already seen as dormant and renders the TRUE DEAD art immediately —
+    // no one-frame flash of the idle animation on the way down.
+    if (this.timed && this.open && this._timeLeft > 0) {
+      this._timeLeft -= dt;
+      if (this._timeLeft <= 0) {
+        this._timeLeft = 0;
+        this.open      = false;   // blocking resumes
+        this.charged   = 0;       // drains to empty — must be re-charged
+        this._openAge  = 0;       // so a re-open replays the open flash cleanly
+        // _reactT is deliberately NOT touched: it has already lapsed by now, and
+        // isDormant depends on it being 0. Zeroing charged + open is exactly what
+        // makes isDormant true on this same frame (verified, not assumed).
+      }
+    }
     // Dormant gates do not animate. Frame is pinned to 0 rather than merely
     // left alone, so waking always starts the idle loop at its first frame —
     // and because row 0 has content ONLY at frame 0 (see draw()).
@@ -190,7 +227,15 @@ export class PowerGate {
     this.charged += take;
     if (take > 0) this._reactT = 0.18;   // ~11 frames of 'charging' anim per receive tick
     // Epsilon guard: float drip-charging never lands on exactly N.0
-    if (this.charged >= this.required - 1e-9) { this.charged = this.required; this.open = true; return true; }
+    if (this.charged >= this.required - 1e-9) {
+      this.charged = this.required;
+      this.open    = true;
+      // D9: a timed gate starts its countdown the moment it opens. Non-timed
+      // gates stay open forever exactly as before — _timeLeft remains 0 and the
+      // expiry branch in update() never fires for them.
+      if (this.timed) this._timeLeft = this.duration;
+      return true;
+    }
     return false;
   }
 
@@ -230,7 +275,14 @@ export class PowerGate {
     // ── OPEN state: bright flash → fade to invisible over ~1.0s ──
     if (this.open) {
       const age = this._openAge;
-      if (age >= 1.0) return;
+      // D9 countdown: a TIMED gate that has finished its open-flash still needs a
+      // visible readout, so it does not silently slam shut on the player. A
+      // non-timed gate keeps the original behaviour exactly (draw nothing once
+      // faded out).
+      if (age >= 1.0) {
+        if (this.timed && this._timeLeft > 0) this._drawCountdown(ctx);
+        return;
+      }
       const alpha = age < 0.5 ? 1.0 : Math.max(0, 1.0 - (age - 0.5) / 0.5);
       ctx.save();
       ctx.globalAlpha = alpha;
@@ -244,6 +296,7 @@ export class PowerGate {
         drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
       }
       ctx.restore();
+      if (this.timed && this._timeLeft > 0) this._drawCountdown(ctx);
       return;
     }
 
@@ -361,6 +414,30 @@ export class PowerGate {
       ctx.fillRect(this.x - 2, this.y, this.w + 4, this.h);
       ctx.restore();
     }
+  }
+
+  // ── D9: timed countdown readout ────────────────────────────────────
+  // Reuses the SAME strip geometry as the charge bar below the gate, drawn as
+  // remaining TIME instead of fill. No new art, no new asset dependency (the
+  // order forbade both). Flickers under 1s so the player gets a warning before
+  // the gate slams shut rather than being surprised by it.
+  _drawCountdown(ctx) {
+    const frac = this.duration > 0 ? Math.max(0, this._timeLeft / this.duration) : 0;
+    const barW = 48, barH = 6;
+    const barX = this.cx - barW / 2;
+    const barY = this.y + this.h + 4;
+    const urgent = this._timeLeft <= 1.0;
+    // Flicker only in the final second, driven by _t so it is frame-rate stable.
+    const flicker = urgent ? (0.45 + 0.55 * Math.abs(Math.sin(this._t * 14))) : 1;
+    ctx.save();
+    ctx.globalAlpha = flicker;
+    ctx.fillStyle = '#0e0018';
+    ctx.fillRect(barX, barY, barW, barH);
+    ctx.shadowBlur  = 8;
+    ctx.shadowColor = urgent ? '#ff4444' : '#44ffcc';
+    ctx.fillStyle   = urgent ? '#ff4444' : '#44ffcc';
+    ctx.fillRect(barX, barY, Math.round(barW * frac), barH);
+    ctx.restore();
   }
 }
 

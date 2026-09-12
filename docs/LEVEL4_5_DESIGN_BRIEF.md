@@ -71,6 +71,27 @@ These come from Orcha's own risk analysis, ratified in the crate ruling:
   it in the same instant or is refused.
 - Default crate size is 32×32 (one tile).
 
+### ⚠ HARD RULE — a 1-tile crate makes the mechanic INVISIBLE
+
+Found by Orcha during implementation and confirmed at QA. The player's
+`INTERACT_RADIUS` is 50px. With a **32×32 (1-tile) crate**, the player standing in
+position to push it is *already within direct range of the device on the far side*
+— so charging happens **directly** and the crate is never used. Orcha's first
+testbed passed a headless playability check **while never touching the crate at
+all**.
+
+So when authoring Level 5:
+
+- Use a **64px (2-tile) crate**, or
+- Place the device so the player physically cannot stand within 50px of it
+  (across a gap, behind geometry, on a ledge), or
+- Both.
+
+Then verify the crate is actually required: complete the level and confirm the
+route only works with the crate in position. A crate that is merely *present* is
+not a puzzle — and the level will read as pointless without anyone being able to
+say why.
+
 ---
 
 ## Definition of done (both levels)

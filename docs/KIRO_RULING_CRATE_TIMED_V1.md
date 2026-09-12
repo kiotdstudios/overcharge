@@ -184,3 +184,71 @@ before you branch your test additions or you will conflict in that file.
 parity · electricity · energy (87/0 baseline) · boot smoke · headless boot of the
 hand-authored crate + timed-gate level. All suites 0 failed. Push to
 `agent/orcha-dev` and HOLD. Do not merge to the live line yourself.
+
+---
+
+# ADDENDUM 2 — QA GATE VERDICT: PASSED (2026-09-12)
+
+**Delivery:** `7cfa2fd` on `agent/orcha-dev`. **Merged to the live line.**
+
+## Verified independently, not accepted on report
+
+- Merge clean (ort, no conflicts) over a live line 6 commits ahead. The
+  `ASSET_MANIFEST.json` / `AKI_ORDER_QUEUE.md` / `editor/MANIFEST.md` entries in
+  his branch diff were **staleness, not his edits** — confirmed by inspecting what
+  the merge actually brought: 12 files, all his.
+- Suites on the merged tree: `crate_timed` **87/0** · parity **110/0** ·
+  energy **87/0** · electricity **37/0** = **321/0**, matching his claim exactly.
+- Main-game boot smoke OK, zero page errors.
+- Testbed correctly excluded from `levels.json` (manifest still `1 NEON RISE`,
+  `2 SPLIT DECISION`) — it cannot leak into normal play.
+- No stray temp files tracked; his `git add -A` slip is genuinely cleaned.
+- 17 crate-guard lines present in the parity harness.
+
+## My rulings verified as BEHAVIOUR, not just as code
+
+- **D5 veto implemented:** `crate touching a gate AND a switch -> ambiguous`,
+  `target is null: REFUSES rather than guessing first-in-order`, warn names the
+  crate and both device ids, `player charge unchanged`.
+- **Source correction implemented:** `a SOURCE is not a delivery target (it has
+  no receive())`.
+- **Dead-art composition:** `an EXPIRED timed gate is DORMANT, not idle-animated`
+  → `variants=DEAD-ART`, one static frame over 2s. Keying the recorder on image
+  **object identity** is stronger than the sx/sy assertion I shipped — good.
+- `timed + isExit is REFUSED`.
+
+## RATIFIED — derived decision: `blockOnly` excluded as a bridge target
+
+Orcha flagged this as derived rather than ordered and asked for a veto if wrong.
+**Ratified.** Verified against shipped code: `electricity.js:119` documents
+`blockOnly` as "switch-only barrier — player can't discharge into it", and
+`player.js:692` already filters it from direct player targeting. Allowing a crate
+to bridge into a `blockOnly` barrier would let the player open a switch-controlled
+force field directly, bypassing the switch puzzle entirely — laundering energy
+around the documented intent, exactly as he put it. The exclusion preserves the
+mechanic. Correct call, correctly flagged.
+
+## Self-caught bugs — noted approvingly
+
+`INTERACT_RADIUS` used without import (would have thrown on first crate
+proximity), test rigs assuming `PLAYER_H = 64` when it is 30, and inverted
+draw-recorder labels. In all three he printed real values instead of adjusting
+code to match a wrong assumption. That is the correct debugging order.
+
+**The parity guards being half-blind is the most valuable finding in the
+delivery.** They only scanned `levelN.json`, so the descriptive `N_NAME.json`
+twins — which Chief's Builder writes on every save — were never validated, nor
+was the testbed. That hole predates this order and would have silently passed
+malformed authored data. Widening the scan is most of the 75 → 110 movement.
+
+## Level 5 consequence — accepted and propagated
+
+His finding that a **1-tile crate is invisible as a mechanic** (the player is
+already inside `INTERACT_RADIUS` of the device, so it charges directly and the
+crate is never used — his first testbed passed as "playable" while never touching
+the crate) is now written into `docs/LEVEL4_5_DESIGN_BRIEF.md` as a hard authoring
+rule. This is exactly the class of thing that would have shipped as "Level 5 feels
+pointless" with nobody able to say why.
+
+**Status:** merged and live. Orcha may sync and stand down on this order. Aki's P2
+(editor spawn/inspector support) is now unblocked — the schema has landed.
