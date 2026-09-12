@@ -432,3 +432,9 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 **Shipped bindings:** SPACE = hold-to-charge gates/switches (gradual, no instant fill possible) · K = attack · E = absorb at sources only · F = unbound. Level 1 exit (required 8) ≈ 2.7 s sustained hold. `573223b` F-prompt polish superseded by design, on record.
 
 **Flag for Chief sign-off:** attack landed on K, not SPACE-with-context — Orcha cites a Chief amendment ("Ruling A"). If that amendment wasn't yours, say so and Orcha rebinds; the charge mechanic is unaffected either way.
+
+---
+
+## 2026-09-12 — Chief ratification: K-attack amendment
+
+Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was my call yes to commit." SPACE_CHARGE bindings are final as shipped in `ca79051` / live merge `0520765`. Flag closed, no rework.
