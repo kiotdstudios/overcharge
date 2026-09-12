@@ -704,6 +704,9 @@ function refreshStatusStrip() {
       ? `<span class="lss-snaps">📷 ${_statusSnapCount} snapshot${_statusSnapCount !== 1 ? 's' : ''}</span>`
       : '';
   }
+  // Sync the snapshots chip count in the §1 LEVEL nav row
+  const chipCount = document.getElementById('snaps-chip-count');
+  if (chipCount) chipCount.textContent = _statusSnapCount != null ? `(${_statusSnapCount})` : '';
   // Debounce the async snap count fetch (don't hit IDB on every keystroke)
   if (_statusSnapCount === null) {
     clearTimeout(_statusSnapTimer);
@@ -1158,6 +1161,59 @@ document.querySelectorAll('.tp-hdr').forEach(hdr => {
     if (!body) return;
     const hidden = body.classList.toggle('hidden');
     hdr.classList.toggle('collapsed', hidden);
+  });
+});
+
+// ── §1 LEVEL nav: prev/next buttons ─────────────────────────────────────────
+// Step through the level-select options with guard (same path as the change handler).
+document.getElementById('btn-level-prev')?.addEventListener('click', () => {
+  if (!levelSelect || levelSelect.options.length === 0) return;
+  const cur = Number(levelSelect.value);
+  const idx = Math.max(0, cur - 1);
+  if (idx === cur) return;
+  levelSelect.value = String(idx);
+  levelSelect.dispatchEvent(new Event('change'));
+});
+document.getElementById('btn-level-next')?.addEventListener('click', () => {
+  if (!levelSelect || levelSelect.options.length === 0) return;
+  const cur = Number(levelSelect.value);
+  const max = levelSelect.options.length - 1;
+  const idx = Math.min(max, cur + 1);
+  if (idx === cur) return;
+  levelSelect.value = String(idx);
+  levelSelect.dispatchEvent(new Event('change'));
+});
+
+// §1 LEVEL nav readout: clicking the readout shows the native level-select briefly
+document.getElementById('level-nav-readout')?.addEventListener('click', () => {
+  if (!levelSelect) return;
+  levelSelect.style.display = 'block';
+  levelSelect.focus();
+  levelSelect.size = Math.min(8, levelSelect.options.length || 1);
+  const hide = () => { levelSelect.size = 0; levelSelect.style.display = 'none'; };
+  levelSelect.addEventListener('change', hide, { once: true });
+  levelSelect.addEventListener('blur', hide, { once: true });
+});
+
+// §1 Snapshots chip: opens the same history dialog as btn-history
+document.getElementById('btn-snaps-chip')?.addEventListener('click', () => {
+  document.getElementById('btn-history')?.click();
+});
+
+// ── Icon rail navigation ──────────────────────────────────────────────────────
+// Each rail button has data-rail="<anchor-id>"; clicking scrolls the inspector
+// panel to that anchor and marks the button active.
+document.querySelectorAll('#tools-icon-rail [data-rail]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const anchorId = btn.dataset.rail;
+    const anchor   = document.getElementById(anchorId);
+    const panel    = document.getElementById('tools-panel-content');
+    if (anchor && panel) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    // Active state — one button lit at a time
+    document.querySelectorAll('#tools-icon-rail [data-rail]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
   });
 });
 
