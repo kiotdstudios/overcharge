@@ -554,3 +554,18 @@ Also this session: `conduit_cluster.png` deleted per Chief (archived, manifests 
 - **P1 BLOCKING:** reset `agent/aki-editor` onto current live line; must prove `git diff --name-only ... -- assets` is empty. Includes the full do-not-restore purge list. Destructive git requires Chief sign-off — Aki must state the command first.
 - **P2:** editor support for Orcha's incoming systems — SPAWN `+ Crate` button, gate inspector `timed`/`duration` fields, crate marker/badge. Sequenced AFTER Orcha's schema lands; told her not to invent field names ahead of him.
 - **P3:** editor doc truth pass (`MANIFEST.md`, `SCHEMA.md` vs shipped Order 005 persistence + new §1-6 panel) and semantic re-curation of `ASSET_MANIFEST.json`, which I pruned mechanically 116→51.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's gate dormancy (`10ba07c`) — PASSED, promoted; crate/timed rulings issued
+
+**Orcha correctly flagged a render-path collision:** dormancy touches `PowerGate.draw`, and the incoming timed-gate state (System 2) adds to the same function. Carrying an ungated commit forward would have tangled the QA — impossible to attribute a failure. **Ruling: gate it standalone FIRST.** Done in this session.
+
+**Gate:** cherry-picked `10ba07c` onto the live line as `c8ae61b` (orcha-dev was 15 behind; a branch merge would have dragged unrelated state). Scope verified: only `src_scroll/electricity.js` + `_dev/energy_authority.mjs`.
+- energy authority **86/0** (was 72 — +14 dormancy checks: uncharged gate reports dormant, dormant gate emits ONE static frame over 3s, blockOnly barrier never dormant, opened gate not dormant)
+- parity 75/0 · electricity 37/0 · boot smoke OK (fresh port; a stale 3310 listener from an earlier run had to be worked around)
+
+**Rulings issued to Orcha for CRATE_TIMED (see next status entry / order addendum):**
+1. Sync now — the live line includes dormancy, so System 2 builds on a merged `PowerGate.draw`.
+2. Document crate-conductivity v1 semantics BEFORE implementing — approved as requested.
+3. Timed gate must compose with dormancy: an expired timed gate returns to the dormant visual state, not an idle-animated one.
