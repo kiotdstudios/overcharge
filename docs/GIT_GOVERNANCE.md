@@ -58,6 +58,23 @@ BUILDER: https://kiotdstudios.github.io/overcharge/editor.html
 - The QA gate (parity + electricity + energy + boot smoke, all green) still runs
   **before** every merge to `agent/orcha-gameplay`. Speed does not waive the gate.
 
+## Orders are files, never chat relays (Chief directive, 2026-09-12)
+
+Chief does not copy-paste instructions between agents. Every order, ruling,
+approval, and design brief is a **committed markdown file in `docs/`**, pushed to
+the live line, that the target agent reads directly out of the repo.
+
+- Kiro issues work as `docs/<AGENT>_ORDER_<TOPIC>.md` (or `..._QUEUE.md`).
+- Kiro issues verdicts as `docs/KIRO_RULING_<TOPIC>.md`.
+- Approvals and sign-offs are written INTO the relevant order file, not just
+  spoken — an agent must be able to learn it is cleared to proceed by reading.
+- Agents report back in their own `*_STATUS.md`, plus a handoff that names the
+  file they worked from.
+- Every Kiro response that creates or updates agent work states plainly:
+  **"Document ready for <agent> to read: `docs/<file>`"**.
+
+If it is not in a pushed file, it is not an order.
+
 ## Local workspace layout (both laptops)
 
 ```text
