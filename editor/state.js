@@ -101,7 +101,11 @@ export function tileVariantForAssetId(id) {
   return v < 0 ? -1 : v - TILE_VARIANT_BASE;   // return the OFFSET, caller adds BASE
 }
 export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
-export const SNAP_GAMEPLAY_DEFAULT   = 16;          // spawn/source/gate/switch/checkpoint/enemy
+// Chief 2026-09-12: gameplay objects must land on WHOLE tiles. This was 16 (half
+// a tile), which is exactly why a dragged gate came to rest at x=1200 — a legal
+// 16px step, but off the 32px grid. Group moves use the LCM of members' snaps, so
+// setting this to TILE_SIZE keeps single AND multi-object drags on the grid.
+export const SNAP_GAMEPLAY_DEFAULT   = TILE_SIZE;   // 32 - spawn/source/gate/switch/checkpoint/crate/enemy
 
 // Quantize a single world coordinate down to the nearest `snap`-aligned point.
 // Used at placement time. round-to-nearest so a click lands at the CLOSEST

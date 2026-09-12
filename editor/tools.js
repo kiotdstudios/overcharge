@@ -454,6 +454,9 @@ export const selectTool = {
         for (const o of gp.checkpoints) Selection.selectByKind('checkpoint', o, true);
         for (const o of gp.enemies)     Selection.selectByKind('enemy',      o, true);
         for (const o of (gp.platforms||[])) Selection.selectByKind('platform', o, true);
+        // Crates were missing here: objectsInRect returns them, but the marquee
+        // never consumed gp.crates, so box-selecting a crate silently skipped it.
+        for (const o of (gp.crates||[]))    Selection.selectByKind('crate',    o, true);
         if (gp.playerStart) Selection.selectByKind('playerStart', null, true);
       }
       state.marquee = null;
@@ -539,6 +542,12 @@ function _kindOfRef(ref) {
 
 function _reanchorGameplay(origPositions) {
   if (!origPositions) return;
+  // SINGLE-object drags only. On a MULTI-select drag the group must move as a
+  // rigid body — re-grounding each member independently would scatter a carefully
+  // built cluster the moment it passed over uneven terrain. Grid alignment for
+  // groups is already guaranteed by the LCM delta-snap in state.js::groupSnap,
+  // which is why SNAP_GAMEPLAY_DEFAULT is a whole tile.
+  if (origPositions.size !== 1) return;
   for (const ref of origPositions.keys()) {
     const kind = _kindOfRef(ref);
     if (!kind) continue;

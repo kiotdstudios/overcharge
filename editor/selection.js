@@ -32,13 +32,15 @@ if (!state.selection) {
     checkpoints: new Set(),
     enemies:     new Set(),
     platforms:   new Set(),
+    crates:      new Set(),   // was MISSING — selectByKind('crate') threw on s.crates.add
     playerStart: false,
   };
   state.clipboard = null;
 }
 
 // Kinds that live in Sets (playerStart is a boolean, handled separately).
-const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms'];
+// 'crates' was missing here too, so clearSelection() silently left crates selected.
+const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms', 'crates'];
 
 // ── Read helpers ─────────────────────────────────────────────────────────
 export function selectedDecorations() { return [...state.selection.decorations]; }
@@ -95,6 +97,9 @@ export function selectedRefs() {
   for (const o of s.checkpoints) out.push({ kind: 'checkpoint', ref: o });
   for (const o of s.enemies)     out.push({ kind: 'enemy',      ref: o });
   for (const o of s.platforms)  out.push({ kind: 'platform',    ref: o });
+  // Crates were omitted here, so a selected crate was never added to the move
+  // tool's drag set — it highlighted but refused to move with the group.
+  for (const o of (s.crates || [])) out.push({ kind: 'crate',   ref: o });
   if (s.playerStart && state.level?.playerStart) out.push({ kind: 'playerStart', ref: state.level.playerStart });
   return out;
 }
@@ -110,6 +115,7 @@ export function clearSelection() {
   s.checkpoints.clear();
   s.enemies.clear();
   s.platforms.clear();
+  if (s.crates) s.crates.clear();   // was missing — crates stayed selected forever
   s.playerStart = false;
   notify();
 }
