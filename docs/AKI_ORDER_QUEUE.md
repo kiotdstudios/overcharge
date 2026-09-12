@@ -67,7 +67,30 @@ gate until this is fixed.
 
 ---
 
-## P2 — Editor support for crate + timed device
+## P2 — ✅ UNBLOCKED, GO. Editor support for crate + timed device
+
+> **Orcha's schema LANDED on the live line 2026-09-12** (`7cfa2fd`, QA-passed
+> 321/0). Sync and build against the real field names — they are documented in
+> `docs/LEVEL_SCHEMA.md` and `docs/ORCHA_CRATE_TIMED_V1_SEMANTICS.md`.
+>
+> Reference level: `src_scroll/levels/99_CRATE_TIMED_TESTBED.json` is a working
+> hand-authored crate + timed-gate level. Use it to check your palette/inspector
+> against real data. It is deliberately NOT in `levels.json` — leave it out.
+>
+> Behaviour your UI must not contradict:
+> - a crate delivers to **gates and switches only** (never sources)
+> - a crate touching **more than one** device refuses to conduct
+>   (`AMBIGUOUS CONTACT`) — that is intended, not a bug to design around
+> - `blockOnly` barriers are **not** valid bridge targets
+> - crates are horizontal-push only and store no energy
+> - **default 32×32, but see the 1-tile warning in `docs/LEVEL4_5_DESIGN_BRIEF.md`**
+>   — the inspector must let an author set a 64px crate easily, since 1-tile
+>   crates make the mechanic invisible
+>
+> Your P4 crate ART is still needed and is the higher priority of the two if you
+> must pick — the runtime currently has no crate sprite.
+
+### Original scope
 
 Orcha is building two new runtime systems under
 `docs/ORCHA_ORDER_CRATE_TIMED_DEVICE.md`: a **conductive crate** (new `crates[]`

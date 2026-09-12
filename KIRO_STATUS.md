@@ -682,3 +682,21 @@ In the entry above I renamed 3 manifest entries to `env_container_crate_*` and s
 **Reverted:** all 3 IDs, categories and tags restored to Aki's values. `_id_note` removed and replaced with `_art_note` recording the durable finding: *the filename lies, the ID describes the art and is authoritative, do not rename from the filename.* Category `container` now correctly contains only `env_container_small_a` and `env_container_small_b`.
 
 **Real state of crate art: DOES NOT EXIST.** Closest existing assets are `container_small_a` (20×18) and `container_small_b` (18×16) — both far under the 32×32 crate default and read as small boxes, not pushable crates. **Orcha's conductive-crate system and Chief's Level 5 need crate art produced.** Issued to Aki as P4.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's ORDER CRATE_TIMED (`7cfa2fd`) — PASSED, merged to live
+
+Full verdict in `docs/KIRO_RULING_CRATE_TIMED_V1.md` (Addendum 2).
+
+**Verified independently:** clean merge over a live line 6 ahead; the manifest/editor-doc entries in his branch diff were staleness, not his edits (confirmed by what the merge actually carried — 12 files, all his). Suites on the merged tree: crate_timed **87/0** · parity **110/0** · energy **87/0** · electricity **37/0** = **321/0**, matching his claim exactly. Boot smoke OK. Testbed correctly excluded from `levels.json`. No stray temp files tracked. 17 crate-guard lines in parity.
+
+**My rulings verified as behaviour, not just code:** D5 veto (ambiguous contact refuses, warns with crate + both device ids, player charge unchanged) · source-correction (source is not a delivery target) · dead-art composition (expired timed gate → `DEAD-ART`, one static frame) · `timed + isExit` refused. His draw-recorder keyed on image **object identity** is stronger than the sx/sy assertion I shipped.
+
+**RATIFIED his derived decision:** `blockOnly` gates excluded as bridge targets. Verified against shipped code — `electricity.js:119` documents blockOnly as "player can't discharge into it" and `player.js:692` already filters it. A crate bridging in would open a switch-controlled barrier directly and bypass the switch puzzle. Correct, and correctly flagged as derived rather than smuggled in.
+
+**Most valuable finding — the parity guards were half-blind.** They only scanned `levelN.json`, so the descriptive `N_NAME.json` twins that Chief's Builder writes on every save were never validated, nor was any testbed. That hole predates this order and would have silently passed malformed authored data. Most of the 75 → 110 movement is widening that scan.
+
+**Level 5 consequence propagated to `docs/LEVEL4_5_DESIGN_BRIEF.md` as a hard rule:** a 1-tile crate makes the mechanic invisible — `INTERACT_RADIUS` is 50px, so a player positioned to push a 32px crate is already in direct range of the device behind it. Orcha's first testbed passed a playability check while never touching the crate. Level 5 needs a 64px crate or a device the player cannot stand beside. Without this, Level 5 ships feeling pointless with nobody able to explain why.
+
+**Aki's P2 unblocked** in `docs/AKI_ORDER_QUEUE.md` with the real field names, the testbed as a reference level, and the behavioural constraints her UI must not contradict. Told her P4 (crate art) outranks P2 if she must choose — the runtime still has no crate sprite.
