@@ -482,3 +482,19 @@ Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was
 **Manifests:** ASSET_MANIFEST 84→52 · PURPLE_CITY_INDEX 75→52 · asset_index regenerated (203).
 
 **Tests:** parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK (level1 checksum now 0B4F15C6 after economy/gate edits).
+
+---
+
+## 2026-09-12 — QA gate: Aki's ORDER TOOLS_UI_LAYOUT — UI PASSED, merge REJECTED, cherry-picked instead
+
+**Aki delivered** `83a7a0d` + `fba02ea` on `agent/aki-editor`, built on her merge `ecd4e21`.
+
+**GATE FINDING — asset resurrection:** merging `agent/aki-editor` as-delivered would have restored 60+ files Chief ordered deleted (entire `waste/` pack, `drain_enemy/`, `backgrounds/`, `bg_building_*`, `sign_neon_*`, rooftop structures, `env_edge_purple_*`, `purplecity_full.png`, `bracket_corner.png` + its Level 2 decoration) and reverted manifest curation (ASSET_MANIFEST back to pre-purge, +2100 lines). Root cause: her branch pre-dates both purges and her conflict resolution kept the old asset tree ("keep Waste Zone entries").
+
+**Resolution:** REJECTED the branch merge; **cherry-picked the two commits** (they touch only `editor.html`, `editor/main.js`, `AKI_STATUS.md` — cleanly separable, no conflicts) onto `agent/orcha-gameplay` as `fdb55e5` + `40be9e1`. Zero deleted assets return.
+
+**QA gate on the live line after pick:**
+- Click-audit (new Playwright probe `_kiro_tools/probe_ui_audit.mjs`): all 40 wired control IDs present · tool set exactly the 6 existing tools (no Ellipse/Fill — order constraint held) · all 9 section headers collapse/expand correctly · LEVEL prev/next round-trips NEON RISE ↔ SPLIT DECISION with guard · snapshots chip opens the history dialog · zero page errors.
+- Suites: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+**Follow-up for Aki (logged, not blocking):** `agent/aki-editor` must be reset onto the current live line before her next order — her worktree still carries the pre-purge asset tree and will trip the same gate every time. Waste Zone belongs only on `wip/aki-waste-zone-legacy`.
