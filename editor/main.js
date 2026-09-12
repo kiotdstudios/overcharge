@@ -938,7 +938,7 @@ document.getElementById('import-backups-input')?.addEventListener('change', asyn
 // ── Spawn mode ──────────────────────────────────────────────────────────────
 // state.pendingSpawn = null | { kind } where kind is one of:
 //   'drain-enemy', 'patrol-enemy', 'drone-enemy',
-//   'source', 'switch', 'gate', 'checkpoint', 'platform'
+//   'source', 'switch', 'gate', 'checkpoint', 'platform', 'crate'
 // Set by spawn buttons. Cleared after placement or Escape.
 
 state.pendingSpawn = null;
@@ -1017,6 +1017,10 @@ function _doSpawn(e, canvas) {
     const w = 96, px = _snapGrid(wx), py = _snapGrid(wy);
     obj = { x: px, y: py, w, h: 12, x1: px - 64, x2: px + 64 + w, speed: 80 };
     arr = L.platforms || (L.platforms = []); arrLabel = 'add_platform';
+  } else if (kind === 'crate') {
+    const cw = 32, ch = 32, px = _snapGrid(wx), py = _groundAt(wx, wy, ch);
+    obj = { id: 'crate_' + Date.now(), x: px, y: py, w: cw, h: ch };
+    arr = L.crates || (L.crates = []); arrLabel = 'add_crate';
   }
 
   if (obj && arr !== null) {
@@ -1025,7 +1029,7 @@ function _doSpawn(e, canvas) {
     const kindMap = {
       'drain-enemy': 'enemy', 'patrol-enemy': 'enemy', 'drone-enemy': 'enemy',
       'source': 'source', 'switch': 'switch', 'gate': 'gate',
-      'checkpoint': 'checkpoint', 'platform': 'platform',
+      'checkpoint': 'checkpoint', 'platform': 'platform', 'crate': 'crate',
     };
     Selection.selectByKind(kindMap[kind], obj);
   }
@@ -1042,6 +1046,7 @@ function _doSpawn(e, canvas) {
   ['spawn-gate',       'gate'],
   ['spawn-checkpoint', 'checkpoint'],
   ['spawn-platform',   'platform'],
+  ['spawn-crate',      'crate'],
 ].forEach(([id, kind]) => {
   document.getElementById(id)?.addEventListener('click', () => {
     state.pendingSpawn = { kind };
@@ -1062,7 +1067,7 @@ function _refreshSelectedProps() {
   let kind = null, ref = null;
   for (const [k, kname] of [
     ['enemies','enemy'],['switches','switch'],['checkpoints','checkpoint'],
-    ['platforms','platform'],['sources','source'],['gates','gate'],
+    ['platforms','platform'],['sources','source'],['gates','gate'],['crates','crate'],
   ]) {
     if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
   }
@@ -1114,16 +1119,28 @@ function _refreshSelectedProps() {
       { label:'x',     key:'x',     num:true }, { label:'y',key:'y',num:true },
     ];
   } else if (kind === 'gate') {
-    color = ref.isExit ? '#ff44ff' : (ref.blockOnly ? '#ff8800' : '#44ccff');
-    badge = ref.isExit ? 'GATE · EXIT' : (ref.blockOnly ? 'GATE · BARRIER' : 'GATE');
+    const isTimed = !!ref.timed;
+    color = ref.isExit ? '#ff44ff' : (ref.blockOnly ? '#ff8800' : (isTimed ? '#ff44aa' : '#44ccff'));
+    badge = ref.isExit ? 'GATE · EXIT' : (ref.blockOnly ? 'GATE · BARRIER' : (isTimed ? 'GATE · TIMED' : 'GATE'));
     fields = [
-      { label:'id',      key:'id',       text:true },
-      { label:'label',   key:'label',    text:true },
-      { label:'required',key:'required', num:true, min:0 },
-      { label:'w',       key:'w',        num:true, min:1 },
-      { label:'h',       key:'h',        num:true, min:1 },
-      { label:'isExit',  key:'isExit',   bool:true },
-      { label:'blockOnly',key:'blockOnly',bool:true },
+      { label:'id',        key:'id',        text:true },
+      { label:'label',     key:'label',     text:true },
+      { label:'required',  key:'required',  num:true, min:0 },
+      { label:'w',         key:'w',         num:true, min:1 },
+      { label:'h',         key:'h',         num:true, min:1 },
+      { label:'isExit',    key:'isExit',    bool:true },
+      { label:'blockOnly', key:'blockOnly', bool:true },
+      { label:'timed',     key:'timed',     bool:true },
+      ...(isTimed ? [{ label:'duration', key:'duration', num:true, min:1 }] : []),
+    ];
+  } else if (kind === 'crate') {
+    color = '#aa55ff'; badge = 'CRATE';
+    fields = [
+      { label:'id', key:'id', text:true },
+      { label:'x',  key:'x',  num:true },
+      { label:'y',  key:'y',  num:true },
+      { label:'w',  key:'w',  num:true, min:1 },
+      { label:'h',  key:'h',  num:true, min:1 },
     ];
   }
 
