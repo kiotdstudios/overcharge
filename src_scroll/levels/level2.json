@@ -1438,13 +1438,6 @@
       "h": 86
     },
     {
-      "src": "assets/tilesets/purple_city/props/bracket_corner.png",
-      "x": 512,
-      "y": 142,
-      "w": 16,
-      "h": 18
-    },
-    {
       "src": "assets/tilesets/purple_city/props/street_lamp.png",
       "x": 640,
       "y": 74,

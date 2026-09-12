@@ -467,3 +467,18 @@ Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was
 - `src_scroll/main.js` `_loadJsonLevel()`: level fetch now `cache: 'no-store'` — a freshly pushed level shows on plain refresh. (Editor-side level fetches already had it; the game's didn't.)
 
 **Tests:** parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+---
+
+## 2026-09-12 — Chief purge round 2: edge/bg/neon/rooftop-structure crops + palette curation
+
+**Deleted (24 files, archived first to `Documents\Archived\asset_purge2_2026-09-12\`):** all 9 `env_edge_purple_*`, `bracket_corner.png` (was placed once in Level 2 — decoration removed, 31→30), `bg_building_tall/wide`, `sign_neon_a/b/c`, `rooftop_edge_left/mid/right`, `ladder_section`, `catwalk_section`, `fire_escape_section`, `rooftop_door`, `rooftop_railing`, `purplecity_full.png` (full sheet — the zip still holds the master).
+
+**NOT deleted, palette-only fixes (files are runtime-critical):**
+- Gate: the "3-4 gate files" are the gate's runtime states — `electricity.js` loads `gate_closed.png`, `gate_electric_spritesheet.png` (open/close anim), `gate_electric_open.png` by name. Files stay; ASSET_MANIFEST now lists ONE gate entry (`gate_electric_closed`).
+- Player: 6 player palette entries removed from ASSET_MANIFEST; sprite files stay (they draw the character).
+- Drone "not visible": by design — enemies place via SPAWN OBJECTS → + Drone, not the art palette.
+
+**Manifests:** ASSET_MANIFEST 84→52 · PURPLE_CITY_INDEX 75→52 · asset_index regenerated (203).
+
+**Tests:** parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK (level1 checksum now 0B4F15C6 after economy/gate edits).

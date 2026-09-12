@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-12T03:43:19.864Z",
-  "count": 227,
+  "generated": "2026-09-12T14:54:42.236Z",
+  "count": 203,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -891,12 +891,6 @@
       "size": 3043
     },
     {
-      "path": "assets/tilesets/purple_city/props/bracket_corner.png",
-      "name": "bracket_corner",
-      "category": "prop",
-      "size": 95
-    },
-    {
       "path": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
       "name": "env_prop_arrow_box_up",
       "category": "prop",
@@ -961,18 +955,6 @@
       "name": "tool_hammer",
       "category": "prop",
       "size": 625
-    },
-    {
-      "path": "assets/tilesets/purple_city/buildings/bg_building_tall.png",
-      "name": "bg_building_tall",
-      "category": "terrain",
-      "size": 2795
-    },
-    {
-      "path": "assets/tilesets/purple_city/buildings/bg_building_wide.png",
-      "name": "bg_building_wide",
-      "category": "terrain",
-      "size": 2880
     },
     {
       "path": "assets/tilesets/purple_city/buildings/building_bar_sign.png",
@@ -1059,60 +1041,6 @@
       "size": 512
     },
     {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_left.png",
-      "name": "env_edge_purple_bottom_left",
-      "category": "terrain",
-      "size": 1746
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_right.png",
-      "name": "env_edge_purple_bottom_right",
-      "category": "terrain",
-      "size": 1741
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom.png",
-      "name": "env_edge_purple_bottom",
-      "category": "terrain",
-      "size": 1817
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_fill.png",
-      "name": "env_edge_purple_fill",
-      "category": "terrain",
-      "size": 1944
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_left.png",
-      "name": "env_edge_purple_left",
-      "category": "terrain",
-      "size": 1852
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_right.png",
-      "name": "env_edge_purple_right",
-      "category": "terrain",
-      "size": 1854
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_left.png",
-      "name": "env_edge_purple_top_left",
-      "category": "terrain",
-      "size": 1720
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_right.png",
-      "name": "env_edge_purple_top_right",
-      "category": "terrain",
-      "size": 1736
-    },
-    {
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
-      "name": "env_edge_purple_top",
-      "category": "terrain",
-      "size": 1800
-    },
-    {
       "path": "assets/tilesets/purple_city/containers/container_small_a.png",
       "name": "container_small_a",
       "category": "terrain",
@@ -1141,24 +1069,6 @@
       "name": "crates_double",
       "category": "terrain",
       "size": 1324
-    },
-    {
-      "path": "assets/tilesets/purple_city/edges/rooftop_edge_left.png",
-      "name": "rooftop_edge_left",
-      "category": "terrain",
-      "size": 551
-    },
-    {
-      "path": "assets/tilesets/purple_city/edges/rooftop_edge_mid.png",
-      "name": "rooftop_edge_mid",
-      "category": "terrain",
-      "size": 484
-    },
-    {
-      "path": "assets/tilesets/purple_city/edges/rooftop_edge_right.png",
-      "name": "rooftop_edge_right",
-      "category": "terrain",
-      "size": 330
     },
     {
       "path": "assets/tilesets/purple_city/facades/facade_panel_solid.png",
@@ -1203,12 +1113,6 @@
       "size": 454
     },
     {
-      "path": "assets/tilesets/purple_city/purplecity_full.png",
-      "name": "purplecity_full",
-      "category": "terrain",
-      "size": 58498
-    },
-    {
       "path": "assets/tilesets/purple_city/rooftop/_contact_sheet_batch1.png",
       "name": "_contact_sheet_batch1",
       "category": "terrain",
@@ -1219,12 +1123,6 @@
       "name": "antenna_tall",
       "category": "terrain",
       "size": 353
-    },
-    {
-      "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
-      "name": "catwalk_section",
-      "category": "terrain",
-      "size": 531
     },
     {
       "path": "assets/tilesets/purple_city/rooftop/conduit_cluster.png",
@@ -1239,18 +1137,6 @@
       "size": 589
     },
     {
-      "path": "assets/tilesets/purple_city/rooftop/fire_escape_section.png",
-      "name": "fire_escape_section",
-      "category": "terrain",
-      "size": 1946
-    },
-    {
-      "path": "assets/tilesets/purple_city/rooftop/ladder_section.png",
-      "name": "ladder_section",
-      "category": "terrain",
-      "size": 553
-    },
-    {
       "path": "assets/tilesets/purple_city/rooftop/roof_access_hatch.png",
       "name": "roof_access_hatch",
       "category": "terrain",
@@ -1261,18 +1147,6 @@
       "name": "rooftop_ac_unit",
       "category": "terrain",
       "size": 706
-    },
-    {
-      "path": "assets/tilesets/purple_city/rooftop/rooftop_door.png",
-      "name": "rooftop_door",
-      "category": "terrain",
-      "size": 1339
-    },
-    {
-      "path": "assets/tilesets/purple_city/rooftop/rooftop_railing.png",
-      "name": "rooftop_railing",
-      "category": "terrain",
-      "size": 692
     },
     {
       "path": "assets/tilesets/purple_city/rooftop/rooftop_vent_large.png",
@@ -1297,24 +1171,6 @@
       "name": "water_tower",
       "category": "terrain",
       "size": 1925
-    },
-    {
-      "path": "assets/tilesets/purple_city/signs/sign_neon_a.png",
-      "name": "sign_neon_a",
-      "category": "terrain",
-      "size": 823
-    },
-    {
-      "path": "assets/tilesets/purple_city/signs/sign_neon_b.png",
-      "name": "sign_neon_b",
-      "category": "terrain",
-      "size": 375
-    },
-    {
-      "path": "assets/tilesets/purple_city/signs/sign_neon_c.png",
-      "name": "sign_neon_c",
-      "category": "terrain",
-      "size": 354
     },
     {
       "path": "assets/tilesets/purple_city/structures/stairwell_housing.png",
