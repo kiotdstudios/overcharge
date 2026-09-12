@@ -513,3 +513,15 @@ Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was
 - Also noted during scan: `rooftop/conduit_cluster.png` has a 1px stray at (2,19) — left alone, not in Chief's report; flagged for a future art pass.
 
 **Tests:** parity 75/0 · zoom probe clean · boot smoke OK.
+
+---
+
+## 2026-09-12 — GDD roadmap review + next-phase orders cut
+
+**Read the GDD (Static Shock Puzzle Platformer v1.0, 7 pages) and mapped it against the build.** Done: L1 First Spark (NEON RISE, completable as of today), L2 Split Decision, full energy loop (absorb/discharge/scatter/recovery) test-covered. Missing from MVP §12: movable conductive object, one timed device, third level.
+
+**Orders cut (Chief approved):**
+- `docs/ORCHA_ORDER_CRATE_TIMED_DEVICE.md` — conductive crate (pushable, circuit bridge, schema `crates[]`) + timed gate (`timed`/`duration`, temporary circuit). Runtime + schema + tests only; Aki follow-up later for editor spawn support. Orcha must sync from current live line first.
+- `docs/LEVEL3_DESIGN_BRIEF.md` — Chief's Builder brief for L3 "Don't Get Hit": safe absorb intro, drone lesson corridor (no pits), second generator, exit `required: 6`. All mechanics already engine-supported; pure content.
+
+Also this session: `conduit_cluster.png` deleted per Chief (archived, manifests 52→51, `5e43763`).
