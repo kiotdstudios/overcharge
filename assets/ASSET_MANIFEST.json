@@ -18,7 +18,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Single direction (no dir subfolder). Drawn at 64x64 world units above hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") — URL-encodes to %20; real HTTP servers handle this, but recommend renaming to \"generator_1\" (file-system change, coord with Orcha).",
+      "notes": "Single direction (no dir subfolder). 9 frames: frame_000.png–frame_008.png. Path template uses {n} — editor expands to zero-padded 3-digit frame index. Drawn at 64x64 world units, sprite centred horizontally above 28x28 hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") — URL-encodes to %20 on HTTP. Recommend renaming to \"generator_1\" (coord with Orcha).",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
@@ -40,7 +40,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Static closed-gate reference sprite (64x128). Animated spritesheet now in gate_electric_animated. PixelLab job: e9dfee77.",
+      "notes": "Palette entry for the gate object (ONE entry — Chief ruling). Sprite: 64x128, drawn bottom-aligned. Runtime state files gate_electric_spritesheet.png, gate_electric_open.png, gate_electric_dead.png are NOT palette entries — they are wired in electricity.js. Do not add them to this manifest.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object — linked to generator/switches by ID"
@@ -424,6 +424,7 @@
     },
     {
       "id": "env_tile_purple_edge_ref",
+      "_id_note": "STALE ID — this asset is crate_large.png (a container), not a tile or edge. Rename to env_container_crate_large pending cross-agent agreement.",
       "path": "assets/tilesets/purple_city/containers/crate_large.png",
       "category": "construction_tile",
       "tags": [
@@ -1112,6 +1113,7 @@
     },
     {
       "id": "env_tile_purple_edge_hollow_ref",
+      "_id_note": "STALE ID — this asset is crate_large_hollow.png (a container), not a tile or edge. Rename to env_container_crate_large_hollow pending cross-agent agreement.",
       "category": "construction_tile",
       "path": "assets/tilesets/purple_city/containers/crate_large_hollow.png",
       "frame_width": 50,
@@ -1130,6 +1132,7 @@
     },
     {
       "id": "env_tech_panel_wide",
+      "_id_note": "STALE ID — path is containers/crates_double.png. Rename to env_container_crates_double pending cross-agent agreement.",
       "category": "prop",
       "path": "assets/tilesets/purple_city/containers/crates_double.png",
       "frame_width": 60,
@@ -1211,8 +1214,8 @@
       "id": "env_prop_tool_hammer",
       "category": "prop",
       "path": "assets/tilesets/purple_city/props/tool_hammer.png",
-      "frame_width": 25,
-      "frame_height": 20,
+      "frame_width": 32,
+      "frame_height": 32,
       "tags": [
         "prop",
         "tool",
@@ -1230,9 +1233,7 @@
         "layer": "foreground",
         "density": "sparse",
         "stackable": false
-      },
-      "width": 32,
-      "height": 32
+      }
     },
     {
       "id": "env_waste_platform_long",

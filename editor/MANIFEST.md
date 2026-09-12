@@ -60,5 +60,5 @@ The scanner emits these categories today. **The editor MUST NOT hard-code this l
 
 ## Regeneration policy
 
-- Manifest is **generated, not hand-edited**. Do not commit changes made to `manifest.json` by hand.
+- Manifest is **generated, not hand-edited**. Do not commit changes made to `asset_index.json` by hand.
 - After a PixelLab batch: `node scripts/build_manifest.mjs && git add assets/`.

@@ -128,7 +128,7 @@ Asset: `electrical_generator` (see ASSET_MANIFEST.json)
 - Barrier: typically `32×128px`, `blockOnly: true`, opened via linked Switch
 
 Asset: `gate_electric_closed` (see ASSET_MANIFEST.json)  
-**Pending:** `gate_electric_open` asset not yet created.
+Runtime state files (not palette entries — wired in `electricity.js`): `gate_electric_open.png` (energised/open), `gate_electric_dead.png` (dormant before first charge), `gate_electric_spritesheet.png` (charge animation).
 
 ---
 
