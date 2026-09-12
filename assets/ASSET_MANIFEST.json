@@ -787,40 +787,6 @@
       }
     },
     {
-      "id": "conduit_cluster",
-      "path": "assets/tilesets/purple_city/rooftop/conduit_cluster.png",
-      "category": "rooftop",
-      "tags": [
-        "rooftop",
-        "prop",
-        "conduit",
-        "cables",
-        "electrical",
-        "purple_city",
-        "static"
-      ],
-      "width": 16,
-      "height": 32,
-      "generated": {
-        "tool": "pixellab_pro",
-        "job_id": "03dc3613-05a2-4339-a86f-7cdf7445ea0d",
-        "date": "2026-09-04T22:22:00Z",
-        "candidate": 0
-      },
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "decorative",
-          "rooftop",
-          "small"
-        ],
-        "surface": "rooftop",
-        "layer": "foreground",
-        "density": "medium",
-        "stackable": true
-      }
-    },
-    {
       "id": "roof_access_hatch",
       "path": "assets/tilesets/purple_city/rooftop/roof_access_hatch.png",
       "category": "rooftop",

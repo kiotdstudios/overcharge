@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-12T14:54:42.236Z",
-  "count": 203,
+  "generated": "2026-09-12T18:26:50.740Z",
+  "count": 202,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -954,7 +954,7 @@
       "path": "assets/tilesets/purple_city/props/tool_hammer.png",
       "name": "tool_hammer",
       "category": "prop",
-      "size": 625
+      "size": 590
     },
     {
       "path": "assets/tilesets/purple_city/buildings/building_bar_sign.png",
@@ -1123,12 +1123,6 @@
       "name": "antenna_tall",
       "category": "terrain",
       "size": 353
-    },
-    {
-      "path": "assets/tilesets/purple_city/rooftop/conduit_cluster.png",
-      "name": "conduit_cluster",
-      "category": "terrain",
-      "size": 198
     },
     {
       "path": "assets/tilesets/purple_city/rooftop/electrical_box.png",

@@ -399,17 +399,6 @@
       ]
     },
     {
-      "id": "conduit_cluster.png",
-      "path": "assets/tilesets/purple_city/rooftop/conduit_cluster.png",
-      "category": "rooftop",
-      "width": 16,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "rooftop"
-      ]
-    },
-    {
       "id": "electrical_box.png",
       "path": "assets/tilesets/purple_city/rooftop/electrical_box.png",
       "category": "rooftop",
