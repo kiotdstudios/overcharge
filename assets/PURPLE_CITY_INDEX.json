@@ -3,28 +3,6 @@
   "_note": "auto-generated inventory of every PNG under assets/tilesets/purple_city/. Editor fetches this after ASSET_MANIFEST.json and merges any un-manifested files as fallback entries. Aki-manifest entries always win when there is a path collision.",
   "assets": [
     {
-      "id": "bg_building_tall.png",
-      "path": "assets/tilesets/purple_city/buildings/bg_building_tall.png",
-      "category": "building",
-      "width": 48,
-      "height": 96,
-      "tags": [
-        "purple_city",
-        "buildings"
-      ]
-    },
-    {
-      "id": "bg_building_wide.png",
-      "path": "assets/tilesets/purple_city/buildings/bg_building_wide.png",
-      "category": "building",
-      "width": 96,
-      "height": 64,
-      "tags": [
-        "purple_city",
-        "buildings"
-      ]
-    },
-    {
       "id": "building_bar_sign.png",
       "path": "assets/tilesets/purple_city/buildings/building_bar_sign.png",
       "category": "building",
@@ -146,94 +124,6 @@
       ]
     },
     {
-      "id": "env_edge_purple_bottom_left.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_left.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_bottom_right.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom_right.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_bottom.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_bottom.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_fill.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_fill.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_left.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_left.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_right.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_right.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_top_left.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_left.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_top_right.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top_right.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
       "id": "env_construction_ledge_a.png",
       "path": "assets/tilesets/purple_city/construction/env_construction_ledge_a.png",
       "category": "construction_tile",
@@ -247,17 +137,6 @@
     {
       "id": "env_construction_ledge_b.png",
       "path": "assets/tilesets/purple_city/construction/env_construction_ledge_b.png",
-      "category": "construction_tile",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "construction"
-      ]
-    },
-    {
-      "id": "env_edge_purple_top.png",
-      "path": "assets/tilesets/purple_city/construction/env_edge_purple_top.png",
       "category": "construction_tile",
       "width": 32,
       "height": 32,
@@ -319,39 +198,6 @@
       "tags": [
         "purple_city",
         "containers"
-      ]
-    },
-    {
-      "id": "rooftop_edge_left.png",
-      "path": "assets/tilesets/purple_city/edges/rooftop_edge_left.png",
-      "category": "edge",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "edges"
-      ]
-    },
-    {
-      "id": "rooftop_edge_mid.png",
-      "path": "assets/tilesets/purple_city/edges/rooftop_edge_mid.png",
-      "category": "edge",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "edges"
-      ]
-    },
-    {
-      "id": "rooftop_edge_right.png",
-      "path": "assets/tilesets/purple_city/edges/rooftop_edge_right.png",
-      "category": "edge",
-      "width": 32,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "edges"
       ]
     },
     {
@@ -421,17 +267,6 @@
       ]
     },
     {
-      "id": "bracket_corner.png",
-      "path": "assets/tilesets/purple_city/props/bracket_corner.png",
-      "category": "prop",
-      "width": 8,
-      "height": 9,
-      "tags": [
-        "purple_city",
-        "props"
-      ]
-    },
-    {
       "id": "env_prop_arrow_box_up.png",
       "path": "assets/tilesets/purple_city/props/env_prop_arrow_box_up.png",
       "category": "prop",
@@ -469,17 +304,6 @@
       "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
       "category": "prop",
       "width": 21,
-      "height": 5,
-      "tags": [
-        "purple_city",
-        "props"
-      ]
-    },
-    {
-      "id": "env_waste_platform_short.png",
-      "path": "assets/tilesets/purple_city/props/env_waste_platform_short.png",
-      "category": "prop",
-      "width": 16,
       "height": 5,
       "tags": [
         "purple_city",
@@ -556,8 +380,8 @@
       "id": "tool_hammer.png",
       "path": "assets/tilesets/purple_city/props/tool_hammer.png",
       "category": "prop",
-      "width": 25,
-      "height": 20,
+      "width": 32,
+      "height": 32,
       "tags": [
         "purple_city",
         "props"
@@ -575,54 +399,10 @@
       ]
     },
     {
-      "id": "catwalk_section.png",
-      "path": "assets/tilesets/purple_city/rooftop/catwalk_section.png",
-      "category": "rooftop",
-      "width": 44,
-      "height": 9,
-      "tags": [
-        "purple_city",
-        "rooftop"
-      ]
-    },
-    {
-      "id": "conduit_cluster.png",
-      "path": "assets/tilesets/purple_city/rooftop/conduit_cluster.png",
-      "category": "rooftop",
-      "width": 16,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "rooftop"
-      ]
-    },
-    {
       "id": "electrical_box.png",
       "path": "assets/tilesets/purple_city/rooftop/electrical_box.png",
       "category": "rooftop",
       "width": 24,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "rooftop"
-      ]
-    },
-    {
-      "id": "fire_escape_section.png",
-      "path": "assets/tilesets/purple_city/rooftop/fire_escape_section.png",
-      "category": "rooftop",
-      "width": 48,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "rooftop"
-      ]
-    },
-    {
-      "id": "ladder_section.png",
-      "path": "assets/tilesets/purple_city/rooftop/ladder_section.png",
-      "category": "rooftop",
-      "width": 16,
       "height": 32,
       "tags": [
         "purple_city",
@@ -646,28 +426,6 @@
       "category": "rooftop",
       "width": 32,
       "height": 24,
-      "tags": [
-        "purple_city",
-        "rooftop"
-      ]
-    },
-    {
-      "id": "rooftop_door.png",
-      "path": "assets/tilesets/purple_city/rooftop/rooftop_door.png",
-      "category": "rooftop",
-      "width": 24,
-      "height": 32,
-      "tags": [
-        "purple_city",
-        "rooftop"
-      ]
-    },
-    {
-      "id": "rooftop_railing.png",
-      "path": "assets/tilesets/purple_city/rooftop/rooftop_railing.png",
-      "category": "rooftop",
-      "width": 64,
-      "height": 16,
       "tags": [
         "purple_city",
         "rooftop"
@@ -715,39 +473,6 @@
       "tags": [
         "purple_city",
         "rooftop"
-      ]
-    },
-    {
-      "id": "sign_neon_a.png",
-      "path": "assets/tilesets/purple_city/signs/sign_neon_a.png",
-      "category": "sign",
-      "width": 64,
-      "height": 16,
-      "tags": [
-        "purple_city",
-        "signs"
-      ]
-    },
-    {
-      "id": "sign_neon_b.png",
-      "path": "assets/tilesets/purple_city/signs/sign_neon_b.png",
-      "category": "sign",
-      "width": 48,
-      "height": 16,
-      "tags": [
-        "purple_city",
-        "signs"
-      ]
-    },
-    {
-      "id": "sign_neon_c.png",
-      "path": "assets/tilesets/purple_city/signs/sign_neon_c.png",
-      "category": "sign",
-      "width": 16,
-      "height": 48,
-      "tags": [
-        "purple_city",
-        "signs"
       ]
     },
     {

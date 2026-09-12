@@ -59,7 +59,9 @@ function _normalizeLevelDef(def, defaultName, defaultNumber) {
 // to the served HTML (index.html), so this works identically local and on
 // GitHub Pages (no bundler, static files served as-is).
 async function _loadJsonLevel(path, fallbackName, fallbackNumber) {
-  const res = await fetch(path);
+  // no-store: GitHub Pages caches for ~10 min browser-side; a freshly pushed
+  // level must show up on plain refresh, not only after the cache expires.
+  const res = await fetch(path, { cache: 'no-store' });
   if (!res.ok) throw new Error(`Level fetch failed: ${path} (HTTP ${res.status})`);
   const def = await res.json();
   if (!def || !Array.isArray(def.tiles) || !def.playerStart) {

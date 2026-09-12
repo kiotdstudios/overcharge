@@ -22,8 +22,11 @@ The Builder and runtime share `src_scroll/levels/level<N>.json` as the single au
 ## Interaction contract
 
 - Hold **E** near a source to absorb energy.
-- Hold **E** near a gate or switch to discharge usable energy.
-- **Space** is attack-only near an enemy.
+- Hold **SPACE** near a gate or switch to charge it (gradual — nothing completes
+  a device in one press).
+- **K** is attack.
+- **F** is unbound. (Superseded the old F instant pip-spend, Chief directive
+  2026-09-12 / ORDER SPACE_CHARGE.)
 - HUD affordance and interaction logic share the same energy checks.
 
 ## Cross-computer workflow

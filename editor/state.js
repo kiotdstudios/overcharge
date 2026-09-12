@@ -297,8 +297,15 @@ export function notify() { for (const fn of listeners) fn(); }
 //
 // We normalize each entry into a common { path, name, category, width, height,
 // tags, isAnimation, raw } shape so downstream UI/tools use one field set.
+// Cache-bust both manifest fetches with the deployed build SHA. GitHub Pages
+// serves with ~10-minute max-age; without this, an editor opened right after a
+// push kept showing deleted/renamed palette entries as broken tiles until the
+// HTTP cache expired (bit Chief after the 2026-09-12 asset purge).
+import { BUILD } from './buildinfo.js';
+const _bust = '?v=' + (BUILD?.shaShort || Date.now());
+
 export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
-  const res = await fetch(url);
+  const res = await fetch(url + _bust);
   if (!res.ok) throw new Error('manifest fetch failed: ' + res.status);
   const raw = await res.json();
   const source = Array.isArray(raw.assets) ? raw.assets : (Array.isArray(raw.items) ? raw.items : []);
@@ -312,7 +319,7 @@ export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
   // as a FALLBACK. If Aki later adds the same file, her metadata wins on
   // next reload because it's normalized first and we skip by path here.
   try {
-    const idxRes = await fetch('assets/PURPLE_CITY_INDEX.json');
+    const idxRes = await fetch('assets/PURPLE_CITY_INDEX.json' + _bust);
     if (idxRes.ok) {
       const idx = await idxRes.json();
       const known = new Set(items.map(it => it.path));
@@ -457,7 +464,8 @@ export function zoomCamera(factor, anchorScreenX, anchorScreenY) {
   const c = state.camera;
   const worldX = c.x + anchorScreenX / c.zoom;
   const worldY = c.y + anchorScreenY / c.zoom;
-  c.zoom = Math.max(0.25, Math.min(4, c.zoom * factor));
+  // Max was 4; Chief needs two more 1.25x steps in (4 * 1.25^2 = 6.25).
+  c.zoom = Math.max(0.25, Math.min(6.25, c.zoom * factor));
   c.x = worldX - anchorScreenX / c.zoom;
   c.y = worldY - anchorScreenY / c.zoom;
   notify();

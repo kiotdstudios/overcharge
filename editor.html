@@ -106,13 +106,6 @@
   #editor-root.inspector-collapsed #inspector-show-tab { display: block; }
 
 
-  /* Level status strip — always-visible summary at top of Tools Panel */
-  #level-status-strip { padding: 6px 10px 5px; background: #060910; border-bottom: 1px solid #1c2436; font-family: monospace; font-size: 10px; line-height: 1.5; }
-  #lss-name { font-size: 11px; font-weight: bold; color: #cdd; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  #lss-state { color: #779; font-size: 10px; }
-  #lss-state .dirty { color: #ff8800; font-weight: bold; }
-  #lss-state .saved { color: #44cc88; }
-  #lss-snaps { color: #446; font-size: 10px; }
 
   /* Spawn mode status */
   #spawn-status.active { color: #44ccff; animation: spawnBlink 1s ease-in-out infinite alternate; }
@@ -128,6 +121,93 @@
   .qa-check { display: block; font-size: 10px; color: #779; font-family: monospace; margin: 2px 0; cursor: pointer; line-height: 1.4; }
   .qa-check input { accent-color: #44ccff; margin-right: 4px; vertical-align: middle; }
   .qa-check:hover { color: #cdd; }
+
+  /* ── Tools Panel Rework (Kiro order: TOOLS_UI_LAYOUT) ──────────────────── */
+  /* Inspector widened to 292px = 36px icon rail + 256px content */
+  #editor-root { grid-template-columns: 240px 1fr 292px; }
+  #editor-root.inspector-collapsed { grid-template-columns: 240px 1fr 0; }
+
+  /* Panel header */
+  #tools-panel-hdr {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px 7px; background: #060a12;
+    border-bottom: 1px solid #1c2a3a;
+  }
+  #tools-panel-hdr .ph-icon { font-size: 14px; }
+  #tools-panel-hdr .ph-title { font-size: 10px; font-weight: bold; letter-spacing: 2px; color: #ffd400; font-family: monospace; flex: 1; }
+  #tools-panel-hdr .ph-sub { font-size: 8px; letter-spacing: 1px; color: #446; font-family: monospace; display: block; margin-top: 1px; }
+  #tools-panel-hdr #btn-inspector-hide { background: transparent; border: 1px solid #2a3448; color: #557; padding: 2px 7px; font-size: 10px; font-family: monospace; cursor: pointer; white-space: nowrap; }
+  #tools-panel-hdr #btn-inspector-hide:hover { color: #ffd400; border-color: #ffd400; }
+
+  /* Icon rail */
+  #inspector { display: flex; flex-direction: row; }
+  #tools-icon-rail {
+    width: 36px; flex-shrink: 0;
+    background: #060a12; border-right: 1px solid #1c2a3a;
+    display: flex; flex-direction: column; align-items: center;
+    padding-top: 6px; gap: 2px;
+  }
+  .rail-icon {
+    width: 30px; height: 30px; background: transparent; border: 1px solid transparent;
+    color: #3a5060; font-size: 13px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; border-radius: 4px;
+    font-family: monospace; transition: all .12s;
+  }
+  .rail-icon:hover { color: #ffd400; border-color: #3a4a5a; background: #0d1420; }
+  .rail-icon.active { color: #ffd400; border-color: #ffd400; background: #0d1420; }
+  .rail-icon[title]:hover::after {
+    content: attr(title); position: absolute; left: 42px;
+    background: #0d1420; color: #ffd400; border: 1px solid #2a3448;
+    padding: 2px 7px; font-size: 10px; white-space: nowrap; z-index: 100;
+    font-family: monospace; pointer-events: none;
+  }
+  .rail-icon { position: relative; }
+
+  /* Content column inside inspector */
+  #tools-panel-content { flex: 1; overflow-y: auto; min-width: 0; display: flex; flex-direction: column; }
+
+  /* Numbered section badges */
+  .tp-hdr .sec-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px; background: #ffd400; color: #0a0d14;
+    font-size: 9px; font-weight: bold; font-family: monospace;
+    border-radius: 3px; margin-right: 5px; flex-shrink: 0;
+  }
+
+  /* Section 1: Level nav row */
+  #level-nav-row {
+    display: flex; align-items: stretch; gap: 0;
+    background: #0a0e18; border: 1px solid #1c2a3a; border-radius: 3px; overflow: hidden;
+    margin-bottom: 5px;
+  }
+  #btn-level-prev, #btn-level-next {
+    background: #111826; border: none; border-right: 1px solid #1c2a3a;
+    color: #ffd400; font-size: 14px; padding: 0 9px; cursor: pointer;
+    font-family: monospace; flex-shrink: 0;
+  }
+  #btn-level-next { border-right: none; border-left: 1px solid #1c2a3a; }
+  #btn-level-prev:hover, #btn-level-next:hover { background: #1a2536; }
+  #level-nav-readout {
+    flex: 1; padding: 4px 8px; min-width: 0; cursor: pointer;
+  }
+  #level-nav-readout:hover { background: #0e1520; }
+  #lss-name { font-size: 11px; font-weight: bold; color: #cdd; letter-spacing: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #lss-state { color: #779; font-size: 10px; }
+  #lss-state .dirty { color: #ff8800; font-weight: bold; }
+  #lss-state .saved { color: #44cc88; }
+  #lss-snaps { color: #446; font-size: 10px; }
+
+  /* Snapshots chip */
+  #btn-snaps-chip {
+    background: #111826; border: 1px solid #2a3a4a; color: #8aaabb;
+    font-size: 10px; font-family: monospace; padding: 3px 8px; cursor: pointer;
+    white-space: nowrap; border-radius: 3px; width: 100%; text-align: left;
+    margin-bottom: 4px;
+  }
+  #btn-snaps-chip:hover { border-color: #44ccff; color: #44ccff; }
+
+  /* Section 6: Test status block */
+  #parity-status { font-family:monospace; font-size:10px; letter-spacing:0.3px; line-height:1.6; margin-bottom:6px; }
 </style>
 </head>
 <body>
@@ -135,11 +215,6 @@
   <div id="toolbar">
     <h1>◆ OVERCHARGE</h1>
     <div class="divider"></div>
-    <label for="level-select">LEVEL</label>
-    <select id="level-select" title="Switch level (warns on unsaved changes)"></select>
-    <div class="divider"></div>
-    <button id="btn-play" title="Open game in dev mode — plays your local save (?dev=1)">▶ PLAY</button>
-    <button id="btn-test" title="Test the current in-editor level in the game (opens new tab)">▶ TEST LIVE</button>
     <button id="btn-save" class="primary" title="Save current level (Ctrl+S)">💾 SAVE</button>
     <button id="btn-choose-folder" class="tp-btn" title="REQUIRED before saving — pick the git levels folder (src_scroll/levels) so SAVE writes directly into your Git clone">📁 FOLDER</button>
     <span id="save-folder-name"></span>
@@ -156,22 +231,55 @@
     <button id="inspector-show-tab" title="Show Inspector (I)">▶ INSPECTOR</button>
   </div>
   <div id="inspector">
-    <div id="inspector-header">
-      <h3>TOOLS</h3>
-      <button id="btn-inspector-hide" title="Hide Inspector (I)">◀ HIDE</button>
+    <!-- Narrow icon rail: TOOLS / TILES / ENTITIES / LEVELS (SETTINGS omitted — no settings surface) -->
+    <div id="tools-icon-rail">
+      <button class="rail-icon active" data-rail="tools"    title="Tools">🔧</button>
+      <button class="rail-icon"        data-rail="tiles"    title="Tiles">▦</button>
+      <button class="rail-icon"        data-rail="entities" title="Entities">⚡</button>
+      <button class="rail-icon"        data-rail="levels"   title="Levels">📋</button>
     </div>
-        <div id="inspector-body">
 
-      <!-- Level status strip: always visible summary -->
-      <div id="level-status-strip">
-        <div id="lss-name" class="lss-name">No level loaded</div>
-        <div id="lss-state"></div>
-        <div id="lss-snaps"></div>
+    <!-- Panel content column -->
+    <div id="tools-panel-content">
+
+      <!-- Panel header -->
+      <div id="tools-panel-hdr">
+        <span class="ph-icon">🔧</span>
+        <div style="flex:1;min-width:0">
+          <span class="ph-title">PLATFORM MAP EDITOR</span>
+          <span class="ph-sub">BUILD / EDIT / PLAYTEST</span>
+        </div>
+        <button id="btn-inspector-hide" title="Hide Inspector (I)">◀ HIDE</button>
       </div>
 
-      <!-- TOOLS -->
+      <!-- §1 LEVEL — prev/next nav + readout + snapshots chip -->
       <div class="tp-section">
-        <div class="tp-hdr" data-sec="tools">TOOLS <span class="ch">▼</span></div>
+        <div class="tp-hdr" data-sec="sec-level" id="rail-anchor-levels">
+          <span class="sec-badge">1</span>LEVEL <span class="ch">▼</span>
+        </div>
+        <div class="tp-body" id="tp-sec-level">
+          <div id="level-nav-row">
+            <button id="btn-level-prev" title="Previous level (guarded — warns on unsaved changes)">◀</button>
+            <!-- Readout: clicking opens the level-select dropdown -->
+            <div id="level-nav-readout" title="Click to open level selector">
+              <div id="lss-name">No level loaded</div>
+              <div id="lss-state"></div>
+              <div id="lss-snaps"></div>
+            </div>
+            <button id="btn-level-next" title="Next level (guarded — warns on unsaved changes)">▶</button>
+          </div>
+          <!-- level-select kept in DOM for main.js wiring; hidden — readout is the visible UI -->
+          <select id="level-select" style="display:none" title="Switch level (warns on unsaved changes)"></select>
+          <!-- Snapshots chip: shows count, opens history dialog -->
+          <button id="btn-snaps-chip">📷 SNAPSHOTS <span id="snaps-chip-count"></span></button>
+        </div>
+      </div>
+
+      <!-- §2 TOOLS — existing tools, restyled -->
+      <div class="tp-section">
+        <div class="tp-hdr" data-sec="tools" id="rail-anchor-tools">
+          <span class="sec-badge">2</span>TOOLS <span class="ch">▼</span>
+        </div>
         <div class="tp-body" id="tp-tools">
           <div class="tp-row">
             <button class="tp-btn" data-tool="pointer" title="Pointer — select/move (1)">🖱 Ptr</button>
@@ -199,9 +307,9 @@
         </div>
       </div>
 
-      <!-- ARRANGE -->
+      <!-- §3 ARRANGE -->
       <div class="tp-section">
-        <div class="tp-hdr" data-sec="arrange">ARRANGE <span class="ch">▼</span></div>
+        <div class="tp-hdr" data-sec="arrange"><span class="sec-badge">3</span>ARRANGE <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-arrange">
           <div class="tp-row">
             <button class="tp-btn" id="btn-layer-front"    title="Bring to Front (Shift+])">⤒ Front</button>
@@ -218,9 +326,9 @@
         </div>
       </div>
 
-      <!-- EDIT -->
+      <!-- §4 EDIT -->
       <div class="tp-section">
-        <div class="tp-hdr" data-sec="edit">EDIT <span class="ch">▼</span></div>
+        <div class="tp-hdr" data-sec="edit"><span class="sec-badge">4</span>EDIT <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-edit">
           <div class="tp-row">
             <button class="tp-btn" id="btn-undo" title="Undo (Ctrl+Z)">↶ UNDO</button>
@@ -229,29 +337,27 @@
         </div>
       </div>
 
-      <!-- LEVEL -->
+      <!-- §5 LEVEL ACTIONS -->
       <div class="tp-section">
-        <div class="tp-hdr" data-sec="level">LEVEL <span class="ch">▼</span></div>
+        <div class="tp-hdr" data-sec="level"><span class="sec-badge">5</span>LEVEL ACTIONS <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-level">
           <div class="tp-row">
             <button class="tp-btn" id="btn-new"       title="New empty level">NEW</button>
             <button class="tp-btn" id="btn-duplicate" title="Duplicate current level">DUPE</button>
-          </div>
-          <div class="tp-row">
-            <button class="tp-btn" id="btn-upload"   title="Upload a level JSON">⬆ UPLOAD</button>
-            <button class="tp-btn" id="btn-generate" title="Generate a random level">⚡ GEN</button>
+            <button class="tp-btn" id="btn-upload"    title="Upload a level JSON">⬆ UPLOAD</button>
+            <button class="tp-btn" id="btn-generate"  title="Generate a random level">⚡ GEN</button>
           </div>
           <div class="tp-row">
             <button class="tp-btn" id="btn-snapshot" title="Save snapshot to history">📷 SNAP</button>
             <button class="tp-btn" id="btn-history"  title="Level version history">🕔 HIST</button>
+            <button class="tp-btn" id="btn-order-up"   title="Move this level EARLIER in the Git-tracked level order">⬆ ORDER</button>
+            <button class="tp-btn" id="btn-order-down" title="Move this level LATER in the Git-tracked level order">⬇ ORDER</button>
           </div>
-          <div class="tp-row">
-            <button class="tp-btn" id="btn-order-up" title="Move this level EARLIER in the Git-tracked level order (levels.json)">⬆ ORDER</button>
-        <button class="tp-btn" id="btn-order-down" title="Move this level LATER in the Git-tracked level order (levels.json)">⬇ ORDER</button>
-        <button class="tp-btn warn" id="btn-revert-local" title="Reload this level from the Git JSON, discarding unsaved editor changes">↺ REVERT TO GIT</button>
-            <button class="tp-btn warn" id="btn-delete-level" title="Delete this level's JSON files from the Git folder and drop it from the level order">&#128465; DELETE LEVEL</button>
+          <div class="tp-row" style="margin-top:4px;padding-top:4px;border-top:1px solid #1c2436">
+            <button class="tp-btn warn" id="btn-revert-local"  title="Reload this level from the Git JSON, discarding unsaved editor changes">↺ REVERT TO GIT</button>
+            <button class="tp-btn warn" id="btn-delete-level"  title="Delete this level's JSON files from the Git folder">&#128465; DELETE LEVEL</button>
           </div>
-          <div class="tp-row" style="margin-top:5px;border-top:1px solid #1c2436;padding-top:5px">
+          <div class="tp-row" style="margin-top:3px">
             <button class="tp-btn" id="btn-export-backups" title="Download all snapshots as one backup package">⬇ EXPORT BACKUPS</button>
             <button class="tp-btn" id="btn-import-backups" title="Import a snapshot backup package">⬆ IMPORT BACKUP</button>
             <input type="file" id="import-backups-input" accept="application/json,.json" style="display:none">
@@ -259,45 +365,49 @@
         </div>
       </div>
 
-      <!-- LEVEL TEST -->
-      <div class="tp-section" style="border-bottom:none">
-        <div class="tp-hdr" data-sec="leveltest">LEVEL TEST <span class="ch">▼</span></div>
+      <!-- §6 TEST -->
+      <div class="tp-section">
+        <div class="tp-hdr" data-sec="leveltest"><span class="sec-badge">6</span>TEST <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-leveltest">
-          <div id="parity-status" style="font-family:monospace;font-size:10px;letter-spacing:0.3px;line-height:1.6;margin-bottom:6px;"></div>
+          <div id="parity-status"></div>
+          <div class="tp-row">
+            <button id="btn-play" title="Open game in dev mode — plays your local save (?dev=1)" class="tp-btn primary">▶ PLAY</button>
+            <button id="btn-test" title="Test the current in-editor level in the game (opens new tab)" class="tp-btn">▶ TEST LIVE</button>
+          </div>
         </div>
       </div>
 
-      <!-- SPAWN OBJECTS -->
-      <div class="tp-section">
-        <div class="tp-hdr" data-sec="spawn">SPAWN OBJECTS <span class="ch">▼</span></div>
-        <div class="tp-body" id="tp-spawn">
+      <!-- SPAWN OBJECTS — collapsed by default per order -->
+      <div class="tp-section" id="rail-anchor-entities">
+        <div class="tp-hdr collapsed" data-sec="spawn">SPAWN OBJECTS <span class="ch">▼</span></div>
+        <div class="tp-body hidden" id="tp-spawn">
           <div class="tp-row">
             <button class="tp-btn" id="spawn-drain"    title="Place Drain Enemy (22×24, hp=2, drops 2 charge)">+ Drain</button>
             <button class="tp-btn" id="spawn-patrol"   title="Place Patrol Enemy (20×26, hp=1, drops 1 charge)">+ Patrol</button>
             <button class="tp-btn" id="spawn-drone"    title="Place Drone Enemy (40×36, hp=2, sprite)">+ Drone</button>
           </div>
           <div class="tp-row">
-            <button class="tp-btn" id="spawn-source"      title="Place Electrical Source">+ Source</button>
-            <button class="tp-btn" id="spawn-switch"      title="Place Switch (22×22)">+ Switch</button>
-            <button class="tp-btn" id="spawn-gate"        title="Place Gate (32w × 96h)">+ Gate</button>
+            <button class="tp-btn" id="spawn-source"     title="Place Electrical Source">+ Source</button>
+            <button class="tp-btn" id="spawn-switch"     title="Place Switch (22×22)">+ Switch</button>
+            <button class="tp-btn" id="spawn-gate"       title="Place Gate (32w × 96h)">+ Gate</button>
           </div>
           <div class="tp-row">
-            <button class="tp-btn" id="spawn-checkpoint"  title="Place Checkpoint (click = center X)">+ Checkpoint</button>
-            <button class="tp-btn" id="spawn-platform"    title="Place Moving Platform (96×12)">+ Platform</button>
+            <button class="tp-btn" id="spawn-checkpoint" title="Place Checkpoint (click = center X)">+ Checkpoint</button>
+            <button class="tp-btn" id="spawn-platform"   title="Place Moving Platform (96×12)">+ Platform</button>
           </div>
           <div id="spawn-status" style="font-family:monospace;font-size:10px;color:#44ccff;margin-top:4px;min-height:14px;letter-spacing:0.5px;"></div>
         </div>
       </div>
 
-      <!-- SELECTED OBJECT PROPERTIES -->
+      <!-- SELECTED OBJECT PROPERTIES (shown when an object is selected) -->
       <div class="tp-section" id="tp-selected-section" style="display:none">
         <div class="tp-hdr" data-sec="selected">SELECTED OBJECT <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-selected"></div>
       </div>
 
-      <!-- DEV QA -->
+      <!-- DEV QA (collapsed) -->
       <div class="tp-section" style="border-bottom:none">
-        <div class="tp-hdr" data-sec="devqa">DEV QA <span class="ch">▼</span></div>
+        <div class="tp-hdr collapsed" data-sec="devqa">DEV QA <span class="ch">▼</span></div>
         <div class="tp-body hidden" id="tp-devqa">
           <div class="tp-row">
             <button class="tp-btn primary" id="qa-play">&#9654; PLAY LEVEL</button>
@@ -322,8 +432,8 @@
         </div>
       </div>
 
-    </div>
-  </div>
+    </div><!-- /tools-panel-content -->
+  </div><!-- /inspector -->
 </div>
 
 <!-- Generator modal — hidden until btn-generate opens it. Native <dialog>. -->

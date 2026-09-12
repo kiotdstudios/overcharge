@@ -1,9 +1,47 @@
 # AKI STATUS — OVERCHARGE
-_Updated: 2026-09-06 ET_
+_Updated: 2026-09-12 ET_
 
-## Branch: agent/orcha-gameplay
-**Worktree:** `C:/Users/diepowel/Documents/OVERCHARGE-orcha`
-**HEAD: 58575d64e41df219f5bc7dadf7b6fb78ae87ad8b**
+## Branch: agent/aki-editor
+**Worktree:** `C:/Users/diepowel/Documents/GitHub/overcharge-aki`
+**HEAD: 83a7a0d**
+
+---
+
+## ORDER TOOLS_UI_LAYOUT — COMPLETE / HOLD FOR KIRO QA GATE
+
+| Deliverable | Status |
+|-------------|--------|
+| New inspector panel: icon rail + 6 numbered sections | DONE |
+| §1 LEVEL: prev/next nav, readout (lss-name/state/snaps), snapshots chip | DONE |
+| §2 TOOLS: all existing tool buttons | DONE |
+| §3 ARRANGE: layer + zoom | DONE |
+| §4 EDIT: undo/redo | DONE |
+| §5 LEVEL ACTIONS: new/dupe/upload/gen/snap/hist/order/revert/delete/backup | DONE |
+| §6 TEST: parity-status + PLAY + TEST LIVE | DONE |
+| SPAWN OBJECTS (collapsed) | DONE |
+| SELECTED OBJECT (hidden) | DONE |
+| DEV QA (collapsed) | DONE |
+| Toolbar cleanup: removed LEVEL label, level-select, btn-play, btn-test | DONE |
+| data-sec collapser fix (all 8 sections mapped to correct tp-body IDs) | DONE |
+| main.js: btn-level-prev/next wired (guarded step through levelSelect) | DONE |
+| main.js: level-nav-readout click (inline level selector) | DONE |
+| main.js: btn-snaps-chip delegates to btn-history | DONE |
+| main.js: icon rail scroll + active state | DONE |
+| main.js: snaps-chip-count synced in refreshStatusStrip() | DONE |
+| Parity regression | 75/75 PASSED |
+
+### Commits
+| SHA | What |
+|-----|------|
+| ecd4e21 | Merge orcha-gameplay into aki-editor (84+33=117 assets) |
+| 83a7a0d | layout: TOOLS_UI_LAYOUT complete — new inspector panel, icon rail, §1-6, toolbar cleanup |
+
+### Rollback
+| SHA | Label |
+|-----|-------|
+| 5192356 | Pre-TOOLS_UI_LAYOUT baseline |
+| ecd4e21 | Post-merge (pre-layout) |
+| 83a7a0d | HEAD — TOOLS_UI_LAYOUT complete |
 
 ---
 
@@ -24,8 +62,6 @@ _Updated: 2026-09-06 ET_
 
 Base commit: b653616 (snapshot safety, status strip, DEV QA, build label)
 
-### Commits after b653616
-
 | SHA | What |
 |-----|------|
 | 5862d47 | Object visibility, source coord fix, level delete, selection bounds fix |
@@ -33,24 +69,17 @@ Base commit: b653616 (snapshot safety, status strip, DEV QA, build label)
 | 05af658 | Generator floor fix: 1px transparent row, draw at y+h-62 |
 | 58575d6 | Image load race fix, gate type tints, switch glow-rect, checkpoint render |
 
-### QA Matrix
-
 | Fix | Code | Chief Visual |
 |-----|------|--------------|
-| Objects visible on canvas (not 14x14 hitbox boxes) | CODE VERIFIED | REQUIRED |
+| Objects visible on canvas | CODE VERIFIED | REQUIRED |
 | Source/generator sprite placed correctly | CODE VERIFIED | REQUIRED |
 | Generator no 2px float | CODE VERIFIED | REQUIRED |
 | Gate renders gate_closed.png 64x128 bottom-aligned | CODE VERIFIED | REQUIRED |
-| EXIT: magenta tint + EXIT label | CODE VERIFIED | REQUIRED |
-| BARRIER: orange tint + BARRIER label | CODE VERIFIED | REQUIRED |
-| GATE: cyan tint + GATE label | CODE VERIFIED | REQUIRED |
-| Switch: orange glow-rect + SW glyph (no sprite; procedural) | CODE VERIFIED | REQUIRED |
-| Checkpoint: green 22x22 box + CP glyph (no sprite; procedural) | CODE VERIFIED | REQUIRED |
+| EXIT/BARRIER/GATE tints + labels | CODE VERIFIED | REQUIRED |
+| Switch: orange glow-rect + SW glyph | CODE VERIFIED | REQUIRED |
+| Checkpoint: green 22x22 box + CP glyph | CODE VERIFIED | REQUIRED |
 | Level delete button works | CODE VERIFIED | REQUIRED |
 | Image load race fix | CODE VERIFIED | LOGIC ONLY |
-| Save -> Play pipeline | CODE VERIFIED | CHIEF VERIFIED (Order #1) |
-| No purple strip at rest | CODE VERIFIED | CHIEF VERIFIED (Order #3 test pass) |
-| Gate blocks jump | CODE VERIFIED | CHIEF VERIFIED (Order #3 test pass) |
 
 ---
 
@@ -63,18 +92,6 @@ Base commit: b653616 (snapshot safety, status strip, DEV QA, build label)
 | buildinfo.js stale SHA | P3 |
 | No placement UI for switch/checkpoint/enemy | P2 |
 | FireWatcher CMD=["py",...] wrong Python (FIRESQUAD) | P2 |
-
----
-
-## Rollback Points
-
-| SHA | Label |
-|-----|-------|
-| b653616 | Order #3 base |
-| 5862d47 | Object visibility + level delete |
-| 2e9554b | Gate sprite |
-| 05af658 | Generator floor fix |
-| 58575d6 | HEAD |
 
 ---
 

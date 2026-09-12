@@ -406,3 +406,166 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 **Tests:** parity 75/0 · electricity 37/0 · energy 51/0 · boot smoke OK.
 
 **Note for Orcha:** SPACE-charge order (`docs/ORCHA_ORDER_SPACE_CHARGE.md`, `d9eb4a4`) unchanged by this; gate cost 8 makes the removal of F instant-fill more important, since one banked battery (10) would still one-press it.
+
+---
+
+## 2026-09-12 — Chief order: "delete all waste assets" — executed with one hold-back
+
+**Scope determined by reference audit (code + levels + editor manifest + purple_city json/md):**
+- `assets/tilesets/purple_city/waste/**` (31 files) — zero references anywhere. DELETED.
+- `props/env_waste_platform_short.png`, `props/_test_strip_waste_platform.png` — waste-named, outside the waste folder, zero references. DELETED.
+- `props/env_waste_platform_long.png` — **HELD**: Level 1 (NEON RISE) renders it in 6 decoration placements. Deleting would blank live level art. Awaiting Chief's call: delete + strip the 6 decorations, or keep as an in-use prop.
+
+**Policy compliance:** all 34 files (33 deleted + the held one) archived to `Documents\Archived\waste_assets_2026-09-12\` with ledger entry before any deletion. Git history retains everything; Waste Zone level WIP untouched on `wip/aki-waste-zone-legacy`. Also closes the CLEANUP_PLAN line item for `waste/_qa` review strips.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's ORDER SPACE_CHARGE (`ca79051`) — PASSED, promoted to live
+
+**Verified against the handoff, not taken on faith:**
+- `ca79051c20994226a34ec604a951918ecbd50242` confirmed on `origin/agent/orcha-dev`, based on `d344658`.
+- Diff scope exactly as claimed: 6 files (`player.js`, `ui.js`, `main.js`, `entities.js`, `_dev/energy_authority.mjs`, `ORCHA_STATUS.md`). No editor, no levels, no assets — zero overlap with the waste-asset deletion (`0190421`), merge clean (ort).
+- Binding spot-checks in merged code: F pip-spend input GONE, discharge on `heldAny('Space')`, attack on `KeyK`, `spendPip()` authority retained per Order 004 ruling 3.
+
+**QA gate on the merged tree:** energy 72/0 (51 + 21 new real-input binding tests) · parity 75/0 · electricity 37/0 · boot smoke OK, zero page errors. **184/0 total.**
+
+**Shipped bindings:** SPACE = hold-to-charge gates/switches (gradual, no instant fill possible) · K = attack · E = absorb at sources only · F = unbound. Level 1 exit (required 8) ≈ 2.7 s sustained hold. `573223b` F-prompt polish superseded by design, on record.
+
+**Flag for Chief sign-off:** attack landed on K, not SPACE-with-context — Orcha cites a Chief amendment ("Ruling A"). If that amendment wasn't yours, say so and Orcha rebinds; the charge mechanic is unaffected either way.
+
+---
+
+## 2026-09-12 — Chief ratification: K-attack amendment
+
+Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was my call yes to commit." SPACE_CHARGE bindings are final as shipped in `ca79051` / live merge `0520765`. Flag closed, no rework.
+
+---
+
+## 2026-09-12 — Chief order: asset purge — keep gate/generator/drone/purple_city(zip) only
+
+**Ruling recorded:** `env_waste_platform_long.png` KEPT (in use, Chief's explicit call).
+
+**Deleted (429 files, archived first to `Documents\Archived\asset_purge_2026-09-12\`):**
+- Whole folders: `assets/backgrounds/` (mid_city, unreferenced), `sprites/charge/`, `sprites/Charge Animation/`, `sprites/idle/` (superseded by idle_2.0), `sprites/running animation/`, `sprites/drain_enemy/`, `sprites/helicopter drone/` (unreferenced; the in-game drone is `sprites/drone/`)
+- Direction subfolders the runtime never loads (sprites.js uses east/west only): north/south/diagonals of `idle_2.0`, `walking`, `jumping`, `discharge`
+- `purple_city/_contact_sheet_batch2.png` (QA artifact, CLEANUP_PLAN item)
+
+**Kept:** `objects/` gate art (4 files) · `sprites/generator 1/` · `sprites/drone/` · player east/west anims (`idle_2.0`, `walking`, `jumping`, `running`, `charge_anim`, `discharge` — deleting these blanks the player; treated as "the player", not deletable clutter) · `tilesets/purple_city/**` (all crops derive from the zip's single master sheet `purplecity.png`; `assets/purple city.zip` + PDF license kept) · `env_waste_platform_long.png`.
+
+**Manifests:** `asset_index.json` regenerated (227 entries); new `scripts/prune_manifests.mjs` dropped dead entries from `ASSET_MANIFEST.json` (116→84, incl. 31 stale waste entries from the earlier purge) and `PURPLE_CITY_INDEX.json` (76→75).
+
+**Verified:** every sprite path the runtime constructs exists on disk with the exact frame counts sprites.js expects (11/9/9/8/11/11 e+w, drone 9+9, generator 9, gates 4). QA gate: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+---
+
+## 2026-09-12 — Chief field report: deleted waste tiles still visible in palette — cache, now fixed at the root
+
+**Diagnosis:** deployed manifests were verified clean (ASSET_MANIFEST 84 entries, 0 waste; PURPLE_CITY_INDEX 75). The broken tiles were the browser's HTTP-cached pre-purge `ASSET_MANIFEST.json` — `state.js loadManifest()` used a plain `fetch()`, and GitHub Pages serves ~10-min max-age. Same root cause class as the earlier "pushed level doesn't show up" report.
+
+**Fixes (permanent, not "tell Chief to hard-refresh"):**
+- `editor/state.js`: both manifest fetches now cache-busted with the deployed build SHA (`?v=<shaShort>`) — every deploy self-invalidates.
+- `src_scroll/main.js` `_loadJsonLevel()`: level fetch now `cache: 'no-store'` — a freshly pushed level shows on plain refresh. (Editor-side level fetches already had it; the game's didn't.)
+
+**Tests:** parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+---
+
+## 2026-09-12 — Chief purge round 2: edge/bg/neon/rooftop-structure crops + palette curation
+
+**Deleted (24 files, archived first to `Documents\Archived\asset_purge2_2026-09-12\`):** all 9 `env_edge_purple_*`, `bracket_corner.png` (was placed once in Level 2 — decoration removed, 31→30), `bg_building_tall/wide`, `sign_neon_a/b/c`, `rooftop_edge_left/mid/right`, `ladder_section`, `catwalk_section`, `fire_escape_section`, `rooftop_door`, `rooftop_railing`, `purplecity_full.png` (full sheet — the zip still holds the master).
+
+**NOT deleted, palette-only fixes (files are runtime-critical):**
+- Gate: the "3-4 gate files" are the gate's runtime states — `electricity.js` loads `gate_closed.png`, `gate_electric_spritesheet.png` (open/close anim), `gate_electric_open.png` by name. Files stay; ASSET_MANIFEST now lists ONE gate entry (`gate_electric_closed`).
+- Player: 6 player palette entries removed from ASSET_MANIFEST; sprite files stay (they draw the character).
+- Drone "not visible": by design — enemies place via SPAWN OBJECTS → + Drone, not the art palette.
+
+**Manifests:** ASSET_MANIFEST 84→52 · PURPLE_CITY_INDEX 75→52 · asset_index regenerated (203).
+
+**Tests:** parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK (level1 checksum now 0B4F15C6 after economy/gate edits).
+
+---
+
+## 2026-09-12 — QA gate: Aki's ORDER TOOLS_UI_LAYOUT — UI PASSED, merge REJECTED, cherry-picked instead
+
+**Aki delivered** `83a7a0d` + `fba02ea` on `agent/aki-editor`, built on her merge `ecd4e21`.
+
+**GATE FINDING — asset resurrection:** merging `agent/aki-editor` as-delivered would have restored 60+ files Chief ordered deleted (entire `waste/` pack, `drain_enemy/`, `backgrounds/`, `bg_building_*`, `sign_neon_*`, rooftop structures, `env_edge_purple_*`, `purplecity_full.png`, `bracket_corner.png` + its Level 2 decoration) and reverted manifest curation (ASSET_MANIFEST back to pre-purge, +2100 lines). Root cause: her branch pre-dates both purges and her conflict resolution kept the old asset tree ("keep Waste Zone entries").
+
+**Resolution:** REJECTED the branch merge; **cherry-picked the two commits** (they touch only `editor.html`, `editor/main.js`, `AKI_STATUS.md` — cleanly separable, no conflicts) onto `agent/orcha-gameplay` as `fdb55e5` + `40be9e1`. Zero deleted assets return.
+
+**QA gate on the live line after pick:**
+- Click-audit (new Playwright probe `_kiro_tools/probe_ui_audit.mjs`): all 40 wired control IDs present · tool set exactly the 6 existing tools (no Ellipse/Fill — order constraint held) · all 9 section headers collapse/expand correctly · LEVEL prev/next round-trips NEON RISE ↔ SPLIT DECISION with guard · snapshots chip opens the history dialog · zero page errors.
+- Suites: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+**Follow-up for Aki (logged, not blocking):** `agent/aki-editor` must be reset onto the current live line before her next order — her worktree still carries the pre-purge asset tree and will trip the same gate every time. Waste Zone belongs only on `wip/aki-waste-zone-legacy`.
+
+---
+
+## 2026-09-12 — Chief field report: zoom readout/range + tool_hammer stray pixel & sizing
+
+**Zoom (editor):**
+- `editor/state.js`: zoom cap 4 → 6.25 (exactly two more 1.25x steps in, per Chief).
+- `editor/main.js` `refreshUI()`: the 100% button is now a live readout (100% → 125% → … → 625%); clicking it still resets. Verified in-browser: full sequence climbs to 625%, reset returns 100%, zoom-out updates, zero page errors.
+
+**"Bridge piece" = `props/tool_hammer.png`** (identified via labeled contact sheet + alpha-island scan of all 55 purple_city crops):
+- Had a detached 9px blob at its bottom-left (the stray pixel in Chief's screenshot) and was 25x20 — didn't fill a 32px grid square.
+- Fixed: stray region cleared, body cropped and nearest-neighbor upscaled to fill 32px width (32x25 art on a 32x32 canvas, top-left anchored). Original archived at `Documents\Archived\tool_hammer_original_2026-09-12.png`. Manifest width/height updated in both ASSET_MANIFEST and PURPLE_CITY_INDEX.
+- Also noted during scan: `rooftop/conduit_cluster.png` has a 1px stray at (2,19) — left alone, not in Chief's report; flagged for a future art pass.
+
+**Tests:** parity 75/0 · zoom probe clean · boot smoke OK.
+
+---
+
+## 2026-09-12 — GDD roadmap review + next-phase orders cut
+
+**Read the GDD (Static Shock Puzzle Platformer v1.0, 7 pages) and mapped it against the build.** Done: L1 First Spark (NEON RISE, completable as of today), L2 Split Decision, full energy loop (absorb/discharge/scatter/recovery) test-covered. Missing from MVP §12: movable conductive object, one timed device, third level.
+
+**Orders cut (Chief approved):**
+- `docs/ORCHA_ORDER_CRATE_TIMED_DEVICE.md` — conductive crate (pushable, circuit bridge, schema `crates[]`) + timed gate (`timed`/`duration`, temporary circuit). Runtime + schema + tests only; Aki follow-up later for editor spawn support. Orcha must sync from current live line first.
+- `docs/LEVEL3_DESIGN_BRIEF.md` — Chief's Builder brief for L3 "Don't Get Hit": safe absorb intro, drone lesson corridor (no pits), second generator, exit `required: 6`. All mechanics already engine-supported; pure content.
+
+Also this session: `conduit_cluster.png` deleted per Chief (archived, manifests 52→51, `5e43763`).
+
+---
+
+## 2026-09-12 — Chief's Builder save published: Level 1 down to 2 generators (zero-margin verified safe)
+
+**Found uncommitted in the Git folder** (Chief's verified Builder save, both `level1.json` and `1_NEON_RISE.json` byte-identical): `src_2` (334,322) removed. Level 1 now 2 generators × 4 = **8 available vs exit `required: 8` — zero margin.**
+
+**Soft-lock analysis before publishing (result: SAFE):**
+- No enemies in Level 1 → no charge-loss path.
+- Gate transfer is capped by `needed`, and partial-pip surplus returns to the bar (Order 004 ruling 3) → no way to waste charge.
+- 4+4=8 fits under MAX_CHARGE 10 → no pip banking loss.
+- Death: `_takeSnapshot`/`_applySnapshot` capture level mutable state (source charges, gate.charged) AND player charge/pips **together**, restoring them in sync. So dying after draining generators restores drained-gens-with-charge or full-gens-with-zero — never the unwinnable mix. Verified in `src_scroll/main.js:114-141`.
+
+**Published.** QA gate: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+**Design note for Chief:** the level is now exact-solution — every unit must reach the gate. That's a legitimate tight tutorial, but it removes all slack for a first-time player. If L1 should stay forgiving (GDD §11 "learn to absorb and spend"), either restore a third generator or drop the exit to 6.
+
+---
+
+## 2026-09-12 — Aki task queue cut + stale control contract fixed
+
+**Audit findings:** `agent/aki-editor` is still **85 asset files divergent** from the live line and carries all **31 waste files** — the exact condition that forced the cherry-pick intervention on TOOLS_UI_LAYOUT. Also found `docs/CHIEF_HANDOFF.md` §Interaction contract still documented the pre-SPACE_CHARGE bindings (E-discharge, "Space is attack-only").
+
+**Fixed by me (my lane):** CHIEF_HANDOFF control contract now reads SPACE charges / K attacks / F unbound.
+
+**`docs/AKI_ORDER_QUEUE.md` issued — 3 items:**
+- **P1 BLOCKING:** reset `agent/aki-editor` onto current live line; must prove `git diff --name-only ... -- assets` is empty. Includes the full do-not-restore purge list. Destructive git requires Chief sign-off — Aki must state the command first.
+- **P2:** editor support for Orcha's incoming systems — SPAWN `+ Crate` button, gate inspector `timed`/`duration` fields, crate marker/badge. Sequenced AFTER Orcha's schema lands; told her not to invent field names ahead of him.
+- **P3:** editor doc truth pass (`MANIFEST.md`, `SCHEMA.md` vs shipped Order 005 persistence + new §1-6 panel) and semantic re-curation of `ASSET_MANIFEST.json`, which I pruned mechanically 116→51.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's gate dormancy (`10ba07c`) — PASSED, promoted; crate/timed rulings issued
+
+**Orcha correctly flagged a render-path collision:** dormancy touches `PowerGate.draw`, and the incoming timed-gate state (System 2) adds to the same function. Carrying an ungated commit forward would have tangled the QA — impossible to attribute a failure. **Ruling: gate it standalone FIRST.** Done in this session.
+
+**Gate:** cherry-picked `10ba07c` onto the live line as `c8ae61b` (orcha-dev was 15 behind; a branch merge would have dragged unrelated state). Scope verified: only `src_scroll/electricity.js` + `_dev/energy_authority.mjs`.
+- energy authority **86/0** (was 72 — +14 dormancy checks: uncharged gate reports dormant, dormant gate emits ONE static frame over 3s, blockOnly barrier never dormant, opened gate not dormant)
+- parity 75/0 · electricity 37/0 · boot smoke OK (fresh port; a stale 3310 listener from an earlier run had to be worked around)
+
+**Rulings issued to Orcha for CRATE_TIMED (see next status entry / order addendum):**
+1. Sync now — the live line includes dormancy, so System 2 builds on a merged `PowerGate.draw`.
+2. Document crate-conductivity v1 semantics BEFORE implementing — approved as requested.
+3. Timed gate must compose with dormancy: an expired timed gate returns to the dormant visual state, not an idle-animated one.
