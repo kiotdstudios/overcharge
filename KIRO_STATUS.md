@@ -927,3 +927,27 @@ Added `_reanchorGameplay()`, run after the delta and magnetic passes and **durin
 **Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK.
 
 **Outstanding:** Orcha's crate testbed still has 3 floating objects (his fixture, pre-dates the rule, already flagged in his P1 order addendum — his to ground).
+
+---
+
+## 2026-09-12 — Multi-select + multi-move: the feature EXISTED but was broken for crates, and drags were half-tile
+
+**Chief asked to "add ability to highlight and move multiple assets at the same time." It was already built** — the **Select** tool (key `2`) has marquee box-select, shift+click to add/remove, a group move-handle, and a move path that applies one snapped delta to every selected ref across all kinds, with an LCM group-snap so the delta is legal for every member. Nothing needed inventing. What it needed was fixing.
+
+**Four defects found, all real:**
+
+1. **`state.selection.crates` was never initialised.** `selectByKind('crate', …)` threw `Cannot read properties of undefined (reading 'add')`. Crates could not be selected at all.
+2. **`crates` missing from `SET_KINDS`** → `clearSelection()` skipped them, so crates stayed selected forever.
+3. **`crates` missing from `clearSelection()`'s explicit clears** — same effect.
+4. **`crates` missing from `selectedRefs()`** — the move tool builds `_origPositions` from that list, so even a highlighted crate was **excluded from the drag set**: it looked selected and refused to move. Precisely the symptom Chief described.
+5. **`crates` missing from the marquee handler** — `objectsInRect` returned them, but `onMouseUp` never consumed `gp.crates`, so box-selection silently skipped crates.
+
+Aki's P2 report claimed "full crate support across all selection infrastructure — Set, SET_KINDS, boundingRect, …". The Set and SET_KINDS entries were **not** there. **My P2 gate missed it** because I verified crate *rendering* and never exercised crate *selection* — and no committed level in the editor's default load contains a crate. Recorded as a gate lesson: for a new object kind, exercise select → clear → group-move, not just draw.
+
+**Root cause of Chief's off-grid gate, found properly:** `SNAP_GAMEPLAY_DEFAULT` was **16** — half a tile. Every gameplay drag moved in legal 16px steps, which is exactly how a gate came to rest at `x=1200`. Set to `TILE_SIZE` (32). Because group moves use the LCM of members' snaps, this fixes single *and* multi-object drags through the existing, well-designed snap system rather than a patch.
+
+**Corrected my own regression from the previous commit:** `_reanchorGameplay` re-grounded every dragged object independently, which on a **multi-select** drag would scatter a built cluster the moment it crossed uneven terrain. Now scoped to single-object drags (`size !== 1` returns early); groups move as a rigid body and rely on the 32px LCM delta for alignment.
+
+**Verified in a real browser:** injected a crate, a moving platform and a drone into a level, marquee-selected all three (`inRect` 1/1/1, `selectionCount` 3, `selectedKinds` `[crate, enemy, platform]` — crate now present), group snap resolved to 32, applied delta `dx 64`, and confirmed **relative offsets unchanged (rigid) and every member still on the 32 grid**.
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK.
