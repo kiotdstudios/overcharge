@@ -434,13 +434,12 @@ function _drawGates(ctx, arr) {
     const img = getImage('assets/objects/gate_closed.png');
     ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      // Sprite
+      // Sprite only. The 0.28-alpha colour wash that used to sit on top of this
+      // was removed 2026-09-12 (Chief: "gate on builder has this purple film
+      // over it") — it obscured the art the Builder exists to preview. Gate TYPE
+      // is still unambiguous from the badge + label drawn below in this function
+      // ("EXIT · GATE" / "GATE · BARRIER") and from the selection outline.
       ctx.drawImage(img, sp.x, sp.y, sw, sh);
-      // Colour tint so types are distinguishable (multiply-like: overlay at low alpha)
-      ctx.globalAlpha = 0.28;
-      ctx.fillStyle = color;
-      ctx.fillRect(sp.x, sp.y, sw, sh);
-      ctx.globalAlpha = 1;
     } else {
       // Hatched fallback (image is loading — getImage already wired the repaint)
       const hp = worldToScreen(g.x, g.y);

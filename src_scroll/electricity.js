@@ -347,19 +347,11 @@ export class PowerGate {
     }
     ctx.restore();
 
-    // Charge fill overlay -- bright strip rising from bottom as player charges gate
-    if (fill > 0 && fill < 1) {
-      const fillH  = Math.round(this.h * fill);
-      const splitY = this.y + this.h - fillH;
-      ctx.save();
-      ctx.globalAlpha  = 0.45;
-      ctx.shadowBlur   = 14;
-      ctx.shadowColor  = '#cc44ff';
-      ctx.fillStyle    = '#cc44ff';
-      ctx.fillRect(this.x + 2, splitY, this.w - 4, fillH);
-      ctx.restore();
-    }
-
+    // Charge progress is communicated by the SPRITE ROWS (dormant -> idle ->
+    // charging) plus the numeric ⚡ readout below. The old vertical purple strip
+    // that rose from the gate's base was pre-sprite-sheet logic and
+    // double-reported the same state on top of the art — removed 2026-09-12
+    // on Chief's call ("old logic of the gate vertically being charged").
 
     // blockOnly barriers just show a lock — no charge bar, no player interaction
     if (this.blockOnly) {

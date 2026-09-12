@@ -770,3 +770,22 @@ Suites on merged tree: parity 110/0 · energy 88/0 · electricity 37/0 · crate_
 - Audited every type: sources and gates ALREADY draw real art; checkpoint, drone, crate, platform and playerStart have art available but draw schematics; **switch has NO art at all** — ordered her to leave it schematic rather than borrow an unrelated sprite, and to report it as the remaining gap for Chief to decide on.
 - **The load-bearing constraint I set: editor anchors must EQUAL runtime anchors.** I extracted and handed her the verified runtime maths for all six types (source `-18,-34`; gate `cx-32,(y+h)-128`; checkpoint dest 66 with offsets 31/61 derived from the measured bbox; drone/crate/platform straight blits; playerStart feet at `y+30`). If the Builder draws at different offsets than the game, Chief authors to a lie and every level is subtly misplaced — that is a parity defect and I will fail it at the gate.
 - Also required: schematics retained as fallbacks, selection outlines/labels drawn ON TOP of art, `imageSmoothingEnabled = false` (Chief now zooms to 625%), and reuse of the proven `_drawSources` `getImage` + repaint-on-load pattern rather than a new one.
+
+---
+
+## 2026-09-12 — Chief field report: 5 defects. 4 fixed now, 1 is Aki's in-flight P5.
+
+**1. Checkpoint glow — REMOVED.** I added `shadowBlur = 10` when activated; it smeared a halo around the sign. The art carries its own lighting. Verified: max `shadowBlur` recorded during an activated draw is now **0**, sprite still drawn.
+
+**2. Gate "vertical charging" — REMOVED (Chief was right, old logic was still live).** `PowerGate.draw` still had the pre-spritesheet overlay: `fillRect(x+2, splitY, w-4, fillH)` — a purple strip rising from the gate's base. It double-reported the same state the sprite rows already show. Deleted. Verified precisely: with the sheet **loaded** and the gate at 4/8 charge, the draw comes from `sx=672, sy=128` (row 1 = idle/charged) and **zero** strip-like rects are emitted. The two remaining `fillRect`s are the small 48×6 horizontal progress bar BELOW the gate (track + 50% fill) — a separate readout, not the vertical fill. Say the word if that should go too.
+
+**3. Objects hovering / not grid-snapped — ROOT CAUSE FOUND AND FIXED IN BOTH PLACES.**
+- *The Builder bug:* checkpoint spawn used `x: Math.round(wx), y: Math.round(wy)` — **no grid snap, no ground snap at all**, unlike sources/gates/switches/platforms which use `_snapGrid`/`_groundAt`. Drone spawn also skipped snapping. Fixed: checkpoint now `_snapGrid(x)` + `_groundAt(..., 0)` (its `y` IS the standing-ground line per LEVEL_SCHEMA, so objH 0 puts it exactly on the surface). Drone now grid-snaps but is deliberately **not** ground-snapped — it is a hovering enemy.
+- *The already-authored damage:* level1 had `CP1` at `y=168` where the surface is `224` — **floating 56px**, and off-grid. `src_3` was at `510,290` (both axes off-grid). Snapped and grounded all of it in `level1.json` + `1_NEON_RISE.json` (kept byte-identical).
+- Verified against the tile data: every source, checkpoint and gate now reports `grounded: true` and `xOnGrid: true`. Note source `y=196` is intentionally not a multiple of 32 — a 28px-tall object must sit at `surface − 28` to rest ON the tile; grounding wins over grid-aligning on the Y axis.
+
+**4. Builder gate purple film — REMOVED.** `editor/renderer.js _drawGates` painted a `globalAlpha = 0.28` colour wash over the whole gate sprite to distinguish gate types. It obscured the art the Builder exists to preview. Removed; type remains unambiguous from the badge/label ("EXIT · GATE", "GATE · BARRIER") and the selection outline. Occurrences of the tint now 0.
+
+**5. Checkpoint still schematic in the Builder — EXPECTED, not a regression.** That is exactly what Aki's **P5** order covers (real art in the editor for every object type). She is mid-flight on it.
+
+**Tests:** parity 110/0 · energy 88/0 · electricity 37/0 · crate_timed 87/0 = **322/0** · boot smoke OK, zero page errors.
