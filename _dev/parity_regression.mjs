@@ -84,7 +84,7 @@ validateAuthoredLevel(reloaded, 'fixture');
 check(reloaded.sources[0].id === 'SRC-1' && reloaded.gates[0].id === 'GATE-1' && reloaded.switches[0].id === 'SW-1' && reloaded.checkpoints[0].id === 'CP-1', 'supported authored IDs survive the JSON round-trip');
 
 console.log('\n[ Tile and Builder contract ]');
-check(TILE === 32 && ROWS === 14, 'runtime tile contract is TILE = 32 and ROWS = 14');
+check(TILE === 32 && ROWS === 18, 'runtime tile contract is TILE = 32 and ROWS = 18');
 State.state.level = structuredClone(authored);
 check(State.worldToTile(63, 63).col === 1 && State.worldToTile(63, 63).row === 1, 'Builder worldToTile uses floor-based 32px coordinates');
 check(State.getTile(0, 0) === 1 && State.getTile(1, 0) === 2 && State.getTile(2, 0) === 10 && State.getTile(1, 1) === 13, 'Builder indexes flat tiles row-major');

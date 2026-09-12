@@ -423,6 +423,11 @@ export const selectTool = {
       }
       // Modular-family magnetic snap while dragging a single family piece.
       _applyDragMagnetic(this._origPositions);
+      // Gameplay objects snap to the grid and sit on ground tiles (Chief
+      // 2026-09-12). Runs AFTER the delta and magnetic passes so it has the final
+      // say, and runs during the drag so the preview equals the committed result —
+      // onMouseUp derives its delta from these same refs.
+      _reanchorGameplay(this._origPositions);
       state.dragMove.curWX = w.x;
       state.dragMove.curWY = w.y;
       import('./state.js').then(m => m.notify());
@@ -496,7 +501,11 @@ function _anchorObjBottom(worldX, worldY, ow, oh) {
   const footCol = Math.max(0, Math.min(Math.floor((worldX + ow / 2) / TILE_SIZE), (L?.cols ?? 1) - 1));
   let surfaceY = null;
   for (let r = fromRow; r < rows; r++) {
-    if (tileIsSolid(footCol, r)) { surfaceY = r * TILE_SIZE; break; }
+    // BUGFIX 2026-09-12: was `tileIsSolid(footCol, r)`. tileIsSolid takes a tile
+    // VALUE, not (col,row) — so it evaluated `footCol >= 10` and reported "solid"
+    // on the very first row scanned for any object past column 10, grounding it
+    // into thin air. Must read the tile first.
+    if (tileIsSolid(getTile(footCol, r))) { surfaceY = r * TILE_SIZE; break; }
   }
   if (surfaceY == null) {
     // No floor found below — snap top to 16px grid (place in air)
@@ -504,6 +513,71 @@ function _anchorObjBottom(worldX, worldY, ow, oh) {
   }
   return { x, y: surfaceY - oh };
 }
+
+// ── Drag re-anchoring for GAMEPLAY objects (Chief 2026-09-12) ─────────────
+// Spawning already snapped to grid + ground, but DRAGGING did not: the move tool
+// snapped the movement DELTA, so an object that started off-grid stayed off-grid
+// forever, and nothing re-grounded it. That is how Chief's gate ended up at
+// x=1200 sunk 16px into the terrain.
+//
+// Decorations are deliberately EXCLUDED — fine-grained snapping is correct for
+// art. Hovering/floating things (drones, moving platforms) get grid alignment but
+// are NOT pulled down to the floor, because floating is their whole point.
+function _kindOfRef(ref) {
+  const L = state.level;
+  if (!L) return null;
+  if ((L.sources     || []).includes(ref)) return 'source';
+  if ((L.gates       || []).includes(ref)) return 'gate';
+  if ((L.switches    || []).includes(ref)) return 'switch';
+  if ((L.checkpoints || []).includes(ref)) return 'checkpoint';
+  if ((L.crates      || []).includes(ref)) return 'crate';
+  if ((L.platforms   || []).includes(ref)) return 'platform';
+  if ((L.enemies     || []).includes(ref)) return 'enemy';
+  if (L.playerStart === ref)               return 'playerStart';
+  return null;   // decoration or unknown — leave untouched
+}
+
+function _reanchorGameplay(origPositions) {
+  if (!origPositions) return;
+  for (const ref of origPositions.keys()) {
+    const kind = _kindOfRef(ref);
+    if (!kind) continue;
+
+    // Floating by design: align to grid, never drag down to the floor.
+    const floats = kind === 'platform' || (kind === 'enemy' && ref.type === 'drone');
+    if (floats) {
+      ref.x = Math.round(ref.x / TILE_SIZE) * TILE_SIZE;
+      ref.y = Math.round(ref.y / TILE_SIZE) * TILE_SIZE;
+      continue;
+    }
+
+    if (kind === 'gate') {
+      const a = _anchorGateBottom(ref.x, ref.y, ref.w ?? 32, ref.h ?? 96);
+      ref.x = a.x; ref.y = a.y;
+      continue;
+    }
+
+    // Standing objects: grid-snap X, rest the bottom on the first surface below.
+    // Checkpoint is the special case — its y IS the standing-ground line, so its
+    // "height" for anchoring purposes is zero (see LEVEL_SCHEMA).
+    const dims = {
+      source:      { w: 28, h: 28 },
+      switch:      { w: 22, h: 22 },
+      checkpoint:  { w: 0,  h: 0  },
+      crate:       { w: ref.w ?? 32, h: ref.h ?? 32 },
+      enemy:       { w: ref.type === 'patrol' ? 20 : 22, h: ref.type === 'patrol' ? 26 : 24 },
+      playerStart: { w: 20, h: 30 },
+    }[kind];
+    if (!dims) continue;
+
+    const a = _anchorObjBottom(ref.x, ref.y, dims.w, dims.h);
+    ref.x = a.x; ref.y = a.y;
+  }
+}
+
+// Test seam: lets the QA probe exercise the re-anchor pass directly instead of
+// synthesising a full mouse-drag gesture. Not used by the editor itself.
+export function __testReanchor(origPositions) { _reanchorGameplay(origPositions); }
 
 function _anchorGateBottom(worldX, worldY, gw, gh) {
   const L = state.level;

@@ -50,7 +50,7 @@ const STYLE_KNOBS  = {
   'Sparse / Open': { heightSpread: [2, 5], gapChance: 0.60, platformChance: 0.10 },
 };
 
-const ROWS      = 14;               // level height in tiles (matches level1)
+const ROWS      = 18;               // level height in tiles (matches src_scroll/constants.js ROWS)
 const GROUND_ROW = ROWS - 1;         // solid ground reserved for spawn/exit fallback
 
 // ── Seeded RNG (mulberry32 — small, fast, well-distributed) ──────────────

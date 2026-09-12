@@ -889,3 +889,41 @@ She is 3 behind live and was told to sync first.
 **Critical path is now Chief's own lane.** Engine-side the GDD MVP system list is closed (gate, switch, conductive crate, timed device) and every mechanic Level 3 needs is verified working — the drone stuns and calls `player.scatter()` on contact. GDD §12 asks for three complete levels; two exist. Nothing blocks authoring Level 3 except the authoring itself.
 
 **Unvalidated by a human:** nobody has played Level 1 end-to-end since today's changes — economy (generators 4, exit 8), one generator removed, all objects regrounded, gate vertical-fill removed, dead-gate art, checkpoint art. All verified by harness and probe, none by play.
+
+---
+
+## 2026-09-12 — Map grown +4 tiles vertically · Builder drag now snaps · `env_tile_purple_edge_ref` deleted
+
+Rollback tag: `rollback-pre-vertical-expand` (`c3fa3db`).
+
+### 1. Vertical expansion — ROWS 14 → 18
+The 4 new rows are **SKY at the top**; all level content shifted **down 128px**. Rationale: the bottom rows of every level are already solid underground fill, so adding more there buys nothing — adding sky gives real headroom to build upward while the ground keeps its distance from the bottom of the screen.
+
+This was safe because `viewport.js` **locks the vertical axis** (full world height always visible, uniform nearest-neighbour scale), so a taller world scales to fit rather than cropping. No camera work needed — and note there is **no `camY`** at all, only horizontal scroll, so a taller map would have been unreachable if the viewport had not been built this way.
+
+- `constants.js`: `ROWS 14→18`, `H 450→578`. 578 preserves the original 2px slack exactly: `floor(578/32)=18` as `floor(450/32)` was 14.
+- `editor/generator.js`: its hard-coded `ROWS = 14` copy updated (would have generated 14-row levels into an 18-row runtime).
+- `_dev/parity_regression.mjs`: contract assertion updated to `ROWS === 18`.
+- All 5 level files migrated (`level1`, `1_NEON_RISE`, `level2`, crate testbed, and the gitignored `level1_prev_backup` — migrated deliberately so a Builder REVERT cannot resurrect a 14-row level into an 18-row runtime).
+- Verified live: `tiles.length 1800` (100×18), canvas backing store now `578` tall, editor reports `100×18`, zero errors, game renders with the ground at the bottom and open sky above.
+
+### 2. Chief's in-flight Builder edits were preserved, and one was broken
+While I worked, Chief moved the gate and checkpoint in the Builder and saved (uncommitted). The migration preserved both and added +128 correctly — verified against HEAD: sources and playerStart shifted exactly +128 with X untouched.
+
+His **gate drag left it sunk 16px INTO the terrain** and off-grid at `x=1200`. Grounded it (`y 304→288`, bottom now flush at 352). Initially left X alone rather than guess between 1184/1216; on Chief's "fix this" instruction, snapped it to **1216** — which is what the Builder's drag now produces anyway.
+
+### 3. Root cause fixed: dragging never snapped (spawning did)
+`tools.js` move applied `snapDelta()` to the movement **DELTA**, so an object that started off-grid stayed off-grid forever and nothing re-grounded it. That is exactly how the gate ended up at 1200, sunk.
+
+Added `_reanchorGameplay()`, run after the delta and magnetic passes and **during** the drag so the preview equals the committed result (mouseUp derives its delta from the same refs). Gameplay objects grid-snap X and rest on the first surface below; **decorations are excluded** (fine snapping is correct for art); **drones and moving platforms grid-align but are never pulled to the floor**, since floating is their purpose. Checkpoint handled as the documented special case (its `y` IS the standing-ground line, so anchor height 0).
+
+**Found a real latent bug while doing it:** `_anchorObjBottom` called `tileIsSolid(footCol, r)`, but `tileIsSolid(v)` takes a tile **VALUE** — so it evaluated `footCol >= 10` and reported "solid" on the very first row scanned for any object past column 10, anchoring it into thin air. Now `tileIsSolid(getTile(footCol, r))`.
+
+**Verified in a real browser:** deliberately corrupted the gate to `x=1203, y=100` and the checkpoint to `x=1101, y=90`, ran the real re-anchor pass — gate → `1216/288` (on grid, bottom flush at surface), checkpoint → `1088/352` (on grid, on the ground line). Added a narrow `__testReanchor` export as the test seam so the probe drives production code rather than a copy.
+
+### 4. `env_tile_purple_edge_ref` deleted
+`containers/crate_large.png` — the purple bordered frame tile, confirmed referenced by **no level and no code**. Archived to `Documents\Archived\crate_large_env_tile_purple_edge_ref_2026-09-12.png` first. Manifests pruned: ASSET_MANIFEST 53→52, PURPLE_CITY_INDEX 51→50, asset_index regenerated (213).
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK.
+
+**Outstanding:** Orcha's crate testbed still has 3 floating objects (his fixture, pre-dates the rule, already flagged in his P1 order addendum — his to ground).

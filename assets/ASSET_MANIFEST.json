@@ -423,29 +423,6 @@
       }
     },
     {
-      "id": "env_tile_purple_edge_ref",
-      "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "category": "construction_tile",
-      "tags": [
-        "construction",
-        "purple_edge",
-        "reference",
-        "purple_city"
-      ],
-      "frame_width": 50,
-      "frame_height": 50,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "",
-      "generation": {
-        "eligible": false,
-        "ineligible_reason": "50×50 visual reference for the env_edge_purple_* construction family; use env_edge_purple_* tiles for level building"
-      },
-      "_art_note": "FILENAME LIES — file is named crate_large.png but the art is a purple bordered FRAME tile (50x50, purple border + dark fill), not a crate. Verified by rendering the pixels 2026-09-12. The ID describes the ART and is authoritative. Do NOT rename from the filename."
-    },
-    {
       "id": "env_container_small_a",
       "path": "assets/tilesets/purple_city/containers/container_small_a.png",
       "category": "container",
