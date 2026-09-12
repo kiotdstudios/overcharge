@@ -455,3 +455,15 @@ Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was
 **Manifests:** `asset_index.json` regenerated (227 entries); new `scripts/prune_manifests.mjs` dropped dead entries from `ASSET_MANIFEST.json` (116→84, incl. 31 stale waste entries from the earlier purge) and `PURPLE_CITY_INDEX.json` (76→75).
 
 **Verified:** every sprite path the runtime constructs exists on disk with the exact frame counts sprites.js expects (11/9/9/8/11/11 e+w, drone 9+9, generator 9, gates 4). QA gate: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+---
+
+## 2026-09-12 — Chief field report: deleted waste tiles still visible in palette — cache, now fixed at the root
+
+**Diagnosis:** deployed manifests were verified clean (ASSET_MANIFEST 84 entries, 0 waste; PURPLE_CITY_INDEX 75). The broken tiles were the browser's HTTP-cached pre-purge `ASSET_MANIFEST.json` — `state.js loadManifest()` used a plain `fetch()`, and GitHub Pages serves ~10-min max-age. Same root cause class as the earlier "pushed level doesn't show up" report.
+
+**Fixes (permanent, not "tell Chief to hard-refresh"):**
+- `editor/state.js`: both manifest fetches now cache-busted with the deployed build SHA (`?v=<shaShort>`) — every deploy self-invalidates.
+- `src_scroll/main.js` `_loadJsonLevel()`: level fetch now `cache: 'no-store'` — a freshly pushed level shows on plain refresh. (Editor-side level fetches already had it; the game's didn't.)
+
+**Tests:** parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
