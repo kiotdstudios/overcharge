@@ -770,3 +770,54 @@ Suites on merged tree: parity 110/0 · energy 88/0 · electricity 37/0 · crate_
 - Audited every type: sources and gates ALREADY draw real art; checkpoint, drone, crate, platform and playerStart have art available but draw schematics; **switch has NO art at all** — ordered her to leave it schematic rather than borrow an unrelated sprite, and to report it as the remaining gap for Chief to decide on.
 - **The load-bearing constraint I set: editor anchors must EQUAL runtime anchors.** I extracted and handed her the verified runtime maths for all six types (source `-18,-34`; gate `cx-32,(y+h)-128`; checkpoint dest 66 with offsets 31/61 derived from the measured bbox; drone/crate/platform straight blits; playerStart feet at `y+30`). If the Builder draws at different offsets than the game, Chief authors to a lie and every level is subtly misplaced — that is a parity defect and I will fail it at the gate.
 - Also required: schematics retained as fallbacks, selection outlines/labels drawn ON TOP of art, `imageSmoothingEnabled = false` (Chief now zooms to 625%), and reuse of the proven `_drawSources` `getImage` + repaint-on-load pattern rather than a new one.
+
+---
+
+## 2026-09-12 — Chief field report: 5 defects. 4 fixed now, 1 is Aki's in-flight P5.
+
+**1. Checkpoint glow — REMOVED.** I added `shadowBlur = 10` when activated; it smeared a halo around the sign. The art carries its own lighting. Verified: max `shadowBlur` recorded during an activated draw is now **0**, sprite still drawn.
+
+**2. Gate "vertical charging" — REMOVED (Chief was right, old logic was still live).** `PowerGate.draw` still had the pre-spritesheet overlay: `fillRect(x+2, splitY, w-4, fillH)` — a purple strip rising from the gate's base. It double-reported the same state the sprite rows already show. Deleted. Verified precisely: with the sheet **loaded** and the gate at 4/8 charge, the draw comes from `sx=672, sy=128` (row 1 = idle/charged) and **zero** strip-like rects are emitted. The two remaining `fillRect`s are the small 48×6 horizontal progress bar BELOW the gate (track + 50% fill) — a separate readout, not the vertical fill. Say the word if that should go too.
+
+**3. Objects hovering / not grid-snapped — ROOT CAUSE FOUND AND FIXED IN BOTH PLACES.**
+- *The Builder bug:* checkpoint spawn used `x: Math.round(wx), y: Math.round(wy)` — **no grid snap, no ground snap at all**, unlike sources/gates/switches/platforms which use `_snapGrid`/`_groundAt`. Drone spawn also skipped snapping. Fixed: checkpoint now `_snapGrid(x)` + `_groundAt(..., 0)` (its `y` IS the standing-ground line per LEVEL_SCHEMA, so objH 0 puts it exactly on the surface). Drone now grid-snaps but is deliberately **not** ground-snapped — it is a hovering enemy.
+- *The already-authored damage:* level1 had `CP1` at `y=168` where the surface is `224` — **floating 56px**, and off-grid. `src_3` was at `510,290` (both axes off-grid). Snapped and grounded all of it in `level1.json` + `1_NEON_RISE.json` (kept byte-identical).
+- Verified against the tile data: every source, checkpoint and gate now reports `grounded: true` and `xOnGrid: true`. Note source `y=196` is intentionally not a multiple of 32 — a 28px-tall object must sit at `surface − 28` to rest ON the tile; grounding wins over grid-aligning on the Y axis.
+
+**4. Builder gate purple film — REMOVED.** `editor/renderer.js _drawGates` painted a `globalAlpha = 0.28` colour wash over the whole gate sprite to distinguish gate types. It obscured the art the Builder exists to preview. Removed; type remains unambiguous from the badge/label ("EXIT · GATE", "GATE · BARRIER") and the selection outline. Occurrences of the tint now 0.
+
+**5. Checkpoint still schematic in the Builder — EXPECTED, not a regression.** That is exactly what Aki's **P5** order covers (real art in the editor for every object type). She is mid-flight on it.
+
+**Tests:** parity 110/0 · energy 88/0 · electricity 37/0 · crate_timed 87/0 = **322/0** · boot smoke OK, zero page errors.
+
+---
+
+## 2026-09-12 — Chief ruling + new orders for both agents
+
+**Chief ruling:** the gate's small horizontal progress bar below the sprite **stays**. Only the vertical in-gate fill strip was wrong, and that is removed.
+
+**Verified Level 3 is genuinely buildable before proposing anything else** (so Chief doesn't lose a Builder session to a broken mechanic): `level.js:24` instantiates `DroneEnemy` for `type: 'drone'`, and `entities.js:447` confirms the drone stuns + calls `player.scatter(level)` on overlap with a cooldown. The hit → scatter → recover loop Level 3 teaches is live.
+
+**`docs/ORCHA_ORDER_PLACEMENT_GUARDS_GROUNDED.md` issued** (Orcha was idle since standing down):
+- **P1 placement guards** — closes the defect Chief reported today. I fixed the cause and the data, but nothing prevents recurrence; the Builder can still be dragged and hand-edited JSON can reintroduce floating objects silently. Same pattern as the required-less gate: fix once, then guard forever. Specified per-type grounding contracts (source `y+28`, gate `y+h`, switch `y+22`, checkpoint `y`, crate `y+h`), X-grid alignment, and three deliberate exemptions — **drones hover by design, platforms float by design, and a pit column must report as its own clearer failure** rather than a confusing grounding mismatch. Also told him explicitly NOT to assert `y % 32`: a 28px source on a 224 surface must sit at 196, so grounding beats grid-alignment on Y. And not to "fix" Chief's level data if a guard fires — report and stop.
+- **P2 grounded hazard** (GDD §7 / Level 6, the last engine gap) — ordered as an **environmental zone, not a character**, specifically because Chief purged the drain-enemy art and a new enemy would stall on an art decision. A zone needs no character art. Semantics-doc-before-implementation again, with my recommendations pre-stated (refuse both absorb and discharge, honestly, with a reason; block use rather than drain, since the GDD says "weakened or disabled" not "emptied").
+
+**`docs/AKI_ORDER_QUEUE.md` P6 queued** (after her in-flight P5):
+- **P6a switch art** — the last missing object sprite, found during my P5 audit. Told her 2 states is sufficient (not a 9-frame sheet), that the 22×22 hitbox is a harness-asserted contract, and that she may draw larger than the hitbox like sources do (28×28 hitbox, 64×64 sprite) provided she states the size and anchor so I can wire editor and runtime to the same numbers.
+- **P6b** — the yellow energized crate is still awaiting Chief's ruling; told her not to pre-emptively change it, and that if Chief keeps yellow she must record WHY in the manifest so nobody later "fixes" it back.
+
+---
+
+## 2026-09-12 — Checkpoint real art in the Builder — implemented directly (Chief asked twice)
+
+Chief reported the "CP" schematic box a second time. It was assigned to Aki's in-flight P5, but leaving him unable to see his own level while waiting on another agent was the wrong trade. Implemented it myself and rescoped her order.
+
+**`editor/renderer.js _drawCheckpoints`** now draws `checkpoint_flag/frame_000.png` — the dark/resting frame, since the "GAME SAVED" frames only mean something once a player triggers it. The CP box is retained as the load-time fallback (an object must never be invisible), and the id label is drawn on top of the art.
+
+**Anchors are COPIED from `src_scroll/entities.js`, not re-derived** — the `CP_*` constants mirror the runtime line for line, with a comment stating why: if the Builder and the game disagree on placement, Chief authors to a lie. This is the WYSIWYG parity rule I set for Aki in P5, so the implementation had to obey it too.
+
+**Verified via the real render path, not a stub:** patched `CanvasRenderingContext2D.prototype.drawImage` before boot and confirmed the live editor draws `generator 1/frame_000.png`, `objects/gate_closed.png` and `checkpoint_flag/frame_000.png`, zero page errors. Screenshot confirms the sign renders grounded on the surface line, centred on its x, with the gate now free of its purple film.
+
+**Aki's P5 rescoped** in `docs/AKI_ORDER_QUEUE.md`: checkpoint marked DONE with "do not redo", and pointed at my implementation as the reference for the pattern (runtime-copied anchors, `getImage` + fallback, no smoothing, labels on top). Her remaining scope: drone/enemies, crate, platform, playerStart. Switch stays schematic pending P6a art.
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0**.

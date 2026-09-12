@@ -273,7 +273,7 @@ instead of the actual sprites, so Chief cannot see what he is building.
 |---|---|---|
 | Source (generator) | ✅ real sprite already | `assets/sprites/generator 1/frame_000.png` |
 | Gate | ✅ real sprite already | `gate_electric_spritesheet.png` |
-| **Checkpoint** | ❌ schematic | ✅ `assets/objects/checkpoint_flag/frame_000..008.png` |
+| ~~**Checkpoint**~~ | ✅ **DONE BY KIRO** — do not redo | `assets/objects/checkpoint_flag/frame_000..008.png` |
 | **Enemy / drone** | ❌ schematic | ✅ `assets/sprites/drone/idle/frame_000.png` |
 | **Crate** | ❌ schematic (yours) | ✅ `crate_conductive.png` |
 | **Platform** | ❌ schematic | ✅ `purple_city/platforms/platform_*.png` |
@@ -327,3 +327,74 @@ Rendered proof (screenshot of the Builder showing real art for each type), every
 object type still selectable and movable, schematic fallback still reachable, all
 suites 0 failed, boot smoke clean, palette still exactly ONE gate entry. Push to
 `agent/aki-editor` and HOLD.
+
+---
+
+## P6 — QUEUED (start after P5 lands). SWITCH ART + energized-crate colour call
+
+### P6a — Produce SWITCH art (the last missing object sprite)
+
+Found during the P5 audit: **no switch art exists anywhere in the project.** Every
+other object type now has a sprite; the switch is the only one that must stay a
+schematic marker, which is why P5 explicitly told you not to fake one from an
+unrelated asset.
+
+Produce it properly:
+
+- **`switch_off.png` and `switch_on.png`**, or a small 2-frame set — the switch has
+  exactly two meaningful states (`on` false/true) and the runtime already tracks
+  a partial-charge fill, so 2 states is enough. Do NOT build a 9-frame sheet.
+- **Hitbox is 22×22** (documented contract, asserted by the parity harness). Draw
+  larger than the hitbox if the design needs it — sources do exactly this (28×28
+  hitbox, 64×64 sprite) — but state the sprite size and anchor you chose so Kiro
+  can wire the editor and runtime to the same numbers.
+- Purple City palette. Must read as a *switch/lever/button* and be clearly
+  distinguishable from the gate and from scenery panels.
+- Grid-true, zero stray alpha islands (the scanner will check).
+- Register in `ASSET_MANIFEST.json` with accurate id/category/tags.
+- **Name the files for what they are.** Three misleading filenames are already
+  documented in the manifest with `_art_note`; do not add a fourth.
+
+### P6b — Chief's call on the energized crate colour
+
+Your `crate_conductive_energized.png` glows **yellow**. Every other energised
+thing in OVERCHARGE glows purple/magenta (`#cc44ff`): gate charge, discharge FX,
+charge pickups, the HUD. **Chief has been asked and has not ruled yet.**
+
+Do not change it pre-emptively. If Chief rules "make it purple", produce a
+recoloured variant then. If he rules "yellow is intentional" (a deliberate
+contrast so the puzzle object stands out from ambient purple), note that decision
+in the manifest entry so nobody later "fixes" it back.
+
+### Gate criteria
+
+Rendered proof, stated sprite size + anchor, 22×22 hitbox respected, zero stray
+alpha, manifest accurate, palette still exactly ONE gate entry, all suites 0
+failed. Push to `agent/aki-editor` and HOLD.
+
+---
+
+## P5 SCOPE CHANGE — checkpoint is DONE, do not redo it
+
+**Kiro implemented the checkpoint case directly (2026-09-12).** Chief reported the
+"CP" box twice and was blocked from seeing his own level, so it was not left to
+wait. `editor/renderer.js _drawCheckpoints` now draws
+`checkpoint_flag/frame_000.png` (the dark/resting frame — the "GAME SAVED" frames
+only mean something once a player triggers it), with the CP box retained as the
+loading fallback and the id label kept on top.
+
+**Use it as the reference implementation for the rest of P5.** It demonstrates
+exactly what the order asks for:
+- anchors **copied from the runtime, not re-derived** — the `CP_*` constants in
+  `editor/renderer.js` mirror `src_scroll/entities.js` line for line, with a
+  comment saying why (if the two disagree, Chief authors to a lie)
+- `getImage()` + `img.complete && img.naturalWidth > 0`, schematic as fallback
+- `imageSmoothingEnabled = false`
+- authoring info (id label) drawn ON TOP of the art
+- scaled by `state.camera.zoom`
+
+**Your remaining P5 scope:** drone/enemies, crate, platform, playerStart. Switch
+stays schematic (no art exists — that is P6a).
+
+Verified: the real editor render path now draws `generator 1/frame_000.png`,
+`objects/gate_closed.png` and `checkpoint_flag/frame_000.png`, zero page errors.

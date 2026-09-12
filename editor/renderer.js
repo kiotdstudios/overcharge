@@ -448,13 +448,12 @@ function _drawGates(ctx, arr) {
     const img = getImage('assets/objects/gate_closed.png');
     ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      // Sprite
+      // Sprite only. The 0.28-alpha colour wash that used to sit on top of this
+      // was removed 2026-09-12 (Chief: "gate on builder has this purple film
+      // over it") — it obscured the art the Builder exists to preview. Gate TYPE
+      // is still unambiguous from the badge + label drawn below in this function
+      // ("EXIT · GATE" / "GATE · BARRIER") and from the selection outline.
       ctx.drawImage(img, sp.x, sp.y, sw, sh);
-      // Colour tint so types are distinguishable (multiply-like: overlay at low alpha)
-      ctx.globalAlpha = 0.28;
-      ctx.fillStyle = color;
-      ctx.fillRect(sp.x, sp.y, sw, sh);
-      ctx.globalAlpha = 1;
     } else {
       // Hatched fallback (image is loading — getImage already wired the repaint)
       const hp = worldToScreen(g.x, g.y);
@@ -525,37 +524,54 @@ function _drawSwitches(ctx, arr) {
   }
 }
 
-// Checkpoints: Chief's checkpoint_flag sprite (frame_000 = inactive/dark panel).
-// Anchor exactly matches the runtime in entities.js — CP_* constants are shared.
-// INACTIVE must draw frame_000 only and must NOT glow.
+// Checkpoints: real checkpoint_flag art (x = CENTRE, y = standing-ground line).
+//
+// ANCHORS ARE COPIED FROM THE RUNTIME, NOT RE-DERIVED. src_scroll/entities.js
+// measures the art's opaque bbox as 17,10..103,117 inside a 128x128 frame and
+// derives: scale = 56/108, dest = 128*scale, offX = 60*scale, offY = 117*scale.
+// If these two ever disagree, Chief authors to a lie — the Builder must show
+// exactly what the game draws.
+const CP_SRC = 128, CP_ART_H = 56, CP_BOX_H = 108, CP_BOX_CX = 60, CP_BOX_BOT = 117;
+const CP_SCALE = CP_ART_H / CP_BOX_H;
+const CP_DEST  = Math.round(CP_SRC * CP_SCALE);
+const CP_OFF_X = Math.round(CP_BOX_CX  * CP_SCALE);
+const CP_OFF_Y = Math.round(CP_BOX_BOT * CP_SCALE);
+
 function _drawCheckpoints(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const o of arr) {
-    const spriteX = o.x - CP_OFF_X, spriteY = o.y - CP_OFF_Y;
-    const sp = worldToScreen(spriteX, spriteY);
-    const sw = CP_DEST * z, sh = CP_DEST * z;
+    // Frame 0 = the DARK/inactive panel. The Builder always shows the resting
+    // state; the "GAME SAVED" frames only mean anything once a player triggers it.
     const img = getImage('assets/objects/checkpoint_flag/frame_000.png');
-    ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      // Inactive: no glow (same rule as the dead gate)
-      ctx.drawImage(img, 0, 0, CP_SRC, CP_SRC, sp.x, sp.y, sw, sh);
-    } else {
-      // Schematic fallback while image loads
-      const bx = o.x - 11, by = o.y - 11;
-      const fp = worldToScreen(bx, by);
-      const fw = 22 * z, fh = 22 * z;
-      ctx.fillStyle = MARKER.checkpoint; ctx.globalAlpha = 0.3;
-      ctx.fillRect(fp.x, fp.y, fw, fh);
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = MARKER.checkpoint; ctx.lineWidth = 2;
-      ctx.strokeRect(fp.x, fp.y, fw, fh);
-      ctx.fillStyle = MARKER.checkpoint;
-      ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('CP', fp.x + fw / 2, fp.y + fh / 2);
+      const sp = worldToScreen(o.x - CP_OFF_X, o.y - CP_OFF_Y);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, CP_SRC, CP_SRC, sp.x, sp.y, CP_DEST * z, CP_DEST * z);
+      // Authoring info stays ON TOP of the art: id label under the ground line.
+      if (o.label || o.id) {
+        const lp = worldToScreen(o.x, o.y);
+        ctx.fillStyle = MARKER.checkpoint;
+        ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(o.label || o.id, lp.x, lp.y + 3);
+      }
+      continue;
     }
-    // ID label always shown below the sprite/marker
+
+    // Fallback: the original CP box while the sprite loads (getImage wires the
+    // repaint). Never leave an object invisible.
+    const p  = worldToScreen(o.x - 11, o.y - 11);
+    const sw = 22 * z, sh = 22 * z;
+    ctx.fillStyle = MARKER.checkpoint; ctx.globalAlpha = 0.3;
+    ctx.fillRect(p.x, p.y, sw, sh);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = MARKER.checkpoint; ctx.lineWidth = 2;
+    ctx.strokeRect(p.x, p.y, sw, sh);
+    ctx.fillStyle = MARKER.checkpoint;
+    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('CP', p.x + sw / 2, p.y + sh / 2);
     if (o.label || o.id) {
       const lp = worldToScreen(o.x, spriteY + CP_DEST);
       ctx.fillStyle = MARKER.checkpoint;

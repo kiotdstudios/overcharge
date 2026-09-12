@@ -995,7 +995,10 @@ function _doSpawn(e, canvas) {
     obj = { type: 'patrol', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 50 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
   } else if (kind === 'drone-enemy') {
-    const w = 40, px = Math.round(wx), py = Math.round(wy);
+    // Grid-snapped like every other object (Chief 2026-09-12). NOT ground-snapped:
+    // the drone is a HOVERING enemy, so it legitimately sits above the floor —
+    // but its position should still land on the grid so patrols line up.
+    const w = 40, px = _snapGrid(wx), py = _snapGrid(wy);
     obj = { type: 'drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
   } else if (kind === 'source') {
@@ -1011,7 +1014,10 @@ function _doSpawn(e, canvas) {
     obj = { id: 'gate_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), w: 32, h: 96, required: 1, isExit: false, blockOnly: false, label: 'GATE' };
     arr = L.gates || (L.gates = []); arrLabel = 'add_gate';
   } else if (kind === 'checkpoint') {
-    obj = { id: 'cp_' + Date.now(), x: Math.round(wx), y: Math.round(wy) };
+    // Chief 2026-09-12: objects must snap to the grid and sit ON ground tiles,
+    // not hover. Checkpoint.y is the STANDING-GROUND line (see LEVEL_SCHEMA), so
+    // objH = 0 puts it exactly on the surface rather than a body-height above it.
+    obj = { id: 'cp_' + Date.now(), x: _snapGrid(wx), y: _groundAt(wx, wy, 0) };
     arr = L.checkpoints || (L.checkpoints = []); arrLabel = 'add_checkpoint';
   } else if (kind === 'platform') {
     const w = 96, px = _snapGrid(wx), py = _snapGrid(wy);

@@ -275,9 +275,9 @@ export class Checkpoint {
     if (img && img.complete && img.naturalWidth > 0) {
       ctx.save();
       ctx.imageSmoothingEnabled = false;
-      // Activated sign glows; a dark panel must not (same rule as the dead gate).
-      ctx.shadowBlur  = this.activated ? 10 : 0;
-      ctx.shadowColor = '#7fdfff';
+      // NO glow (Chief 2026-09-12). The art already carries its own lighting —
+      // an added canvas shadow just smeared a halo around the sign.
+      ctx.shadowBlur = 0;
       ctx.drawImage(img, 0, 0, CP_SRC, CP_SRC,
         Math.round(this.x - CP_OFF_X), Math.round(this.y - CP_OFF_Y),
         CP_DEST, CP_DEST);
