@@ -398,3 +398,79 @@ stays schematic (no art exists — that is P6a).
 
 Verified: the real editor render path now draws `generator 1/frame_000.png`,
 `objects/gate_closed.png` and `checkpoint_flag/frame_000.png`, zero page errors.
+
+---
+
+## P5 — ✅ QA GATE PASSED, MERGED TO LIVE — but read this before your next merge
+
+**Verdict:** your P5 work is merged and live (`origin/agent/aki-editor` `b6df5ea` is
+an ancestor of `agent/orcha-gameplay`). Live HEAD is now `2503c0c`; **you are 3
+behind — sync before starting P6a.**
+
+**All six object types verified drawing REAL art, by observation not by report.**
+I patched `CanvasRenderingContext2D.prototype.drawImage` before boot and swept the
+camera across two levels. Platforms and drones exist in NO committed level, so
+rather than assume those worked I injected one of each. Confirmed drawing:
+`generator 1/frame_000.png`, `gate_closed.png`, `checkpoint_flag/frame_000.png`,
+`crate_conductive.png`, `drone/idle/frame_000.png`, `idle_2.0/east/frame_000.png`.
+Zero page errors. Good work — the pattern was followed correctly in all four of
+your cases.
+
+### ⚠ Your merge shipped a defect that killed the whole Builder
+
+Not the `spriteY` line you flagged. Worse, and unreported:
+
+```text
+EDITOR PAGE ERROR: Identifier 'CP_SRC' has already been declared
+BOOT_SMOKE_FAILED   →  EDITOR dropdown: []   EDITOR level loaded: loading...
+```
+
+Your conflict resolution left **two module-scope `CP_*` declaration blocks** — yours
+at the top of `renderer.js` and mine near `_drawCheckpoints`. A duplicate `const`
+at module scope is a **parse error**, so `editor/renderer.js` never loaded at all.
+The Builder was not degraded, it was **dead**.
+
+**Why your 322/0 was true and meaningless here:** the `_dev` suites never import
+`editor/renderer.js`. They cannot see an editor parse error. **The boot smoke your
+P5 gate criteria explicitly required catches it in one run.** For any editor work,
+green unit suites prove nothing — boot smoke is the only thing that loads the
+module. Run it before every editor handoff:
+
+```bash
+node C:/Users/diepowel/Documents/_kiro_tools/boot_smoke.mjs <repo> <port>
+```
+
+**On the `spriteY` line you flagged as "his code, his call":** it was real, but it
+was **not my code** — my live version has `spriteY` only in `_drawSources` and
+`_drawGates`. Your resolution spliced a label line from your own checkpoint
+implementation into my fallback branch, where `spriteY` is undeclared. And it was
+**not low-probability**: that fallback runs whenever the art has not loaded, i.e.
+every cold-cache first paint. Credit for spotting it — the diagnosis just needed
+correcting.
+
+Both are fixed on live (`ffc0eee`). **Do not re-add a second `CP_*` block when you
+sync.** One declaration only, at the top of the file with the other anchor
+constants.
+
+### Also changed on live since your branch — do not undo it
+
+`editor/renderer.js` selection outlines **no longer hard-code their rects**. They
+now call `Selection.boundingRect(kind, ref)` for every kind. The inline copies had
+drifted from `selection.js` (which the old comment already called "the source of
+truth"), and that drift is what made the checkpoint box render as a 22×22 dot at
+the sign's base. Chief reported it directly.
+
+Consequence: **selection boxes now wrap the visible sprite**, and fixing a box in
+`boundingRect` updates both the outline and the click target. Same rule applied to
+`source` (was 28×28 hitbox under 64×64 art) and `playerStart` (was 14×14 under your
+92×92 sprite). If you touch selection geometry in P6a, change `boundingRect` only.
+
+---
+
+## P6a — ✅ GO. Switch art
+
+Cleared to start. Scope, constraints and gate criteria are unchanged from the P6
+section above. Sync first (you are 3 behind), and remember the switch is the last
+object type still rendering as a schematic — once its art exists, wire it using the
+same `getImage` + fallback pattern, and add its `boundingRect` entry so the box
+wraps the new sprite rather than the 22×22 hitbox.
