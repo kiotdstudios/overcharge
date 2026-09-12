@@ -498,3 +498,18 @@ Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was
 - Suites: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
 
 **Follow-up for Aki (logged, not blocking):** `agent/aki-editor` must be reset onto the current live line before her next order — her worktree still carries the pre-purge asset tree and will trip the same gate every time. Waste Zone belongs only on `wip/aki-waste-zone-legacy`.
+
+---
+
+## 2026-09-12 — Chief field report: zoom readout/range + tool_hammer stray pixel & sizing
+
+**Zoom (editor):**
+- `editor/state.js`: zoom cap 4 → 6.25 (exactly two more 1.25x steps in, per Chief).
+- `editor/main.js` `refreshUI()`: the 100% button is now a live readout (100% → 125% → … → 625%); clicking it still resets. Verified in-browser: full sequence climbs to 625%, reset returns 100%, zoom-out updates, zero page errors.
+
+**"Bridge piece" = `props/tool_hammer.png`** (identified via labeled contact sheet + alpha-island scan of all 55 purple_city crops):
+- Had a detached 9px blob at its bottom-left (the stray pixel in Chief's screenshot) and was 25x20 — didn't fill a 32px grid square.
+- Fixed: stray region cleared, body cropped and nearest-neighbor upscaled to fill 32px width (32x25 art on a 32x32 canvas, top-left anchored). Original archived at `Documents\Archived\tool_hammer_original_2026-09-12.png`. Manifest width/height updated in both ASSET_MANIFEST and PURPLE_CITY_INDEX.
+- Also noted during scan: `rooftop/conduit_cluster.png` has a 1px stray at (2,19) — left alone, not in Chief's report; flagged for a future art pass.
+
+**Tests:** parity 75/0 · zoom probe clean · boot smoke OK.

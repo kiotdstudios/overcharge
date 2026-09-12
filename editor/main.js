@@ -522,6 +522,9 @@ window.addEventListener('beforeunload', (e) => {
 
 // ── UI refresh (subscribes to every state change) ─────────────────────────
 function refreshUI() {
+  // Live zoom readout on the reset button (Chief: number must change with ±).
+  // Click still resets to 100%.
+  if (zoomResetBtn) zoomResetBtn.textContent = Math.round(state.camera.zoom * 100) + '%';
   // Active tool button highlight
   toolBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.tool === state.tool));
   const cur = TOOLS[state.tool];

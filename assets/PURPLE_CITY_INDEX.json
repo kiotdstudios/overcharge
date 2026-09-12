@@ -380,8 +380,8 @@
       "id": "tool_hammer.png",
       "path": "assets/tilesets/purple_city/props/tool_hammer.png",
       "category": "prop",
-      "width": 25,
-      "height": 20,
+      "width": 32,
+      "height": 32,
       "tags": [
         "purple_city",
         "props"

@@ -1264,7 +1264,9 @@
         "layer": "foreground",
         "density": "sparse",
         "stackable": false
-      }
+      },
+      "width": 32,
+      "height": 32
     },
     {
       "id": "env_waste_platform_long",

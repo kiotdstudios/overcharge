@@ -464,7 +464,8 @@ export function zoomCamera(factor, anchorScreenX, anchorScreenY) {
   const c = state.camera;
   const worldX = c.x + anchorScreenX / c.zoom;
   const worldY = c.y + anchorScreenY / c.zoom;
-  c.zoom = Math.max(0.25, Math.min(4, c.zoom * factor));
+  // Max was 4; Chief needs two more 1.25x steps in (4 * 1.25^2 = 6.25).
+  c.zoom = Math.max(0.25, Math.min(6.25, c.zoom * factor));
   c.x = worldX - anchorScreenX / c.zoom;
   c.y = worldY - anchorScreenY / c.zoom;
   notify();
