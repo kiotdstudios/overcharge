@@ -5,6 +5,56 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## Game favicon: purple bolt (distinct from the editor)
+
+- **Date:** 2026-09-12T17:20-04:00
+- **Branch:** `agent/orcha-dev` (synced, 0 behind live)
+- **Directive:** Chief, 2026-09-12: game favicon should be another colour from the editor so the tabs are tellable apart.
+
+### What was actually wrong
+
+The game had **no favicon and no `<title>` at all**. `editor.html` already carried a
+yellow bolt icon, so the editor tab looked branded while the game tab showed the
+browser default globe plus the raw URL. The problem was not a wrong colour, it was
+a missing icon.
+
+### Fix
+
+`index.html` head gains a `<title>OVERCHARGE</title>` and an inline SVG data-URI
+favicon: the same bolt silhouette and same `#091526` background as the editor, so
+they still read as one project, with the bolt in `#cc44ff` purple.
+
+| | bolt | background |
+|---|---|---|
+| game (`index.html`) | `#cc44ff` purple | `#091526` |
+| editor (`editor.html`) | `#ffee00` yellow | `#091526` |
+
+Purple was chosen because it is the charge/gate colour used throughout play, so
+the game tab matches what the game looks like.
+
+### Verified
+
+- Both data URIs decoded and checked: well-formed SVG, single root, bolt path
+  present, no raw `#`, `"` or `<` that could break the HTML attribute.
+- Colour separation measured, not eyeballed: RGB distance **310.7 of 441 max**,
+  comfortably distinguishable at 16px tab size.
+- `index.html` structure intact: head/body balanced, one `<title>`, one icon link,
+  `canvas id="game"` present, module script and `src_scroll/main.js` still wired.
+- Suites unchanged: crate_timed **87/0** · energy **87/0** · parity **110/0** ·
+  electricity **37/0** = **321/0**. Boot smoke **PAGES_RUNTIME_BOOT_OK**.
+
+### Noted, not changed
+
+`index_classic.html` ("OVERCHARGE Classic") also has no favicon. It is outside the
+directive and I did not touch it. Say the word if you want it given a third colour,
+or left plain deliberately so it never gets confused with the live game.
+
+### Scope
+
+One file, `index.html`. No runtime code, no editor, no assets, no levels.
+
+---
+
 ## ORDER CRATE_TIMED — Conductive Crate + Timed Device
 
 - **Date:** 2026-09-12T15:55-04:00

@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OVERCHARGE</title>
+  <!-- Favicon: PURPLE bolt, deliberately different from the editor's YELLOW bolt
+       (editor.html) so the game tab and the editor tab are distinguishable at a
+       glance. Chief directive 2026-09-12.
+         game   = #cc44ff purple  (the charge/gate colour used throughout play)
+         editor = #ffee00 yellow
+       Same bolt silhouette and same #091526 background in both, so they still
+       read as the same project. Inline SVG data URI, matching the editor's
+       approach: no new file, nothing to 404, works on the Pages deploy. -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23091526'/%3E%3Cpath d='M18 3 L8 18 L14 18 L12 29 L24 12 L17 12 Z' fill='%23cc44ff' stroke='%237711cc' stroke-width='0.5'/%3E%3C/svg%3E">
   <style>
     /* Fullscreen presentation (Chief §4): the canvas COVERS the viewport.
        No pillarboxing. viewport.js sizes the backing store in WORLD pixels
