@@ -46,7 +46,7 @@ const STORE = STORE_KV;               // this module's own store
 
 // Keys within the kv store.
 const KEY_DIR_HANDLE = 'saveDirHandle';
-const LEVEL_PREFIX   = 'level:';      // level:<levelKey>
+// (ORDER 005: the `level:` key prefix and its accessors were removed — see below.)
 
 let _dbPromise = null;
 
@@ -117,41 +117,9 @@ export function clearDirHandle() {
   return _safe(() => _tx('readwrite', s => s.delete(KEY_DIR_HANDLE)));
 }
 
-// ── Saved level mirror ───────────────────────────────────────────────────
-// A record is { levelKey, filename, name, number, json, savedAt, method }.
-// `json` is the serialized level exactly as written to disk, so a byte
-// comparison against the committed copy is meaningful.
-export function putLevel(record) {
-  if (!record || !record.levelKey) return Promise.resolve(null);
-  return _safe(() => _tx('readwrite', s => s.put(record, LEVEL_PREFIX + record.levelKey)));
-}
-export function getLevel(levelKey) {
-  if (!levelKey) return Promise.resolve(null);
-  return _safe(() => _tx('readonly', s => s.get(LEVEL_PREFIX + levelKey)));
-}
-export function deleteLevel(levelKey) {
-  if (!levelKey) return Promise.resolve(null);
-  return _safe(() => _tx('readwrite', s => s.delete(LEVEL_PREFIX + levelKey)));
-}
-
-// All mirrored saves, newest first. Used to populate the level dropdown so
-// local-only work is visible and switchable.
-export async function allLevels() {
-  const rows = await _safe(async () => {
-    const db = await _open();
-    return new Promise((resolve, reject) => {
-      const tx    = db.transaction(STORE, 'readonly');
-      const store = tx.objectStore(STORE);
-      const out   = [];
-      const req   = store.openCursor();
-      req.onsuccess = () => {
-        const cur = req.result;
-        if (!cur) { resolve(out); return; }
-        if (typeof cur.key === 'string' && cur.key.startsWith(LEVEL_PREFIX)) out.push(cur.value);
-        cur.continue();
-      };
-      req.onerror = () => reject(req.error);
-    });
-  }, []);
-  return (rows || []).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
-}
+// ── ORDER 005 ────────────────────────────────────────────────────────────
+// The saved-level mirror (the read/write/list accessors keyed by
+// `level:*`) has been REMOVED. Git-tracked JSON in src_scroll/levels is
+// the only authored level store; IndexedDB keeps only the save-folder handle
+// above (a machine-local capability) and the snapshots store (edit history,
+// never a level source). Do not reintroduce a level mirror here.

@@ -106,6 +106,37 @@ export async function chooseSaveFolder() {
   return await _ensureSaveDir();
 }
 // Public: current save folder name for UI display.
+// ORDER 005: expose the active folder handle (restore-if-possible, no picker)
+// so button handlers can hard-require it before Git-file operations.
+export async function currentSaveDir() {
+  try { return await _ensureSaveDir(); } catch { return null; }
+}
+
+// ORDER 005: delete a level's JSON files from the Git folder and drop it from
+// the order manifest. Working-tree deletion only — git history is the undo.
+export async function deleteLevelFiles(number) {
+  const dir = await _ensureSaveDir();
+  if (!dir) return { ok: false, message: 'No Git folder set.' };
+  let removed = [];
+  const canonical = `level${number}.json`;
+  try { await dir.removeEntry(canonical); removed.push(canonical); }
+  catch (err) { if (err?.name !== 'NotFoundError') return { ok: false, message: `Could not delete ${canonical}: ${err.message}` }; }
+  // Descriptive variants: any other JSON whose parsed number matches.
+  try {
+    for await (const entry of dir.values()) {
+      if (entry.kind !== 'file' || !/\.json$/i.test(entry.name)) continue;
+      if (entry.name === canonical || entry.name === LEVELS_MANIFEST) continue;
+      try {
+        const data = JSON.parse(await (await entry.getFile()).text());
+        if (data.number === number) { await dir.removeEntry(entry.name); removed.push(entry.name); }
+      } catch { /* non-level JSON — leave it alone */ }
+    }
+  } catch { /* enumeration failed — canonical removal already done */ }
+  try { await removeFromLevelOrder(number); } catch { /* manifest may not exist */ }
+  if (removed.length === 0) return { ok: false, message: `No files for level ${number} found in the folder.` };
+  return { ok: true, message: `Deleted ${removed.join(' + ')} from the Git folder.` };
+}
+
 export function saveFolderName() {
   return _saveDirHandle ? _saveDirHandle.name : null;
 }
@@ -166,24 +197,98 @@ export async function discoverLevels() {
     } catch { break; }
   }
 
-  // Tier 3: mirrored local saves from IndexedDB. Appended rather than merged
-  // so BOTH the local save and the committed copy appear and Chief can switch
-  // between them deliberately.
-  try {
-    for (const rec of await LocalStore.allLevels()) {
-      found.push({
-        source:   'idb',
-        levelKey: rec.levelKey,
-        name:     rec.name || 'local save',
-        number:   rec.number ?? 999,
-        filename: rec.filename || null,
-        savedAt:  rec.savedAt || 0,
-      });
-    }
-  } catch { /* storage unavailable — bundled levels still listed */ }
+  // ORDER 005: IndexedDB is NOT an authored-level source. Git-tracked JSON
+  // (the chosen folder = the local clone's src_scroll/levels, or the served
+  // committed copies) is the ONLY place levels live. Browser storage keeps
+  // only preview/recovery/snapshot state.
 
-  found.sort((a, b) => (a.number || 0) - (b.number || 0));
+  // Sort by the Git-tracked manifest order; unknown levels append after.
+  const manifest = await loadLevelOrder();
+  const pos = new Map(manifest.order.map((e, i) => [e.number, i]));
+  found.sort((a, b) =>
+    (pos.get(a.number) ?? 900 + (a.number || 0)) -
+    (pos.get(b.number) ?? 900 + (b.number || 0)));
   return found;
+}
+
+// ── Level-order manifest (Git-tracked project data) ──────────────────────
+// src_scroll/levels/levels.json is the ONE place level order lives. The
+// Builder shows/edits it and the runtime's progression + [ / ] use it.
+// Never inferred from browser state or filename accidents.
+export const LEVELS_MANIFEST = 'levels.json';
+
+export async function loadLevelOrder() {
+  // Prefer the live file in the chosen Git folder, else the served copy.
+  if (_saveDirHandle) {
+    try {
+      const fh   = await _saveDirHandle.getFileHandle(LEVELS_MANIFEST);
+      const data = JSON.parse(await (await fh.getFile()).text());
+      if (Array.isArray(data.order)) return data;
+    } catch { /* fall through to fetch */ }
+  }
+  try {
+    const res = await fetch('src_scroll/levels/' + LEVELS_MANIFEST, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data.order)) return data;
+    }
+  } catch { /* no manifest yet */ }
+  return { _schema: 'overcharge-levels-manifest@1', order: [] };
+}
+
+// Write the manifest into the chosen Git folder, then read it back to verify.
+// Returns { ok, message }. Requires the folder — order edits are project data
+// and MUST land in Git, so there is no browser-storage fallback by design.
+export async function writeLevelOrder(manifest) {
+  const dir = await _ensureSaveDir();
+  if (!dir) return { ok: false, message: 'Set the FOLDER (src_scroll/levels in your Git clone) first.' };
+  const json = JSON.stringify(manifest, null, 2);
+  try {
+    const fh = await dir.getFileHandle(LEVELS_MANIFEST, { create: true });
+    const w  = await fh.createWritable();
+    await w.write(json); await w.close();
+    const back = await (await (await dir.getFileHandle(LEVELS_MANIFEST)).getFile()).text();
+    if (back !== json) return { ok: false, message: 'Manifest write verification FAILED — file on disk does not match.' };
+    return { ok: true, message: `Level order saved + verified (${LEVELS_MANIFEST}) — commit & push to publish.` };
+  } catch (err) {
+    return { ok: false, message: 'Manifest write failed: ' + err.message };
+  }
+}
+
+// Ensure the given level is present in the manifest (appends at the end).
+// Only writes when something changed AND a folder is set; returns quietly
+// otherwise so plain saves never hard-fail on manifest bookkeeping.
+export async function ensureInLevelOrder(L) {
+  if (!L || L.number == null || !_saveDirHandle) return null;
+  const manifest = await loadLevelOrder();
+  const hit = manifest.order.find(e => e.number === L.number);
+  if (hit) {
+    if (hit.name === (L.name || hit.name)) return null;
+    hit.name = L.name || hit.name;
+  } else {
+    manifest.order.push({ number: L.number, name: L.name || `LEVEL ${L.number}`, file: `level${L.number}.json` });
+  }
+  return writeLevelOrder(manifest);
+}
+
+// Move a level up/down in the Git-tracked order. delta = -1 (earlier) | +1.
+export async function moveLevelInOrder(number, delta) {
+  const manifest = await loadLevelOrder();
+  const i = manifest.order.findIndex(e => e.number === number);
+  if (i < 0) return { ok: false, message: `Level ${number} is not in the manifest — SAVE it first.` };
+  const j = i + delta;
+  if (j < 0 || j >= manifest.order.length) return { ok: false, message: 'Already at that end of the order.' };
+  [manifest.order[i], manifest.order[j]] = [manifest.order[j], manifest.order[i]];
+  return writeLevelOrder(manifest);
+}
+
+export function removeFromLevelOrder(number) {
+  return loadLevelOrder().then(manifest => {
+    const before = manifest.order.length;
+    manifest.order = manifest.order.filter(e => e.number !== number);
+    if (manifest.order.length === before) return null;
+    return writeLevelOrder(manifest);
+  });
 }
 
 // Load a level entry produced by discoverLevels(). Returns the loaded level
@@ -193,12 +298,7 @@ export async function loadLevelEntry(entry) {
   if (!entry) return null;
   try {
     let data;
-    if (entry.source === 'idb') {
-      const rec = await LocalStore.getLevel(entry.levelKey);
-      if (!rec) return null;
-      data = JSON.parse(rec.json);
-      state.levelPath = 'idb:' + entry.levelKey;
-    } else if (entry.source === 'dir' && entry.handle) {
+    if (entry.source === 'dir' && entry.handle) {
       const file = await entry.handle.getFile();
       data = JSON.parse(await file.text());
       state.levelPath = 'dir:' + entry.filename;    // sentinel — save uses dir handle
@@ -216,44 +316,12 @@ export async function loadLevelEntry(entry) {
   } catch (err) { console.error('[persistence] loadLevelEntry failed:', err); return null; }
 }
 
-// ── Durable local mirror ─────────────────────────────────────────────────
-// A disk write is invisible to the next boot: bootstrap fetches level JSON
-// from the server origin, which on a static host is the copy committed in git.
-// Mirroring each save into IndexedDB is what lets the editor reopen on the
-// user's own latest work. Keyed by level NUMBER so a custom save filename
-// (e.g. 847291_WIRED_SPIRE.json) still resolves to "the local level 1".
-export function persistKeyForLevel(L) {
-  if (!L) return null;
-  return (L.number != null) ? ('num:' + L.number) : null;
-}
-
-async function _mirrorSave(L, filename, method) {
-  const levelKey = persistKeyForLevel(L);
-  if (!levelKey) return;
-  await LocalStore.putLevel({
-    levelKey,
-    filename,
-    name:    L.name ?? null,
-    number:  L.number ?? null,
-    json:    JSON.stringify(L, null, 2),
-    savedAt: Date.now(),
-    method,
-  });
-  // Point the editor at the copy that will actually survive a restart. Without
-  // this the LEVEL dropdown keeps highlighting the committed entry after a save,
-  // so the UI claims to be on the committed level while showing local edits.
-  state.levelPath = 'idb:' + levelKey;
-}
-
-// Look up the mirrored save for a level number. Returns the record or null.
-export function getPersistedLevel(number) {
-  if (number == null) return Promise.resolve(null);
-  return LocalStore.getLevel('num:' + number);
-}
-export function forgetPersistedLevel(number) {
-  if (number == null) return Promise.resolve(null);
-  return LocalStore.deleteLevel('num:' + number);
-}
+// ── ORDER 005 ────────────────────────────────────────────────────────────
+// The IndexedDB level mirror is GONE. Git-tracked JSON in the chosen folder
+// (the local clone's src_scroll/levels) is the only authored level store.
+// The two-laptop flow is: Builder SAVE → git commit/push → other laptop
+// pulls → Builder loads the same JSON. IndexedDB keeps only the folder
+// handle (a machine-local capability, not level data) and edit snapshots.
 
 // ── Save ─────────────────────────────────────────────────────────────────
 // Returns { ok, method, message }. Never throws. Never fakes success.
@@ -306,24 +374,32 @@ export async function saveCurrentLevel() {
       if (L.number != null) {
         canonical = `level${L.number}.json`;
         if (canonical !== filename) {
-          try {
-            const ch = await dir.getFileHandle(canonical, { create: true });
-            const cw = await ch.createWritable();
-            await cw.write(json);
-            await cw.close();
-          } catch (err) {
-            canonical = null;   // report the truth: only the variant landed
-            console.warn('[editor] canonical level file not written:', err && err.message);
-          }
+          const ch = await dir.getFileHandle(canonical, { create: true });
+          const cw = await ch.createWritable();
+          await cw.write(json);
+          await cw.close();
         }
+      }
+      // ── ORDER 005: VERIFY the canonical file actually landed ─────────
+      // Read the just-written file back and byte-compare. A save that did
+      // not produce the exact canonical levelN.json is a FAILED save —
+      // never report a fake "saved" state.
+      const verifyName = canonical || filename;
+      const back = await (await (await dir.getFileHandle(verifyName)).getFile()).text();
+      if (back !== json) {
+        return { ok: false, method: 'fsa-dir',
+          message: `SAVE FAILED verification — ${verifyName} on disk does not match the editor. Nothing marked saved.` };
       }
       state.dirty = false;
       state.lastSavedAt = Date.now();
-      await _mirrorSave(L, filename, 'fsa-dir');
+      state.levelPath = 'dir:' + verifyName;
+      // Keep the Git-tracked order manifest in sync (append-if-missing).
+      try { await ensureInLevelOrder(L); } catch (err) { console.warn('[editor] manifest sync:', err.message); }
       notify();
       const wrote = canonical && canonical !== filename
         ? `${filename} + ${canonical}` : filename;
-      return { ok: true, method: 'fsa-dir', message: `Saved to ${dir.name}/${wrote}` };
+      return { ok: true, method: 'fsa-dir',
+        message: `Saved + verified: ${dir.name}/${wrote} — commit & push to publish.` };
     } catch (err) {
       // Permission revoked / disk full / whatever — clear the dir and try
       // the per-file picker below as a last-ditch effort.
@@ -360,9 +436,9 @@ export async function saveCurrentLevel() {
         _handles.set(key, handle);
         state.dirty = false;
         state.lastSavedAt = Date.now();
-        await _mirrorSave(L, filename, 'fsa');
         notify();
-        return { ok: true, method: 'fsa', message: `Saved to ${handle.name}` };
+        return { ok: true, method: 'fsa',
+          message: `Saved to ${handle.name} — WARNING: not the Git levels folder; use FOLDER so saves land in src_scroll/levels.` };
       } catch (err) {
         _handles.delete(key);
         console.error('[persistence] FSA write failed, falling back:', err);
@@ -383,11 +459,11 @@ export async function saveCurrentLevel() {
     a.click();
     document.body.removeChild(a);
     setTimeout(() => URL.revokeObjectURL(url), 5000);
-    state.dirty = false;
-    state.lastSavedAt = Date.now();
-    await _mirrorSave(L, filename, 'download');
+    // ORDER 005: a download is NOT a save into the Git folder. The editor
+    // stays dirty and says so — no fake "saved" state.
     notify();
-    return { ok: true, method: 'download', message: `Downloaded ${filename} — place in src_scroll/levels/ and refresh.` };
+    return { ok: false, method: 'download',
+      message: `Downloaded ${filename} only — NOT saved to Git. Place it in src_scroll/levels/ and commit, or set FOLDER.` };
   } catch (err) {
     console.error('[persistence] Blob download failed:', err);
     return { ok: false, method: 'error', message: 'Save failed: ' + err.message };

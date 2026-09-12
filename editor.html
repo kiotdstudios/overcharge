@@ -246,8 +246,10 @@
             <button class="tp-btn" id="btn-history"  title="Level version history">🕔 HIST</button>
           </div>
           <div class="tp-row">
-            <button class="tp-btn warn" id="btn-revert-local" title="Revert to git version">↺ REVERT TO GIT</button>
-            <button class="tp-btn warn" id="btn-delete-level" title="Delete your local save of this level">&#128465; DELETE LEVEL</button>
+            <button class="tp-btn" id="btn-order-up" title="Move this level EARLIER in the Git-tracked level order (levels.json)">⬆ ORDER</button>
+        <button class="tp-btn" id="btn-order-down" title="Move this level LATER in the Git-tracked level order (levels.json)">⬇ ORDER</button>
+        <button class="tp-btn warn" id="btn-revert-local" title="Reload this level from the Git JSON, discarding unsaved editor changes">↺ REVERT TO GIT</button>
+            <button class="tp-btn warn" id="btn-delete-level" title="Delete this level's JSON files from the Git folder and drop it from the level order">&#128465; DELETE LEVEL</button>
           </div>
           <div class="tp-row" style="margin-top:5px;border-top:1px solid #1c2436;padding-top:5px">
             <button class="tp-btn" id="btn-export-backups" title="Download all snapshots as one backup package">⬇ EXPORT BACKUPS</button>
