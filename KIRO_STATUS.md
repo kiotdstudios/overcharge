@@ -872,3 +872,20 @@ Aki re-sent her P5 handoff still "standing by for the QA gate." I had gated and 
 **Written into her file:** P5 PASSED with the six verified sprite paths; the `CP_SRC` duplicate-declaration defect that killed the Builder, with the exact boot-smoke output; why her 322/0 was true but blind (the `_dev` suites never import `editor/renderer.js`) and the boot-smoke command to run before every editor handoff; the correction that the `spriteY` bug was her merge artifact rather than my code and was high-probability rather than low; an explicit "do not re-add a second `CP_*` block when you sync"; and notice that selection outlines now derive from `boundingRect` so she changes geometry in one place only. **P6a switch art cleared to start**, with the added requirement that she add the switch's `boundingRect` entry so its box wraps the new sprite instead of the 22×22 hitbox.
 
 She is 3 behind live and was told to sync first.
+
+---
+
+## 2026-09-12 — Board state + proactive grounding audit across all levels
+
+**Branch state:** live `8ceddc6` · Aki `b6df5ea` (5 behind, P6a just cleared, nothing pushed yet) · Orcha `7cfa2fd` (25 behind, **0 ahead** — placement-guards order not started yet). Both agents have live orders; neither has delivered.
+
+**Ran the grounding audit across every committed level** rather than waiting for Chief to find another floating object the way he found `CP1`:
+- `level1.json` / `1_NEON_RISE.json` — **clean**, all grounded + on grid (margin 0, ratified)
+- `level2.json` SPLIT DECISION — **clean**, all grounded + on grid (margin 4)
+- `99_CRATE_TIMED_TESTBED.json` — **3 floating objects** (two sources 36px up, checkpoint 64px up). Orcha's own hand-authored fixture, predates the grounding rule, not in `levels.json`, never seen by a player.
+
+**Told Orcha in his order addendum** what his own P1 guards will report, so he doesn't misread it: Chief's content is clean and must not be touched, his testbed legitimately fails and he should ground it rather than exempt it, `*_prev_backup.json` must be skipped (Builder safety copy, gitignored), and **not** to add a "margin must be positive" assertion — Level 1's margin 0 is deliberate and soft-lock-proof because it has no enemies and the checkpoint snapshot restores source and player charge together.
+
+**Critical path is now Chief's own lane.** Engine-side the GDD MVP system list is closed (gate, switch, conductive crate, timed device) and every mechanic Level 3 needs is verified working — the drone stuns and calls `player.scatter()` on contact. GDD §12 asks for three complete levels; two exist. Nothing blocks authoring Level 3 except the authoring itself.
+
+**Unvalidated by a human:** nobody has played Level 1 end-to-end since today's changes — economy (generators 4, exit 8), one generator removed, all objects regrounded, gate vertical-fill removed, dead-gate art, checkpoint art. All verified by harness and probe, none by play.
