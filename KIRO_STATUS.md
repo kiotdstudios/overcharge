@@ -376,3 +376,17 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 **QA gate (before push):** parity 71/0 · electricity 37/0 · energy 51/0 · boot smoke OK, zero page errors.
 
 **Chief instructions that resolve the field failure:** hard-refresh the builder (Ctrl+Shift+R) after any push + ~2 min Pages deploy lag; FOLDER requires desktop Chrome or Edge in a full tab.
+
+---
+
+## 2026-09-12 — Chief's Level 1 gate: published, then made chargeable + harness guard
+
+**Field events (Chief on the Pages builder, Chrome):**
+1. Chief saved a gate edit to NEON RISE via FOLDER → SAVE. Verified write landed in `src_scroll/levels/level1.json` + `1_NEON_RISE.json` (byte-identical). The desktop bat never committed it (window closed before the Y/N confirm), so the live game showed no change. I committed + pushed as `e2307e0` and verified the live Pages level1.json serves the gate. Also: gitignored the Builder's `*_prev_backup.json` safety copies and widened the bat's wildcard so descriptive `N_NAME.json` files publish too.
+2. Gate then wouldn't charge. Diagnosis: NOT a gameplay bug — the gate JSON had no `required` field (placed with the stale cached pre-005 editor; the current Builder defaults new gates to `required: 1`). Runtime math `required − charged` goes NaN, gate silently never fills.
+
+**Fix:** patched `level1.json` + `1_NEON_RISE.json`: `gate_1` now `required: 3, isExit: true` (matches the Level 1 puzzle design — absorb 3, spend 3 to exit). This also closes the long-standing "Level 1 non-completable / no exit gate" content gap.
+
+**Prevention:** parity harness now field-guards every committed gate and switch for a positive numeric `required` (71 → 75 checks). A required-less device can never pass the QA gate again.
+
+**Tests:** parity 75/0 · boot smoke OK, zero page errors. Lane note: no Orcha involvement needed — runtime behavior was correct for the data it was given.

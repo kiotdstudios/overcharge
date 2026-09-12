@@ -142,7 +142,19 @@ console.log('\n[ Committed canonical levels ]');
 const levelFiles = fs.readdirSync(levelDir).filter(name => /^level\d+\.json$/.test(name)).sort();
 check(levelFiles.length > 0, 'canonical level directory contains authored JSON levels');
 for (const filename of levelFiles) {
-  validateAuthoredLevel(JSON.parse(fs.readFileSync(path.join(levelDir, filename), 'utf8')), filename);
+  const data = JSON.parse(fs.readFileSync(path.join(levelDir, filename), 'utf8'));
+  validateAuthoredLevel(data, filename);
+  // Field-guard: a gate/switch without a positive numeric `required` can never
+  // be charged at runtime (required − charged is NaN). Caught live 2026-09-12
+  // when a gate saved by a stale cached editor shipped without the field.
+  for (const g of data.gates ?? []) {
+    check(Number.isFinite(g.required) && g.required > 0,
+      `${filename}: gate ${g.id} has a positive numeric required charge`);
+  }
+  for (const s of data.switches ?? []) {
+    check(Number.isFinite(s.required) && s.required > 0,
+      `${filename}: switch ${s.id} has a positive numeric required charge`);
+  }
 }
 
 console.log(`\nRESULTS: ${passed} passed, ${failed} failed`);
