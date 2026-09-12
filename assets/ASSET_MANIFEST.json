@@ -423,14 +423,14 @@
       }
     },
     {
-      "id": "env_tile_purple_edge_ref",
-      "_id_note": "STALE ID — this asset is crate_large.png (a container), not a tile or edge. Rename to env_container_crate_large pending cross-agent agreement.",
+      "id": "env_container_crate_large",
       "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "category": "construction_tile",
+      "category": "container",
       "tags": [
-        "construction",
-        "purple_edge",
-        "reference",
+        "container",
+        "crate",
+        "large",
+        "pushable_candidate",
         "purple_city"
       ],
       "frame_width": 50,
@@ -1112,17 +1112,17 @@
       }
     },
     {
-      "id": "env_tile_purple_edge_hollow_ref",
-      "_id_note": "STALE ID — this asset is crate_large_hollow.png (a container), not a tile or edge. Rename to env_container_crate_large_hollow pending cross-agent agreement.",
-      "category": "construction_tile",
+      "id": "env_container_crate_large_hollow",
+      "category": "container",
       "path": "assets/tilesets/purple_city/containers/crate_large_hollow.png",
       "frame_width": 50,
       "frame_height": 50,
       "tags": [
-        "construction",
-        "purple_edge",
+        "container",
+        "crate",
+        "large",
         "hollow",
-        "reference",
+        "pushable_candidate",
         "purple_city"
       ],
       "generation": {
@@ -1131,18 +1131,15 @@
       }
     },
     {
-      "id": "env_tech_panel_wide",
-      "_id_note": "STALE ID — path is containers/crates_double.png. Rename to env_container_crates_double pending cross-agent agreement.",
-      "category": "prop",
+      "id": "env_container_crates_double",
+      "category": "container",
       "path": "assets/tilesets/purple_city/containers/crates_double.png",
       "frame_width": 60,
       "frame_height": 34,
       "tags": [
-        "prop",
-        "tech",
-        "panel",
-        "equipment",
-        "ground_level",
+        "container",
+        "crate",
+        "double",
         "purple_city"
       ],
       "generation": {

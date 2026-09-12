@@ -618,3 +618,46 @@ Orcha ratified the ruling and re-verified the technical correction independently
 **Flagged a post-ruling change that affects his System 2:** `a654580` (TRUE DEAD gate art) rewrote the dormant branch of `PowerGate.draw`, which is exactly where timed-gate expiry lands. Logically D9 is untouched (`isDormant` unchanged, his composition still holds) but the expired timed gate will now draw `gate_electric_dead.png`, and there is already a shipped assertion pattern to follow. Also warned that `energy_authority.mjs` baseline moved **86 → 87** and lives in the same file he is about to extend — re-sync or conflict.
 
 **`docs/LEVEL4_5_DESIGN_BRIEF.md` created** (the Level 4/5 authoring constraint I committed to in the ruling). Level 4 needs no new systems and is authorable after Level 3. Level 5 depends on the crate, and the brief carries every crate constraint in plain authoring language: checkpoint required (parity-enforced), mis-push recovery, horizontal-only, exactly-one-device contact or it refuses, gates/switches only, stores nothing, 32×32 default. Also set a hard rule that available energy must EXCEED exit cost on any level where an enemy can knock charge loose — Level 1's exact-solution economy is acceptable only because it has no enemies.
+
+---
+
+## 2026-09-12 — Aki P1 branch reset VERIFIED COMPLETE; P3 GO issued
+
+**Verified on the remote, not taken on report:** `agent/aki-editor` @ `11c2d8d` — **0 waste files** (was 31), `AKI_SPECIALIZATION.md` present at `docs/agent-training/`, force-push `fba02ea → 11c2d8d` confirmed. Reset executed correctly and losslessly. The chronic divergence that forced the TOOLS_UI_LAYOUT cherry-pick is resolved.
+
+An asset diff now shows 2 files — `gate_electric_dead.png` + `.json` — but that is the live line having moved 3 commits AFTER her reset (dead-gate art + two docs commits), not a flaw in her work. Told her so explicitly so she doesn't chase it.
+
+**P3 cleared in `docs/AKI_ORDER_QUEUE.md`** with two additions that protect shipped rulings:
+- **Sync first** — she is 3 behind, and one of those commits changes what the palette should contain.
+- **`gate_electric_dead.png` must NOT enter the palette.** It is a runtime state file like `gate_closed.png` / `gate_electric_open.png`. Chief's one-gate-entry ruling stands; adding a second gate entry during re-curation would silently regress it. She must verify the palette still shows exactly one gate entry after her pass.
+- Also gave her the current baseline facts she is re-curating from: `tool_hammer.png` now 32×32, `conduit_cluster.png` deleted, both manifests mechanically pruned to 51.
+
+Gate criteria set: all suites 0 failed (energy baseline 87/0) + palette renders with no broken tiles.
+
+---
+
+## 2026-09-12 — QA gate: Aki's P3 doc + palette pass — PASSED, promoted, and the flagged ID debt CLEARED
+
+**Aki delivered** `412b7ed` + `88ea05d` on `agent/aki-editor`, **0 behind live** (she synced first as ordered — the P1 reset is holding). Diff scope exactly as claimed: `ASSET_MANIFEST.json`, `editor/MANIFEST.md`, `docs/LEVEL_SCHEMA.md`, `AKI_STATUS.md`. No assets, no code. Merge clean.
+
+**Verified, not taken on report:**
+- ASSET_MANIFEST parses (she introduced then fixed a trailing comma mid-pass — the committed version is valid). 51 entries.
+- **My guardrail held: exactly ONE gate entry** (`gate_electric_closed`). The dead-gate art did not leak into the palette; Chief's one-gate ruling intact.
+- `tool_hammer` frame dims corrected 25×20 → **32×32**, matching the resized file.
+- Path-exists sweep on BOTH manifests: **0 dead paths**.
+- Suites: parity 75/0 · electricity 37/0 · energy 87/0. New palette probe (`_kiro_tools/probe_palette.mjs`): **53 palette images, 0 broken, 0 failed PNG requests, 0 page errors.**
+
+**Her 3 `_id_note` flags were a real find — and I cleared them rather than carrying the debt.** She flagged crate art mislabelled as tiles but deferred renaming "pending cross-agent agreement." I checked whether renaming was actually risky: **level JSON stores `src` PATHS, not manifest ids** (decoration keys are `src,x,y,w,h,snap,family`), and there are **zero references to those 3 ids in any level or any code**. So the rename was provably safe and needed no agreement.
+
+Fixed with correct ids, categories and tags:
+| was | now | category |
+|---|---|---|
+| `env_tile_purple_edge_ref` | `env_container_crate_large` | construction_tile → **container** |
+| `env_tile_purple_edge_hollow_ref` | `env_container_crate_large_hollow` | construction_tile → **container** |
+| `env_tech_panel_wide` | `env_container_crates_double` | prop → **container** |
+
+Remaining `_id_note` count: **0**. This mattered more than cosmetics: Orcha is building the conductive crate system and Chief authors Level 5 with crates — having the actual crate sprites labelled "purple_edge construction tile" and "tech panel" would have hidden them from exactly the people about to need them.
+
+**Consequence worth surfacing: OVERCHARGE already has crate art.** `crate_large.png`, `crate_large_hollow.png`, `crates_double.png` are in the repo, now correctly tagged `container/crate/pushable_candidate`. Orcha's crate system and Chief's Level 5 do not need new art commissioned.
+
+**Aki status:** P1 complete, P3 complete. P2 (editor support for crate/timed) correctly holding on Orcha's schema.
