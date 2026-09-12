@@ -531,12 +531,10 @@ function _drawSwitches(ctx, arr) {
 // derives: scale = 56/108, dest = 128*scale, offX = 60*scale, offY = 117*scale.
 // If these two ever disagree, Chief authors to a lie — the Builder must show
 // exactly what the game draws.
-const CP_SRC = 128, CP_ART_H = 56, CP_BOX_H = 108, CP_BOX_CX = 60, CP_BOX_BOT = 117;
-const CP_SCALE = CP_ART_H / CP_BOX_H;
-const CP_DEST  = Math.round(CP_SRC * CP_SCALE);
-const CP_OFF_X = Math.round(CP_BOX_CX  * CP_SCALE);
-const CP_OFF_Y = Math.round(CP_BOX_BOT * CP_SCALE);
-
+// NOTE: the CP_* anchor constants live at the top of this file alongside the
+// other sprite-anchor constants. They were duplicated here during a merge, which
+// made this module throw "Identifier 'CP_SRC' has already been declared" and took
+// the whole Builder down. One declaration only — see the block near line 42.
 function _drawCheckpoints(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
@@ -573,7 +571,10 @@ function _drawCheckpoints(ctx, arr) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('CP', p.x + sw / 2, p.y + sh / 2);
     if (o.label || o.id) {
-      const lp = worldToScreen(o.x, spriteY + CP_DEST);
+      // Was `spriteY + CP_DEST` — spriteY is not in scope in this fallback branch,
+      // so this threw a ReferenceError whenever the art had not loaded. Use the
+      // CP box coords that ARE in scope: label sits just under the box.
+      const lp = { x: p.x + sw / 2, y: p.y + sh };
       ctx.fillStyle = MARKER.checkpoint;
       ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';

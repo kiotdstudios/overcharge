@@ -821,3 +821,25 @@ Chief reported the "CP" schematic box a second time. It was assigned to Aki's in
 **Aki's P5 rescoped** in `docs/AKI_ORDER_QUEUE.md`: checkpoint marked DONE with "do not redo", and pointed at my implementation as the reference for the pattern (runtime-copied anchors, `getImage` + fallback, no smoothing, labels on top). Her remaining scope: drone/enemies, crate, platform, playerStart. Switch stays schematic pending P6a art.
 
 **Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0**.
+
+---
+
+## 2026-09-12 — QA gate: Aki's P5 — caught a BUILDER-KILLING merge defect, fixed, then PASSED
+
+**Aki reported "322/0 on the merged tree, pushed, holding for QA" and flagged a possible `spriteY` scope bug in my checkpoint fallback, saying "his code, his call."**
+
+**She was half right, and the reality was worse than either of us said.**
+
+**1. The `spriteY` bug was NOT my code — it was her merge artifact.** My live version has `spriteY` only in `_drawSources` and `_drawGates`; there is none in `_drawCheckpoints`. Her conflict resolution spliced a label line from her own checkpoint implementation into my fallback branch, where `spriteY` is undeclared. Real ReferenceError, and NOT low-probability as she assumed — the fallback runs whenever the art has not loaded, i.e. on cold-cache first paint.
+
+**2. Far worse, and unreported: `Identifier 'CP_SRC' has already been declared`.** Her merge left **two module-scope `CP_*` declaration blocks** (hers at lines 45-48, mine at 534-537). A duplicate `const` at module scope is a **parse error**, so `editor/renderer.js` never loaded at all. **The Builder was completely dead** — boot smoke showed `EDITOR dropdown: []`, `EDITOR level loaded: loading...`, `BOOT_SMOKE_FAILED`. Not degraded. Dead.
+
+**Why her 322/0 was true and meaningless here:** the Node suites never import `editor/renderer.js`. They cannot see an editor parse error. **The boot smoke I explicitly required in her P5 gate criteria catches it in one run** — she did not run it. Recorded as the lesson: for editor work, green unit suites prove nothing; the boot smoke is the only thing that loads the module.
+
+**Fixes applied:** removed my duplicate `CP_*` block (kept hers at the top of the file — it is co-located with `PLAYER_SPRITE_*`, which is the better organisation) and repaired the fallback label to use the `p`/`sw`/`sh` box coords that are actually in scope. Both sites carry a comment explaining the failure so it is not reintroduced.
+
+**Then verified her actual P5 work properly, by observation rather than by report.** Patched `CanvasRenderingContext2D.prototype.drawImage` before boot and swept the camera across two levels; platforms and drones exist in NO committed level, so I injected one of each rather than claiming untested types worked. Result — real art confirmed drawing for **all six**: `generator 1/frame_000.png`, `gate_closed.png`, `checkpoint_flag/frame_000.png`, `crate_conductive.png`, `drone/idle/frame_000.png`, `idle_2.0/east/frame_000.png` (player start), plus tile and decoration art. Zero page errors.
+
+**Also confirmed the fallback path no longer throws** by blocking the checkpoint PNG to force it.
+
+**Verdict: PASSED after fix.** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke **OK**. Switch correctly remains schematic (no art — her P6a).
