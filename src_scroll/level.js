@@ -2,7 +2,7 @@
 import { TILE, COLS, ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
-import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy } from './entities.js';
+import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy, Crate } from './entities.js';
 
 export class Level {
   constructor(def) {
@@ -26,6 +26,9 @@ export class Level {
     });
     this.checkpoints = (def.checkpoints || []).map(d => new Checkpoint(d));
     this.platforms   = (def.platforms   || []).map(d => new MovingPlatform(d));
+    // ORDER CRATE_TIMED: an absent or empty `crates` array means ZERO behavioral
+    // change to every level authored before this order.
+    this.crates      = (def.crates      || []).map(d => new Crate(d));
     this.pickups  = [];
 
     // Background decoration sprites (buildings, props) drawn behind tiles
@@ -82,6 +85,10 @@ export class Level {
   update(dt, player) {
     for (const src  of this.sources)  src.update(dt);
     for (const pl   of this.platforms) pl.update(dt);
+    // Crates settle AFTER movers (so a crate resting on one sees its new y) and
+    // BEFORE gates/switches, so a crate that just slid into contact conducts on
+    // the same frame the player sees it touch.
+    for (const cr   of this.crates)   cr.update(dt, this);
     for (const gate of this.gates)    gate.update(dt);
     for (const sw   of this.switches) sw.update(dt);
     for (const p    of this.pickups)  p.update(dt, this);
@@ -133,6 +140,9 @@ export class Level {
         charged: g.charged, open: g.open,
         _openAge: g._openAge || 0, _reactT: g._reactT || 0,
         _pipFlash: g._pipFlash || 0,
+        // D9: a checkpoint taken mid-countdown must restore the remaining time,
+        // not a full duration — otherwise rewinding hands the player free time.
+        _timeLeft: g._timeLeft || 0,
       })),
       switches:    this.switches.map(sw => ({ charged: sw.charged, on: sw.on })),
       checkpoints: this.checkpoints.map(cp => ({ activated: cp.activated })),
@@ -141,6 +151,14 @@ export class Level {
         _cooldown: e._cooldown || 0, _hitFlash: e._hitFlash || 0, _t: e._t || 0,
       })),
       platforms:   this.platforms.map(pl => ({ x: pl.x, vx: pl.vx })),
+      // ORDER CRATE_TIMED D8 — MANDATORY, not optional. A crate's position is
+      // mutable gameplay state. Without it, dying after pushing a crate rewinds
+      // the player but leaves the crate moved, which is a silent soft-lock
+      // generator: the level can become unsolvable with nothing on screen
+      // looking wrong. Checkpoint restore is the ONLY recovery path from a
+      // mis-pushed crate, which is why the parity guard also requires any level
+      // containing crates to contain at least one checkpoint.
+      crates:      this.crates.map(c => ({ x: c.x, y: c.y, vy: c.vy })),
       complete:    this.complete,
     };
   }
@@ -164,6 +182,13 @@ export class Level {
     }
     for (let i = 0; i < this.platforms.length && i < snap.platforms.length; i++) {
       Object.assign(this.platforms[i], snap.platforms[i]);
+    }
+    // D8: guarded with `snap.crates &&` so a snapshot taken by an older build
+    // (or a level with no crates) restores without throwing.
+    if (snap.crates) {
+      for (let i = 0; i < this.crates.length && i < snap.crates.length; i++) {
+        Object.assign(this.crates[i], snap.crates[i]);
+      }
     }
     this.pickups  = [];   // transient — any post-checkpoint drops vanish on rewind
     this.complete = snap.complete;
@@ -207,6 +232,9 @@ export class Level {
 
     // 3. Moving platforms
     for (const pl of this.platforms) pl.draw(ctx);
+    // Crates draw after platforms and before the player, so a crate reads as a
+    // world solid the player stands in front of / on top of.
+    for (const cr of this.crates) cr.draw(ctx);
 
     // 4. Entities
     for (const src  of this.sources)  src.draw(ctx);

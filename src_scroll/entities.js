@@ -2,7 +2,7 @@
 // All enemies: contact stuns + scatters charge. Can be killed with the K attack.
 // Drops are defined as an array — { type: 'charge', value: N } for now;
 // new drop types (keys, upgrades, etc.) get added here later.
-import { TILE, STUN_DURATION, STUN_COOLDOWN } from './constants.js';
+import { TILE, STUN_DURATION, STUN_COOLDOWN, GRAVITY, CRATE_CONTACT_PAD, CRATE_SIZE } from './constants.js';
 import { ChargePickup } from './electricity.js';
 import { drawGlowRect } from './render.js';
 
@@ -418,5 +418,194 @@ export class DroneEnemy {
     ctx.restore();
 
     _drawHpBar(ctx, this.x, this.y, this.w, this.hp, this.maxHp);
+  }
+}
+
+// ── Crate (conductive, pushable) ───────────────────────────────────────
+// ORDER CRATE_TIMED System 1, semantics ratified in docs/KIRO_RULING_CRATE_TIMED_V1.md.
+//
+// D1: a crate is a PURE CONDUIT with ZERO capacity. It never stores, buffers or
+//     leaks energy — what enters passes straight through to the device it
+//     bridges, or is refused at the door. It is a wire, not a power bank.
+//     There is deliberately no `charge` field on this class.
+// D6: pushed horizontally by walking into it. No lift, no carry, no grab.
+// D7: solid to the player and to enemies; crates block each other.
+export class Crate {
+  constructor({ id, x, y, w = CRATE_SIZE, h = CRATE_SIZE }) {
+    this.id       = id;
+    this.x        = x;
+    this.y        = y;
+    this.w        = w;
+    this.h        = h;
+    this.vy       = 0;
+    this.grounded = false;
+    this._bridgeFx = 0;   // brief flash while energy is passing through
+  }
+
+  get cx() { return this.x + this.w / 2; }
+  get cy() { return this.y + this.h / 2; }
+
+  // ── D2: contact test — AABB overlap, crate box inflated by CRATE_CONTACT_PAD ──
+  touches(dev) {
+    const p = CRATE_CONTACT_PAD;
+    return this.x - p          < dev.x + dev.w &&
+           this.x + this.w + p > dev.x &&
+           this.y - p          < dev.y + dev.h &&
+           this.y + this.h + p > dev.y;
+  }
+
+  // ── D5 (Kiro VETO of first-in-order): resolve what this crate bridges ──
+  // Returns { state, target, all } where state is:
+  //   'ok'        exactly one eligible device      → conduct into it
+  //   'none'      bridges nothing                  → refuse, HUD NOT CONNECTED
+  //   'ambiguous' touching 2+ eligible devices     → REFUSE + warn (never guess)
+  //
+  // Delivery eligibility is GATES + SWITCHES ONLY. ElectricalSource has no
+  // receive() method (only drain()), so including it would throw TypeError at
+  // runtime — Kiro caught this on paper before implementation.
+  // Absorb-through-crate is explicitly deferred to v2.
+  //
+  // Devices already finished (open gate / switch already on) are skipped: they
+  // are not valid targets, and counting them would raise spurious ambiguity for
+  // a crate parked next to something already solved.
+  //
+  // blockOnly gates are EXCLUDED. blockOnly means "switch-only gate; the player
+  // cannot discharge into it directly" — letting a crate bridge into one would
+  // launder energy around that authoring intent. Derived from the documented
+  // meaning of blockOnly, not from the order text; flagged in the report.
+  bridgeTarget(level) {
+    const hits = [];
+    for (const g of level.gates) {
+      if (g.open || g.blockOnly) continue;
+      if (this.touches(g)) hits.push(g);
+    }
+    for (const sw of level.switches) {
+      if (sw.on) continue;
+      if (this.touches(sw)) hits.push(sw);
+    }
+    if (hits.length === 0) return { state: 'none',      target: null,    all: hits };
+    if (hits.length > 1)   return { state: 'ambiguous', target: null,    all: hits };
+    return                        { state: 'ok',        target: hits[0], all: hits };
+  }
+
+  // ── D6: horizontal push, all-or-nothing ──
+  // Returns the dx actually applied (0 = blocked). All-or-nothing is safe at
+  // 60fps because per-frame deltas are a few px; it guarantees a crate can never
+  // end up partially inside geometry.
+  tryMoveX(dx, level) {
+    if (dx === 0) return 0;
+    const nx = this.x + dx;
+    if (nx < 0 || nx + this.w > level.pxW) return 0;      // level edge
+    if (this._blockedAt(nx, this.y, level)) return 0;
+    this.x = nx;
+    return dx;
+  }
+
+  _overlaps(nx, ny, r) {
+    return nx < r.x + r.w && nx + this.w > r.x &&
+           ny < r.y + r.h && ny + this.h > r.y;
+  }
+
+  _blockedAt(nx, ny, level) {
+    const tL = Math.floor(nx / TILE);
+    const tR = Math.floor((nx + this.w - 1) / TILE);
+    const tT = Math.floor(ny / TILE);
+    const tB = Math.floor((ny + this.h - 1) / TILE);
+    for (let tx = tL; tx <= tR; tx++) {
+      for (let ty = tT; ty <= tB; ty++) {
+        if (level.solidAt(tx, ty)) return true;
+      }
+    }
+    for (const g of level.gates) {                 // a CLOSED gate is a wall
+      if (!g.open && this._overlaps(nx, ny, g)) return true;
+    }
+    for (const c of level.crates) {                // crates block each other
+      if (c !== this && this._overlaps(nx, ny, c)) return true;
+    }
+    return false;
+  }
+
+  // ── Gravity + resting ──
+  update(dt, level) {
+    this._bridgeFx = Math.max(0, this._bridgeFx - dt);
+    this.vy = Math.min(this.vy + GRAVITY * dt, 700);
+
+    const prevBottom = this.y + this.h;
+    this.y += this.vy * dt;
+    this.grounded = false;
+
+    if (this.vy >= 0) {
+      const tL   = Math.floor(this.x / TILE);
+      const tR   = Math.floor((this.x + this.w - 1) / TILE);
+      const tBot = Math.floor((this.y + this.h - 1) / TILE);
+
+      for (let tx = tL; tx <= tR; tx++) {                    // solid tiles
+        if (level.solidAt(tx, tBot)) { this._land(tBot * TILE); break; }
+      }
+      if (!this.grounded) {                                  // one-way (tile 2), from above only
+        for (let tx = tL; tx <= tR; tx++) {
+          if (level.tileAt(tx, tBot) === 2) {
+            const surf = tBot * TILE;
+            if (prevBottom <= surf + 8) { this._land(surf); break; }
+          }
+        }
+      }
+      if (!this.grounded) {                                  // stack on another crate
+        for (const c of level.crates) {
+          if (c === this) continue;
+          if (this.x < c.x + c.w && this.x + this.w > c.x &&
+              prevBottom <= c.y + 8 && this.y + this.h >= c.y) { this._land(c.y); break; }
+        }
+      }
+      if (!this.grounded) {                                  // rest on a mover (no carry — D6a)
+        for (const pl of level.platforms) {
+          if (this.x < pl.x + pl.w && this.x + this.w > pl.x &&
+              prevBottom <= pl.y + 8 && this.y + this.h >= pl.y) { this._land(pl.y); break; }
+        }
+      }
+    }
+    if (this.y < 0) { this.y = 0; this.vy = 0; }
+  }
+
+  _land(surfaceY) {
+    this.y        = surfaceY - this.h;
+    this.vy       = 0;
+    this.grounded = true;
+  }
+
+  // Solid AABB for player/enemy resolution (same shape as PowerGate.blocks)
+  blocks(rx, ry, rw, rh) {
+    return !(rx + rw <= this.x || rx >= this.x + this.w ||
+             ry + rh <= this.y || ry >= this.y + this.h);
+  }
+
+  // Procedural art — no new asset dependency (same approach as MovingPlatform).
+  draw(ctx) {
+    const x = Math.round(this.x), y = Math.round(this.y);
+    ctx.save();
+    ctx.fillStyle = '#4a3a2a';                       // body
+    ctx.fillRect(x, y, this.w, this.h);
+    ctx.fillStyle = '#6a5238';                       // top face
+    ctx.fillRect(x, y, this.w, 4);
+    ctx.strokeStyle = '#2a1d12';                     // frame
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x + 1, y + 1, this.w - 2, this.h - 2);
+    ctx.beginPath();                                 // diagonal brace
+    ctx.moveTo(x + 2, y + this.h - 2);
+    ctx.lineTo(x + this.w - 2, y + 2);
+    ctx.strokeStyle = '#3a2a1c';
+    ctx.stroke();
+    // Copper contacts — reads as "this thing conducts"
+    ctx.fillStyle = '#cc8844';
+    ctx.fillRect(x, y + this.h / 2 - 3, 3, 6);
+    ctx.fillRect(x + this.w - 3, y + this.h / 2 - 3, 3, 6);
+    if (this._bridgeFx > 0) {                        // energy passing through
+      ctx.globalAlpha = Math.min(1, this._bridgeFx * 3);
+      ctx.shadowBlur  = 16;
+      ctx.shadowColor = '#cc44ff';
+      ctx.fillStyle   = 'rgba(204,68,255,0.35)';
+      ctx.fillRect(x, y, this.w, this.h);
+    }
+    ctx.restore();
   }
 }

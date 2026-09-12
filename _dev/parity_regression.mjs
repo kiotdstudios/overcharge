@@ -139,7 +139,15 @@ for (const e of manifest.order) {
 check(new Set(manifest.order.map(e => e.number)).size === manifest.order.length, 'manifest has no duplicate level numbers');
 
 console.log('\n[ Committed canonical levels ]');
-const levelFiles = fs.readdirSync(levelDir).filter(name => /^level\d+\.json$/.test(name)).sort();
+// Scan BOTH naming conventions: canonical `levelN.json` AND the descriptive
+// `N_NAME.json` twins the Builder writes alongside them. The crate/timed guards
+// below are worthless if they only ever see half the authored levels — the
+// descriptive twin is what a human actually opens and edits.
+// `levels.json` is the manifest, not a level; `*_prev_backup.json` is a rollback
+// artefact and deliberately excluded.
+const levelFiles = fs.readdirSync(levelDir)
+  .filter(name => /^level\d+\.json$/.test(name) || /^\d+_[A-Z0-9_]+\.json$/.test(name))
+  .sort();
 check(levelFiles.length > 0, 'canonical level directory contains authored JSON levels');
 for (const filename of levelFiles) {
   const data = JSON.parse(fs.readFileSync(path.join(levelDir, filename), 'utf8'));
@@ -154,6 +162,42 @@ for (const filename of levelFiles) {
   for (const s of data.switches ?? []) {
     check(Number.isFinite(s.required) && s.required > 0,
       `${filename}: switch ${s.id} has a positive numeric required charge`);
+  }
+
+  // ── Crate field-guards (ORDER CRATE_TIMED, required by Kiro's ruling) ──
+  // Same precedent as the `required` guard above: catch authoring mistakes in
+  // the harness rather than as a runtime mystery.
+  const crates = data.crates ?? [];
+  const crateIds = new Set();
+  for (const c of crates) {
+    check(typeof c.id === 'string' && c.id.length > 0,
+      `${filename}: crate has a non-empty string id`);
+    check(!crateIds.has(c.id), `${filename}: crate id ${c.id} is unique within the level`);
+    crateIds.add(c.id);
+    check(Number.isFinite(c.x) && Number.isFinite(c.y),
+      `${filename}: crate ${c.id} has finite x/y`);
+    check(c.w === undefined || (Number.isFinite(c.w) && c.w > 0),
+      `${filename}: crate ${c.id} w is a positive number when present`);
+    check(c.h === undefined || (Number.isFinite(c.h) && c.h > 0),
+      `${filename}: crate ${c.id} h is a positive number when present`);
+  }
+  // The guard with teeth: a crate can be pushed into a pit or wedged against a
+  // wall, and v1 has no reset-crate button, so checkpoint restore is the ONLY
+  // recovery path. A crate level with no checkpoint is unrecoverable by design.
+  if (crates.length > 0) {
+    check((data.checkpoints ?? []).length > 0,
+      `${filename}: level contains crates, so it MUST contain at least one checkpoint ` +
+      `(checkpoint restore is the only recovery from a mis-pushed crate)`);
+  }
+
+  // Timed gates: duration must be a positive number, and timed+isExit is refused
+  // (a timed exit can expire during the level-complete transition).
+  for (const g of data.gates ?? []) {
+    if (!g.timed) continue;
+    check(g.duration === undefined || (Number.isFinite(g.duration) && g.duration > 0),
+      `${filename}: timed gate ${g.id} has a positive numeric duration`);
+    check(!g.isExit,
+      `${filename}: gate ${g.id} must not be BOTH timed and isExit (can strand the player)`);
   }
 }
 
