@@ -35,6 +35,7 @@ const MARKER = {
   enemy:      '#ff2244',
   checkpoint: '#44ff88',
   platform:   '#44aadd',
+  crate:      '#aa55ff',
   playerStart:'#ffffff',
   selection:  '#ffee00',
 };
@@ -183,6 +184,8 @@ export function render(ctx, canvas) {
   _drawMarkers(ctx, L.checkpoints, 'checkpoint', 'CP');
   _drawGates(ctx, L.gates);
   _drawEnemies(ctx, L.enemies);
+  _drawPlatforms(ctx, L.platforms);
+  _drawCrates(ctx, L.crates);
   _drawPlayerStart(ctx, L.playerStart);
 
   // Selection highlights — decorations, gameplay markers, tiles, playerStart.
@@ -216,6 +219,7 @@ export function render(ctx, canvas) {
       drawOutline({ x: o.x, y: o.y, w: ew, h: eh });
     }
     for (const o of (state.selection.platforms || [])) drawOutline({ x: o.x, y: o.y, w: o.w || 96, h: o.h || 12 });
+    for (const o of (state.selection.crates     || [])) drawOutline({ x: o.x, y: o.y, w: o.w || 32, h: o.h || 32 });
     for (const o of state.selection.gates)       drawOutline({ x: o.x,     y: o.y,     w: o.w, h: o.h });
 
     // playerStart triangle bounds
@@ -680,6 +684,47 @@ function _drawPlatforms(ctx, arr) {
     ctx.fillText('PLT', p.x + pw / 2, p.y - 2);
   }
 }
+
+// Conductive crate: purple-tinted rect with X contact-pad glyph and ID badge.
+// cr.x, cr.y = top-left. w/h default to 32 (matching the v1 schema).
+function _drawCrates(ctx, arr) {
+  if (!Array.isArray(arr)) return;
+  const z = state.camera.zoom;
+  const COLOR = MARKER.crate;
+  for (const cr of arr) {
+    const cw = (cr.w || 32) * z, ch = (cr.h || 32) * z;
+    const p  = worldToScreen(cr.x, cr.y);
+    // Body fill
+    ctx.fillStyle = 'rgba(50,20,90,0.75)';
+    ctx.fillRect(p.x, p.y, cw, ch);
+    // Glow border
+    ctx.save();
+    ctx.shadowBlur = Math.max(5, 7 * z); ctx.shadowColor = COLOR;
+    ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1.5, 2 * z);
+    ctx.strokeRect(p.x, p.y, cw, ch);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    // Diagonal X — suggests conductive bridge path
+    ctx.strokeStyle = COLOR; ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(p.x + 4, p.y + 4); ctx.lineTo(p.x + cw - 4, p.y + ch - 4);
+    ctx.moveTo(p.x + cw - 4, p.y + 4); ctx.lineTo(p.x + 4, p.y + ch - 4);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+    // "CR" glyph
+    ctx.fillStyle = COLOR;
+    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('CR', p.x + cw / 2, p.y + ch / 2);
+    // ID label below
+    if (cr.id) {
+      ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(cr.id, p.x + cw / 2, p.y + ch + 2);
+    }
+  }
+}
+
 
 function _drawPlayerStart(ctx, ps) {
   if (!ps) return;
