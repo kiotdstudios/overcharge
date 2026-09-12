@@ -63,3 +63,14 @@ export const MAX_BANKED_PIPS = 5;  // max pips player can hold
 // Player attack
 export const ATTACK_RADIUS   = 65;   // px — melee swing reach
 export const ATTACK_COOLDOWN = 0.35; // seconds between attacks
+
+// ── Conductive crate (ORDER CRATE_TIMED, ratified D2) ─────────────────────────
+// Contact inflation for the crate/device AABB test. A crate resting flush against
+// a device has exactly 0px gap and float positions after a push make
+// exact-equality unreliable, so the crate box is inflated by this much on all
+// sides. 2px is below a quarter tile, so it can never bridge a VISIBLE gap — a
+// crate must look like it is touching. Kiro ratified 2px specifically.
+export const CRATE_CONTACT_PAD = 2;
+
+// Default crate footprint when the level JSON omits w/h — exactly one tile.
+export const CRATE_SIZE = 32;

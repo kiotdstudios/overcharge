@@ -312,6 +312,61 @@ function _drawContextPrompts(ctx, player, t) {
     }
     ctx.restore();
   }
+
+  // ── Crate prompts (ORDER CRATE_TIMED — D3 / D4 / D5) ──────────────
+  // Reads the state resolved once in Player._updateContext, so the HUD can never
+  // disagree with what holding SPACE will actually do.
+  //
+  // Doctrine here is honest refusal over silent no-op: when a crate cannot
+  // conduct, the player is told WHY, not left pressing a key that does nothing.
+  //   'ok'         [SPACE] CHARGE VIA CRATE -> <device id>
+  //   'none'       NOT CONNECTED / TOUCH IT TO A GATE
+  //   'ambiguous'  AMBIGUOUS CONTACT / TOUCHING <n> DEVICES
+  if (!player.nearEnemy && !player.nearDevice && player.nearCrate) {
+    const cr = player.nearCrate;
+    const cx = cr.cx;
+    const cy = cr.y - 12;
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.textAlign   = 'center';
+    ctx.font        = 'bold 11px monospace';
+
+    if (player.crateBridge === 'ok' && player.crateTarget) {
+      if (player.discharging) {
+        ctx.fillStyle   = '#cc44ff';
+        ctx.shadowBlur  = 10;
+        ctx.shadowColor = '#cc44ff';
+        ctx.fillText('CHARGING VIA CRATE...', cx, cy);
+      } else {
+        const needed = player.crateTarget.required - player.crateTarget.charged;
+        ctx.fillStyle   = player.canAfford(needed) ? '#cc44ff' : '#ff4444';
+        ctx.shadowBlur  = 8;
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.fillText('[SPACE] CHARGE VIA CRATE', cx, cy);
+        ctx.font      = 'bold 9px monospace';
+        ctx.fillStyle = '#aa88cc';
+        ctx.fillText(`-> ${player.crateTarget.id}`, cx, cy + 11);
+      }
+    } else if (player.crateBridge === 'ambiguous') {
+      // D5 (Kiro veto): never guess which device gets the energy — say so.
+      ctx.fillStyle   = '#ffaa22';
+      ctx.shadowBlur  = 8;
+      ctx.shadowColor = '#ffaa22';
+      ctx.fillText('AMBIGUOUS CONTACT', cx, cy);
+      ctx.font      = 'bold 9px monospace';
+      ctx.fillStyle = '#ddaa66';
+      ctx.fillText('TOUCH ONLY ONE DEVICE', cx, cy + 11);
+    } else {
+      ctx.fillStyle   = '#8899aa';
+      ctx.shadowBlur  = 6;
+      ctx.shadowColor = '#8899aa';
+      ctx.fillText('NOT CONNECTED', cx, cy);
+      ctx.font      = 'bold 9px monospace';
+      ctx.fillStyle = '#667788';
+      ctx.fillText('PUSH IT TO A GATE', cx, cy + 11);
+    }
+    ctx.restore();
+  }
 }
 
 // ── Level progress bar (scroll levels) — bottom-center ───────────
