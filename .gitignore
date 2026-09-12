@@ -10,3 +10,7 @@ desktop.ini
 # Editor
 .vscode/settings.json
 *.suo
+
+# Builder safety copies written next to the canonical level JSON on SAVE.
+# Never authored content — the canonical file + git history are the truth.
+src_scroll/levels/*_prev_backup.json
