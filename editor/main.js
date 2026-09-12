@@ -313,40 +313,45 @@ function _updateFolderDisplay() {
   }
 }
 _updateFolderDisplay();
-// Escape hatch from a local-only level. The dropdown lets Chief LOOK at the
-// committed copy, but the game keeps preferring the local save until it is
-// either committed or explicitly discarded here.
+// ORDER 005: REVERT reloads the level from Git-tracked JSON, discarding
+// in-memory edits. There is no IndexedDB copy to discard anymore.
 const btnRevertLocal = document.getElementById('btn-revert-local');
 btnRevertLocal?.addEventListener('click', async () => {
   const num = state.level?.number;
   if (num == null) return;
-  const rec = await Persistence.getPersistedLevel(num);
-  if (!rec) {
-    showSaveFlash({ ok: false, message: `No local save for level ${num} — already on the git version.` });
-    return;
-  }
-  const when = rec.savedAt ? new Date(rec.savedAt).toLocaleString() : 'unknown time';
-  const msg = `Discard your local save of level ${num} (${rec.filename || 'unnamed'}, saved ${when}) `
-            + `and load the version committed in git?\n\nSnapshots and any file already written to your `
-            + `save folder are NOT affected.`;
+  const msg = `Reload level ${num} from the Git JSON (src_scroll/levels/level${num}.json), `
+            + `discarding any unsaved editor changes?\n\nSnapshots in history are NOT affected.`;
   if (!window.confirm(msg)) return;
-  await Persistence.forgetPersistedLevel(num);
-  // Go back to the committed entry for THIS level, not always level 1.
+  state.dirty = false;   // deliberate discard — skip the dirty prompt in switchToLevel
   const committed = (state.availableLevels || [])
-    .find(l => l.source === 'bundled' && l.number === num);
+    .find(l => l.source !== 'dir' && l.number === num);
   const ok = await Persistence.switchToLevel(
     committed || `src_scroll/levels/level${num}.json`);
   state.availableLevels = await Persistence.discoverLevels();
   refreshLevelSelect();
   showSaveFlash({ ok, message: ok
-    ? `Local save discarded — now on the git version of level ${num}.`
-    : `Local save discarded, but the git version failed to load.` });
+    ? `Reloaded level ${num} from Git.`
+    : `Could not load level ${num} from Git.` });
 });
+
+// ORDER 005: level ORDER buttons — move the current level in the Git-tracked
+// manifest (src_scroll/levels/levels.json). Requires the FOLDER so the edit
+// lands in the clone and can be committed; never stored in the browser.
+async function _moveOrder(delta) {
+  const num = state.level?.number;
+  if (num == null) { showSaveFlash({ ok: false, message: 'No level loaded.' }); return; }
+  const r = await Persistence.moveLevelInOrder(num, delta);
+  showSaveFlash(r);
+  if (r.ok) { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); }
+}
+document.getElementById('btn-order-up')  ?.addEventListener('click', () => _moveOrder(-1));
+document.getElementById('btn-order-down')?.addEventListener('click', () => _moveOrder(+1));
 
 
 // ── Delete level handler ──────────────────────────────────────────────────
-// Removes the IDB local save for the current level. Cannot remove committed
-// git versions — those require a git commit (REVERT just drops the local copy).
+// ORDER 005: deletes the level's JSON files from the chosen Git folder
+// (canonical level<N>.json + descriptive variant) and removes it from the
+// order manifest. Requires the FOLDER; git history remains the undo.
 const btnDeleteLevel = document.getElementById('btn-delete-level');
 btnDeleteLevel?.addEventListener('click', async () => {
   const num = state.level?.number;
@@ -354,16 +359,15 @@ btnDeleteLevel?.addEventListener('click', async () => {
     showSaveFlash({ ok: false, message: 'No level loaded.' });
     return;
   }
-  const rec = await Persistence.getPersistedLevel(num);
-  if (!rec) {
-    showSaveFlash({ ok: false, message: `Level ${num} has no local save — nothing to delete.` });
+  const dir = await Persistence.currentSaveDir();
+  if (!dir) {
+    showSaveFlash({ ok: false, message: 'Set the FOLDER (src_scroll/levels in your Git clone) first — deletion edits Git files.' });
     return;
   }
-  const when = rec.savedAt ? new Date(rec.savedAt).toLocaleString() : 'unknown time';
-  const title = 'DELETE LOCAL SAVE?';
-  const body  = `Delete your local save of level ${num} (saved ${when})?
+  const title = 'DELETE LEVEL FILES?';
+  const body  = `Delete level ${num}'s JSON from the Git folder (level${num}.json + its named variant) and remove it from the level order?
 
-This cannot be undone. Snapshots in history are NOT affected. Committed git version is not affected.`;
+The working-tree files are removed; git history still has them until you commit. Snapshots are NOT affected.`;
   const dlg = document.getElementById('confirm-dialog');
   if (dlg) {
     const titleEl = document.getElementById('confirm-title');
@@ -384,23 +388,18 @@ This cannot be undone. Snapshots in history are NOT affected. Committed git vers
     if (!ok) return;
   } else if (!window.confirm(body)) return;
 
-  await Persistence.forgetPersistedLevel(num);
-  // After delete: try committed version of this level, then first available, then new
+  const del = await Persistence.deleteLevelFiles(num);
+  if (!del.ok) { showSaveFlash(del); return; }
+  state.dirty = false;   // its files are gone by explicit choice
   state.availableLevels = await Persistence.discoverLevels();
-  const committed = (state.availableLevels || [])
-    .find(l => l.source === 'bundled' && l.number === num);
-  if (committed) {
-    await Persistence.switchToLevel(committed);
-  } else {
-    const next = (state.availableLevels || []).find(l => l.number !== num) || state.availableLevels?.[0];
-    if (next) await Persistence.switchToLevel(next);
-    else await Persistence.newLevel();
-  }
+  const next = (state.availableLevels || []).find(l => l.number !== num) || state.availableLevels?.[0];
+  if (next) await Persistence.switchToLevel(next);
+  else await Persistence.newLevel();
   state.availableLevels = await Persistence.discoverLevels();
   refreshLevelSelect();
   _statusSnapCount = null;
   refreshStatusStrip();
-  showSaveFlash({ ok: true, message: `Level ${num} local save deleted.` });
+  showSaveFlash({ ok: true, message: `Level ${num} files deleted from the Git folder — commit the deletion to publish it.` });
 });
 
 levelSelect?.addEventListener('change', async (e) => {
@@ -561,10 +560,10 @@ function refreshLevelSelect() {
       // Two rows can share a level number: the copy committed in git and
       // Chief's own newer save. Spell out which is which, and which one the
       // game will actually load, or it just looks like a duplicate.
-      const src = l.source === 'dir' ? '📂' : (l.source === 'idb' ? '💾' : '📦');
-      const tag = l.source === 'idb'  ? '  (your save · what the game plays)'
-                : l.source === 'dir'  ? '  (file in your save folder)'
-                :                       '  (in git)';
+      const src = l.source === 'dir' ? '📂' : '📦';
+      const tag = l.source === 'dir'
+        ? '  (Git folder file — commit & push to publish)'
+        : '  (committed in Git)';
       o.textContent = `${src} ${l.number ?? '?'} — ${l.name}${tag}`;
       levelSelect.appendChild(o);
     });
@@ -577,7 +576,6 @@ function refreshLevelSelect() {
     const path = state.levelPath || '';
     const idx = list.findIndex(l =>
       (l.source === 'dir' && ('dir:' + l.filename) === path) ||
-      (l.source === 'idb' && ('idb:' + l.levelKey) === path) ||
       (l.source === 'bundled' && l.path === path));
     levelSelect.value = idx >= 0 ? String(idx) : '';
     levelSelect._priorValue = levelSelect.value;
@@ -622,40 +620,9 @@ function refreshLevelInfo() {
 // "what the game will load".
 const parityStatus = document.getElementById('parity-status');
 
-// True when the loaded level came from local-only storage rather than the
-// committed server copy. Derived from state.levelPath rather than tracked in a
-// flag, so it cannot go stale when Chief switches back to a committed level.
-const _isLocalOnly = () => String(state.levelPath || '').startsWith('idb:');
-
-// Reopen on the user's own latest work. A save from a previous session lives
-// in IndexedDB (localstore.js), not on the server, so bootstrap must look for
-// it explicitly — otherwise the committed copy silently wins and the save
-// appears to have been lost. Requires no file permission, so it is safe to do
-// automatically without a user gesture.
-async function _restoreLocalSaveIfAny() {
-  try {
-    const rec = await Persistence.getPersistedLevel(state.level?.number);
-    if (!rec || !rec.json) return;
-    const committed = JSON.stringify(state.level, null, 2);
-    if (rec.json === committed) return;       // identical — nothing to restore
-    const local = JSON.parse(rec.json);
-    state.level     = local;
-    state.levelPath = 'idb:' + rec.levelKey;
-    state.dirty     = false;
-    notify();
-    const when = rec.savedAt ? new Date(rec.savedAt).toLocaleString() : 'earlier';
-    if (saveFlash) {
-      saveFlash.textContent = `\u21BA Restored your local save (${rec.filename || 'level ' + rec.number}, ${when}). Switch to \u{1F4E6} in the LEVEL menu for the committed version.`;
-      saveFlash.style.color = '#44ccff';
-      setTimeout(() => { saveFlash.textContent = ''; saveFlash.style.color = ''; }, 12000);
-    }
-    console.info('[editor] LOCAL SAVE RESTORED from IndexedDB', {
-      levelKey: rec.levelKey, filename: rec.filename, savedAt: when,
-    });
-  } catch (err) {
-    console.warn('[editor] local save restore skipped:', err.message);
-  }
-}
+// ORDER 005: the level on screen came from a Git-folder file (dir:) rather
+// than the served committed copy — meaning it may be ahead of what's pushed.
+const _isLocalOnly = () => String(state.levelPath || '').startsWith('dir:');
 
 function refreshParityStatus() {
   if (!parityStatus || !state.level) return;
@@ -1202,7 +1169,7 @@ async function bootstrap() {
     state.availableLevels = await Persistence.discoverLevels();
     await loadLevel(DEFAULT_LEVEL_URL);
     // Prefer a previous session's local save over the committed copy.
-    await _restoreLocalSaveIfAny();
+    // ORDER 005: no IndexedDB restore — the fetched Git JSON is the truth.
     History.clearAll();
     Selection.clearSelection();
     state.dirty = false;

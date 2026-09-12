@@ -325,31 +325,46 @@ function _drawCpFlash() {
 }
 
 // ── Which level am I actually playing? ───────────
-// The editor SAVE button cannot write to GitHub, so a saved level only reaches
-// the committed JSON after someone commits and pushes it. Until then the game
-// would load the OLD committed level and the save would look like it did
-// nothing. The editor mirrors every save into IndexedDB on this same origin,
-// so the game can read that mirror and play Chief's latest work immediately.
-//
-// Priority: ?test=1 preview  >  local save  >  committed JSON.
-// Add ?committed=1 to the URL to ignore the local save and play what is in git.
-async function _tryLocalSave(number) {
+// ORDER 005: the committed src_scroll/levels JSON is the ONLY authored source.
+// The IndexedDB "local save" path is GONE — the two-laptop flow is
+// Builder SAVE → git commit/push → other laptop pulls → same level.
+// Priority: ?test=1 preview (unsaved editor state)  >  committed JSON.
+// (?committed=1 is accepted for old bookmarks but is now the default behavior.)
+
+// ── Level-order manifest ──────────────────────────
+// src_scroll/levels/levels.json is Git-tracked project data listing level
+// order. The runtime's progression and the dev [ / ] switcher follow it.
+// Missing/invalid manifest falls back to a sequential level1..N probe.
+async function _loadLevelOrder() {
   try {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('committed') === '1') return null;
-    const LocalStore = await import('../editor/localstore.js');
-    const rec = await LocalStore.getLevel('num:' + number);
-    if (!rec || !rec.json) return null;
-    const def = JSON.parse(rec.json);
-    if (!def || !Array.isArray(def.tiles) || !def.playerStart) return null;
-    _normalizeLevelDef(def, 'LEVEL ' + number, number);
-    def.__localSavedAt = rec.savedAt || 0;
-    def.__localFilename = rec.filename || null;
-    return def;
-  } catch (err) {
-    console.warn('[game] local save lookup skipped:', err && err.message);
-    return null;
+    const res = await fetch('src_scroll/levels/levels.json', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!Array.isArray(data.order) || data.order.length === 0) return null;
+    return data.order;
+  } catch { return null; }
+}
+
+// Load every committed level in manifest order (fallback: sequential probe).
+async function _loadOrderedLevels() {
+  const order = await _loadLevelOrder();
+  const defs = [];
+  if (order) {
+    for (const e of order) {
+      const file = e.file || ('level' + e.number + '.json');
+      try {
+        defs.push({ num: e.number, def: await _loadJsonLevel('src_scroll/levels/' + file, e.name || ('LEVEL ' + e.number), e.number) });
+      } catch (err) {
+        console.warn('[game] manifest level missing, skipped:', file, err.message);
+      }
+    }
+  } else {
+    for (let n = 1; n <= 9; n++) {
+      try { defs.push({ num: n, def: await _loadJsonLevel('src_scroll/levels/level' + n + '.json', 'LEVEL ' + n, n) }); }
+      catch { break; }
+    }
   }
+  return defs;
 }
 
 // Chief must never have to guess which version is on screen.
@@ -384,15 +399,9 @@ let _DEV_LEVELS = [];   // [{num, def, kind}] populated by _discoverDevLevels
 let _devIdx     = 0;    // index into _DEV_LEVELS currently shown
 
 async function _discoverDevLevels() {
-  _DEV_LEVELS = [];
-  for (let n = 1; n <= 9; n++) {
-    const local = await _tryLocalSave(n);
-    if (local) { _DEV_LEVELS.push({ num: n, def: local, kind: 'local' }); continue; }
-    try {
-      const def = await _loadJsonLevel('src_scroll/levels/level' + n + '.json', 'LEVEL ' + n, n);
-      _DEV_LEVELS.push({ num: n, def, kind: 'committed' });
-    } catch { break; }   // 404 → no more levels
-  }
+  // ORDER 005: committed JSON only, in Git-tracked manifest order.
+  _DEV_LEVELS = (await _loadOrderedLevels())
+    .map(({ num, def }) => ({ num, def, kind: 'committed' }));
 }
 
 function _devSwitchLevel(idx) {
@@ -404,9 +413,8 @@ function _devSwitchLevel(idx) {
   state = STATES.PLAYING;
   const old = document.getElementById('level-source-badge');
   if (old) old.remove();
-  _showLevelSourceBadge(entry.kind,
-    'DEV \u00b7 LEVEL ' + entry.num + '/' + _DEV_LEVELS.length
-    + ' [' + (entry.kind === 'local' ? 'LOCAL SAVE' : 'COMMITTED') + ']'
+  _showLevelSourceBadge('committed',
+    'DEV \u00b7 LEVEL ' + entry.num + ' (' + (_devIdx + 1) + '/' + _DEV_LEVELS.length + ') [COMMITTED \u00b7 MANIFEST ORDER]'
     + '\n[ prev   ] next  \u2014 ?level=N to jump');
 }
 
@@ -447,31 +455,21 @@ async function _bootAsync() {
     LEVEL_DEFS = [_TEST_LEVEL];
     _showLevelSourceBadge('test', 'BUILDER TEST PREVIEW \u2014 unsaved editor level');
   } else {
-    const LEVEL1_PATH = 'src_scroll/levels/level1.json';
-    const local = await _tryLocalSave(1);
-    if (local) {
-      LEVEL_DEFS = [local];
-      const when = local.__localSavedAt
-        ? new Date(local.__localSavedAt).toLocaleString() : 'unknown time';
-      logLevelSource('[game] YOUR LOCAL SAVE',
-        'IndexedDB mirror of the editor SAVE (' + (local.__localFilename || 'level 1')
-        + ', ' + when + ') \u2014 NOT yet committed to git', local);
-      _showLevelSourceBadge('local',
-        'PLAYING YOUR LOCAL SAVE \u00b7 ' + (local.name || 'LEVEL 1')
-        + '\nsaved ' + when + ' \u2014 not committed \u00b7 ?committed=1 for the git version');
-    } else {
-      try {
-        const l1 = await _loadJsonLevel(LEVEL1_PATH, 'LEVEL 1', 1);
-        LEVEL_DEFS = [l1];
-        logLevelSource('[game] NORMAL GAME', LEVEL1_PATH + '  (authoritative committed JSON)', l1);
-        _showLevelSourceBadge('committed',
-          'COMMITTED LEVEL \u00b7 ' + (l1.name || 'LEVEL 1') + '  (src_scroll/levels/level1.json)');
-      } catch (err) {
-        console.error('[game] FATAL: Level 1 JSON failed to load', err);
-        _drawFatalLevelLoadError(err.message || 'unknown error');
-        return; // do NOT start the loop or fall back to a stale bundled level.
-      }
+    // ORDER 005: load ALL committed levels in Git-tracked manifest order.
+    // Progression (level complete → advanceLevel) walks this same order.
+    const ordered = await _loadOrderedLevels();
+    if (!ordered.length) {
+      console.error('[game] FATAL: no committed levels could be loaded');
+      _drawFatalLevelLoadError('no committed level JSON found');
+      return; // do NOT start the loop with nothing to play.
     }
+    LEVEL_DEFS = ordered.map(e => e.def);
+    const first = ordered[0];
+    logLevelSource('[game] NORMAL GAME',
+      'src_scroll/levels (committed JSON \u00b7 manifest order \u00b7 ' + ordered.length + ' level(s))', first.def);
+    _showLevelSourceBadge('committed',
+      'COMMITTED \u00b7 ' + (first.def.name || 'LEVEL ' + first.num)
+      + ' \u00b7 ' + ordered.length + ' level(s) in manifest order');
   }
 
   // ── Parallax background: DATA-DRIVEN, never implicit ──────────────────
@@ -500,9 +498,8 @@ async function _bootAsync() {
       const old = document.getElementById('level-source-badge');
       if (old) old.remove();
       const _de = _DEV_LEVELS[_devIdx];
-      _showLevelSourceBadge(_de.kind,
-        'DEV \u00b7 LEVEL ' + _de.num + '/' + _DEV_LEVELS.length
-        + ' [' + (_de.kind === 'local' ? 'LOCAL SAVE' : 'COMMITTED') + ']'
+      _showLevelSourceBadge('committed',
+        'DEV \u00b7 LEVEL ' + _de.num + ' (' + (_devIdx + 1) + '/' + _DEV_LEVELS.length + ') [COMMITTED \u00b7 MANIFEST ORDER]'
         + '\n[ prev   ] next  \u2014 ?level=N to jump');
     }
   }

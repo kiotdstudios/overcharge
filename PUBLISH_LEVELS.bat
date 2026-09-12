@@ -1,14 +1,13 @@
 @echo off
 REM PUBLISH_LEVELS.bat - push the levels you saved from the editor to the live game.
 REM
-REM Point the editor's SAVE folder at:
-REM     %USERPROFILE%\Documents\OVERCHARGE-orcha\src_scroll\levels
-REM SAVE writes both a descriptive copy and the canonical level<N>.json the game
-REM loads. Run this afterwards and the live GitHub Pages game plays it.
-REM
-REM Until you run this, only YOUR browser plays the new level (the editor mirrors
-REM saves into local storage and the game reads that mirror). Publishing is what
-REM makes it real for everyone.
+REM ORDER 005: Git JSON is the ONLY authored level source. Point the editor's
+REM FOLDER button at your clone's levels folder:
+REM     %USERPROFILE%\Documents\GitHub\overcharge\src_scroll\levels
+REM SAVE writes + verifies the canonical level<N>.json (and keeps levels.json,
+REM the Git-tracked level ORDER manifest, in sync). Run this afterwards and the
+REM live GitHub Pages game plays it. Until you run this, the level exists only
+REM in your working tree - there is NO browser-storage copy anymore.
 
 setlocal
 set GIT="%LOCALAPPDATA%\Programs\Git\cmd\git.exe"

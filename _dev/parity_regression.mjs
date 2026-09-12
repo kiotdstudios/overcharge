@@ -20,7 +20,7 @@ globalThis.Image = FakeImage;
 const State = await import('../editor/state.js');
 const { Level } = await import('../src_scroll/level.js');
 const { TILE, ROWS, PLAYER_W, PLAYER_H } = await import('../src_scroll/constants.js');
-const { persistKeyForLevel } = await import('../editor/persistence.js');
+// ORDER 005: persistence contract is now asserted via source-level checks below.
 
 let passed = 0;
 let failed = 0;
@@ -115,15 +115,30 @@ check(enemy.x === 192 && enemy.y === 320 && enemy.patrolLeft === 160 && enemy.pa
 check(runtime.decorations[0].x === 96 && runtime.decorations[0].y === 128 && runtime.decorations[0].w === 32 && runtime.decorations[0].h === 16 && runtime.decorations[0].rotation === 90, 'decoration render geometry and rotation reach runtime');
 check(!Object.hasOwn(runtime.decorations[0], 'snap'), 'decoration snap remains Builder-only metadata and is intentionally normalized away by runtime');
 
-console.log('\n[ Persistence and local-play contract ]');
-check(persistKeyForLevel({ number: 7 }) === 'num:7', 'editor persistence key is num:<level number>');
-check(`level:${persistKeyForLevel({ number: 7 })}` === 'level:num:7', 'IndexedDB record key matches localstore prefix contract');
+console.log('\n[ Persistence contract (ORDER 005: Git JSON is the only authored source) ]');
 const mainSource = fs.readFileSync(path.resolve('src_scroll/main.js'), 'utf8');
-check(mainSource.includes("const TEST_LEVEL_KEY = 'overcharge.testLevel'"), 'runtime TEST LIVE key matches Builder local-play key');
-check(mainSource.includes("_tryLocalSave(1)") && mainSource.includes("params.get('committed') === '1'"), 'runtime documents Level N local-save lookup and committed override path');
+const persistenceSource = fs.readFileSync(path.resolve('editor/persistence.js'), 'utf8');
+const localstoreSource = fs.readFileSync(path.resolve('editor/localstore.js'), 'utf8');
+check(mainSource.includes("const TEST_LEVEL_KEY = 'overcharge.testLevel'"), 'runtime TEST LIVE key matches Builder preview key');
+check(!mainSource.includes('_tryLocalSave') && !mainSource.includes("import('../editor/localstore.js')"), 'runtime has NO IndexedDB level-load path');
+check(!persistenceSource.includes('_mirrorSave') && !persistenceSource.includes("source:   'idb'") && !persistenceSource.includes("'idb:'"), 'editor persistence has NO IndexedDB level mirror or idb discovery source');
+check(!localstoreSource.includes('putLevel') && !localstoreSource.includes('allLevels'), 'localstore no longer stores authored levels');
+check(persistenceSource.includes('back !== json') && persistenceSource.includes('SAVE FAILED verification'), 'SAVE verifies the canonical file by read-back and fails honestly');
+check(mainSource.includes("fetch('src_scroll/levels/levels.json'") && persistenceSource.includes("LEVELS_MANIFEST = 'levels.json'"), 'Builder and runtime both read the Git-tracked level-order manifest');
+
+console.log('\n[ Level-order manifest ]');
+const levelDir = path.resolve('src_scroll/levels');
+const manifest = JSON.parse(fs.readFileSync(path.join(levelDir, 'levels.json'), 'utf8'));
+check(manifest._schema === 'overcharge-levels-manifest@1' && Array.isArray(manifest.order) && manifest.order.length > 0, 'manifest exists with schema tag and non-empty order');
+for (const e of manifest.order) {
+  const file = path.join(levelDir, e.file || `level${e.number}.json`);
+  check(fs.existsSync(file), `manifest entry ${e.number} (${e.name}) points at an existing file`);
+  const data = JSON.parse(fs.readFileSync(file, 'utf8'));
+  check(data.number === e.number, `manifest number ${e.number} matches the level file's own number`);
+}
+check(new Set(manifest.order.map(e => e.number)).size === manifest.order.length, 'manifest has no duplicate level numbers');
 
 console.log('\n[ Committed canonical levels ]');
-const levelDir = path.resolve('src_scroll/levels');
 const levelFiles = fs.readdirSync(levelDir).filter(name => /^level\d+\.json$/.test(name)).sort();
 check(levelFiles.length > 0, 'canonical level directory contains authored JSON levels');
 for (const filename of levelFiles) {
