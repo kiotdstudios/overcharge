@@ -417,3 +417,18 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 - `props/env_waste_platform_long.png` — **HELD**: Level 1 (NEON RISE) renders it in 6 decoration placements. Deleting would blank live level art. Awaiting Chief's call: delete + strip the 6 decorations, or keep as an in-use prop.
 
 **Policy compliance:** all 34 files (33 deleted + the held one) archived to `Documents\Archived\waste_assets_2026-09-12\` with ledger entry before any deletion. Git history retains everything; Waste Zone level WIP untouched on `wip/aki-waste-zone-legacy`. Also closes the CLEANUP_PLAN line item for `waste/_qa` review strips.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's ORDER SPACE_CHARGE (`ca79051`) — PASSED, promoted to live
+
+**Verified against the handoff, not taken on faith:**
+- `ca79051c20994226a34ec604a951918ecbd50242` confirmed on `origin/agent/orcha-dev`, based on `d344658`.
+- Diff scope exactly as claimed: 6 files (`player.js`, `ui.js`, `main.js`, `entities.js`, `_dev/energy_authority.mjs`, `ORCHA_STATUS.md`). No editor, no levels, no assets — zero overlap with the waste-asset deletion (`0190421`), merge clean (ort).
+- Binding spot-checks in merged code: F pip-spend input GONE, discharge on `heldAny('Space')`, attack on `KeyK`, `spendPip()` authority retained per Order 004 ruling 3.
+
+**QA gate on the merged tree:** energy 72/0 (51 + 21 new real-input binding tests) · parity 75/0 · electricity 37/0 · boot smoke OK, zero page errors. **184/0 total.**
+
+**Shipped bindings:** SPACE = hold-to-charge gates/switches (gradual, no instant fill possible) · K = attack · E = absorb at sources only · F = unbound. Level 1 exit (required 8) ≈ 2.7 s sustained hold. `573223b` F-prompt polish superseded by design, on record.
+
+**Flag for Chief sign-off:** attack landed on K, not SPACE-with-context — Orcha cites a Chief amendment ("Ruling A"). If that amendment wasn't yours, say so and Orcha rebinds; the charge mechanic is unaffected either way.
