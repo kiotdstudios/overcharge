@@ -291,11 +291,21 @@ btnSave?.addEventListener('click', async () => {
 // Let Chief pick (or re-pick) the save folder. Once set, all future saves
 // write directly into that folder — no more Downloads downloads.
 btnChooseFolder?.addEventListener('click', async () => {
+  // ORDER 005 diagnostics: this button must NEVER appear to "do nothing".
+  if (typeof window.showDirectoryPicker !== 'function') {
+    showSaveFlash({ ok: false, message:
+      'This browser cannot pick folders (no File System Access API). '
+      + 'Use desktop Chrome or Edge to save into the Git folder.' });
+    return;
+  }
   const handle = await Persistence.chooseSaveFolder();
   if (handle) {
     showSaveFlash({ ok: true, message: `Save folder set: ${handle.name} — SAVE now writes directly there.` });
   } else {
-    showSaveFlash({ ok: false, message: 'No folder chosen — saves will download instead.' });
+    const why = Persistence.lastPickerError();
+    showSaveFlash({ ok: false, message: why
+      ? `Folder picker failed: ${why} — if this page is embedded, open it in a full Chrome/Edge tab.`
+      : 'No folder chosen — SAVE will FAIL until the Git levels folder (src_scroll/levels) is set.' });
   }
   _updateFolderDisplay();
 });

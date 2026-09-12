@@ -353,3 +353,26 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 **Limitations:** GitHub Pages deploy lags a push by ~1–2 minutes. Chief's real two-laptop save/push/pull validation still outstanding — now runs against the Pages builder directly.
 
 **Next:** Chief pulls on Laptop A, FOLDER → `Documents\GitHub\overcharge\src_scroll\levels`, SAVE, `push_overcharge.bat`, pull on the Mac, confirm identical level + order.
+
+---
+
+## 2026-09-12 — Chief field report: "FOLDER does nothing / SAVE didn't work" — diagnosed + hardened
+
+**Report:** On the Pages builder, adding a gate then SAVE failed, and the FOLDER button appeared dead.
+
+**Diagnosis (live-probed https://kiotdstudios.github.io/overcharge/editor.html with headless Chrome):**
+- The deployed build IS Order 005 (verified persistence.js content + live levels.json manifest) and the FOLDER handler runs on click — probe captured its failure flash and zero page errors.
+- Chief's screenshot badge said `sha=784c5d7 · worktree=OVERCHARGE-orcha` — that came from a stale committed `editor/buildinfo.js`, generated 2026-09-06 in the orcha worktree and never regenerated. The badge could not be trusted to identify the running build.
+- GitHub Pages serves with ~10-minute cache; testing immediately after the promotion push very likely hit the cached pre-005 editor. In the pre-005 editor, SAVE without a folder silently downloaded — consistent with "save didn't work."
+- SAVE failing without a FOLDER is correct Order 005 behavior (honest failure, no fake save) — but the messaging still said "saves will download instead," which is a lie under Order 005.
+- Remaining live 404 on level3.json is benign discovery probing.
+
+**Fixes:**
+- `editor/main.js`: FOLDER button can no longer appear dead — unsupported browser (no File System Access API → "use desktop Chrome or Edge"), picker exception (e.g. SecurityError in embedded webviews → "open in a full Chrome/Edge tab"), and plain cancel each get an explicit flash. Cancel message now says SAVE will FAIL until the folder is set (no download lie).
+- `editor/persistence.js`: records `lastPickerError()` so the UI can say WHY a pick failed.
+- `editor.html`: FOLDER tooltip now says it is REQUIRED before saving.
+- `editor/buildinfo.js`: regenerated post-commit so the badge shows the real deployed SHA/worktree.
+
+**QA gate (before push):** parity 71/0 · electricity 37/0 · energy 51/0 · boot smoke OK, zero page errors.
+
+**Chief instructions that resolve the field failure:** hard-refresh the builder (Ctrl+Shift+R) after any push + ~2 min Pages deploy lag; FOLDER requires desktop Chrome or Edge in a full tab.

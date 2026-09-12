@@ -36,6 +36,9 @@ const _handles = new Map();
 // Once set, ALL saves silently write levelN.json into this folder — no
 // per-file picker. Chief picks src_scroll/levels/ once, done.
 let _saveDirHandle = null;
+// ORDER 005 diagnostics: why the last folder pick failed (null = no error /
+// user cancelled). Lets the UI say WHY instead of appearing to do nothing.
+let _lastPickerError = null;
 
 // Tracks which level numbers have already been confirmed for overwrite this
 // session. The first save of each level always prompts; repeated saves of the
@@ -81,7 +84,7 @@ async function _ensureSaveDir() {
     await LocalStore.clearDirHandle();
   }
 
-  if (!_hasDirPicker()) return null;
+  if (!_hasDirPicker()) { _lastPickerError = 'File System Access API not available in this browser'; return null; }
   try {
     // `id` groups these picks so browsers remember the last-chosen location
     // across editor sessions (Chrome does; result is: after the first pick,
@@ -92,13 +95,18 @@ async function _ensureSaveDir() {
       mode: 'readwrite',
     });
     await LocalStore.setDirHandle(_saveDirHandle);
+    _lastPickerError = null;
     return _saveDirHandle;
   } catch (err) {
-    if (err && err.name === 'AbortError') return null;   // user cancelled
+    if (err && err.name === 'AbortError') { _lastPickerError = null; return null; }   // user cancelled
     console.error('[persistence] Directory picker failed:', err);
+    _lastPickerError = (err && (err.message || err.name)) || 'unknown picker error';
     return null;
   }
 }
+
+// e.g. SecurityError when the editor is loaded inside an embedded webview.
+export function lastPickerError() { return _lastPickerError; }
 
 // Public: let the user re-pick the save folder (e.g. moved repo, wrong pick).
 export async function chooseSaveFolder() {
