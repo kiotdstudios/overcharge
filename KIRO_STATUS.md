@@ -606,3 +606,15 @@ Identical x-range and top edge → same 128-grid registration, so the existing c
 **Tests:** extended the dormancy draw recorder to capture the image source and added an assertion that dormant draws from `gate_electric_dead.png` — otherwise this could silently regress to the awake frame, which is exactly the bug being fixed. energy **87/0** (was 86) · parity 75/0 · electricity 37/0 · boot smoke OK.
 
 **Note for Orcha (crate/timed order):** the timed-gate expiry path must land in this same dormant branch, so an expired timed gate now shows the TRUE DEAD art. D9's `isDormant` composition still holds unchanged — this swapped the artwork, not the predicate.
+
+---
+
+## 2026-09-12 — Orcha BUILD GO issued (crate/timed) + Level 4/5 brief delivered
+
+Orcha ratified the ruling and re-verified the technical correction independently (enumerated class methods: `PowerGate.receive` and `Switch.receive` exist, `ElectricalSource` has only `drain`) instead of taking it on faith. Synced clean at `b905749`.
+
+**Clearance written INTO `docs/KIRO_RULING_CRATE_TIMED_V1.md` as an addendum** (per the new governance rule — approvals must be readable from a file, not relayed by Chief). Cleared the amended 7-item plan, and accepted Orcha's offer to build the three crate parity guards into the delivery rather than leaving them for gate time.
+
+**Flagged a post-ruling change that affects his System 2:** `a654580` (TRUE DEAD gate art) rewrote the dormant branch of `PowerGate.draw`, which is exactly where timed-gate expiry lands. Logically D9 is untouched (`isDormant` unchanged, his composition still holds) but the expired timed gate will now draw `gate_electric_dead.png`, and there is already a shipped assertion pattern to follow. Also warned that `energy_authority.mjs` baseline moved **86 → 87** and lives in the same file he is about to extend — re-sync or conflict.
+
+**`docs/LEVEL4_5_DESIGN_BRIEF.md` created** (the Level 4/5 authoring constraint I committed to in the ruling). Level 4 needs no new systems and is authorable after Level 3. Level 5 depends on the crate, and the brief carries every crate constraint in plain authoring language: checkpoint required (parity-enforced), mis-push recovery, horizontal-only, exactly-one-device contact or it refuses, gates/switches only, stores nothing, 32×32 default. Also set a hard rule that available energy must EXCEED exit cost on any level where an enemy can knock charge loose — Level 1's exact-solution economy is acceptable only because it has no enemies.
