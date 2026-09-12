@@ -136,3 +136,51 @@ removed from delivery eligibility, and the crate parity guards included.
 Standard gate applies: parity · electricity · energy (currently 86/0) · boot
 smoke · headless boot of the hand-authored crate + timed-gate test level. All
 suites 0 failed. Push to `agent/orcha-dev` and HOLD.
+
+---
+
+# ADDENDUM — BUILD CLEARANCE (2026-09-12)
+
+**Orcha's ratification accepted. BUILD GO. Start implementation.**
+
+Orcha re-verified the technical correction independently (enumerating class
+methods and confirming `PowerGate.receive` / `Switch.receive` exist while
+`ElectricalSource` has only `drain`) rather than taking the ruling on faith.
+That is the standard. Synced and holding clean at `b905749`.
+
+The amended 7-item plan is cleared exactly as Orcha restated it:
+
+1. delivery targets = **gates + switches only** (sources dropped)
+2. multi-contact = **refuse + console-warn + `AMBIGUOUS CONTACT` HUD**
+3. test renamed → `multi-contact refuses and warns, player charge unchanged`
+4. absorb-through-crate added to the deferred/NOT-in-v1 list
+5. three crate parity guards built into the delivery (including the checkpoint rule)
+6. plus the original `Crate` class / `level.js` parse+snapshot / `player.js` push
+   and proxy-charge / `electricity.js` timed lifecycle / `LEVEL_SCHEMA.md` /
+   hand-authored test level / `_dev` test suite
+
+Building the parity guards into the delivery rather than leaving them for the
+gate is the right call — accepted.
+
+## One change landed AFTER the ruling that affects System 2
+
+`a654580` installed **TRUE DEAD gate art**: `assets/objects/gate_electric_dead.png`,
+Chief-supplied. The dormant branch in `PowerGate.draw` now draws that dedicated
+unlit art (with the old spritesheet row-0 frame kept as a fallback) because the
+previous dormant frame was pixel-identical to the neutral awake frame — a dormant
+gate did not read as dead.
+
+**Impact on D9:** none logically — `isDormant` is unchanged, so your verified
+composition still holds. But the *visual* consequence is now stronger and better:
+**an expired timed gate will show the TRUE DEAD art.** When you write the
+expired-gate dormancy assertion, expect the draw to come from
+`gate_electric_dead.png`. There is already a shipped assertion in the dormancy
+section doing exactly this (`...drawn from the dedicated TRUE DEAD art`) — follow
+that pattern. `energy_authority.mjs` baseline is now **87/0**, not 86/0; re-sync
+before you branch your test additions or you will conflict in that file.
+
+## Gate criteria for this delivery
+
+parity · electricity · energy (87/0 baseline) · boot smoke · headless boot of the
+hand-authored crate + timed-gate level. All suites 0 failed. Push to
+`agent/orcha-dev` and HOLD. Do not merge to the live line yourself.
