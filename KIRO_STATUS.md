@@ -332,3 +332,24 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 
 - **Push status:** YES — implementation `79e4b14` + this record pushed to `agent/kiro-parity`.
 - **Recommended next step:** Chief pulls `agent/kiro-parity` on this laptop, points FOLDER at `Documents\GitHub\overcharge\src_scroll\levels`, saves a level, runs `PUBLISH_LEVELS.bat`, then pulls on the Mac — the real two-computer test.
+
+---
+
+## 2026-09-06 — Order 005 PROMOTED to the live line + single-line delivery rule
+
+**Assignment (Chief, verbatim intent):** one pair of links only — Pages game + Pages builder. All agent changes going forward commit/merge/push to the live line so any laptop (and future playtesters) just pulls/refreshes. "i make a change, orcha,aki,kiro commits, i pull request on laptop a b c d e."
+
+**Action taken:**
+- Merged `agent/kiro-parity` (Order 005, `20ab1c0`) into `agent/orcha-gameplay` → merge commit `322faeb`, pushed. Promotion hold lifted by Chief's direct order to standardize testing on the Pages links.
+- Merge was clean (ort, no conflicts) over shared tip `8672945` (includes Orcha's `573223b` gate-prompt fix).
+- QA gate on the merged tree BEFORE push: parity 71/0 · electricity 37/0 · energy authority 51/0 · boot smoke OK (badge `COMMITTED · MANIFEST ORDER`, 2 levels, checksum `0167334D`, zero page errors).
+- Stopped the temporary local `http-server` (port 8005) — canonical links only.
+- `docs/GIT_GOVERNANCE.md`: added "Single-line delivery rule" — one URL pair, prompt merges after green QA gate, pull-and-refresh loop on every laptop.
+
+**Canonical URLs (permanent):**
+- GAME: https://kiotdstudios.github.io/overcharge/index.html
+- BUILDER: https://kiotdstudios.github.io/overcharge/editor.html
+
+**Limitations:** GitHub Pages deploy lags a push by ~1–2 minutes. Chief's real two-laptop save/push/pull validation still outstanding — now runs against the Pages builder directly.
+
+**Next:** Chief pulls on Laptop A, FOLDER → `Documents\GitHub\overcharge\src_scroll\levels`, SAVE, `push_overcharge.bat`, pull on the Mac, confirm identical level + order.

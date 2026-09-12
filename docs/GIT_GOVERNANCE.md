@@ -40,6 +40,24 @@ GitHub (kiotdstudios/overcharge)
 Development branches do not automatically become the live branch. Work reaches
 `agent/orcha-gameplay` only through Kiro's QA/integration gate with Chief approval.
 
+## Single-line delivery rule (Chief directive, 2026-09-06)
+
+There is exactly **one pair of test URLs**, always serving the latest integrated state:
+
+```text
+GAME:    https://kiotdstudios.github.io/overcharge/index.html
+BUILDER: https://kiotdstudios.github.io/overcharge/editor.html
+```
+
+- All agent work that passes the QA gate is merged to `agent/orcha-gameplay` and
+  **pushed promptly** — no long-parked topic branches. The Pages links above always
+  represent the current game.
+- Chief's loop on any laptop (A, B, C, ...): make a change → agent commits/merges →
+  `git pull` in `Documents\GitHub\overcharge` → refresh the two URLs.
+- External playtesters only ever need the two URLs. No local serving, no ad-hoc links.
+- The QA gate (parity + electricity + energy + boot smoke, all green) still runs
+  **before** every merge to `agent/orcha-gameplay`. Speed does not waive the gate.
+
 ## Local workspace layout (both laptops)
 
 ```text
