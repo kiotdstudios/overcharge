@@ -748,3 +748,25 @@ Orcha stood down clean on CRATE_TIMED (`4514319`, 0 behind, delivery confirmed a
 **Tests:** crate_timed 87/0 · parity 110/0 · energy 88/0 · electricity 37/0 = **322/0** · boot smoke OK.
 
 **Not added to the editor art palette** — consistent with the `gate_electric_dead.png` ruling: these are runtime state sprites, and checkpoints are placed via SPAWN OBJECTS → `+ Checkpoint`, not from the art browser. The Builder continues to show its schematic marker for checkpoints, which is intentional for authoring.
+
+---
+
+## 2026-09-12 — QA gate: Aki's P4 (crate art) + P2 (editor support) PASSED, merged; P5 issued (real art in Builder)
+
+**Merged** `8b5a107` (P2) + `d748ab8` (P4 art) to the live line. The `checkpoint_flag` deletions showing in her branch diff were her being 2 behind my checkpoint commit, not deletions by her — verified by inspecting what the merge actually carried (7 files, all hers) and confirming all 10 checkpoint files survived.
+
+**P4 art verified by decoding pixels, not by trusting the filename** (the mistake I made earlier today): both crate PNGs are **32×32, fill the tile exactly, single island, ZERO stray alpha pixels**, 10 colours. Silhouette distinct from `container_small_a/b`. Manifest entries accurate (`category: container`, correct tags) and she did **not** add a second gate entry — the one-gate ruling held through her re-curation.
+
+**P2 verified:** crate spawn + inspector, gate `timed`/`duration` with the duration row conditional on the checkbox, crate threaded through all of `selection.js`. She also found and fixed `_drawPlatforms` being defined but never called — a genuine pre-existing bug.
+
+Suites on merged tree: parity 110/0 · energy 88/0 · electricity 37/0 · crate_timed 87/0 = **322/0**.
+
+**Corrected her reporting:** she quoted "electricity 87/87" (it is a 37-check suite) and "energy 87/87" (now 88 after my image-identity assertion). Told her counts must be quoted from the run — a wrong count is exactly what hides a regression.
+
+**Flagged to Chief, not blocked:** her energized crate glows **yellow**, while every other energised thing in the game glows purple/magenta (`#cc44ff`). Art is Chief's call.
+
+**P5 issued — Chief: "real art in the editor for everything; add the drone enemy to the builder too."**
+- **Corrected the premise:** `+ Drone` already exists (`#spawn-drone`), as does `+ Crate`. The actual gap is the Builder drawing **schematic markers** instead of sprites, so Chief can't see what he's building.
+- Audited every type: sources and gates ALREADY draw real art; checkpoint, drone, crate, platform and playerStart have art available but draw schematics; **switch has NO art at all** — ordered her to leave it schematic rather than borrow an unrelated sprite, and to report it as the remaining gap for Chief to decide on.
+- **The load-bearing constraint I set: editor anchors must EQUAL runtime anchors.** I extracted and handed her the verified runtime maths for all six types (source `-18,-34`; gate `cx-32,(y+h)-128`; checkpoint dest 66 with offsets 31/61 derived from the measured bbox; drone/crate/platform straight blits; playerStart feet at `y+30`). If the Builder draws at different offsets than the game, Chief authors to a lie and every level is subtly misplaced — that is a parity defect and I will fail it at the gate.
+- Also required: schematics retained as fallbacks, selection outlines/labels drawn ON TOP of art, `imageSmoothingEnabled = false` (Chief now zooms to 625%), and reuse of the proven `_drawSources` `getImage` + repaint-on-load pattern rather than a new one.

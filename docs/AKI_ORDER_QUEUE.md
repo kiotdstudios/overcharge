@@ -226,3 +226,104 @@ environment kit:
 Rendered proof (contact sheet or screenshot), 32×32 confirmed, zero stray alpha
 islands, manifest entry accurate, palette still shows exactly ONE gate entry, all
 suites 0 failed. Push to `agent/aki-editor` and HOLD.
+
+---
+
+## P4 + P2 — ✅ QA GATE PASSED, MERGED TO LIVE (Kiro, 2026-09-12)
+
+**P4 crate art:** `crate_conductive.png` + `crate_conductive_energized.png` both
+**32×32, fill the tile exactly, 1 island, ZERO stray alpha pixels**, 10 colours,
+clean pixel work. Silhouette is clearly distinct from `container_small_a/b`. Reads
+as conductive (contact pads on all four faces + centre cross). Manifest entries
+accurate: `category: container`, tags include `crate`/`pushable`/`conductive`, and
+you correctly did NOT add a second gate entry — the one-gate ruling held.
+
+**P2 editor support:** crate spawn + inspector, gate `timed`/`duration` fields with
+the duration row hidden until `timed` is checked, crate selection wired through all
+of `selection.js`. Also caught and fixed `_drawPlatforms` being defined but never
+called — a real pre-existing bug, good find.
+
+Suites on the merged tree: parity 110/0 · energy 88/0 · electricity 37/0 ·
+crate_timed 87/0 = **322/0**.
+
+**Two reporting notes:** your report said "electricity 87/87" and "energy 87/87" —
+electricity is a 37-check suite and energy is now **88** (I added an image-identity
+assertion after your branch point). Numbers must be quoted from the run, not
+approximated; a wrong count hides a real regression.
+
+**Flagged for Chief, not a defect:** the energized crate glows **yellow**, but every
+other energised thing in OVERCHARGE glows purple/magenta (`#cc44ff` — gate charge,
+discharge FX, charge pickups). Chief rules on art; noting the inconsistency.
+
+---
+
+## P5 — ✅ GO. REAL ART IN THE EDITOR FOR EVERY OBJECT TYPE
+
+**Chief directive 2026-09-12:** *"i want real art in the editor for everything; add
+the drone enemy to the builder too."*
+
+**First, a correction to the premise:** the `+ Drone` spawn button **already
+exists** (`#spawn-drone`, "Place Drone Enemy (40×36, hp=2, sprite)"). So does
+`+ Crate` (yours). The real gap is that the Builder draws **schematic markers**
+instead of the actual sprites, so Chief cannot see what he is building.
+
+### Current state — audited
+
+| Object | Editor draw | Art available |
+|---|---|---|
+| Source (generator) | ✅ real sprite already | `assets/sprites/generator 1/frame_000.png` |
+| Gate | ✅ real sprite already | `gate_electric_spritesheet.png` |
+| **Checkpoint** | ❌ schematic | ✅ `assets/objects/checkpoint_flag/frame_000..008.png` |
+| **Enemy / drone** | ❌ schematic | ✅ `assets/sprites/drone/idle/frame_000.png` |
+| **Crate** | ❌ schematic (yours) | ✅ `crate_conductive.png` |
+| **Platform** | ❌ schematic | ✅ `purple_city/platforms/platform_*.png` |
+| **Player start** | ❌ schematic | ✅ `assets/sprites/idle_2.0/east/frame_000.png` |
+| **Switch** | ❌ schematic | ⚠ **NO ART EXISTS** — keep schematic, see below |
+
+### THE RULE THAT MATTERS: editor anchors must equal runtime anchors
+
+The whole point is WYSIWYG. If the Builder draws a sprite at a different offset
+than the game does, Chief authors to a lie and every level is subtly misplaced —
+that is a parity defect and I will fail it at the gate. **Copy the runtime maths,
+do not re-derive it.** Verified runtime anchors:
+
+```text
+SOURCE      dX = o.x - 18,  dY = o.y - 34,   64x64      (already correct in editor)
+GATE        dX = cx - 32,   dY = (y+h) - 128, 64x128    (already correct in editor)
+CHECKPOINT  src 128x128 full frame -> dest 66x66
+            dX = x - 31,    dY = y - 61
+            (derived in src_scroll/entities.js from the measured art bbox
+             17,10..103,117: scale = 56/108, dest = 128*scale,
+             offX = 60*scale, offY = 117*scale — use the constants, not new guesses)
+            INACTIVE must draw frame_000 ONLY, and must NOT glow.
+DRONE       dX = o.x, dY = o.y, w x h  (runtime: entities.js:468, straight blit
+            at the object's own w/h — default 40x36). Editor may ignore the
+            runtime's horizontal flip.
+CRATE       dX = o.x, dY = o.y, w x h  (default 32x32, straight blit)
+PLATFORM    dX = o.x, dY = o.y, w x h  (authored bounds, straight blit)
+PLAYERSTART player collision box is 20x30; draw the idle sprite so its FEET land
+            at playerStart.y + 30 and it is centred on the collision box.
+```
+
+### Implementation notes
+
+- **Follow the existing pattern in `_drawSources`** (`editor/renderer.js:378`): it
+  uses `getImage(path)`, checks `img.complete && img.naturalWidth > 0`, draws the
+  schematic as a **fallback** while loading, and fires `_editorRepaint` on load.
+  Reuse that verbatim — it already solves the async-load repaint problem.
+- **Keep every schematic as a fallback.** Never replace a marker with nothing.
+- Keep the selection outlines, ID labels and type badges on top of the sprites —
+  authoring still needs them. Art underneath, information on top.
+- Scale by `state.camera.zoom` like the existing draws do, and keep
+  `imageSmoothingEnabled = false` so pixel art stays crisp at high zoom (Chief now
+  zooms to 625%).
+- **Switch:** no art exists. Leave the schematic marker and do NOT invent a sprite
+  from an unrelated asset. Report it as the one remaining gap so Chief can decide
+  whether to commission switch art.
+
+### Gate criteria
+
+Rendered proof (screenshot of the Builder showing real art for each type), every
+object type still selectable and movable, schematic fallback still reachable, all
+suites 0 failed, boot smoke clean, palette still exactly ONE gate entry. Push to
+`agent/aki-editor` and HOLD.
