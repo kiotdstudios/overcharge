@@ -1,4 +1,4 @@
-// Player: movement, jumping, absorb/discharge, charge meter
+// Player: movement, jumping, absorb (E) / charge (SPACE) / attack (K), charge meter
 import {
   TILE, COLS, ROWS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
   PLAYER_W, PLAYER_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, C,
@@ -87,10 +87,13 @@ export class Player {
     this._updateContext(level);       // context first — nearDevice/Enemy known before input
     this._handleMovement(dt);
     this._applyPhysics(dt, level);
-    this._updateAbsorb(dt, level);
-    this._updateAttack(dt, level);    // SPACE near enemy → attack
-    this._updateDischarge(dt, level); // E near gate/switch (no source, no enemy) → discharge
-    this._updatePipSpend(dt, level);  // F near gate + has pip → instant power
+    this._updateAbsorb(dt, level);    // hold E near source  → absorb
+    this._updateAttack(dt, level);    // press K             → attack (melee now, projectile later)
+    this._updateDischarge(dt, level); // hold SPACE near gate/switch → gradual charge
+    // ORDER SPACE_CHARGE: _updatePipSpend() is GONE. No button may complete a
+    // gate in one press. The spendPip() authority function is retained (the
+    // reserve path and Order 004 ruling-3 tests use it) — only its KeyF input
+    // binding was removed.
     this._collectPickups(level);
 
     // NOTE: there is deliberately NO unconditional reserve-pull here.
@@ -277,7 +280,7 @@ export class Player {
     }
     const left  = Input.heldAny('ArrowLeft',  'KeyA');
     const right = Input.heldAny('ArrowRight', 'KeyD');
-    // Jump: Up / W only. SPACE is reserved for enemy attack.
+    // Jump: Up / W only. SPACE is the charge button, K is attack.
     const jump = Input.pressedAny('ArrowUp', 'KeyW');
 
     const shift = Input.heldAny('ShiftLeft', 'ShiftRight');
@@ -484,34 +487,62 @@ export class Player {
     }
   }
 
-  // ── Attack (press SPACE near enemy) ──────────────────────────────
+  // ── Attack (press K) ─────────────────────────────────────────────
+  // ORDER SPACE_CHARGE + Chief amendment 2026-09-11: K is the attack/projectile
+  // button; SPACE is the charge button. Separate keys, so there is NO context
+  // priority to resolve — the gate-vs-enemy ambiguity that a shared SPACE would
+  // have created does not exist.
+  //
+  // Structured as an explicit branch table so the projectile slots in later
+  // WITHOUT rewiring charge or melee:
+  //   branch 1  near enemy   → melee hit            (implemented)
+  //   branch 2  no target    → electric projectile  (NOT built under this order)
   _updateAttack(dt, level) {
-    if (!this.nearEnemy || this._stunTime > 0) return;
-    if (Input.pressed('Space') && this._attackCooldown <= 0) {
+    if (this._stunTime > 0) return;
+    if (this._attackCooldown > 0) return;
+    if (!Input.pressed('KeyK')) return;
+
+    if (this.nearEnemy) {
+      // branch 1 — melee
       this.nearEnemy.hit(level);
       this._attackCooldown = ATTACK_COOLDOWN;
       this._attackFx       = 0.15;
+      return;
     }
+
+    // branch 2 — future: fire an electric projectile here. Deliberately inert
+    // under this order (no projectiles, no new weapons). Left as a no-op rather
+    // than a stub that costs energy, so nothing silently drains the bar.
   }
 
-  // ── Discharge (hold E near device) ────
+
+  // ── Charge a device (hold SPACE near gate/switch) ────────────────
   //
-  // Interaction model:
-  //  • E is the universal context-sensitive interact button.
-  //     - Near a source: absorb (see _updateAbsorb — runs first).
-  //     - Near a gate/switch with usable energy: discharge here.
-  //  • SPACE is attack-only near enemies; it never touches energy.
-  //  • Discharge spends the active bar. The instant the bar runs dry with
-  //    a pip still stored, _pullReserve() promotes that pip to a full bar
-  //    IN THE SAME FRAME, so the transfer never visibly stalls.
+  // Interaction model after ORDER SPACE_CHARGE (Chief, 2026-09-11):
+  //  • SPACE is the charge button. Hold near a gate/switch to transfer energy
+  //    gradually at DISCHARGE_RATE. Nothing completes a gate in one press.
+  //  • E is absorb/interact at sources ONLY. Charging is SPACE-only — one
+  //    mechanic, one binding (order §3; two bindings for one mechanic is what
+  //    made the old E/F split confusing).
+  //  • K is attack. It never touches energy.
+  //  • The mechanic itself is UNCHANGED from Order 004 — same spendEnergy()
+  //    authority, same dev.receive() path, same `needed` cap. Only the binding
+  //    moved, which is exactly what the order asked for.
+  //  • The bar drains first; the instant it runs dry with a pip stored,
+  //    spendEnergy() promotes that pip via _pullReserve() in the SAME frame, so
+  //    the transfer never visibly stalls at a pip boundary.
   //  • Affordability is asked via `usableEnergy` — same authority the HUD
   //    prompt uses, so UI and gameplay can never disagree.
   _updateDischarge(dt, level) {
-    const holdE = Input.heldAny('KeyE');
+    const holdCharge = Input.heldAny('Space');
 
-    // Absorb takes priority when standing at a source — don't discharge
-    // through the same E press that's feeding the bar.
-    if (!holdE || !this.grounded || !this.nearDevice || this.nearSource || this.usableEnergy <= 1e-9) {
+    // NOTE: the old `this.nearSource` exclusion is deliberately GONE. It existed
+    // only because E did double duty (absorb AND discharge), so one key could
+    // not mean both at once. Now that charging is SPACE and absorbing is E, a
+    // player standing between a source and a gate can legitimately do either.
+    // Keeping the guard would have silently blocked SPACE-charging near a
+    // source — the same class of bug as the old F-prompt suppression.
+    if (!holdCharge || !this.grounded || !this.nearDevice || this.usableEnergy <= 1e-9) {
       this.discharging     = false;
       this.dischargeTarget = null;
       return;
@@ -543,42 +574,22 @@ export class Player {
     }
   }
 
-  // ── Spend a banked pip at a gate (press F) ──────────────────────
-  // One pip = one full battery = MAX_CHARGE of energy. We hand the device as
-  // much of that battery as it still needs, through the SAME dev.receive()
-  // path normal discharge uses (so charged/open/react-anim all behave
-  // identically). Order 004 §11: this is a real transfer through the real
-  // energy path, never a cosmetic UI/state poke.
+  // ── REMOVED: _updatePipSpend() — the F instant-fill ─────────────
+  // ORDER SPACE_CHARGE (Chief, 2026-09-11): pressing F near a device inserted a
+  // whole battery (MAX_CHARGE = 10) in a single press. With Level 1's exit gate
+  // at required=3 (later 8), one tap opened it outright. Chief rejected that:
+  // "hitting f auto completes the charge gate, i dont want that".
   //
-  // PARTIAL-PIP POLICY — RATIFIED (Kiro, Order 004 ruling 3): when a device
-  // needs LESS than a full battery, the whole pip is still consumed and the
-  // surplus returns to the active bar via giveEnergy(). Energy is conserved
-  // (§7); a pip is simply indivisible at the point of insertion. Matches the
-  // pre-existing Chief directive recorded above.
-  _updatePipSpend(dt, level) {
-    if (!Input.pressedAny('KeyF')) return;
-    if (this.bankedPips <= 0) return;
-    if (!this.nearDevice) return;
-    const dev = this.nearDevice;
-    if (dev.open || dev.on) return;
-
-    const needed = dev.required - dev.charged;
-    if (needed <= 1e-9) return;
-
-    // Withdraw exactly one stored battery through the authority.
-    const battery = this.spendPip();
-    if (battery <= 1e-9) return;             // no pip after all — nothing spent
-    this._pipSpendFx = 0.5;
-
-    // Transfer up to a full battery's worth, capped by what's still needed.
-    const transfer = Math.min(battery, needed);
-    dev.receive(transfer);          // same path as discharge → sets charged, fires _reactT, may open
-    dev._pipFlash = 0.5;            // extra white burst so a pip spend reads distinctly
-
-    // Surplus battery energy returns to the player rather than evaporating.
-    const surplus = battery - transfer;
-    if (surplus > 1e-9) this.giveEnergy(surplus);
-  }
+  // The handler is gone and KeyF is now unbound. Charging is SPACE-only and
+  // strictly rate-based, so no button can complete a gate in one press.
+  //
+  // spendPip() itself SURVIVES in the energy authority above and is deliberately
+  // NOT deleted:
+  //   - it is the documented withdraw-one-whole-battery primitive,
+  //   - Order 004 ruling 3 (partial-pip: whole pip consumed, surplus returned)
+  //     is asserted against it directly in _dev/energy_authority.mjs,
+  //   - a future device/ability can reuse it without re-deriving the arithmetic.
+  // Only the input binding was removed, exactly as the order specified.
 
   // ── Collect dropped charge pickups ───────────
   // Also routes through giveEnergy() so a pickup that tops the bar out

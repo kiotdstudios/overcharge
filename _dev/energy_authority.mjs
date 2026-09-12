@@ -8,8 +8,18 @@
 // found during the Order 004 audit.
 
 // ── Minimal browser surface (logic-only; no canvas work is performed) ────────
-globalThis.window = { addEventListener(){}, removeEventListener(){},
-  innerWidth: 1920, innerHeight: 1080, location: { search: '' } };
+// window RECORDS its listeners so the binding tests can dispatch real synthetic
+// keydown/keyup events into the actual input.js module. That means the SPACE /
+// K / F assertions below exercise the shipped key handling, not a re-implementation.
+const _listeners = {};
+globalThis.window = {
+  addEventListener(n, f){ (_listeners[n] = _listeners[n] || []).push(f); },
+  removeEventListener(n, f){ if (_listeners[n]) _listeners[n] = _listeners[n].filter(x => x !== f); },
+  innerWidth: 1920, innerHeight: 1080, location: { search: '' },
+};
+function fire(type, code) {
+  for (const f of (_listeners[type] || [])) f({ code, preventDefault(){} });
+}
 globalThis.document = { getElementById: () => null, addEventListener(){}, removeEventListener(){},
   createElement: () => ({ getContext: () => new Proxy({}, { get: () => () => {}, set: () => true }), style: {} }),
   body: { style: {} } };
@@ -19,6 +29,13 @@ globalThis.Image = class { constructor(){ this.complete = true; this.naturalWidt
 const { Player } = await import('../src_scroll/player.js');
 const { MAX_CHARGE, MAX_BANKED_PIPS } = await import('../src_scroll/constants.js');
 const EL = await import('../src_scroll/electricity.js');
+const Input = await import('../src_scroll/input.js');
+
+// Key helpers driving the REAL input module.
+const keyDown = code => fire('keydown', code);
+const keyUp   = code => fire('keyup', code);
+const newFrame = () => Input.update();      // copies cur -> prev, so pressed() is edge-only
+function releaseAll() { for (const c of ['Space','KeyK','KeyF','KeyE']) keyUp(c); newFrame(); }
 
 let passed = 0, failed = 0;
 function assert(condition, name, detail = '') {
@@ -273,6 +290,133 @@ section('CONSERVATION INVARIANT (§7) — randomized');
     `worst drift ${worst.toExponential(2)}`);
   assert(illegal === 0, 'state never leaves the legal envelope', `${illegal} violations`); }
 
+// ════════════════════════════════════════════════════════════════════════════
+section('ORDER SPACE_CHARGE — key bindings (drives the real input.js)');
+
+// Rig a grounded player standing at a gate. nearDevice is what _updateContext
+// would have set; physics is not needed to test the binding + transfer.
+function atGate(required = 8, charge = MAX_CHARGE, pips = 0) {
+  const p = P();
+  p.setEnergyState(charge, pips);
+  p.grounded = true;
+  const g = new EL.PowerGate({ id: 'G', x: 0, y: 0, w: 32, h: 64, required });
+  p.nearDevice = g;
+  p.nearSource = null;
+  p.nearEnemy  = null;
+  return { p, g };
+}
+const lvl = () => mkLevel();
+
+// ── SPACE charges a gate ────────────────────────────────────────────────────
+{ releaseAll();
+  const { p, g } = atGate(8);
+  const before = p.usableEnergy;
+  keyDown('Space');
+  p._updateDischarge(1 / 60, lvl());
+  const moved = g.charged;
+  assert(moved > 0, 'SPACE: holding near a gate transfers energy', `charged ${moved.toFixed(4)}`);
+  assert(near(before - p.usableEnergy, moved),
+    '  ...deducted exactly what the gate received (conserved)',
+    `player -${(before - p.usableEnergy).toFixed(4)} / gate +${moved.toFixed(4)}`);
+  assert(p.discharging === true, '  ...player enters the charging state');
+  releaseAll(); }
+
+// ── one press does NOT complete a gate (the whole point of the order) ───────
+{ releaseAll();
+  const { p, g } = atGate(8);
+  keyDown('Space');
+  p._updateDischarge(1 / 60, lvl());   // a single frame of holding
+  assert(g.open === false, 'SPACE: a single frame cannot open the gate', `charged ${g.charged.toFixed(4)}/8`);
+  assert(g.charged < 8, '  ...transfer is rate-limited, not instant', `${g.charged.toFixed(4)} < 8`);
+  // Sustained holding DOES eventually open it.
+  for (let i = 0; i < 600 && !g.open; i++) p._updateDischarge(1 / 60, lvl());
+  assert(g.open === true, '  ...but sustained holding opens it', `charged ${g.charged}/8`);
+  releaseAll(); }
+
+// ── releasing SPACE stops the transfer ─────────────────────────────────────
+{ releaseAll();
+  const { p, g } = atGate(8);
+  keyDown('Space');
+  p._updateDischarge(1 / 60, lvl());
+  const after1 = g.charged;
+  keyUp('Space'); newFrame();
+  p._updateDischarge(1 / 60, lvl());
+  assert(near(g.charged, after1), 'SPACE released: transfer stops', `still ${g.charged.toFixed(4)}`);
+  assert(p.discharging === false, '  ...and the charging state clears');
+  releaseAll(); }
+
+// ── F is UNBOUND: no instant fill, no effect at all ────────────────────────
+{ releaseAll();
+  const { p, g } = atGate(8, MAX_CHARGE, 3);
+  const before = p.usableEnergy;
+  assert(typeof p._updatePipSpend === 'undefined',
+    'F: the _updatePipSpend handler no longer exists');
+  keyDown('KeyF');
+  // Everything the update loop would run for input this frame.
+  p._updateAttack(1 / 60, lvl());
+  p._updateDischarge(1 / 60, lvl());
+  assert(g.charged === 0 && g.open === false,
+    'F: pressing F transfers nothing to the gate', `charged ${g.charged}, open ${g.open}`);
+  assert(p.usableEnergy === before, '  ...and costs the player nothing', `usable still ${p.usableEnergy}`);
+  assert(p.bankedPips === 3, '  ...reserve untouched (no pip consumed)', `${p.bankedPips} pips`);
+  releaseAll(); }
+
+// ── spendPip() authority SURVIVES even though its key binding is gone ──────
+{ const p = P(); p.setEnergyState(0, 1);
+  assert(typeof p.spendPip === 'function' && p.spendPip() === MAX_CHARGE,
+    'F unbound, but spendPip() authority is retained (order §2)'); }
+
+// ── K attacks; SPACE does not ──────────────────────────────────────────────
+{ releaseAll();
+  const p = P(); p.setEnergyState(MAX_CHARGE, 0); p.grounded = true;
+  let hits = 0;
+  const enemy = { alive: true, hp: 3, maxHp: 3, cx: 0, cy: 0, x: 0, y: 0,
+                  hit(){ hits++; this.hp--; } };
+  p.nearEnemy = enemy; p.nearDevice = null; p.nearSource = null;
+  p._attackCooldown = 0;
+
+  keyDown('KeyK');
+  p._updateAttack(1 / 60, lvl());
+  assert(hits === 1, 'K: pressing K near an enemy lands one hit', `hits ${hits}`);
+  releaseAll();
+
+  p._attackCooldown = 0; hits = 0;
+  keyDown('Space');
+  p._updateAttack(1 / 60, lvl());
+  assert(hits === 0, 'SPACE: no longer attacks (K owns attack)', `hits ${hits}`);
+  releaseAll(); }
+
+// ── K does not charge a gate, and costs no energy ──────────────────────────
+{ releaseAll();
+  const { p, g } = atGate(8);
+  const before = p.usableEnergy;
+  keyDown('KeyK');
+  p._updateAttack(1 / 60, lvl());
+  p._updateDischarge(1 / 60, lvl());
+  assert(g.charged === 0, 'K: does not charge a gate', `charged ${g.charged}`);
+  assert(p.usableEnergy === before, '  ...and never touches energy', `usable ${p.usableEnergy}`);
+  releaseAll(); }
+
+// ── SPACE-charging works while standing at a source (removed guard) ────────
+{ releaseAll();
+  const { p, g } = atGate(8);
+  p.nearSource = new EL.ElectricalSource({ id: 'S', x: 400, y: 0, charge: 4 });
+  keyDown('Space');
+  p._updateDischarge(1 / 60, lvl());
+  assert(g.charged > 0,
+    'SPACE charges even while near a source (old nearSource guard removed)',
+    `charged ${g.charged.toFixed(4)}`);
+  releaseAll(); }
+
+// ── charging draws on the banked reserve when the bar runs dry ─────────────
+{ releaseAll();
+  const { p, g } = atGate(8, 0, 2);     // empty bar, 2 stored batteries
+  assert(p.canAfford(8), 'reserve alone satisfies the gate requirement', `usable ${p.usableEnergy}`);
+  keyDown('Space');
+  for (let i = 0; i < 600 && !g.open; i++) p._updateDischarge(1 / 60, lvl());
+  assert(g.open === true, 'SPACE: gate opens using the reserve', `charged ${g.charged}/8, ${show(p)}`);
+  assert(near(20 - p.usableEnergy, 8), '  ...exactly 8 left the player', `spent ${20 - p.usableEnergy}`);
+  releaseAll(); }
 // ════════════════════════════════════════════════════════════════════════════
 console.log(`\nRESULTS: ${passed} passed, ${failed} failed`);
 if (failed === 0) console.log('ALL TESTS PASS \u2713');
