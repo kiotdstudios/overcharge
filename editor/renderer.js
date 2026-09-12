@@ -220,25 +220,27 @@ export function render(ctx, canvas) {
     // Decorations
     for (const d of state.selection.decorations) drawOutline({ x: d.x, y: d.y, w: d.w, h: d.h });
 
-    // Gameplay markers — hit-box footprints match the visible marker size
-    // (see selection.js::boundingRect for the source of truth).
-    // Source: outline the 64×64 sprite footprint (matches _drawSources render area)
-    for (const o of state.selection.sources)     drawOutline({ x: o.x - 18, y: o.y - 36, w: 64, h: 64 });
-    // Switch + Enemy: top-left hitbox
-    for (const o of state.selection.switches)    drawOutline({ x: o.x,      y: o.y,      w: 22,            h: 22 });
-    for (const o of state.selection.checkpoints) drawOutline({ x: o.x - 11, y: o.y - 11, w: 22,            h: 22 });
-    for (const o of state.selection.enemies) {
-      const ew = o.type === 'patrol' ? 20 : o.type === 'drone' ? 40 : 22;
-      const eh = o.type === 'patrol' ? 26 : o.type === 'drone' ? 36 : 24;
-      drawOutline({ x: o.x, y: o.y, w: ew, h: eh });
-    }
-    for (const o of (state.selection.platforms || [])) drawOutline({ x: o.x, y: o.y, w: o.w || 96, h: o.h || 12 });
-    for (const o of (state.selection.crates     || [])) drawOutline({ x: o.x, y: o.y, w: o.w || 32, h: o.h || 32 });
-    for (const o of state.selection.gates)       drawOutline({ x: o.x,     y: o.y,     w: o.w, h: o.h });
+    // Gameplay markers — geometry comes from selection.js::boundingRect, which
+    // is the SINGLE SOURCE OF TRUTH for what each object's box is.
+    //
+    // This block used to hard-code the rects inline while its own comment claimed
+    // boundingRect was authoritative. The two drifted, and the checkpoint box ended
+    // up drawn as a 22x22 dot at the sign's base instead of around the sign
+    // (Chief 2026-09-12: "checkpoint box anchored to the bottom of the sprite").
+    // Deriving it here means the outline you SEE and the area you can CLICK can
+    // never disagree again — fix the box in one place and both follow.
+    const outlineByKind = (kind, ref) => drawOutline(Selection.boundingRect(kind, ref));
 
-    // playerStart triangle bounds
+    for (const o of state.selection.sources)            outlineByKind('source', o);
+    for (const o of state.selection.switches)           outlineByKind('switch', o);
+    for (const o of state.selection.checkpoints)        outlineByKind('checkpoint', o);
+    for (const o of state.selection.enemies)            outlineByKind('enemy', o);
+    for (const o of (state.selection.platforms || []))  outlineByKind('platform', o);
+    for (const o of (state.selection.crates     || [])) outlineByKind('crate', o);
+    for (const o of state.selection.gates)              outlineByKind('gate', o);
+
     if (state.selection.playerStart && L.playerStart) {
-      drawOutline({ x: L.playerStart.x, y: L.playerStart.y, w: 14, h: 14 });
+      outlineByKind('playerStart', L.playerStart);
     }
 
     // Selected tiles — yellow fill overlay (not just outline, so they're

@@ -843,3 +843,20 @@ Chief reported the "CP" schematic box a second time. It was assigned to Aki's in
 **Also confirmed the fallback path no longer throws** by blocking the checkpoint PNG to force it.
 
 **Verdict: PASSED after fix.** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke **OK**. Switch correctly remains schematic (no art — her P6a).
+
+---
+
+## 2026-09-12 — Selection boxes now wrap the visible sprite (Chief: "checkpoint box anchored to the bottom of the sprite")
+
+**Root cause was duplication, not a wrong number.** `editor/renderer.js` hard-coded every selection-outline rect inline, while its own comment said *"see selection.js::boundingRect for the source of truth."* The two had drifted. `boundingRect` was already fixed to the sign's 44×56 bounds, but the renderer kept drawing the stale 22×22 trigger dot at the sign's base — so Chief saw a tiny box under a 56px-tall sprite.
+
+**Structural fix, not a patch:** the renderer now calls `Selection.boundingRect(kind, ref)` for every kind. What you SEE outlined and what you can CLICK can no longer disagree — fix a box once and both follow. Verified `boundingRect` covers all nine kinds before switching.
+
+**Applied Chief's rule consistently, which caught two more instances of the same bug before he hit them:**
+- **source** — box was the 28×28 runtime hitbox while the generator sprite is 64×64 at `(x-18, y-34)`. Now wraps the visible generator. (Editor-only rect; runtime collision untouched.)
+- **playerStart** — box was 14×14 under Aki's new 92×92 player sprite drawn at `(x-36, y-48)`. Now wraps the visible player.
+- checkpoint — 44×56 standing on the ground line, derived from the measured art bbox `17,10..103,117` at scale 56/108.
+
+**Verified numerically and visually:** `boundingRect('checkpoint')` returns `{1066,168,44,56}` against art bounds left 1066 / right 1110 / top 168 / bottom 224 — exact match, bottom on the ground line, sign midpoint and top both inside (the old 22×22 box contained neither). Screenshot confirms the dashed outline wrapping the whole sign.
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK. No test imports `editor/selection.js`, so these rects were unguarded — noted as a coverage gap.
