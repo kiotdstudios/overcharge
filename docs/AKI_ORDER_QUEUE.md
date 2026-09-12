@@ -273,7 +273,7 @@ instead of the actual sprites, so Chief cannot see what he is building.
 |---|---|---|
 | Source (generator) | ✅ real sprite already | `assets/sprites/generator 1/frame_000.png` |
 | Gate | ✅ real sprite already | `gate_electric_spritesheet.png` |
-| **Checkpoint** | ❌ schematic | ✅ `assets/objects/checkpoint_flag/frame_000..008.png` |
+| ~~**Checkpoint**~~ | ✅ **DONE BY KIRO** — do not redo | `assets/objects/checkpoint_flag/frame_000..008.png` |
 | **Enemy / drone** | ❌ schematic | ✅ `assets/sprites/drone/idle/frame_000.png` |
 | **Crate** | ❌ schematic (yours) | ✅ `crate_conductive.png` |
 | **Platform** | ❌ schematic | ✅ `purple_city/platforms/platform_*.png` |
@@ -371,3 +371,30 @@ in the manifest entry so nobody later "fixes" it back.
 Rendered proof, stated sprite size + anchor, 22×22 hitbox respected, zero stray
 alpha, manifest accurate, palette still exactly ONE gate entry, all suites 0
 failed. Push to `agent/aki-editor` and HOLD.
+
+---
+
+## P5 SCOPE CHANGE — checkpoint is DONE, do not redo it
+
+**Kiro implemented the checkpoint case directly (2026-09-12).** Chief reported the
+"CP" box twice and was blocked from seeing his own level, so it was not left to
+wait. `editor/renderer.js _drawCheckpoints` now draws
+`checkpoint_flag/frame_000.png` (the dark/resting frame — the "GAME SAVED" frames
+only mean something once a player triggers it), with the CP box retained as the
+loading fallback and the id label kept on top.
+
+**Use it as the reference implementation for the rest of P5.** It demonstrates
+exactly what the order asks for:
+- anchors **copied from the runtime, not re-derived** — the `CP_*` constants in
+  `editor/renderer.js` mirror `src_scroll/entities.js` line for line, with a
+  comment saying why (if the two disagree, Chief authors to a lie)
+- `getImage()` + `img.complete && img.naturalWidth > 0`, schematic as fallback
+- `imageSmoothingEnabled = false`
+- authoring info (id label) drawn ON TOP of the art
+- scaled by `state.camera.zoom`
+
+**Your remaining P5 scope:** drone/enemies, crate, platform, playerStart. Switch
+stays schematic (no art exists — that is P6a).
+
+Verified: the real editor render path now draws `generator 1/frame_000.png`,
+`objects/gate_closed.png` and `checkpoint_flag/frame_000.png`, zero page errors.

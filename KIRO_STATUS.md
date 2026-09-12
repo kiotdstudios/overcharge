@@ -805,3 +805,19 @@ Suites on merged tree: parity 110/0 · energy 88/0 · electricity 37/0 · crate_
 **`docs/AKI_ORDER_QUEUE.md` P6 queued** (after her in-flight P5):
 - **P6a switch art** — the last missing object sprite, found during my P5 audit. Told her 2 states is sufficient (not a 9-frame sheet), that the 22×22 hitbox is a harness-asserted contract, and that she may draw larger than the hitbox like sources do (28×28 hitbox, 64×64 sprite) provided she states the size and anchor so I can wire editor and runtime to the same numbers.
 - **P6b** — the yellow energized crate is still awaiting Chief's ruling; told her not to pre-emptively change it, and that if Chief keeps yellow she must record WHY in the manifest so nobody later "fixes" it back.
+
+---
+
+## 2026-09-12 — Checkpoint real art in the Builder — implemented directly (Chief asked twice)
+
+Chief reported the "CP" schematic box a second time. It was assigned to Aki's in-flight P5, but leaving him unable to see his own level while waiting on another agent was the wrong trade. Implemented it myself and rescoped her order.
+
+**`editor/renderer.js _drawCheckpoints`** now draws `checkpoint_flag/frame_000.png` — the dark/resting frame, since the "GAME SAVED" frames only mean something once a player triggers it. The CP box is retained as the load-time fallback (an object must never be invisible), and the id label is drawn on top of the art.
+
+**Anchors are COPIED from `src_scroll/entities.js`, not re-derived** — the `CP_*` constants mirror the runtime line for line, with a comment stating why: if the Builder and the game disagree on placement, Chief authors to a lie. This is the WYSIWYG parity rule I set for Aki in P5, so the implementation had to obey it too.
+
+**Verified via the real render path, not a stub:** patched `CanvasRenderingContext2D.prototype.drawImage` before boot and confirmed the live editor draws `generator 1/frame_000.png`, `objects/gate_closed.png` and `checkpoint_flag/frame_000.png`, zero page errors. Screenshot confirms the sign renders grounded on the surface line, centred on its x, with the gate now free of its purple film.
+
+**Aki's P5 rescoped** in `docs/AKI_ORDER_QUEUE.md`: checkpoint marked DONE with "do not redo", and pointed at my implementation as the reference for the pattern (runtime-copied anchors, `getImage` + fallback, no smoothing, labels on top). Her remaining scope: drone/enemies, crate, platform, playerStart. Switch stays schematic pending P6a art.
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0**.

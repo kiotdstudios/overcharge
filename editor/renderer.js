@@ -510,14 +510,44 @@ function _drawSwitches(ctx, arr) {
   }
 }
 
-// Checkpoints: green flag column (x,y = CENTRE of trigger zone).
+// Checkpoints: real checkpoint_flag art (x = CENTRE, y = standing-ground line).
+//
+// ANCHORS ARE COPIED FROM THE RUNTIME, NOT RE-DERIVED. src_scroll/entities.js
+// measures the art's opaque bbox as 17,10..103,117 inside a 128x128 frame and
+// derives: scale = 56/108, dest = 128*scale, offX = 60*scale, offY = 117*scale.
+// If these two ever disagree, Chief authors to a lie — the Builder must show
+// exactly what the game draws.
+const CP_SRC = 128, CP_ART_H = 56, CP_BOX_H = 108, CP_BOX_CX = 60, CP_BOX_BOT = 117;
+const CP_SCALE = CP_ART_H / CP_BOX_H;
+const CP_DEST  = Math.round(CP_SRC * CP_SCALE);
+const CP_OFF_X = Math.round(CP_BOX_CX  * CP_SCALE);
+const CP_OFF_Y = Math.round(CP_BOX_BOT * CP_SCALE);
+
 function _drawCheckpoints(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const o of arr) {
-    // Draw a vertical pole with a small flag at top
-    const bx = o.x - 11, by = o.y - 11;
-    const p  = worldToScreen(bx, by);
+    // Frame 0 = the DARK/inactive panel. The Builder always shows the resting
+    // state; the "GAME SAVED" frames only mean anything once a player triggers it.
+    const img = getImage('assets/objects/checkpoint_flag/frame_000.png');
+    if (img.complete && img.naturalWidth > 0) {
+      const sp = worldToScreen(o.x - CP_OFF_X, o.y - CP_OFF_Y);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, CP_SRC, CP_SRC, sp.x, sp.y, CP_DEST * z, CP_DEST * z);
+      // Authoring info stays ON TOP of the art: id label under the ground line.
+      if (o.label || o.id) {
+        const lp = worldToScreen(o.x, o.y);
+        ctx.fillStyle = MARKER.checkpoint;
+        ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(o.label || o.id, lp.x, lp.y + 3);
+      }
+      continue;
+    }
+
+    // Fallback: the original CP box while the sprite loads (getImage wires the
+    // repaint). Never leave an object invisible.
+    const p  = worldToScreen(o.x - 11, o.y - 11);
     const sw = 22 * z, sh = 22 * z;
     ctx.fillStyle = MARKER.checkpoint; ctx.globalAlpha = 0.3;
     ctx.fillRect(p.x, p.y, sw, sh);
