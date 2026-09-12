@@ -3,101 +3,80 @@ _Updated: 2026-09-12 ET_
 
 ## Branch: agent/aki-editor
 **Worktree:** `C:/Users/diepowel/Documents/GitHub/overcharge-aki`
-**HEAD: 83a7a0d**
+**HEAD: 412b7ed**
 
 ---
 
-## ORDER TOOLS_UI_LAYOUT — COMPLETE / HOLD FOR KIRO QA GATE
+## ORDER P1 (BRANCH RESET) — COMPLETE / KIRO VERIFIED
 
-| Deliverable | Status |
-|-------------|--------|
-| New inspector panel: icon rail + 6 numbered sections | DONE |
-| §1 LEVEL: prev/next nav, readout (lss-name/state/snaps), snapshots chip | DONE |
-| §2 TOOLS: all existing tool buttons | DONE |
-| §3 ARRANGE: layer + zoom | DONE |
-| §4 EDIT: undo/redo | DONE |
-| §5 LEVEL ACTIONS: new/dupe/upload/gen/snap/hist/order/revert/delete/backup | DONE |
-| §6 TEST: parity-status + PLAY + TEST LIVE | DONE |
-| SPAWN OBJECTS (collapsed) | DONE |
-| SELECTED OBJECT (hidden) | DONE |
-| DEV QA (collapsed) | DONE |
-| Toolbar cleanup: removed LEVEL label, level-select, btn-play, btn-test | DONE |
-| data-sec collapser fix (all 8 sections mapped to correct tp-body IDs) | DONE |
-| main.js: btn-level-prev/next wired (guarded step through levelSelect) | DONE |
-| main.js: level-nav-readout click (inline level selector) | DONE |
-| main.js: btn-snaps-chip delegates to btn-history | DONE |
-| main.js: icon rail scroll + active state | DONE |
-| main.js: snaps-chip-count synced in refreshStatusStrip() | DONE |
-| Parity regression | 75/75 PASSED |
+| | |
+|---|---|
+| Reset to | `origin/agent/orcha-gameplay` @ `11c2d8d` |
+| Asset diff vs orcha-gameplay | **0 files** |
+| AKI_SPECIALIZATION.md | Present at `docs/agent-training/` (101125a) |
+| Verified by Kiro | YES — independently confirmed on remote |
+
+---
+
+## ORDER P3 (DOC + PALETTE PASS) — COMPLETE / HOLD FOR KIRO QA GATE
+
+### Files changed
+- `assets/ASSET_MANIFEST.json`
+- `editor/MANIFEST.md`
+- `docs/LEVEL_SCHEMA.md`
+
+### Changes
+
+**ASSET_MANIFEST.json** (51 entries, all paths verified):
+- `env_prop_tool_hammer`: frame dims corrected 25×20 → 32×32 (matches resized file); redundant `width`/`height` top-level fields removed
+- `gate_electric_closed`: notes updated — explicitly names `gate_electric_dead.png`, `gate_electric_open.png`, `gate_electric_spritesheet.png` as runtime state files, not palette entries. ONE gate palette entry confirmed.
+- `env_tile_purple_edge_ref`, `env_tile_purple_edge_hollow_ref`, `env_tech_panel_wide`: `_id_note` fields added flagging stale IDs (these are crate/container assets, not tiles/panels). Rename deferred pending cross-agent agreement.
+- `electrical_generator`: notes clarified with actual frame filenames (frame_000–008, 9 frames) and path template note
+- `gate_electric_dead.png`: confirmed absent from manifest ✓
+- Gate palette entries: exactly 1 (`gate_electric_closed`) ✓
+
+**editor/MANIFEST.md**:
+- Stale reference `manifest.json` → `asset_index.json` fixed
+
+**docs/LEVEL_SCHEMA.md**:
+- Gate section: removed stale "gate_electric_open pending" note. Both `gate_electric_open.png` and `gate_electric_dead.png` exist; documented as runtime state files wired in `electricity.js`
+
+### Flagged for follow-up (not actioned — need cross-agent agreement)
+- 3 stale IDs in ASSET_MANIFEST.json: `env_tile_purple_edge_ref`, `env_tile_purple_edge_hollow_ref`, `env_tech_panel_wide` — IDs don't match their actual asset paths (crate assets named as tile/panel). `_id_note` added to each. Rename as `env_container_crate_large`, `env_container_crate_large_hollow`, `env_container_crates_double` when Orcha confirms no runtime dependency.
+
+### Tests
+- Parity: 75/75 ✓
+- Electricity: 37/37 ✓
+- Energy authority: 87/87 ✓
 
 ### Commits
 | SHA | What |
 |-----|------|
-| ecd4e21 | Merge orcha-gameplay into aki-editor (84+33=117 assets) |
-| 83a7a0d | layout: TOOLS_UI_LAYOUT complete — new inspector panel, icon rail, §1-6, toolbar cleanup |
+| 412b7ed | P3: doc + palette truth pass |
 
-### Rollback
+---
+
+## ORDER P2 (CRATE + TIMED DEVICE EDITOR SUPPORT) — WAITING ON ORCHA
+
+Holding for Orcha's schema to land on `agent/orcha-gameplay` before building:
+- `+ Crate` spawn button in SPAWN OBJECTS
+- Gate inspector: `timed` (bool) + `duration` (number) fields
+- Crate marker/badge in editor canvas
+
+---
+
+## Known Flagged Issues
+
+| Issue | Priority | Notes |
+|-------|----------|-------|
+| 3 stale manifest IDs (crate assets named as tile/panel) | P3 | `_id_note` added; rename pending cross-agent sign-off |
+| FireWatcher CMD=["py",...] wrong Python | P2 | FIRESQUAD — unrelated to OVERCHARGE |
+
+---
+
+## Rollback Points
+
 | SHA | Label |
 |-----|-------|
-| 5192356 | Pre-TOOLS_UI_LAYOUT baseline |
-| ecd4e21 | Post-merge (pre-layout) |
-| 83a7a0d | HEAD — TOOLS_UI_LAYOUT complete |
-
----
-
-## Order #1 — COMPLETE (Chief-verified)
-
-| # | Priority | Status |
-|---|----------|--------|
-| P1 | Save/Play pipeline | CHIEF VERIFIED |
-| P2 | Dev level switcher [ / ] | CHIEF VERIFIED |
-| P3 | Placement anchoring (snap to terrain) | CHIEF VERIFIED |
-| P4 | Gate purple line fix | CHIEF VERIFIED |
-| P5 | Jump-over-gate fix | CHIEF VERIFIED |
-| P6 | Editor UI Tools Panel | CHIEF VERIFIED |
-
----
-
-## Order #3 — Code complete / Partial Chief visual QA
-
-Base commit: b653616 (snapshot safety, status strip, DEV QA, build label)
-
-| SHA | What |
-|-----|------|
-| 5862d47 | Object visibility, source coord fix, level delete, selection bounds fix |
-| 2e9554b | Gate sprite: draw gate_closed.png (64x128) matching game anchor |
-| 05af658 | Generator floor fix: 1px transparent row, draw at y+h-62 |
-| 58575d6 | Image load race fix, gate type tints, switch glow-rect, checkpoint render |
-
-| Fix | Code | Chief Visual |
-|-----|------|--------------|
-| Objects visible on canvas | CODE VERIFIED | REQUIRED |
-| Source/generator sprite placed correctly | CODE VERIFIED | REQUIRED |
-| Generator no 2px float | CODE VERIFIED | REQUIRED |
-| Gate renders gate_closed.png 64x128 bottom-aligned | CODE VERIFIED | REQUIRED |
-| EXIT/BARRIER/GATE tints + labels | CODE VERIFIED | REQUIRED |
-| Switch: orange glow-rect + SW glyph | CODE VERIFIED | REQUIRED |
-| Checkpoint: green 22x22 box + CP glyph | CODE VERIFIED | REQUIRED |
-| Level delete button works | CODE VERIFIED | REQUIRED |
-| Image load race fix | CODE VERIFIED | LOGIC ONLY |
-
----
-
-## Known Open Issues (unassigned)
-
-| Issue | Priority |
-|-------|----------|
-| Enemy sprites not loaded in editor (red hitbox box) | P2 |
-| [ ] level switching needs PLAYING state first | P3 |
-| buildinfo.js stale SHA | P3 |
-| No placement UI for switch/checkpoint/enemy | P2 |
-| FireWatcher CMD=["py",...] wrong Python (FIRESQUAD) | P2 |
-
----
-
-## NOT STARTED (HOLDING)
-
-- Switch authoring tools
-- Moving platform authoring tools
-- Enemy sprite loading in editor
-- Kiro parity defect fixes (wait for Chief/TD assignment)
+| 2a0a5fa | Post-reset (P1 baseline) |
+| 412b7ed | HEAD — P3 complete |
