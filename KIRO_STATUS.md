@@ -438,3 +438,20 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 ## 2026-09-12 — Chief ratification: K-attack amendment
 
 Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was my call yes to commit." SPACE_CHARGE bindings are final as shipped in `ca79051` / live merge `0520765`. Flag closed, no rework.
+
+---
+
+## 2026-09-12 — Chief order: asset purge — keep gate/generator/drone/purple_city(zip) only
+
+**Ruling recorded:** `env_waste_platform_long.png` KEPT (in use, Chief's explicit call).
+
+**Deleted (429 files, archived first to `Documents\Archived\asset_purge_2026-09-12\`):**
+- Whole folders: `assets/backgrounds/` (mid_city, unreferenced), `sprites/charge/`, `sprites/Charge Animation/`, `sprites/idle/` (superseded by idle_2.0), `sprites/running animation/`, `sprites/drain_enemy/`, `sprites/helicopter drone/` (unreferenced; the in-game drone is `sprites/drone/`)
+- Direction subfolders the runtime never loads (sprites.js uses east/west only): north/south/diagonals of `idle_2.0`, `walking`, `jumping`, `discharge`
+- `purple_city/_contact_sheet_batch2.png` (QA artifact, CLEANUP_PLAN item)
+
+**Kept:** `objects/` gate art (4 files) · `sprites/generator 1/` · `sprites/drone/` · player east/west anims (`idle_2.0`, `walking`, `jumping`, `running`, `charge_anim`, `discharge` — deleting these blanks the player; treated as "the player", not deletable clutter) · `tilesets/purple_city/**` (all crops derive from the zip's single master sheet `purplecity.png`; `assets/purple city.zip` + PDF license kept) · `env_waste_platform_long.png`.
+
+**Manifests:** `asset_index.json` regenerated (227 entries); new `scripts/prune_manifests.mjs` dropped dead entries from `ASSET_MANIFEST.json` (116→84, incl. 31 stale waste entries from the earlier purge) and `PURPLE_CITY_INDEX.json` (76→75).
+
+**Verified:** every sprite path the runtime constructs exists on disk with the exact frame counts sprites.js expects (11/9/9/8/11/11 e+w, drone 9+9, generator 9, gates 4). QA gate: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.

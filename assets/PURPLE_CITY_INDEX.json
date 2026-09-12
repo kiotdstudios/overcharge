@@ -476,17 +476,6 @@
       ]
     },
     {
-      "id": "env_waste_platform_short.png",
-      "path": "assets/tilesets/purple_city/props/env_waste_platform_short.png",
-      "category": "prop",
-      "width": 16,
-      "height": 5,
-      "tags": [
-        "purple_city",
-        "props"
-      ]
-    },
-    {
       "id": "pipe_elbow.png",
       "path": "assets/tilesets/purple_city/props/pipe_elbow.png",
       "category": "prop",
