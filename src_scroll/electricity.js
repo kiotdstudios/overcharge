@@ -143,11 +143,30 @@ export class PowerGate {
   get cx() { return this.x + this.w / 2; }
   get cy() { return this.y + this.h / 2; }
 
+  // ── DORMANT (un-energized) state ──────────────────────────────────
+  // Chief, 2026-09-11: "gate before charge is moving, animated; should be in a
+  // dead state until given charge."
+  //
+  // A gate that has received nothing is inert: static art, no glow, no frame
+  // advance. It wakes the moment energy arrives and stays awake while it holds
+  // any charge, so the animation reads as "this thing is now live".
+  //
+  // blockOnly barriers are EXEMPT: they are switch-controlled force fields, not
+  // things awaiting player charge, and their `charged` is always 0 — treating
+  // them as dormant would freeze them permanently.
+  get isDormant() {
+    return !this.open && !this.blockOnly && this.charged <= 1e-9 && this._reactT <= 0;
+  }
+
   update(dt) {
     this._t += dt;
     if (this.open) this._openAge += dt;
     this._pipFlash = Math.max(0, this._pipFlash - dt);
     this._reactT   = Math.max(0, this._reactT   - dt);
+    // Dormant gates do not animate. Frame is pinned to 0 rather than merely
+    // left alone, so waking always starts the idle loop at its first frame —
+    // and because row 0 has content ONLY at frame 0 (see draw()).
+    if (this.isDormant) { this._frame = 0; return; }
     this._frame    = (this._frame + dt * this._fps) % 9;
   }
 
@@ -224,26 +243,36 @@ export class PowerGate {
 
     const fill = this.required > 0 ? Math.min(1, this.charged / this.required) : 0;
 
-    // ── CLOSED state: play spritesheet idle (row 1) or charging (row 2) ──
-    // Sheet is 1152×384: 9 cols × 3 rows of 128×128 cells.
-    //   Row 0 = base (unused)   Row 1 = idle   Row 2 = charging
-    // Each frame's 128×128 cell is cropped centered to 64×128 so the
-    // gate art (which is portrait-shaped) is drawn at its natural
-    // aspect into a 64×128 destination.
+    // ── CLOSED state: three visual states, driven by energy ──────────
+    // Sheet is 1152×384: 9 cols × 3 rows of 128×128 cells. Each frame's cell is
+    // cropped to its centered 64 wide slice (sx = col*128 + 32) so the portrait
+    // gate art draws at natural aspect into a 64×128 destination.
+    //
+    //   DORMANT   row 0, FRAME 0 ONLY, static, no glow   (charged == 0)
+    //   IDLE      row 1, 9-frame loop                    (holds some charge)
+    //   CHARGING  row 2, 9-frame loop, stronger glow      (_reactT > 0)
+    //
+    // ⚠ ROW 0 HAZARD — verified by decoding the sheet: row 0 contains artwork
+    // ONLY at frame 0 (6572 opaque px); frames 1-8 are completely EMPTY. Row 0
+    // frame 0 is pixel-identical to row 1 frame 0, i.e. it is the neutral base
+    // gate. So the dormant frame index is hard-pinned to 0 here and in update();
+    // letting the frame counter run on row 0 would make the gate DISAPPEAR.
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    const sheet = this._sheet;
+    const sheet   = this._sheet;
+    const dormant = this.isDormant;
     if (sheet && sheet.complete && sheet.naturalWidth > 0) {
       const CELL = 128;
-      const fi   = Math.floor(this._frame) % 9;
-      const row  = this._reactT > 0 ? 2 : 1;
+      const row  = dormant ? 0 : (this._reactT > 0 ? 2 : 1);
+      const fi   = dormant ? 0 : Math.floor(this._frame) % 9;   // pinned — see hazard note
       const sx   = fi * CELL + 32;   // centered 64-wide crop within 128-wide cell
       const sy   = row * CELL;
-      ctx.shadowBlur  = this._reactT > 0 ? 18 : 8;
+      // No glow while dormant: an un-energized gate should not look powered.
+      ctx.shadowBlur  = dormant ? 0 : (this._reactT > 0 ? 18 : 8);
       ctx.shadowColor = '#cc44ff';
       ctx.drawImage(sheet, sx, sy, 64, CELL, dX, dY, spriteW, spriteH);
     } else if (this._imgClosed.complete && this._imgClosed.naturalWidth > 0) {
-      // Sheet not loaded yet — legacy static gate for one frame or two.
+      // Sheet not loaded yet — legacy static gate (64×128, same dest size).
       ctx.drawImage(this._imgClosed, dX, dY, spriteW, spriteH);
     }
     ctx.restore();
