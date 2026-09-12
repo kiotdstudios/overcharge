@@ -423,14 +423,13 @@
       }
     },
     {
-      "id": "env_container_crate_large",
+      "id": "env_tile_purple_edge_ref",
       "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "category": "container",
+      "category": "construction_tile",
       "tags": [
-        "container",
-        "crate",
-        "large",
-        "pushable_candidate",
+        "construction",
+        "purple_edge",
+        "reference",
         "purple_city"
       ],
       "frame_width": 50,
@@ -443,7 +442,8 @@
       "generation": {
         "eligible": false,
         "ineligible_reason": "50×50 visual reference for the env_edge_purple_* construction family; use env_edge_purple_* tiles for level building"
-      }
+      },
+      "_art_note": "FILENAME LIES — file is named crate_large.png but the art is a purple bordered FRAME tile (50x50, purple border + dark fill), not a crate. Verified by rendering the pixels 2026-09-12. The ID describes the ART and is authoritative. Do NOT rename from the filename."
     },
     {
       "id": "env_container_small_a",
@@ -1112,34 +1112,36 @@
       }
     },
     {
-      "id": "env_container_crate_large_hollow",
-      "category": "container",
+      "id": "env_tile_purple_edge_hollow_ref",
+      "category": "construction_tile",
       "path": "assets/tilesets/purple_city/containers/crate_large_hollow.png",
       "frame_width": 50,
       "frame_height": 50,
       "tags": [
-        "container",
-        "crate",
-        "large",
+        "construction",
+        "purple_edge",
         "hollow",
-        "pushable_candidate",
+        "reference",
         "purple_city"
       ],
       "generation": {
         "eligible": false,
         "ineligible_reason": "Hollow variant of env_tile_purple_edge_ref; part of purple-edge construction reference set. Use env_edge_purple_* for building."
-      }
+      },
+      "_art_note": "FILENAME LIES — named crate_large_hollow.png but the art is the purple bordered frame with a hollow centre cut out (50x50), not a crate. Verified by rendering 2026-09-12. ID describes the ART."
     },
     {
-      "id": "env_container_crates_double",
-      "category": "container",
+      "id": "env_tech_panel_wide",
+      "category": "prop",
       "path": "assets/tilesets/purple_city/containers/crates_double.png",
       "frame_width": 60,
       "frame_height": 34,
       "tags": [
-        "container",
-        "crate",
-        "double",
+        "prop",
+        "tech",
+        "panel",
+        "equipment",
+        "ground_level",
         "purple_city"
       ],
       "generation": {
@@ -1153,7 +1155,8 @@
         "layer": "foreground",
         "density": "sparse",
         "stackable": false
-      }
+      },
+      "_art_note": "Named crates_double.png; the art reads as two flat panel/box faces (60x34). Kept as tech panel. Closest existing art to a crate is container_small_a/b, but both are ~20px and far under the 32x32 crate default."
     },
     {
       "id": "env_platform_short_b",

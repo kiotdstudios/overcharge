@@ -661,3 +661,24 @@ Remaining `_id_note` count: **0**. This mattered more than cosmetics: Orcha is b
 **Consequence worth surfacing: OVERCHARGE already has crate art.** `crate_large.png`, `crate_large_hollow.png`, `crates_double.png` are in the repo, now correctly tagged `container/crate/pushable_candidate`. Orcha's crate system and Chief's Level 5 do not need new art commissioned.
 
 **Aki status:** P1 complete, P3 complete. P2 (editor support for crate/timed) correctly holding on Orcha's schema.
+
+---
+
+## 2026-09-12 — CORRECTION: my crate-art claim was WRONG. Rename reverted.
+
+**Chief: "there is no crate art generated." Chief is right. I was wrong.**
+
+In the entry above I renamed 3 manifest entries to `env_container_crate_*` and stated "OVERCHARGE already has crate art… Orcha's crate system and Chief's Level 5 do not need new art commissioned." **That claim was false and I retract it.**
+
+**The error:** I renamed based on FILE PATHS (`containers/crate_large.png`) without rendering the pixels. I verified that renaming was *safe* (zero level/code refs — that part was correct) but never verified it was *right*. That is the exact failure I have been gating other agents against all session: trusting a label over the artwork.
+
+**What the art actually is** — rendered and inspected 2026-09-12:
+- `crate_large.png` (50×50) — a purple **bordered frame tile**, purple edge with dark fill. Not a crate.
+- `crate_large_hollow.png` (50×50) — the same frame with a hollow centre cut out. Not a crate.
+- `crates_double.png` (60×34) — two flat panel/box faces. Arguably a tech panel; not a pushable crate.
+
+**Aki was right and her caution was justified.** Her original IDs (`env_tile_purple_edge_ref`, `env_tile_purple_edge_hollow_ref`, `env_tech_panel_wide`) described the real artwork accurately. Her `_id_note` flags pointed at the wrong culprit — the FILENAMES lie, not the IDs — but her refusal to rename without agreement was the correct instinct, and I overrode it incorrectly.
+
+**Reverted:** all 3 IDs, categories and tags restored to Aki's values. `_id_note` removed and replaced with `_art_note` recording the durable finding: *the filename lies, the ID describes the art and is authoritative, do not rename from the filename.* Category `container` now correctly contains only `env_container_small_a` and `env_container_small_b`.
+
+**Real state of crate art: DOES NOT EXIST.** Closest existing assets are `container_small_a` (20×18) and `container_small_b` (18×16) — both far under the 32×32 crate default and read as small boxes, not pushable crates. **Orcha's conductive-crate system and Chief's Level 5 need crate art produced.** Issued to Aki as P4.

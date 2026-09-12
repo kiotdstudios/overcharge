@@ -146,3 +146,60 @@ to `agent/aki-editor` and HOLD for Kiro's QA gate.
 ORDER `<name>`: COMPLETE / BLOCKED · files changed · tests run with counts ·
 AKI_STATUS.md updated · full SHA · pushed to `agent/aki-editor` · then HOLD for
 Kiro's QA gate. Do not merge to `agent/orcha-gameplay` yourself.
+
+---
+
+## P4 — ✅ GO. Produce CONDUCTIVE CRATE art
+
+**Context — and a correction you are owed.** In your P3 pass you flagged three
+entries as stale IDs (`env_tile_purple_edge_ref`, `env_tile_purple_edge_hollow_ref`,
+`env_tech_panel_wide`) and declined to rename them without agreement. Kiro renamed
+them to `env_container_crate_*` based on their file paths, then Chief pointed out
+there is no crate art in the project. Kiro rendered the pixels and confirmed:
+
+- `crate_large.png` is a purple **bordered frame tile**, not a crate
+- `crate_large_hollow.png` is that frame with a hollow centre, not a crate
+- `crates_double.png` reads as flat panel faces
+
+**Your original IDs were correct — they described the art. The FILENAMES are what
+lie.** The rename has been reverted to your values, and each entry now carries an
+`_art_note` saying so, so nobody repeats the mistake. Good instinct; the caution
+was justified.
+
+**Consequence: the crate art does not exist and is now needed.** Orcha is building
+the conductive-crate runtime system and Chief authors Level 5 ("Power and
+Position") around pushing a crate into contact with a device.
+
+### What to produce
+
+A **pushable conductive crate**, Purple City palette, matching the existing
+environment kit:
+
+1. **`crate_conductive.png`** — the base crate. **32×32** (the crate default in
+   `docs/KIRO_RULING_CRATE_TIMED_V1.md`). Must read instantly as *pushable* and
+   *metallic/conductive* — distinct from scenery boxes. Grounded, sits flush on a
+   32px tile with no float and no sub-pixel gap.
+2. Optional, only if it costs little: a **contact/energised variant** (or a small
+   glow overlay frame) for when the crate is bridging a device and passing
+   current. The runtime has no energised-crate visual yet — if you provide one,
+   say so and Orcha can wire it; if not, v1 renders the base sprite only. Do NOT
+   build an animation sheet for this.
+
+### Constraints
+
+- **32×32, grid-true.** No stray pixels — Kiro's alpha-island scanner will check
+  (it has already caught two: `tool_hammer` and `conduit_cluster`).
+- Purple City palette consistency; it must not look like a foreign asset next to
+  the existing tiles.
+- Silhouette must be distinguishable from `env_container_small_a/b` so players
+  never mistake scenery for the puzzle object.
+- Register it in `ASSET_MANIFEST.json` with an accurate ID, `category: "container"`,
+  and tags including `crate`, `pushable`, `conductive`.
+- **Name the file for what it IS.** The three misleading filenames above are
+  exactly the debt we are cleaning up — do not add a fourth.
+
+### Gate criteria
+
+Rendered proof (contact sheet or screenshot), 32×32 confirmed, zero stray alpha
+islands, manifest entry accurate, palette still shows exactly ONE gate entry, all
+suites 0 failed. Push to `agent/aki-editor` and HOLD.
