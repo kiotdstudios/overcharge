@@ -1469,21 +1469,21 @@
       "id": "src_1",
       "x": 992,
       "y": 192,
-      "charge": 5,
+      "charge": 4,
       "label": "GEN"
     },
     {
       "id": "src_2",
       "x": 334,
       "y": 322,
-      "charge": 5,
+      "charge": 4,
       "label": "GEN"
     },
     {
       "id": "src_3",
       "x": 510,
       "y": 290,
-      "charge": 5,
+      "charge": 4,
       "label": "GEN"
     }
   ],
@@ -1495,7 +1495,7 @@
       "w": 32,
       "h": 64,
       "label": "GATE",
-      "required": 3,
+      "required": 8,
       "isExit": true
     }
   ],

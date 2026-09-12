@@ -390,3 +390,19 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 **Prevention:** parity harness now field-guards every committed gate and switch for a positive numeric `required` (71 → 75 checks). A required-less device can never pass the QA gate again.
 
 **Tests:** parity 75/0 · boot smoke OK, zero page errors. Lane note: no Orcha involvement needed — runtime behavior was correct for the data it was given.
+
+---
+
+## 2026-09-12 — Chief energy-economy directive: generator = 4, Level 1 exit = 8
+
+**Directive:** different source types give different absorb amounts. Standard generator = 4 energy, period. Level 1 exit gate = 8. Future ambient sources (e.g. a rare "on" street lamp) ≈ 0.5 — design note only, not built.
+
+**Finding:** no engine work needed — `sources[].charge` is already per-source data in the level JSON and the runtime honors it (fractional values included), so the street-lamp case is content, not code.
+
+**Changes:**
+- `level1.json` + `1_NEON_RISE.json` (kept byte-identical): all 3 GEN sources `charge: 5→4`, exit gate `required: 3→8`. Puzzle math: 12 available vs 8 needed, player must drain 2 of 3 generators.
+- `editor/main.js`: new-source default `charge: 3→4` so placed generators match the directive; other amounts editable per-source in the inspector.
+
+**Tests:** parity 75/0 · electricity 37/0 · energy 51/0 · boot smoke OK.
+
+**Note for Orcha:** SPACE-charge order (`docs/ORCHA_ORDER_SPACE_CHARGE.md`, `d9eb4a4`) unchanged by this; gate cost 8 makes the removal of F instant-fill more important, since one banked battery (10) would still one-press it.

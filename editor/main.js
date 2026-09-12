@@ -993,7 +993,10 @@ function _doSpawn(e, canvas) {
     obj = { type: 'drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
   } else if (kind === 'source') {
-    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: 3 };
+    // Chief directive 2026-09-12: a standard generator gives 4 energy, period.
+    // Other source types (e.g. ambient street lamps at ~0.5) set their own
+    // `charge` — the field is per-source data, editable in the inspector.
+    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: 4 };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'switch') {
     obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '' };
