@@ -582,3 +582,27 @@ Independently audited the 85-file divergence rather than accepting the summary: 
 - **VETOED D5** (multi-device → first in level order). Replaced with: **refuse to conduct + warn**. Silent wrong-target delivery is the worst failure mode, it contradicts D4's own doctrine, and "first in order" is a behavior levels could come to depend on before v2 breaks it. Orcha had flagged and priced this himself.
 - **TECHNICAL CORRECTION:** D2/D5 listed sources as delivery targets. Verified shipped code — `ElectricalSource` has `drain()` and **no `receive()`**; charging into a crate touching a source would throw. Delivery eligibility is **gates + switches only**; absorb-through-crate deferred to v2 explicitly. A guaranteed runtime crash caught on paper for the cost of one grep — the payoff for ruling before implementation.
 - **ADDED:** parity guards for crates (unique id, finite geometry, and **any crate-bearing level must have ≥1 checkpoint**, since checkpoint restore is the only recovery from the crate soft-lock class).
+
+---
+
+## 2026-09-12 — TRUE DEAD gate art installed (Chief-supplied)
+
+**Source:** Chief's `Downloads\Dropbox.zip` → `electric_barrier_gate_tall_ve.png` + its metadata JSON, generator-named **"dead gate nothing go"**. 128×128, single frame.
+
+**Why it was needed — measured, not assumed.** Decoded the shipped spritesheet: `gate_electric_spritesheet.png` is 1152×384 (9 cols × 3 rows of 128px). Row 0 has artwork at **frame 0 only** (7595 opaque px); frames 1-8 are completely empty. And row 0 frame 0 is **pixel-identical to row 1 frame 0** — so the "dormant" gate was drawing the same art as the neutral awake gate, at mean luminance 59.8. It never looked dead; it looked like a gate that merely wasn't animating. That was Chief's complaint, and it was accurate.
+
+**Why the new art drops in cleanly — verified by decoding both:**
+| | opaque bbox | size | mean luma |
+|---|---|---|---|
+| awake sheet row0f0 (full cell) | 17,10..110,127 | 94×118 | 59.8 |
+| new TRUE DEAD png | 17,10..110,115 | 94×106 | **23.7** |
+
+Identical x-range and top edge → same 128-grid registration, so the existing centred 64-wide crop (`sx=32`) aligns the dead gate exactly with its awake states. 2.5× darker, 12px shorter at the base (no plasma glow at the foot). My initial concern that the 94px width would be clipped was wrong — the awake art is 94px too and is clipped identically; that IS the established look.
+
+**Installed:** `assets/objects/gate_electric_dead.png` + `gate_electric_dead.json` (provenance, matching the existing `gate_electric_spritesheet.json` convention).
+
+**Wired:** `electricity.js` draws the dormant state from the dead art with `shadowBlur = 0`. The old sheet row-0 path is retained as a **fallback**, so a missing file degrades to today's behaviour rather than a blank gate. Not added to the editor palette — it is a runtime state file like `gate_closed.png`, and Chief's one-gate-entry ruling stands.
+
+**Tests:** extended the dormancy draw recorder to capture the image source and added an assertion that dormant draws from `gate_electric_dead.png` — otherwise this could silently regress to the awake frame, which is exactly the bug being fixed. energy **87/0** (was 86) · parity 75/0 · electricity 37/0 · boot smoke OK.
+
+**Note for Orcha (crate/timed order):** the timed-gate expiry path must land in this same dormant branch, so an expired timed gate now shows the TRUE DEAD art. D9's `isDormant` composition still holds unchanged — this swapped the artwork, not the predicate.
