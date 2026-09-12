@@ -34,6 +34,7 @@ const MARKER = {
   switch:     '#ff8800',
   enemy:      '#ff2244',
   checkpoint: '#44ff88',
+  platform:   '#44aadd',
   playerStart:'#ffffff',
   selection:  '#ffee00',
 };
@@ -209,7 +210,12 @@ export function render(ctx, canvas) {
     // Switch + Enemy: top-left hitbox
     for (const o of state.selection.switches)    drawOutline({ x: o.x,      y: o.y,      w: 22,            h: 22 });
     for (const o of state.selection.checkpoints) drawOutline({ x: o.x - 11, y: o.y - 11, w: 22,            h: 22 });
-    for (const o of state.selection.enemies)     drawOutline({ x: o.x,      y: o.y,      w: o.w || 22,     h: o.h || 24 });
+    for (const o of state.selection.enemies) {
+      const ew = o.type === 'patrol' ? 20 : o.type === 'drone' ? 40 : 22;
+      const eh = o.type === 'patrol' ? 26 : o.type === 'drone' ? 36 : 24;
+      drawOutline({ x: o.x, y: o.y, w: ew, h: eh });
+    }
+    for (const o of (state.selection.platforms || [])) drawOutline({ x: o.x, y: o.y, w: o.w || 96, h: o.h || 12 });
     for (const o of state.selection.gates)       drawOutline({ x: o.x,     y: o.y,     w: o.w, h: o.h });
 
     // playerStart triangle bounds
@@ -554,35 +560,124 @@ function _drawMarkers(ctx, arr, kind, glyph) {
   }
 }
 
-// Enemy: top-left hitbox rect + patrol range line.
+// Enemy: type-specific glow rect + patrol range line.
+// Colors and dimensions match the runtime draw calls in entities.js.
 function _drawEnemies(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const e of arr) {
+    const type = e.type || 'patrol';
+    // Derive dimensions from type — w/h NOT stored in JSON (match runtime class).
+    const eW = type === 'drain' ? 22 : type === 'drone' ? 40 : 20;
+    const eH = type === 'drain' ? 24 : type === 'drone' ? 36 : 26;
+    const ew = eW * z, eh = eH * z;
     const p  = worldToScreen(e.x, e.y);
-    const ew = (e.w || 22) * z, eh = (e.h || 24) * z;
-    ctx.fillStyle = MARKER.enemy; ctx.globalAlpha = 0.3;
-    ctx.fillRect(p.x, p.y, ew, eh);
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = MARKER.enemy; ctx.lineWidth = 2;
+
+    // Colour per type — mirrors runtime glow colours
+    const stroke = type === 'drain'  ? '#ff3355'
+                 : type === 'drone'  ? '#88cc44'
+                 :                     '#ff7733'; // patrol
+
+    // Glow border
+    ctx.save();
+    ctx.shadowBlur  = Math.max(6, 8 * z); ctx.shadowColor = stroke;
+    ctx.strokeStyle = stroke; ctx.lineWidth = Math.max(1.5, 2 * z);
     ctx.strokeRect(p.x, p.y, ew, eh);
-    ctx.fillStyle = MARKER.enemy;
-    ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // Inner fill
+    const fillAlpha = type === 'drain' ? 'rgba(80,0,20,0.45)' : type === 'drone' ? 'rgba(30,50,0,0.45)' : 'rgba(60,25,0,0.45)';
+    ctx.fillStyle = fillAlpha;
+    ctx.fillRect(p.x, p.y, ew, eh);
+
+    // Type glyph
+    const glyph = type === 'drain' ? 'DR' : type === 'drone' ? 'DN' : 'PT';
+    ctx.fillStyle = stroke;
+    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('E', p.x + ew / 2, p.y + eh / 2);
-    if (e.patrolLeft != null && e.patrolRight != null) {
-      const py = worldToScreen(0, e.y + (e.h || 24)).y;
-      const pl = worldToScreen(e.patrolLeft,  0).x;
-      const pr = worldToScreen(e.patrolRight, 0).x;
-      ctx.strokeStyle = 'rgba(255,80,110,0.5)';
-      ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(pl, py); ctx.lineTo(pr, py); ctx.stroke();
-      ctx.setLineDash([]);
+    ctx.fillText(glyph, p.x + ew / 2, p.y + eh / 2);
+
+    // Drain: two antenna nubs (matching runtime)
+    if (type === 'drain') {
+      ctx.fillStyle = '#ff88aa';
+      ctx.fillRect(p.x + 4 * z,      p.y - 4 * z, 3 * z, 5 * z);
+      ctx.fillRect(p.x + (eW - 7) * z, p.y - 4 * z, 3 * z, 5 * z);
     }
-    ctx.fillStyle = MARKER.enemy;
-    ctx.font = `${Math.max(8, Math.round(9 * z))}px monospace`;
+
+    // Patrol range line at bottom of hitbox
+    if (e.patrolLeft != null && e.patrolRight != null) {
+      const lineY = p.y + eh + 2;
+      const pl    = worldToScreen(e.patrolLeft,  0).x;
+      const pr    = worldToScreen(e.patrolRight, 0).x;
+      ctx.strokeStyle = stroke; ctx.globalAlpha = 0.5;
+      ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(pl, lineY); ctx.lineTo(pr, lineY); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+      // Endpoint ticks
+      ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(pl, lineY - 4); ctx.lineTo(pl, lineY + 4);
+      ctx.moveTo(pr, lineY - 4); ctx.lineTo(pr, lineY + 4);
+      ctx.stroke();
+    }
+
+    // Type label to the right
+    ctx.fillStyle = stroke;
+    ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
     ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-    ctx.fillText(e.type || '?', p.x + ew + 2, p.y);
+    ctx.fillText(type.toUpperCase(), p.x + ew + 2, p.y);
+  }
+}
+
+// Moving platform: horizontal teal rect + dashed patrol path + endpoint ticks.
+// Matches runtime MovingPlatform draw style from entities.js.
+function _drawPlatforms(ctx, arr) {
+  if (!Array.isArray(arr)) return;
+  const z = state.camera.zoom;
+  const COLOR = '#44aadd';
+  for (const pl of arr) {
+    const pw = (pl.w || 96) * z, ph = (pl.h || 12) * z;
+    const p  = worldToScreen(pl.x, pl.y);
+
+    // Dark body
+    ctx.fillStyle = '#2a3a4a'; ctx.globalAlpha = 0.85;
+    ctx.fillRect(p.x, p.y, pw, ph);
+    ctx.globalAlpha = 1;
+    // Bright top edge (matches runtime)
+    ctx.fillStyle = COLOR;
+    ctx.fillRect(p.x, p.y, pw, Math.max(2, 3 * z));
+
+    // Glow outline
+    ctx.save();
+    ctx.shadowBlur = Math.max(6, 8 * z); ctx.shadowColor = COLOR;
+    ctx.strokeStyle = COLOR; ctx.lineWidth = 1.5;
+    ctx.strokeRect(p.x, p.y, pw, ph);
+    ctx.shadowBlur = 0;
+    ctx.restore();
+
+    // Patrol path dashed line at mid-height
+    if (pl.x1 != null && pl.x2 != null) {
+      const pathY = p.y + ph / 2;
+      const px1   = worldToScreen(pl.x1, 0).x;
+      const px2   = worldToScreen(pl.x2, 0).x;
+      ctx.strokeStyle = COLOR; ctx.globalAlpha = 0.4;
+      ctx.setLineDash([5, 4]); ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(px1, pathY); ctx.lineTo(px2, pathY); ctx.stroke();
+      ctx.setLineDash([]); ctx.globalAlpha = 1;
+      // Endpoint ticks
+      ctx.strokeStyle = COLOR; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(px1, pathY - 6); ctx.lineTo(px1, pathY + 6);
+      ctx.moveTo(px2, pathY - 6); ctx.lineTo(px2, pathY + 6);
+      ctx.stroke();
+    }
+
+    // PLT label above
+    ctx.fillStyle = COLOR;
+    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+    ctx.fillText('PLT', p.x + pw / 2, p.y - 2);
   }
 }
 

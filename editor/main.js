@@ -5,6 +5,7 @@ import {
   loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
+  screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
 } from './state.js';
 import { render } from './renderer.js';
 import { mountAssetBrowser } from './assets.js';
@@ -41,6 +42,8 @@ const btnTest      = document.getElementById('btn-test');
 const btnUndo      = document.getElementById('btn-undo');
 const btnRedo      = document.getElementById('btn-redo');
 const saveFlash    = document.getElementById('save-flash');
+const btnChooseFolder  = document.getElementById('btn-choose-folder');
+const saveFolderName   = document.getElementById('save-folder-name');
 const editorRoot     = document.getElementById('editor-root');
 const btnInspHide    = document.getElementById('btn-inspector-hide');
 const inspShowTab    = document.getElementById('inspector-show-tab');
@@ -283,7 +286,33 @@ btnSave?.addEventListener('click', async () => {
   if (r.ok) {
     try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
   }
+  _updateFolderDisplay();
 });
+// Let Chief pick (or re-pick) the save folder. Once set, all future saves
+// write directly into that folder — no more Downloads downloads.
+btnChooseFolder?.addEventListener('click', async () => {
+  const handle = await Persistence.chooseSaveFolder();
+  if (handle) {
+    showSaveFlash({ ok: true, message: `Save folder set: ${handle.name} — SAVE now writes directly there.` });
+  } else {
+    showSaveFlash({ ok: false, message: 'No folder chosen — saves will download instead.' });
+  }
+  _updateFolderDisplay();
+});
+function _updateFolderDisplay() {
+  if (!saveFolderName) return;
+  const name = Persistence.saveFolderName();
+  if (name) {
+    saveFolderName.textContent = name + '/';
+    saveFolderName.className = 'set';
+    saveFolderName.title = 'Saves write to this folder. Click 📁 FOLDER to change.';
+  } else {
+    saveFolderName.textContent = 'no folder set';
+    saveFolderName.className = '';
+    saveFolderName.title = 'Click 📁 FOLDER to pick the git levels folder (src_scroll/levels/)';
+  }
+}
+_updateFolderDisplay();
 // Escape hatch from a local-only level. The dropdown lets Chief LOOK at the
 // committed copy, but the game keeps preferring the local save until it is
 // either committed or explicitly discarded here.
@@ -397,7 +426,10 @@ function showSaveFlash(result) {
 }
 
 // ── Canvas mouse events → active tool ─────────────────────────────────────
-canvas.addEventListener('mousedown', (e) => TOOLS[state.tool]?.onMouseDown?.(e, canvas));
+canvas.addEventListener('mousedown', (e) => {
+  if (state.pendingSpawn) { _doSpawn(e, canvas); return; }
+  TOOLS[state.tool]?.onMouseDown?.(e, canvas);
+});
 canvas.addEventListener('mousemove', (e) => TOOLS[state.tool]?.onMouseMove?.(e, canvas));
 window.addEventListener('mouseup',   (e) => TOOLS[state.tool]?.onMouseUp?.  (e, canvas));
 
@@ -453,7 +485,11 @@ window.addEventListener('keydown', async (e) => {
   }
 
   if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); Clipboard.deleteSelection(); return; }
-  if (e.key === 'Escape') { Selection.clearSelection(); return; }
+  if (e.key === 'Escape') {
+    if (state.pendingSpawn) { state.pendingSpawn = null; _refreshSpawnStatus(); return; }
+    Selection.clearSelection();
+    return;
+  }
   if (e.key === '1') setTool('pointer');
   if (e.key === '2') setTool('select');
   if (e.key === '3') setTool('place');
@@ -914,6 +950,226 @@ document.getElementById('import-backups-input')?.addEventListener('change', asyn
     hi.dispatchEvent(new Event('change'));
   }
 });
+
+
+// ── Spawn mode ──────────────────────────────────────────────────────────────
+// state.pendingSpawn = null | { kind } where kind is one of:
+//   'drain-enemy', 'patrol-enemy', 'drone-enemy',
+//   'source', 'switch', 'gate', 'checkpoint', 'platform'
+// Set by spawn buttons. Cleared after placement or Escape.
+
+state.pendingSpawn = null;
+
+const _spawnStatus   = document.getElementById('spawn-status');
+
+function _refreshSpawnStatus() {
+  if (!_spawnStatus) return;
+  if (state.pendingSpawn) {
+    _spawnStatus.textContent = '\u25cf Click canvas to place: ' + state.pendingSpawn.kind.toUpperCase();
+    _spawnStatus.classList.add('active');
+    if (canvas) canvas.style.cursor = 'crosshair';
+  } else {
+    _spawnStatus.textContent = '';
+    _spawnStatus.classList.remove('active');
+    const cur = TOOLS[state.tool];
+    if (cur && canvas) canvas.style.cursor = cur.cursor;
+  }
+}
+
+function _groundAt(worldX, worldY, objH) {
+  const L = state.level;
+  if (!L) return Math.round(worldY);
+  const col  = Math.floor(worldX / TILE_SIZE);
+  const rows = levelRows();
+  const startRow = Math.max(0, Math.floor(worldY / TILE_SIZE));
+  for (let r = startRow; r < rows; r++) {
+    if (col >= 0 && col < L.cols) {
+      const v = L.tiles[r * L.cols + col];
+      if (tileIsSolid(v)) return r * TILE_SIZE - objH;
+    }
+  }
+  return Math.round(worldY);
+}
+
+function _snapGrid(v) { return Math.round(v / TILE_SIZE) * TILE_SIZE; }
+
+function _doSpawn(e, canvas) {
+  const L = state.level;
+  if (!L || !state.pendingSpawn) return;
+  const r  = canvas.getBoundingClientRect();
+  const sx = (e.clientX - r.left) * (canvas.width  / (r.width  || 1));
+  const sy = (e.clientY - r.top)  * (canvas.height / (r.height || 1));
+  const { x: wx, y: wy } = screenToWorld(sx, sy);
+  const kind = state.pendingSpawn.kind;
+  let obj = null, arr = null, arrLabel = null;
+
+  if (kind === 'drain-enemy') {
+    const w = 22, h = 24, px = Math.round(wx), py = _groundAt(wx, wy, h);
+    obj = { type: 'drain', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 60 };
+    arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
+  } else if (kind === 'patrol-enemy') {
+    const w = 20, h = 26, px = Math.round(wx), py = _groundAt(wx, wy, h);
+    obj = { type: 'patrol', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 50 };
+    arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
+  } else if (kind === 'drone-enemy') {
+    const w = 40, px = Math.round(wx), py = Math.round(wy);
+    obj = { type: 'drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
+    arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
+  } else if (kind === 'source') {
+    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: 3 };
+    arr = L.sources || (L.sources = []); arrLabel = 'add_source';
+  } else if (kind === 'switch') {
+    obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '' };
+    arr = L.switches || (L.switches = []); arrLabel = 'add_switch';
+  } else if (kind === 'gate') {
+    obj = { id: 'gate_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), w: 32, h: 96, required: 1, isExit: false, blockOnly: false, label: 'GATE' };
+    arr = L.gates || (L.gates = []); arrLabel = 'add_gate';
+  } else if (kind === 'checkpoint') {
+    obj = { id: 'cp_' + Date.now(), x: Math.round(wx), y: Math.round(wy) };
+    arr = L.checkpoints || (L.checkpoints = []); arrLabel = 'add_checkpoint';
+  } else if (kind === 'platform') {
+    const w = 96, px = _snapGrid(wx), py = _snapGrid(wy);
+    obj = { x: px, y: py, w, h: 12, x1: px - 64, x2: px + 64 + w, speed: 80 };
+    arr = L.platforms || (L.platforms = []); arrLabel = 'add_platform';
+  }
+
+  if (obj && arr !== null) {
+    const action = Actions.addToArray(arr, obj, arrLabel);
+    if (action) History.apply(action);
+    const kindMap = {
+      'drain-enemy': 'enemy', 'patrol-enemy': 'enemy', 'drone-enemy': 'enemy',
+      'source': 'source', 'switch': 'switch', 'gate': 'gate',
+      'checkpoint': 'checkpoint', 'platform': 'platform',
+    };
+    Selection.selectByKind(kindMap[kind], obj);
+  }
+  state.pendingSpawn = null;
+  _refreshSpawnStatus();
+}
+
+[
+  ['spawn-drain',      'drain-enemy'],
+  ['spawn-patrol',     'patrol-enemy'],
+  ['spawn-drone',      'drone-enemy'],
+  ['spawn-source',     'source'],
+  ['spawn-switch',     'switch'],
+  ['spawn-gate',       'gate'],
+  ['spawn-checkpoint', 'checkpoint'],
+  ['spawn-platform',   'platform'],
+].forEach(([id, kind]) => {
+  document.getElementById(id)?.addEventListener('click', () => {
+    state.pendingSpawn = { kind };
+    _refreshSpawnStatus();
+  });
+});
+
+// ── Selected-object property editor ────────────────────────────────────────
+// Shows editable fields for the first selected gameplay object.
+// Changes mutate the ref in-place and mark dirty (no undo — too granular).
+
+const _selPanel   = document.getElementById('tp-selected');
+const _selSection = document.getElementById('tp-selected-section');
+
+function _refreshSelectedProps() {
+  if (!_selPanel || !_selSection) return;
+  const sel = state.selection;
+  let kind = null, ref = null;
+  for (const [k, kname] of [
+    ['enemies','enemy'],['switches','switch'],['checkpoints','checkpoint'],
+    ['platforms','platform'],['sources','source'],['gates','gate'],
+  ]) {
+    if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
+  }
+  if (!kind || !ref) { _selSection.style.display = 'none'; _selPanel.innerHTML = ''; return; }
+  _selSection.style.display = '';
+
+  let badge = '', color = '#cdd', fields = [];
+  if (kind === 'enemy') {
+    const type = ref.type || 'patrol';
+    color = type === 'drain' ? '#ff3355' : type === 'drone' ? '#88cc44' : '#ff7733';
+    badge = 'ENEMY · ' + type.toUpperCase();
+    fields = [
+      { label:'type',       key:'type',       ro:true },
+      { label:'x',          key:'x',          num:true },
+      { label:'y',          key:'y',          num:true },
+      { label:'patrolLeft', key:'patrolLeft',  num:true },
+      { label:'patrolRight',key:'patrolRight', num:true },
+      { label:'speed',      key:'speed',       num:true, min:1 },
+    ];
+  } else if (kind === 'switch') {
+    color = '#ff8800'; badge = 'SWITCH';
+    const gateIds = (state.level?.gates || []).map(g => g.id||'').filter(Boolean);
+    fields = [
+      { label:'id',       key:'id',       text:true },
+      { label:'required', key:'required', num:true, min:0 },
+      { label:'linkedId', key:'linkedId', sel:true, opts:['(none)',...gateIds] },
+      { label:'label',    key:'label',    text:true },
+    ];
+  } else if (kind === 'checkpoint') {
+    color = '#44ff88'; badge = 'CHECKPOINT';
+    fields = [
+      { label:'id',       key:'id', text:true },
+      { label:'x center', key:'x',  num:true },
+      { label:'y ground', key:'y',  num:true },
+    ];
+  } else if (kind === 'platform') {
+    color = '#44aadd'; badge = 'PLATFORM';
+    fields = [
+      { label:'x', key:'x', num:true }, { label:'y',key:'y', num:true },
+      { label:'w', key:'w', num:true, min:16 }, { label:'h',key:'h', num:true, min:4 },
+      { label:'x1',key:'x1',num:true }, { label:'x2',key:'x2',num:true },
+      { label:'speed',key:'speed',num:true,min:1 },
+    ];
+  } else if (kind === 'source') {
+    color = '#ffee00'; badge = 'SOURCE';
+    fields = [
+      { label:'label', key:'label', text:true },
+      { label:'charge',key:'charge',num:true,min:1 },
+      { label:'x',     key:'x',     num:true }, { label:'y',key:'y',num:true },
+    ];
+  } else if (kind === 'gate') {
+    color = ref.isExit ? '#ff44ff' : (ref.blockOnly ? '#ff8800' : '#44ccff');
+    badge = ref.isExit ? 'GATE · EXIT' : (ref.blockOnly ? 'GATE · BARRIER' : 'GATE');
+    fields = [
+      { label:'id',      key:'id',       text:true },
+      { label:'label',   key:'label',    text:true },
+      { label:'required',key:'required', num:true, min:0 },
+      { label:'w',       key:'w',        num:true, min:1 },
+      { label:'h',       key:'h',        num:true, min:1 },
+      { label:'isExit',  key:'isExit',   bool:true },
+      { label:'blockOnly',key:'blockOnly',bool:true },
+    ];
+  }
+
+  let html = `<div class="prop-type-badge" style="color:${color};border-color:${color}55">${badge}</div>`;
+  for (const f of fields) {
+    if (f.ro) {
+      html += `<div class="prop-row"><span class="prop-label">${f.label}</span><span style="color:#88aacc;font-family:monospace;font-size:11px">${ref[f.key]??''}</span></div>`;
+    } else if (f.bool) {
+      html += `<div class="prop-row"><span class="prop-label">${f.label}</span><input class="prop-input" data-key="${f.key}" data-vtype="bool" type="checkbox"${ref[f.key]?' checked':''} style="flex:0;width:16px;height:16px;cursor:pointer"></div>`;
+    } else if (f.sel) {
+      const opts = f.opts.map(o=>{const v=o==='(none)'?'':o;const s=(ref[f.key]===v||(ref[f.key]==null&&o==='(none)'))?'selected':'';return`<option value="${v}" ${s}>${o}</option>`;}).join('');
+      html += `<div class="prop-row"><span class="prop-label">${f.label}</span><select class="prop-select" data-key="${f.key}" data-vtype="sel">${opts}</select></div>`;
+    } else {
+      const t = f.num ? 'number' : 'text';
+      const extra = (f.min!=null?` min="${f.min}"`:'') + (f.num?' step="1"':'');
+      html += `<div class="prop-row"><span class="prop-label">${f.label}</span><input class="prop-input" data-key="${f.key}" data-vtype="${t}" type="${t}" value="${ref[f.key]??''}"${extra}></div>`;
+    }
+  }
+  _selPanel.innerHTML = html;
+  _selPanel.querySelectorAll('[data-key]').forEach(el => {
+    el.addEventListener('change', () => {
+      const vt = el.dataset.vtype;
+      if (vt === 'number') ref[el.dataset.key] = Number(el.value);
+      else if (vt === 'bool') ref[el.dataset.key] = el.checked;
+      else if (vt === 'sel')  ref[el.dataset.key] = el.value === '' ? null : el.value;
+      else ref[el.dataset.key] = el.value;
+      state.dirty = true; notify();
+    });
+  });
+}
+
+subscribe(() => _refreshSelectedProps());
 
 // ── Tools Panel: collapsible sections ──────────────────────────────
 document.querySelectorAll('.tp-hdr').forEach(hdr => {

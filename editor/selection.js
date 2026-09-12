@@ -31,13 +31,14 @@ if (!state.selection) {
     switches:    new Set(),
     checkpoints: new Set(),
     enemies:     new Set(),
+    platforms:   new Set(),
     playerStart: false,
   };
   state.clipboard = null;
 }
 
 // Kinds that live in Sets (playerStart is a boolean, handled separately).
-const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies'];
+const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms'];
 
 // ── Read helpers ─────────────────────────────────────────────────────────
 export function selectedDecorations() { return [...state.selection.decorations]; }
@@ -47,6 +48,7 @@ export function selectedGates()       { return [...state.selection.gates]; }
 export function selectedSwitches()    { return [...state.selection.switches]; }
 export function selectedCheckpoints() { return [...state.selection.checkpoints]; }
 export function selectedEnemies()     { return [...state.selection.enemies]; }
+export function selectedPlatforms()  { return [...state.selection.platforms]; }
 export function isPlayerStartSelected() { return state.selection.playerStart; }
 
 export function isSelected(dec)       { return state.selection.decorations.has(dec); }
@@ -77,6 +79,7 @@ export function selectedObjectsByKind() {
     switches:    selectedSwitches(),
     checkpoints: selectedCheckpoints(),
     enemies:     selectedEnemies(),
+    platforms:   selectedPlatforms(),
     playerStart: s.playerStart ? state.level?.playerStart : null,
   };
 }
@@ -91,6 +94,7 @@ export function selectedRefs() {
   for (const o of s.switches)    out.push({ kind: 'switch',     ref: o });
   for (const o of s.checkpoints) out.push({ kind: 'checkpoint', ref: o });
   for (const o of s.enemies)     out.push({ kind: 'enemy',      ref: o });
+  for (const o of s.platforms)  out.push({ kind: 'platform',    ref: o });
   if (s.playerStart && state.level?.playerStart) out.push({ kind: 'playerStart', ref: state.level.playerStart });
   return out;
 }
@@ -105,6 +109,7 @@ export function clearSelection() {
   s.switches.clear();
   s.checkpoints.clear();
   s.enemies.clear();
+  s.platforms.clear();
   s.playerStart = false;
   notify();
 }
@@ -121,6 +126,7 @@ export function selectByKind(kind, ref, additive = false) {
   else if (kind === 'switch')     s.switches.add(ref);
   else if (kind === 'checkpoint') s.checkpoints.add(ref);
   else if (kind === 'enemy')      s.enemies.add(ref);
+  else if (kind === 'platform')   s.platforms.add(ref);
   else if (kind === 'tile')       s.tiles.add(ref);   // ref is "col,row"
   else return;
   notify();
@@ -135,6 +141,7 @@ export function toggleByKind(kind, ref) {
   else if (kind === 'switch')     s.switches.has(ref)    ? s.switches.delete(ref)    : s.switches.add(ref);
   else if (kind === 'checkpoint') s.checkpoints.has(ref) ? s.checkpoints.delete(ref) : s.checkpoints.add(ref);
   else if (kind === 'enemy')      s.enemies.has(ref)     ? s.enemies.delete(ref)     : s.enemies.add(ref);
+  else if (kind === 'platform')   s.platforms.has(ref)   ? s.platforms.delete(ref)   : s.platforms.add(ref);
   else if (kind === 'tile')       s.tiles.has(ref)       ? s.tiles.delete(ref)       : s.tiles.add(ref);
   else return;
   notify();
@@ -150,6 +157,7 @@ export function isRefSelected(kind, ref) {
   if (kind === 'switch')     return s.switches.has(ref);
   if (kind === 'checkpoint') return s.checkpoints.has(ref);
   if (kind === 'enemy')      return s.enemies.has(ref);
+  if (kind === 'platform')   return s.platforms.has(ref);
   if (kind === 'tile')       return s.tiles.has(ref);
   return false;
 }
@@ -196,8 +204,14 @@ export function boundingRect(kind, ref) {
   if (kind === 'switch')     return { x: ref.x,      y: ref.y,      w: 22, h: 22 };
   // Checkpoint: x,y = CENTRE (runtime inconsistency, documented in LEVEL_SCHEMA.md).
   if (kind === 'checkpoint') return { x: ref.x - 11, y: ref.y - 11, w: 22, h: 22 };
-  // Enemy: x,y = top-left. w/h carried on the ref if present.
-  if (kind === 'enemy')      return { x: ref.x, y: ref.y, w: ref.w || 22, h: ref.h || 24 };
+  // Enemy: x,y = top-left. w/h NOT in JSON — derive from type to match runtime class.
+  if (kind === 'enemy') {
+    const ew = ref.type === 'patrol' ? 20 : ref.type === 'drone' ? 40 : 22;
+    const eh = ref.type === 'patrol' ? 26 : ref.type === 'drone' ? 36 : 24;
+    return { x: ref.x, y: ref.y, w: ew, h: eh };
+  }
+  // Platform: x,y = top-left. w/h explicit or defaulted to match MovingPlatform class.
+  if (kind === 'platform') return { x: ref.x, y: ref.y, w: ref.w || 96, h: ref.h || 12 };
   // SPAWN triangle points right — 14x14 rect from (x, y).
   if (kind === 'playerStart') return { x: ref.x, y: ref.y, w: 14, h: 14 };
   return null;
@@ -238,6 +252,7 @@ export function objectAt(worldX, worldY) {
     ['switch',     L.switches    || []],
     ['checkpoint', L.checkpoints || []],
     ['enemy',      L.enemies     || []],
+    ['platform',   L.platforms   || []],
   ]) {
     for (let i = arr.length - 1; i >= 0; i--) {
       const rect = hitRect(kind, arr[i]);
@@ -312,7 +327,7 @@ export function tilesInRect(x, y, w, h) {
 export function objectsInRect(x, y, w, h) {
   const L = state.level;
   if (!L) return {};
-  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], playerStart: false };
+  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], platforms: [], playerStart: false };
   const check = (kind, ref) => {
     const r = boundingRect(kind, ref);
     return r && r.x + r.w > x && r.x < x + w && r.y + r.h > y && r.y < y + h;
@@ -322,6 +337,7 @@ export function objectsInRect(x, y, w, h) {
   for (const o of L.switches    || []) if (check('switch',     o)) out.switches.push(o);
   for (const o of L.checkpoints || []) if (check('checkpoint', o)) out.checkpoints.push(o);
   for (const o of L.enemies     || []) if (check('enemy',      o)) out.enemies.push(o);
+  for (const o of L.platforms   || []) if (check('platform',   o)) out.platforms.push(o);
   if (L.playerStart && check('playerStart', L.playerStart)) out.playerStart = true;
   return out;
 }
