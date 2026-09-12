@@ -417,6 +417,83 @@ const lvl = () => mkLevel();
   assert(g.open === true, 'SPACE: gate opens using the reserve', `charged ${g.charged}/8, ${show(p)}`);
   assert(near(20 - p.usableEnergy, 8), '  ...exactly 8 left the player', `spent ${20 - p.usableEnergy}`);
   releaseAll(); }
+
+// ════════════════════════════════════════════════════════════════════════════
+section('GATE DORMANCY — dead until energized (Chief, 2026-09-11)');
+
+// Records the source rect of every gate drawImage so "is it animating?" is
+// answered by real draw calls, not by inspecting internal counters alone.
+const gateCalls = [];
+function recCtx() {
+  const noop = () => {};
+  const target = {
+    drawImage(...a) { if (a.length === 9) gateCalls.push({ sx: a[1], sy: a[2] }); },
+    fillRect: noop, strokeRect: noop, fillText: noop, measureText: () => ({ width: 0 }),
+    save: noop, restore: noop, beginPath: noop, fill: noop, stroke: noop,
+  };
+  return new Proxy(target, {
+    get: (o, k) => (k in o ? o[k] : noop),
+    set: (o, k, v) => { if (k === 'shadowBlur') gateCalls.blur = v; return true; },
+  });
+}
+const GC = recCtx();
+const gate = (required = 8, opts = {}) =>
+  new EL.PowerGate({ id: 'G', x: 0, y: 0, w: 32, h: 64, required, ...opts });
+
+// Uncharged gate: static, row 0 frame 0, unlit.
+{ const g = gate();
+  const sxSeen = new Set(), sySeen = new Set();
+  for (let i = 0; i < 180; i++) {            // 3 seconds at 60fps
+    g.update(1 / 60); gateCalls.length = 0; g.draw(GC);
+    const d = gateCalls.find(c => c.sy !== undefined);
+    if (d) { sxSeen.add(d.sx); sySeen.add(d.sy); }
+  }
+  assert(g.isDormant === true, 'uncharged gate reports dormant');
+  assert(sxSeen.size === 1 && [...sxSeen][0] === 32,
+    'dormant gate emits ONE static frame over 3s', `distinct sx=${sxSeen.size} (${[...sxSeen]})`);
+  assert(sySeen.size === 1 && [...sySeen][0] === 0,
+    '  ...from row 0, the neutral base art', `sy=${[...sySeen]}`);
+  assert(g._frame === 0, '  ...frame counter never advanced', `_frame=${g._frame}`);
+  assert(gateCalls.blur === 0, '  ...and it does not glow', `shadowBlur=${gateCalls.blur}`); }
+
+// Wakes on energy and animates — never showing an empty row-0 frame.
+{ const g = gate();
+  g.receive(1);
+  assert(g.isDormant === false, 'receiving energy wakes the gate', `charged=${g.charged}`);
+  const sxSeen = new Set(), sySeen = new Set();
+  for (let i = 0; i < 180; i++) {
+    g.update(1 / 60); gateCalls.length = 0; g.draw(GC);
+    const d = gateCalls.find(c => c.sy !== undefined);
+    if (d) { sxSeen.add(d.sx); sySeen.add(d.sy); }
+  }
+  assert(sxSeen.size > 1, '  ...and then animates', `distinct sx=${sxSeen.size}`);
+  // ROW 0 HAZARD: row 0 has art ONLY at frame 0; frames 1-8 are empty. If the
+  // frame counter ever ran while on row 0 the gate would vanish.
+  assert(!sySeen.has(0), '  ...never renders an EMPTY row-0 frame (gate cannot vanish)',
+    `rows used=${[...sySeen]}`);
+  assert(g.isDormant === false, '  ...stays awake while it holds charge'); }
+
+// Row selection: charging vs idle.
+{ const g = gate(); g.receive(1);
+  gateCalls.length = 0; g.draw(GC);
+  const a = gateCalls.find(c => c.sy !== undefined);
+  assert(a && a.sy === 256, 'actively receiving -> row 2 (charging)', `sy=${a && a.sy}`);
+  for (let i = 0; i < 20; i++) g.update(1 / 60);      // let _reactT lapse
+  gateCalls.length = 0; g.draw(GC);
+  const b = gateCalls.find(c => c.sy !== undefined);
+  assert(b && b.sy === 128, 'reaction over, still charged -> row 1 (idle)', `sy=${b && b.sy}`); }
+
+// blockOnly barriers are exempt — switch-controlled, must not freeze.
+{ const b = gate(0, { blockOnly: true });
+  assert(b.isDormant === false, 'blockOnly barrier is never dormant');
+  const sxSeen = new Set();
+  for (let i = 0; i < 120; i++) { b.update(1 / 60); gateCalls.length = 0; b.draw(GC);
+    const d = gateCalls.find(c => c.sy !== undefined); if (d) sxSeen.add(d.sx); }
+  assert(sxSeen.size > 1, '  ...and keeps animating', `distinct sx=${sxSeen.size}`); }
+
+// An opened gate is unaffected by dormancy.
+{ const g = gate(2); g.receive(2);
+  assert(g.open === true && g.isDormant === false, 'an opened gate is not dormant'); }
 // ════════════════════════════════════════════════════════════════════════════
 console.log(`\nRESULTS: ${passed} passed, ${failed} failed`);
 if (failed === 0) console.log('ALL TESTS PASS \u2713');
