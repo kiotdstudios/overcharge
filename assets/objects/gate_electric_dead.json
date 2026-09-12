@@ -1,0 +1,38 @@
+{
+  "object": {
+    "id": "7a4d3fce-cf22-42f3-8e98-635cfc7b2ab2",
+    "name": "dead gate nothing go",
+    "prompt": "electric barrier gate, tall vertical rectangle, two dark metal side pillar columns with bolts, purple-white plasma lightning bolt crackling vertically through center gap, dark near-black metal housing, pixel art sidescroller, purple city cyberpunk palette",
+    "size": {
+      "width": 128,
+      "height": 128
+    },
+    "directions": 1,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "electric_barrier_gate_tall_ve.png",
+    "cell_size": {
+      "width": 128,
+      "height": 128
+    },
+    "sheet_size": {
+      "width": 128,
+      "height": 128
+    },
+    "columns": 1,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 1,
+        "directions": [
+          "unknown"
+        ]
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-09-12T19:00:32.843915+00:00"
+}

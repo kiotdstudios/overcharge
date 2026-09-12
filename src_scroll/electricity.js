@@ -135,6 +135,12 @@ export class PowerGate {
     this._sheet.src = 'assets/objects/gate_electric_spritesheet.png';
     this._openImg   = new Image();
     this._openImg.src = 'assets/objects/gate_electric_open.png';
+    // TRUE DEAD art (Chief-supplied 2026-09-12): a dedicated unlit gate with no
+    // plasma in the centre gap, for the DORMANT state. Registered on the same
+    // 128×128 grid as the spritesheet cells, so the same centred 64-wide crop
+    // lines it up exactly with the awake states.
+    this._deadImg   = new Image();
+    this._deadImg.src = 'assets/objects/gate_electric_dead.png';
     this._frame     = 0;
     this._fps       = 8;
     this._reactT    = 0;   // >0 → play 'charging' row instead of 'idle'
@@ -248,7 +254,8 @@ export class PowerGate {
     // cropped to its centered 64 wide slice (sx = col*128 + 32) so the portrait
     // gate art draws at natural aspect into a 64×128 destination.
     //
-    //   DORMANT   row 0, FRAME 0 ONLY, static, no glow   (charged == 0)
+    //   DORMANT   dedicated gate_electric_dead.png, static, no glow (charged == 0)
+    //             (falls back to sheet row 0 frame 0 if that file is missing)
     //   IDLE      row 1, 9-frame loop                    (holds some charge)
     //   CHARGING  row 2, 9-frame loop, stronger glow      (_reactT > 0)
     //
@@ -261,7 +268,17 @@ export class PowerGate {
     ctx.imageSmoothingEnabled = false;
     const sheet   = this._sheet;
     const dormant = this.isDormant;
-    if (sheet && sheet.complete && sheet.naturalWidth > 0) {
+    const dead    = this._deadImg;
+    if (dormant && dead && dead.complete && dead.naturalWidth > 0) {
+      // TRUE DEAD state. Verified against the sheet by decoding both: the dead
+      // art's opaque bbox is x17..110 starting at y10 — the SAME registration as
+      // row 0 frame 0 — so the identical centred 64-wide crop (sx=32) keeps the
+      // dead gate pixel-aligned with its awake states. Mean luminance 23.7 vs
+      // the old dormant frame's 59.8: 2.5× darker, which is the whole point.
+      // Dead must READ as dead, not merely as "not currently animating".
+      ctx.shadowBlur = 0;      // an un-energized gate never glows
+      ctx.drawImage(dead, 32, 0, 64, 128, dX, dY, spriteW, spriteH);
+    } else if (sheet && sheet.complete && sheet.naturalWidth > 0) {
       const CELL = 128;
       const row  = dormant ? 0 : (this._reactT > 0 ? 2 : 1);
       const fi   = dormant ? 0 : Math.floor(this._frame) % 9;   // pinned — see hazard note

@@ -427,7 +427,7 @@ const gateCalls = [];
 function recCtx() {
   const noop = () => {};
   const target = {
-    drawImage(...a) { if (a.length === 9) gateCalls.push({ sx: a[1], sy: a[2] }); },
+    drawImage(...a) { if (a.length === 9) gateCalls.push({ sx: a[1], sy: a[2], src: a[0] && a[0].src }); },
     fillRect: noop, strokeRect: noop, fillText: noop, measureText: () => ({ width: 0 }),
     save: noop, restore: noop, beginPath: noop, fill: noop, stroke: noop,
   };
@@ -454,7 +454,14 @@ const gate = (required = 8, opts = {}) =>
   assert(sySeen.size === 1 && [...sySeen][0] === 0,
     '  ...from row 0, the neutral base art', `sy=${[...sySeen]}`);
   assert(g._frame === 0, '  ...frame counter never advanced', `_frame=${g._frame}`);
-  assert(gateCalls.blur === 0, '  ...and it does not glow', `shadowBlur=${gateCalls.blur}`); }
+  assert(gateCalls.blur === 0, '  ...and it does not glow', `shadowBlur=${gateCalls.blur}`);
+  // Chief 2026-09-12: dormant must use the DEDICATED dead art, not the awake
+  // base frame. Without this the state silently regresses to a gate that merely
+  // isn't animating — which looked alive, and was the original complaint.
+  { gateCalls.length = 0; g.draw(GC);
+    const d = gateCalls.find(c => c.sy !== undefined);
+    assert(/gate_electric_dead\.png$/.test((d && d.src) || ''),
+      '  ...drawn from the dedicated TRUE DEAD art', `src=${d && d.src}`); } }
 
 // Wakes on energy and animates — never showing an empty row-0 frame.
 { const g = gate();
