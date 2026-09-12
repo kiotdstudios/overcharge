@@ -40,6 +40,20 @@ const MARKER = {
   selection:  '#ffee00',
 };
 
+// Checkpoint sprite anchor constants — copied verbatim from src_scroll/entities.js.
+// Do not re-derive: any drift here breaks WYSIWYG.
+const CP_SRC   = 128;  // source frame is 128×128
+const CP_DEST  = 66;   // Math.round(128 * 56/108)
+const CP_OFF_X = 31;   // Math.round(60  * 56/108)
+const CP_OFF_Y = 61;   // Math.round(117 * 56/108)
+
+// Player sprite anchor constants — from src_scroll/player.js.
+const PLAYER_SPRITE_W    = 92;
+const PLAYER_SPRITE_H    = 92;
+const PLAYER_SPRITE_FEET = 78;  // pixel row of feet within the 92px frame
+const PLAYER_HIT_W       = 20;  // collision box width (PLAYER_W in constants.js)
+const PLAYER_HIT_H       = 30;  // collision box height
+
 // Terrain tile PNG lookup — keyed by ASSET ID, not by array position, so a
 // new manifest tile inserted at any position does not renumber saved cells.
 // Missing images are looked up on demand each frame (getImage caches).
@@ -559,9 +573,11 @@ function _drawCheckpoints(ctx, arr) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('CP', p.x + sw / 2, p.y + sh / 2);
     if (o.label || o.id) {
+      const lp = worldToScreen(o.x, spriteY + CP_DEST);
+      ctx.fillStyle = MARKER.checkpoint;
       ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillText(o.label || o.id, p.x + sw / 2, p.y + sh + 2);
+      ctx.fillText(o.label || o.id, lp.x, lp.y + 2);
     }
   }
 }
@@ -611,6 +627,45 @@ function _drawEnemies(ctx, arr) {
                  : type === 'drone'  ? '#88cc44'
                  :                     '#ff7733'; // patrol
 
+    // Drone: draw real sprite (straight blit at o.x, o.y, w×h — matches runtime entities.js:468)
+    if (type === 'drone') {
+      const droneImg = getImage('assets/sprites/drone/idle/frame_000.png');
+      ctx.imageSmoothingEnabled = false;
+      if (droneImg.complete && droneImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.drawImage(droneImg, p.x, p.y, ew, eh);
+        ctx.restore();
+        // Glow outline on top so it reads as selected-friendly
+        ctx.save();
+        ctx.shadowBlur = Math.max(4, 6 * z); ctx.shadowColor = stroke;
+        ctx.strokeStyle = stroke; ctx.lineWidth = Math.max(1, 1.5 * z); ctx.globalAlpha = 0.55;
+        ctx.strokeRect(p.x, p.y, ew, eh);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+        // Patrol range line + label (drawn below after this block)
+        if (e.patrolLeft != null && e.patrolRight != null) {
+          const lineY = p.y + eh + 2;
+          const pl2 = worldToScreen(e.patrolLeft,  0).x;
+          const pr2 = worldToScreen(e.patrolRight, 0).x;
+          ctx.strokeStyle = stroke; ctx.globalAlpha = 0.5;
+          ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(pl2, lineY); ctx.lineTo(pr2, lineY); ctx.stroke();
+          ctx.setLineDash([]); ctx.globalAlpha = 1;
+          ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(pl2, lineY - 4); ctx.lineTo(pl2, lineY + 4);
+          ctx.moveTo(pr2, lineY - 4); ctx.lineTo(pr2, lineY + 4);
+          ctx.stroke();
+        }
+        ctx.fillStyle = stroke;
+        ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillText('DRONE', p.x + ew + 2, p.y);
+        continue;
+      }
+    }
+
+    // Schematic fallback (drain/patrol always; drone while image loads)
     // Glow border
     ctx.save();
     ctx.shadowBlur  = Math.max(6, 8 * z); ctx.shadowColor = stroke;
@@ -714,39 +769,50 @@ function _drawPlatforms(ctx, arr) {
   }
 }
 
-// Conductive crate: purple-tinted rect with X contact-pad glyph and ID badge.
-// cr.x, cr.y = top-left. w/h default to 32 (matching the v1 schema).
+// Conductive crate: draws crate_conductive.png (straight blit at o.x, o.y, w×h).
+// Falls back to the schematic while the image loads.
 function _drawCrates(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   const COLOR = MARKER.crate;
+  const CRATE_PATH = 'assets/tilesets/purple_city/containers/crate_conductive.png';
   for (const cr of arr) {
     const cw = (cr.w || 32) * z, ch = (cr.h || 32) * z;
     const p  = worldToScreen(cr.x, cr.y);
-    // Body fill
-    ctx.fillStyle = 'rgba(50,20,90,0.75)';
-    ctx.fillRect(p.x, p.y, cw, ch);
-    // Glow border
-    ctx.save();
-    ctx.shadowBlur = Math.max(5, 7 * z); ctx.shadowColor = COLOR;
-    ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1.5, 2 * z);
-    ctx.strokeRect(p.x, p.y, cw, ch);
-    ctx.shadowBlur = 0;
-    ctx.restore();
-    // Diagonal X — suggests conductive bridge path
-    ctx.strokeStyle = COLOR; ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(p.x + 4, p.y + 4); ctx.lineTo(p.x + cw - 4, p.y + ch - 4);
-    ctx.moveTo(p.x + cw - 4, p.y + 4); ctx.lineTo(p.x + 4, p.y + ch - 4);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-    // "CR" glyph
-    ctx.fillStyle = COLOR;
-    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('CR', p.x + cw / 2, p.y + ch / 2);
-    // ID label below
+    const img = getImage(CRATE_PATH);
+    ctx.imageSmoothingEnabled = false;
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, p.x, p.y, cw, ch);
+      // Faint outline so it's easy to see at zoom-out
+      ctx.save();
+      ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1, 1.5 * z); ctx.globalAlpha = 0.45;
+      ctx.strokeRect(p.x, p.y, cw, ch);
+      ctx.restore();
+    } else {
+      // Schematic fallback while loading
+      ctx.fillStyle = 'rgba(50,20,90,0.75)';
+      ctx.fillRect(p.x, p.y, cw, ch);
+      ctx.save();
+      ctx.shadowBlur = Math.max(5, 7 * z); ctx.shadowColor = COLOR;
+      ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1.5, 2 * z);
+      ctx.strokeRect(p.x, p.y, cw, ch);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      ctx.strokeStyle = COLOR; ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.x + 4, p.y + 4); ctx.lineTo(p.x + cw - 4, p.y + ch - 4);
+      ctx.moveTo(p.x + cw - 4, p.y + 4); ctx.lineTo(p.x + 4, p.y + ch - 4);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COLOR;
+      ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('CR', p.x + cw / 2, p.y + ch / 2);
+    }
+    // ID label always shown below crate
     if (cr.id) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COLOR;
       ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';
       ctx.fillText(cr.id, p.x + cw / 2, p.y + ch + 2);
@@ -755,17 +821,36 @@ function _drawCrates(ctx, arr) {
 }
 
 
+// Player start: draws idle east frame_000 at the exact same anchor the runtime uses.
+// Runtime: sx = cx - SPRITE_W/2, sy = y + h - SPRITE_FEET_Y
+//   => sx = ps.x + PLAYER_HIT_W/2 - PLAYER_SPRITE_W/2 = ps.x - 36
+//      sy = ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET   = ps.y - 48
 function _drawPlayerStart(ctx, ps) {
   if (!ps) return;
-  const p = worldToScreen(ps.x, ps.y);
-  ctx.fillStyle = MARKER.playerStart;
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y);
-  ctx.lineTo(p.x + 14, p.y + 7);
-  ctx.lineTo(p.x, p.y + 14);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
-  ctx.fillText('SPAWN', p.x + 18, p.y + 12);
+  const z = state.camera.zoom;
+  const spriteX = ps.x - 36;   // = ps.x + PLAYER_HIT_W/2 - PLAYER_SPRITE_W/2
+  const spriteY = ps.y - 48;   // = ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET
+  const sp = worldToScreen(spriteX, spriteY);
+  const sw = PLAYER_SPRITE_W * z, sh = PLAYER_SPRITE_H * z;
+  const img = getImage('assets/sprites/idle_2.0/east/frame_000.png');
+  ctx.imageSmoothingEnabled = false;
+  if (img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, sp.x, sp.y, sw, sh);
+  } else {
+    // Fallback triangle while loading
+    const p = worldToScreen(ps.x, ps.y);
+    ctx.fillStyle = MARKER.playerStart;
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + 14, p.y + 7);
+    ctx.lineTo(p.x, p.y + 14);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  // "SPAWN" label always shown
+  const lp = worldToScreen(ps.x, ps.y);
+  ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.max(8, Math.round(10 * z))}px monospace`;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('SPAWN', lp.x + 4, lp.y + 2);
 }
