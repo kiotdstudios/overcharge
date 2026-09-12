@@ -451,8 +451,11 @@ const gate = (required = 8, opts = {}) =>
   assert(g.isDormant === true, 'uncharged gate reports dormant');
   assert(sxSeen.size === 1 && [...sxSeen][0] === 32,
     'dormant gate emits ONE static frame over 3s', `distinct sx=${sxSeen.size} (${[...sxSeen]})`);
+  // sy=0 is the top of the standalone dead PNG — NOT "row 0 of the spritesheet".
+  // Corrected 2026-09-12: this message described the pre-dead-art behaviour and
+  // was still passing while saying something false.
   assert(sySeen.size === 1 && [...sySeen][0] === 0,
-    '  ...from row 0, the neutral base art', `sy=${[...sySeen]}`);
+    '  ...from a single source row', `sy=${[...sySeen]}`);
   assert(g._frame === 0, '  ...frame counter never advanced', `_frame=${g._frame}`);
   assert(gateCalls.blur === 0, '  ...and it does not glow', `shadowBlur=${gateCalls.blur}`);
   // Chief 2026-09-12: dormant must use the DEDICATED dead art, not the awake
@@ -467,13 +470,18 @@ const gate = (required = 8, opts = {}) =>
 { const g = gate();
   g.receive(1);
   assert(g.isDormant === false, 'receiving energy wakes the gate', `charged=${g.charged}`);
-  const sxSeen = new Set(), sySeen = new Set();
+  const sxSeen = new Set(), sySeen = new Set(), srcSeen = new Set();
   for (let i = 0; i < 180; i++) {
     g.update(1 / 60); gateCalls.length = 0; g.draw(GC);
     const d = gateCalls.find(c => c.sy !== undefined);
-    if (d) { sxSeen.add(d.sx); sySeen.add(d.sy); }
+    if (d) { sxSeen.add(d.sx); sySeen.add(d.sy); srcSeen.add(d.src); }
   }
   assert(sxSeen.size > 1, '  ...and then animates', `distinct sx=${sxSeen.size}`);
+  // Orcha's QA note (2026-09-12): an sx/sy-only assertion would pass even if the
+  // WRONG image were drawn at those coordinates. Key on the image itself: an
+  // awake gate must come from the animated sheet, never from the dead art.
+  assert([...srcSeen].every(s => /gate_electric_spritesheet\.png$/.test(s || '')),
+    '  ...from the ANIMATED SHEET, never the dead art', `srcs=${[...srcSeen].map(s => (s||'').split('/').pop())}`);
   // ROW 0 HAZARD: row 0 has art ONLY at frame 0; frames 1-8 are empty. If the
   // frame counter ever ran while on row 0 the gate would vanish.
   assert(!sySeen.has(0), '  ...never renders an EMPTY row-0 frame (gate cannot vanish)',

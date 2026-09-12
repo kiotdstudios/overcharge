@@ -700,3 +700,24 @@ Full verdict in `docs/KIRO_RULING_CRATE_TIMED_V1.md` (Addendum 2).
 **Level 5 consequence propagated to `docs/LEVEL4_5_DESIGN_BRIEF.md` as a hard rule:** a 1-tile crate makes the mechanic invisible — `INTERACT_RADIUS` is 50px, so a player positioned to push a 32px crate is already in direct range of the device behind it. Orcha's first testbed passed a playability check while never touching the crate. Level 5 needs a 64px crate or a device the player cannot stand beside. Without this, Level 5 ships feeling pointless with nobody able to explain why.
 
 **Aki's P2 unblocked** in `docs/AKI_ORDER_QUEUE.md` with the real field names, the testbed as a reference level, and the behavioural constraints her UI must not contradict. Told her P4 (crate art) outranks P2 if she must choose — the runtime still has no crate sprite.
+
+---
+
+## 2026-09-12 — Acted on Orcha's QA note: dormancy tests strengthened + a false assertion corrected
+
+Orcha stood down clean on CRATE_TIMED (`4514319`, 0 behind, delivery confirmed as ancestor of the live line, 321/0 re-verified on his synced tree). In standing down he flagged a real weakness in tests **I** shipped, and explicitly did not touch them unprompted. He was right on both counts.
+
+**His point:** the shipped dormancy assertions keyed on `sx`/`sy` only, so they would pass even if the WRONG image were drawn at those coordinates. Keying on image identity (as he did in `crate_timed.mjs`) is strictly stronger.
+
+**Fixed in `_dev/energy_authority.mjs` (87 → 88/0):**
+1. **Corrected a false assertion message I introduced.** `'  ...from row 0, the neutral base art'` was still passing while describing something untrue — since the dead-art swap, `sy=0` is the top of the standalone dead PNG, not row 0 of the spritesheet. Now reads `'  ...from a single source row'`. A passing test that lies is worse than a failing one.
+2. **Added image-identity assertion for the awake path:** an animating gate must draw from `gate_electric_spritesheet.png` and **never** from the dead art. Previously nothing would have caught the awake gate rendering dead art at varying sx.
+
+**Mutation-verified rather than assumed.** Sabotaged the dormant branch (forced it to skip the dead art) and confirmed the suite FAILS (86/2, reporting the spritesheet where dead art was expected), then restored and confirmed 88/0. `electricity.js` verified byte-restored — only the test file changed. Proving a test catches the regression it targets is the point of writing it.
+
+**MVP engine list closed:** gate ✓ switch ✓ movable conductive object ✓ timed device ✓ (GDD §12).
+
+**Open gaps, agent board:**
+- **Chief:** Level 3 in the Builder (drone lesson level) — unblocked, all mechanics exist.
+- **Aki:** P4 crate ART is the live blocker (runtime currently draws a procedural box), then P2 editor support.
+- **Orcha:** idle, clean, awaiting directive. Remaining GDD engine gap is the **grounded enemy/hazard** (§7 + §12's second enemy type: "charge drainer and grounded patrol") for Level 6 "Grounded" — but the drain-enemy art was purged on Chief's order, so any enemy work needs an art decision from Chief first. Not self-assigning.
