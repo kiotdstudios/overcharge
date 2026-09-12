@@ -721,3 +721,30 @@ Orcha stood down clean on CRATE_TIMED (`4514319`, 0 behind, delivery confirmed a
 - **Chief:** Level 3 in the Builder (drone lesson level) — unblocked, all mechanics exist.
 - **Aki:** P4 crate ART is the live blocker (runtime currently draws a procedural box), then P2 editor support.
 - **Orcha:** idle, clean, awaiting directive. Remaining GDD engine gap is the **grounded enemy/hazard** (§7 + §12's second enemy type: "charge drainer and grounded patrol") for Level 6 "Grounded" — but the drain-enemy art was purged on Chief's order, so any enemy work needs an art decision from Chief first. Not self-assigning.
+
+---
+
+## 2026-09-12 — Checkpoint art replaced with Chief's `checkpoint_flag` (dead + GAME SAVED animation)
+
+**Source:** `Downloads\checkpoint_flag (1).zip` — 9 frames + `metadata.json` (generator object "powered off led pane", prompt "checkpoint flag").
+
+**Verified before wiring:**
+- All 9 frames are 128×128 with an **identical** opaque bbox `17,10..103,117` (87×108) — consistent registration, so anchors are derived from measured pixels, not guessed padding.
+- `frame_000.png` is **byte-identical (MD5) to the pack's `powered_off_led_pane.png`** — the dead state IS frame 0, so one set covers both states and there is no separate dead file that can drift out of sync. That is why no extra "dead" PNG was installed.
+- Frame content: frame 0 = dark inactive panel; frames 1-8 = "GAME SAVED" lit and flickering (mean luma 37.2 dark vs 44-79 lit).
+
+**Installed:** `assets/objects/checkpoint_flag/frame_000..008.png` + `metadata.json` (provenance, same convention as `gate_electric_dead.json`).
+
+**Replaced the procedural checkpoint** in `src_scroll/entities.js`. It was previously a hand-drawn pole + triangle + "CP"/"SAVED" text. Now:
+- inactive → frame 0, static, **no glow** (same rule as the dead gate: an unpowered thing must not look powered)
+- activated → frames 1-8 cycle at 8fps, glowing — mirrors the generator's proven model (frame 0 = dead, 1-8 = live), and `_frame` can never fall back to 0 while active
+- **the original vector art is retained as a fallback** if the PNGs fail to load, so a missing asset degrades instead of drawing nothing
+- image construction is guarded by `typeof Image !== 'undefined'` so importing `entities.js` in a plain Node context cannot throw (only `crate_timed.mjs` imports it today, and it does stub Image — the guard protects future suites)
+
+**Anchoring is derived, not eyeballed:** art height 56px on screen (~1.9× player), scale from the measured 108px bbox; offsets place the art bottom exactly at `checkpoint.y` (ground level) and its centre exactly at `checkpoint.x`. Probe at (100,200) returned dest `x69,y139,66×66` → art base at 199.7, centre at 100.1. The parity contract ("checkpoint preserves center-x and standing-ground y") is unchanged.
+
+**Verified in a real browser** (`_kiro_tools/probe_checkpoint.mjs`, driving the actual class): inactive draws ONLY `frame_000.png` across 60 frames and never advances; activated cycles exactly `frame_001..008`; the vector fallback is never reached; zero page errors.
+
+**Tests:** crate_timed 87/0 · parity 110/0 · energy 88/0 · electricity 37/0 = **322/0** · boot smoke OK.
+
+**Not added to the editor art palette** — consistent with the `gate_electric_dead.png` ruling: these are runtime state sprites, and checkpoints are placed via SPAWN OBJECTS → `+ Checkpoint`, not from the art browser. The Builder continues to show its schematic marker for checkpoints, which is intentional for authoring.
