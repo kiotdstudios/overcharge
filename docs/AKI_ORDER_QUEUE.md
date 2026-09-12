@@ -86,7 +86,19 @@ against the real field names. Do not invent the schema ahead of them.
 
 ---
 
-## P3 — Editor doc + palette truth pass
+## P1 — ✅ VERIFIED COMPLETE (Kiro, 2026-09-12)
+
+Independently confirmed on the remote: `agent/aki-editor` @ `11c2d8d`, **0 waste
+files**, `AKI_SPECIALIZATION.md` present at `docs/agent-training/`. Reset was
+correct and lossless. Good execution.
+
+Note: the live line moved 3 commits after your reset, so an asset diff now shows
+**2 files** — `assets/objects/gate_electric_dead.png` + `.json`. That is normal
+drift, not a defect in your reset. **Sync before starting P3** (see P3 note 4).
+
+---
+
+## P3 — ✅ GO. Editor doc + palette truth pass
 
 Two asset purges and the layout rework happened fast; the editor's own docs and
 curated manifest need an owner's pass.
@@ -101,8 +113,31 @@ curated manifest need an owner's pass.
 3. `tool_hammer.png` was resized to fill a 32px tile (25x20 → 32x32) and a stray
    pixel removed; confirm its manifest metadata reads correctly in the palette.
 
-**Note:** `docs/CHIEF_HANDOFF.md` control contract was already corrected by Kiro
-(SPACE charges / K attacks / F unbound). Don't redo it.
+4. **Sync first.** `git merge origin/agent/orcha-gameplay` before you start — you
+   are 3 commits behind and one of them changes what the palette should contain.
+
+5. **New runtime asset — do NOT add it to the palette.**
+   `assets/objects/gate_electric_dead.png` (Chief-supplied "true dead" gate art)
+   now drives the gate's DORMANT visual state, wired in `electricity.js` with the
+   old spritesheet row-0 frame kept as fallback. It ships with
+   `gate_electric_dead.json` for provenance, mirroring the existing
+   `gate_electric_spritesheet.json` convention.
+   It is a **runtime state file**, exactly like `gate_closed.png` and
+   `gate_electric_open.png` — Chief's one-gate-palette-entry ruling stands, so the
+   palette keeps showing a single gate entry (`gate_electric_closed`) and none of
+   these state files. Verify that is still true after your re-curation; adding a
+   second gate entry would regress a Chief ruling.
+
+**Notes:**
+- `docs/CHIEF_HANDOFF.md` control contract was already corrected by Kiro
+  (SPACE charges / K attacks / F unbound). Don't redo it.
+- `tool_hammer.png` is now 32×32 (was 25×20, stray pixel removed) and
+  `conduit_cluster.png` was deleted entirely on Chief's order. Both manifests were
+  mechanically pruned to 51 entries — that is the state you are re-curating from.
+
+**Gate criteria:** parity · electricity · energy (87/0 baseline) · boot smoke, all
+0 failed, plus confirmation the palette still renders with no broken tiles. Push
+to `agent/aki-editor` and HOLD for Kiro's QA gate.
 
 ---
 
