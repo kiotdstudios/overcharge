@@ -6,7 +6,37 @@ Work these in order. P1 is blocking — do not start P2/P3 before it lands.
 
 ---
 
-## P1 — BLOCKING: reset your branch onto the live line
+## P1 — ✅ APPROVED — GO. Reset your branch onto the live line
+
+> **CHIEF SIGN-OFF GRANTED 2026-09-12. Run it.**
+>
+> Approved command, in `C:/Users/diepowel/Documents/GitHub/overcharge-aki` on
+> `agent/aki-editor`:
+>
+> ```bash
+> git reset --hard origin/agent/orcha-gameplay
+> git push --force-with-lease origin agent/aki-editor
+> ```
+>
+> **Your `AKI_SPECIALIZATION.md` is already saved — do not worry about it.**
+> Kiro independently audited your 85-file divergence and confirmed your
+> assessment: excluding assets, that training doc was the only file unique to
+> your branch. It was rescued to the live line in commit `101125a` at
+> `docs/agent-training/AKI_SPECIALIZATION.md` (secret-scanned clean) BEFORE
+> approval was given. After your reset, pull and it will be there. **The reset
+> now destroys nothing unique.**
+>
+> Your TOOLS_UI_LAYOUT work is confirmed live (click-audit found the icon rail,
+> `#btn-level-prev`, and all 40 wired controls on the Pages deploy), so
+> discarding those commits from your branch is safe.
+>
+> After running, prove it: `git diff --name-only origin/agent/orcha-gameplay
+> origin/agent/aki-editor -- assets` must return **nothing**. Report that output.
+>
+> Recovery if something surprises us: your reflog, plus Waste Zone WIP is still
+> on `wip/aki-waste-zone-legacy`.
+
+### Original assessment task (complete — kept for the record)
 
 Your branch is **85 asset files divergent** from `agent/orcha-gameplay`, including
 all **31 files of the deleted `waste/` pack**. This already forced an

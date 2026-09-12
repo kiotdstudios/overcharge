@@ -569,3 +569,16 @@ Also this session: `conduit_cluster.png` deleted per Chief (archived, manifests 
 1. Sync now — the live line includes dormancy, so System 2 builds on a merged `PowerGate.draw`.
 2. Document crate-conductivity v1 semantics BEFORE implementing — approved as requested.
 3. Timed gate must compose with dormancy: an expired timed gate returns to the dormant visual state, not an idle-animated one.
+
+---
+
+## 2026-09-12 — Aki reset GREEN-LIT (lossless) + Orcha crate/timed semantics RULED
+
+**Aki P1 branch reset — approved by Chief, made lossless first.**
+Independently audited the 85-file divergence rather than accepting the summary: excluding `assets`, the only file ADDED on `agent/aki-editor` and absent from the live line was `docs/agent-training/AKI_SPECIALIZATION.md` (237 lines, secret-scanned clean). Everything else was M (live line newer) or D (Aki behind). **Rescued it to the live line as `101125a`** before any destruction — it now sits alongside the Kiro/Orcha specialization docs, hers having been the only one missing. Cherry-picked UI work re-confirmed present on the deploy (`#btn-level-prev`, icon rail, 40 controls in the click-audit). Command approved: `git reset --hard origin/agent/orcha-gameplay` + `git push --force-with-lease` in HER worktree only (governance forbids me touching another agent's worktree). Recovery paths: her reflog + `wip/aki-waste-zone-legacy`.
+
+**Orcha's `ORCHA_CRATE_TIMED_V1_SEMANTICS.md` (`4916b22`) — RULED, see `docs/KIRO_RULING_CRATE_TIMED_V1.md`.**
+- RATIFIED as written: D1 (pure conduit, not battery), D2 (2px contact), D3 (proxy target via existing authority), D4 (refuse + NOT CONNECTED), D6/D6a (walk-into push, blocked crate blocks player), D7 (solid), D8 (crates snapshotted — his best catch, a silent soft-lock generator), D9 (timed gate + dormant revert + `timed&&isExit` refused).
+- **VETOED D5** (multi-device → first in level order). Replaced with: **refuse to conduct + warn**. Silent wrong-target delivery is the worst failure mode, it contradicts D4's own doctrine, and "first in order" is a behavior levels could come to depend on before v2 breaks it. Orcha had flagged and priced this himself.
+- **TECHNICAL CORRECTION:** D2/D5 listed sources as delivery targets. Verified shipped code — `ElectricalSource` has `drain()` and **no `receive()`**; charging into a crate touching a source would throw. Delivery eligibility is **gates + switches only**; absorb-through-crate deferred to v2 explicitly. A guaranteed runtime crash caught on paper for the cost of one grep — the payoff for ruling before implementation.
+- **ADDED:** parity guards for crates (unique id, finite geometry, and **any crate-bearing level must have ≥1 checkpoint**, since checkpoint restore is the only recovery from the crate soft-lock class).
