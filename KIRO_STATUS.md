@@ -541,3 +541,16 @@ Also this session: `conduit_cluster.png` deleted per Chief (archived, manifests 
 **Published.** QA gate: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
 
 **Design note for Chief:** the level is now exact-solution — every unit must reach the gate. That's a legitimate tight tutorial, but it removes all slack for a first-time player. If L1 should stay forgiving (GDD §11 "learn to absorb and spend"), either restore a third generator or drop the exit to 6.
+
+---
+
+## 2026-09-12 — Aki task queue cut + stale control contract fixed
+
+**Audit findings:** `agent/aki-editor` is still **85 asset files divergent** from the live line and carries all **31 waste files** — the exact condition that forced the cherry-pick intervention on TOOLS_UI_LAYOUT. Also found `docs/CHIEF_HANDOFF.md` §Interaction contract still documented the pre-SPACE_CHARGE bindings (E-discharge, "Space is attack-only").
+
+**Fixed by me (my lane):** CHIEF_HANDOFF control contract now reads SPACE charges / K attacks / F unbound.
+
+**`docs/AKI_ORDER_QUEUE.md` issued — 3 items:**
+- **P1 BLOCKING:** reset `agent/aki-editor` onto current live line; must prove `git diff --name-only ... -- assets` is empty. Includes the full do-not-restore purge list. Destructive git requires Chief sign-off — Aki must state the command first.
+- **P2:** editor support for Orcha's incoming systems — SPAWN `+ Crate` button, gate inspector `timed`/`duration` fields, crate marker/badge. Sequenced AFTER Orcha's schema lands; told her not to invent field names ahead of him.
+- **P3:** editor doc truth pass (`MANIFEST.md`, `SCHEMA.md` vs shipped Order 005 persistence + new §1-6 panel) and semantic re-curation of `ASSET_MANIFEST.json`, which I pruned mechanically 116→51.
