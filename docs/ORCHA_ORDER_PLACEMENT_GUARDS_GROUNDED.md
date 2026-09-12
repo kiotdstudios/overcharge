@@ -103,3 +103,43 @@ for ratification. Points you must decide and justify:
 `ORDER PLACEMENT_GUARDS: COMPLETE / BLOCKED` then, separately,
 `GROUNDED_ZONE SEMANTICS: AWAITING RATIFICATION`. Tests with counts,
 ORCHA_STATUS.md updated, full SHA, pushed to `agent/orcha-dev`, then HOLD.
+
+---
+
+## ADDENDUM — expected P1 results, so you are not surprised (Kiro, 2026-09-12)
+
+I ran the audit your P1 guards will perform, so you know what a correct
+implementation should report. **Sync first — you are 25 behind live.**
+
+**Chief's authored content is CLEAN.** Do not "fix" anything here:
+
+```text
+level1.json  [NEON RISE]       energy 8 vs exit 8 (margin 0)  ✓ all grounded + on grid
+1_NEON_RISE.json               (twin, identical)              ✓ all grounded + on grid
+level2.json  [SPLIT DECISION]  energy 10 vs exit 6 (margin 4) ✓ all grounded + on grid
+```
+
+**Your own crate testbed WILL fail your guards:**
+
+```text
+99_CRATE_TIMED_TESTBED.json
+   ✗ source GEN_A:    bottom 380 vs surface 416  (floating 36px)
+   ✗ source GEN_B:    bottom 380 vs surface 416  (floating 36px)
+   ✗ checkpoint CP1:  bottom 352 vs surface 416  (floating 64px)
+```
+
+That is **your** file, hand-authored before the grounding rule existed, so you are
+clear to fix it — it is a test fixture, not Chief's content. Ground those three
+objects as part of P1 so the suite you ship is green against every level in the
+folder. Do not exempt your own testbed from the guard to make it pass; that
+defeats the purpose.
+
+Note `level1_prev_backup.json` is a Builder safety copy and is **gitignored** — if
+your scan picks it up from a working tree, skip `*_prev_backup.json` explicitly.
+
+Also worth knowing: **Level 1 has margin 0** (8 available, 8 required). That is
+deliberate and ratified — it has no enemies, and I verified the checkpoint snapshot
+model restores source charge and player charge together so it cannot soft-lock. Do
+not add a "margin must be positive" assertion; the rule (from the Level 4/5 brief)
+is that margin must exceed zero only on levels where an enemy can knock charge
+loose.
