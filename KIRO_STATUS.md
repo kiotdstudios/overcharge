@@ -525,3 +525,19 @@ Chief confirms the SPACE/K binding split ("Ruling A") was his amendment: "it was
 - `docs/LEVEL3_DESIGN_BRIEF.md` — Chief's Builder brief for L3 "Don't Get Hit": safe absorb intro, drone lesson corridor (no pits), second generator, exit `required: 6`. All mechanics already engine-supported; pure content.
 
 Also this session: `conduit_cluster.png` deleted per Chief (archived, manifests 52→51, `5e43763`).
+
+---
+
+## 2026-09-12 — Chief's Builder save published: Level 1 down to 2 generators (zero-margin verified safe)
+
+**Found uncommitted in the Git folder** (Chief's verified Builder save, both `level1.json` and `1_NEON_RISE.json` byte-identical): `src_2` (334,322) removed. Level 1 now 2 generators × 4 = **8 available vs exit `required: 8` — zero margin.**
+
+**Soft-lock analysis before publishing (result: SAFE):**
+- No enemies in Level 1 → no charge-loss path.
+- Gate transfer is capped by `needed`, and partial-pip surplus returns to the bar (Order 004 ruling 3) → no way to waste charge.
+- 4+4=8 fits under MAX_CHARGE 10 → no pip banking loss.
+- Death: `_takeSnapshot`/`_applySnapshot` capture level mutable state (source charges, gate.charged) AND player charge/pips **together**, restoring them in sync. So dying after draining generators restores drained-gens-with-charge or full-gens-with-zero — never the unwinnable mix. Verified in `src_scroll/main.js:114-141`.
+
+**Published.** QA gate: parity 75/0 · electricity 37/0 · energy 72/0 · boot smoke OK.
+
+**Design note for Chief:** the level is now exact-solution — every unit must reach the gate. That's a legitimate tight tutorial, but it removes all slack for a first-time player. If L1 should stay forgiving (GDD §11 "learn to absorb and spend"), either restore a third generator or drop the exit to 6.
