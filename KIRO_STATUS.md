@@ -406,3 +406,14 @@ Browser-local state that legitimately remains: `overcharge.testLevel` (TEST LIVE
 **Tests:** parity 75/0 · electricity 37/0 · energy 51/0 · boot smoke OK.
 
 **Note for Orcha:** SPACE-charge order (`docs/ORCHA_ORDER_SPACE_CHARGE.md`, `d9eb4a4`) unchanged by this; gate cost 8 makes the removal of F instant-fill more important, since one banked battery (10) would still one-press it.
+
+---
+
+## 2026-09-12 — Chief order: "delete all waste assets" — executed with one hold-back
+
+**Scope determined by reference audit (code + levels + editor manifest + purple_city json/md):**
+- `assets/tilesets/purple_city/waste/**` (31 files) — zero references anywhere. DELETED.
+- `props/env_waste_platform_short.png`, `props/_test_strip_waste_platform.png` — waste-named, outside the waste folder, zero references. DELETED.
+- `props/env_waste_platform_long.png` — **HELD**: Level 1 (NEON RISE) renders it in 6 decoration placements. Deleting would blank live level art. Awaiting Chief's call: delete + strip the 6 decorations, or keep as an in-use prop.
+
+**Policy compliance:** all 34 files (33 deleted + the held one) archived to `Documents\Archived\waste_assets_2026-09-12\` with ledger entry before any deletion. Git history retains everything; Waste Zone level WIP untouched on `wip/aki-waste-zone-legacy`. Also closes the CLEANUP_PLAN line item for `waste/_qa` review strips.
