@@ -789,3 +789,19 @@ Suites on merged tree: parity 110/0 · energy 88/0 · electricity 37/0 · crate_
 **5. Checkpoint still schematic in the Builder — EXPECTED, not a regression.** That is exactly what Aki's **P5** order covers (real art in the editor for every object type). She is mid-flight on it.
 
 **Tests:** parity 110/0 · energy 88/0 · electricity 37/0 · crate_timed 87/0 = **322/0** · boot smoke OK, zero page errors.
+
+---
+
+## 2026-09-12 — Chief ruling + new orders for both agents
+
+**Chief ruling:** the gate's small horizontal progress bar below the sprite **stays**. Only the vertical in-gate fill strip was wrong, and that is removed.
+
+**Verified Level 3 is genuinely buildable before proposing anything else** (so Chief doesn't lose a Builder session to a broken mechanic): `level.js:24` instantiates `DroneEnemy` for `type: 'drone'`, and `entities.js:447` confirms the drone stuns + calls `player.scatter(level)` on overlap with a cooldown. The hit → scatter → recover loop Level 3 teaches is live.
+
+**`docs/ORCHA_ORDER_PLACEMENT_GUARDS_GROUNDED.md` issued** (Orcha was idle since standing down):
+- **P1 placement guards** — closes the defect Chief reported today. I fixed the cause and the data, but nothing prevents recurrence; the Builder can still be dragged and hand-edited JSON can reintroduce floating objects silently. Same pattern as the required-less gate: fix once, then guard forever. Specified per-type grounding contracts (source `y+28`, gate `y+h`, switch `y+22`, checkpoint `y`, crate `y+h`), X-grid alignment, and three deliberate exemptions — **drones hover by design, platforms float by design, and a pit column must report as its own clearer failure** rather than a confusing grounding mismatch. Also told him explicitly NOT to assert `y % 32`: a 28px source on a 224 surface must sit at 196, so grounding beats grid-alignment on Y. And not to "fix" Chief's level data if a guard fires — report and stop.
+- **P2 grounded hazard** (GDD §7 / Level 6, the last engine gap) — ordered as an **environmental zone, not a character**, specifically because Chief purged the drain-enemy art and a new enemy would stall on an art decision. A zone needs no character art. Semantics-doc-before-implementation again, with my recommendations pre-stated (refuse both absorb and discharge, honestly, with a reason; block use rather than drain, since the GDD says "weakened or disabled" not "emptied").
+
+**`docs/AKI_ORDER_QUEUE.md` P6 queued** (after her in-flight P5):
+- **P6a switch art** — the last missing object sprite, found during my P5 audit. Told her 2 states is sufficient (not a 9-frame sheet), that the 22×22 hitbox is a harness-asserted contract, and that she may draw larger than the hitbox like sources do (28×28 hitbox, 64×64 sprite) provided she states the size and anchor so I can wire editor and runtime to the same numbers.
+- **P6b** — the yellow energized crate is still awaiting Chief's ruling; told her not to pre-emptively change it, and that if Chief keeps yellow she must record WHY in the manifest so nobody later "fixes" it back.

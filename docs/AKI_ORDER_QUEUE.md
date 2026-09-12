@@ -327,3 +327,47 @@ Rendered proof (screenshot of the Builder showing real art for each type), every
 object type still selectable and movable, schematic fallback still reachable, all
 suites 0 failed, boot smoke clean, palette still exactly ONE gate entry. Push to
 `agent/aki-editor` and HOLD.
+
+---
+
+## P6 — QUEUED (start after P5 lands). SWITCH ART + energized-crate colour call
+
+### P6a — Produce SWITCH art (the last missing object sprite)
+
+Found during the P5 audit: **no switch art exists anywhere in the project.** Every
+other object type now has a sprite; the switch is the only one that must stay a
+schematic marker, which is why P5 explicitly told you not to fake one from an
+unrelated asset.
+
+Produce it properly:
+
+- **`switch_off.png` and `switch_on.png`**, or a small 2-frame set — the switch has
+  exactly two meaningful states (`on` false/true) and the runtime already tracks
+  a partial-charge fill, so 2 states is enough. Do NOT build a 9-frame sheet.
+- **Hitbox is 22×22** (documented contract, asserted by the parity harness). Draw
+  larger than the hitbox if the design needs it — sources do exactly this (28×28
+  hitbox, 64×64 sprite) — but state the sprite size and anchor you chose so Kiro
+  can wire the editor and runtime to the same numbers.
+- Purple City palette. Must read as a *switch/lever/button* and be clearly
+  distinguishable from the gate and from scenery panels.
+- Grid-true, zero stray alpha islands (the scanner will check).
+- Register in `ASSET_MANIFEST.json` with accurate id/category/tags.
+- **Name the files for what they are.** Three misleading filenames are already
+  documented in the manifest with `_art_note`; do not add a fourth.
+
+### P6b — Chief's call on the energized crate colour
+
+Your `crate_conductive_energized.png` glows **yellow**. Every other energised
+thing in OVERCHARGE glows purple/magenta (`#cc44ff`): gate charge, discharge FX,
+charge pickups, the HUD. **Chief has been asked and has not ruled yet.**
+
+Do not change it pre-emptively. If Chief rules "make it purple", produce a
+recoloured variant then. If he rules "yellow is intentional" (a deliberate
+contrast so the puzzle object stands out from ambient purple), note that decision
+in the manifest entry so nobody later "fixes" it back.
+
+### Gate criteria
+
+Rendered proof, stated sprite size + anchor, 22×22 hitbox respected, zero stray
+alpha, manifest accurate, palette still exactly ONE gate entry, all suites 0
+failed. Push to `agent/aki-editor` and HOLD.
