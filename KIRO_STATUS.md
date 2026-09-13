@@ -1006,3 +1006,21 @@ Chief's two Downloads packs extracted, renamed for what they are, and committed 
 Level 2 already has the exact pair (`SW1` → `BARRIER` blockOnly), so once `style` exists Chief flips two fields and gets the fence puzzle with **no layout change**.
 
 **Tests:** parity **138/0** · energy 88/0 · crate_timed 87/0 · electricity 37/0 · boot smoke OK (3 levels).
+
+---
+
+## 2026-09-12 — Fence v1 RATIFIED; Orcha caught 3 factual errors in MY order
+
+Verdict in `docs/KIRO_RULING_FENCE_V1.md`. **My order `ORDER_FENCE_SHORT_CIRCUIT.md` stated the art inventory as fact and three claims were false.** Verified each of Orcha's findings myself — sha256 plus a full per-frame pixel scan, not a sample — and he is right on all three. Annotated my order with a correction header pointing at the ruling.
+
+1. **`frame_000` is the REST POSE**, byte-identical to the dead/destroyed art in BOTH packs (`fence_dead` ≡ `fence/frame_000`; `switch_destroyed` ≡ `wall_switch/frame_000`). Animating from 000 would make a **live, blocking fence flash its dead passable-looking art one frame in nine** and play the switch's destroyed end-state as the first frame of its own destruction.
+2. **Bboxes are NOT constant** — fence has 2 distinct boxes, switch has **6**; the 2px spread on switch frames 001-003 *is* the vibration. Ratified anchoring from the uniform canvas, never per-frame bbox.
+3. **Luma cannot signal state** — `fence_dead` is 50.4 while live frames 001 (22.7) and 008 (22.0) are *darker*. Motion is the signal; correct of him to refuse to fake it in code.
+
+**Root cause of my errors: my contact sheet rendered only frames 000/002/004/006/008 and I generalised from that sample.** Sampling then asserting is exactly what I gate other agents for.
+
+**Standing rule ratified AND mechanically enforced.** Third occurrence of the PixelLab rest-pose convention (gate sheet row 0, fence, switch), so a written convention would fail a fourth time. `_dev/parity_regression.mjs` now hashes every `assets/objects/<pack>/frame_000.png` against its non-frame siblings and reports rest-pose packs with "animate from frame_001". Parity **138 → 141/0**.
+
+**Rulings:** F5 render-only `on`-inversion RATIFIED (one Switch authority, one charge path, inversion confined to presentation) · F8 `switch_off.png` reserved-not-dropped RATIFIED, plus his sharp note that if Chief meant it as the START state that is a different puzzle (power it up, not short it out) · **F7 RULED: fence dies IMMEDIATELY**, burn animation plays concurrently — in a puzzle game a ~1s window where the player cannot tell if their charge worked is worse than perfect cause-and-effect ordering, and the fence going dark IS the only feedback that matters.
+
+**Queue ruled: FENCE first, P1 placement guards second.** My own reasoning changed since issuing P1 — the hovering defect it guards is **already fixed at source** (spawn snap, drag snap via `SNAP_GAMEPLAY_DEFAULT` 16→32 + re-anchor, `tileIsSolid` misuse, and every level re-grounded). P1 is now regression protection rather than a live fix, so Chief's player-facing fence wins. P1/P2 not dropped, just sequenced after.
