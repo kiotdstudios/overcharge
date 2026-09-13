@@ -1888,7 +1888,9 @@
       "y": 192,
       "w": 32,
       "h": 64,
-      "label": "GATE"
+      "label": "GATE",
+      "isExit": true,
+      "required": 8
     }
   ],
   "switches": [],

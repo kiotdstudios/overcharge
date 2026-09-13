@@ -288,6 +288,62 @@ btnSave?.addEventListener('click', async () => {
   }
   _updateFolderDisplay();
 });
+// ── COMMIT & PUSH TO GITHUB ────────────────────────────────────────────────
+// HONEST SCOPE (Order 005 doctrine: never fake success). The Builder is a static
+// page — it CANNOT run git. So this button does the part it genuinely can, then
+// hands over the exact command instead of pretending to have published:
+//   1. SAVE the level into the Git folder with read-back verification. Pushing
+//      without saving first would publish stale bytes, so a failed save aborts.
+//   2. Copy the commit+push one-liner to the clipboard and show it.
+// It never reports "pushed". The wording says what actually happened.
+const btnCommitPush = document.getElementById('btn-commit-push');
+const commitPushOut = document.getElementById('commit-push-out');
+btnCommitPush?.addEventListener('click', async () => {
+  const num  = state.level?.number;
+  const name = state.level?.name || 'level';
+
+  // Step 1 — a verified save. No save, no publish.
+  const r = await Persistence.saveCurrentLevel();
+  if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
+  showSaveFlash(r);
+  _updateFolderDisplay();
+  if (!r || !r.ok) {
+    if (commitPushOut) {
+      commitPushOut.style.display = 'block';
+      commitPushOut.style.color   = '#ff8888';
+      commitPushOut.textContent   =
+        'NOT PUBLISHED — the save failed, so there is nothing new to commit.\n' +
+        (r?.message || 'Set the FOLDER to your Git clone\'s src_scroll/levels and try again.');
+    }
+    return;
+  }
+  try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
+
+  // Step 2 — hand over the command. Stages the whole levels folder so the
+  // canonical file, the descriptive twin AND levels.json all go together;
+  // committing only one of them is how the manifest drifts from the files.
+  const msg = `level${num ?? ''}: ${name} from Builder`;
+  const cmd = [
+    'cd "%USERPROFILE%\\Documents\\GitHub\\overcharge"',
+    'git add src_scroll/levels',
+    `git commit -m "${msg}"`,
+    'git push origin agent/orcha-gameplay',
+  ].join(' && ');
+
+  let copied = false;
+  try { await navigator.clipboard.writeText(cmd); copied = true; } catch { /* clipboard blocked */ }
+
+  if (commitPushOut) {
+    commitPushOut.style.display = 'block';
+    commitPushOut.style.color   = '#8fb';
+    commitPushOut.textContent   =
+      `SAVED + VERIFIED into the Git folder. Not published yet — run this:\n\n${cmd}\n\n` +
+      (copied ? '(copied to your clipboard — paste into a terminal)'
+              : '(clipboard blocked — select the text above and copy it)') +
+      '\n\nOr just double-click push_overcharge.bat on your Desktop.';
+  }
+});
+
 // Let Chief pick (or re-pick) the save folder. Once set, all future saves
 // write directly into that folder — no more Downloads downloads.
 btnChooseFolder?.addEventListener('click', async () => {

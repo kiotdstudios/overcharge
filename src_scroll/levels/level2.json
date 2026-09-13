@@ -2053,7 +2053,7 @@
       "y": 256,
       "w": 40,
       "h": 64,
-      "required": 6,
+      "required": 8,
       "isExit": true,
       "label": "EXIT"
     }

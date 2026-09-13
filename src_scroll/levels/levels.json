@@ -11,7 +11,11 @@
       "number": 2,
       "name": "SPLIT DECISION",
       "file": "level2.json"
+    },
+    {
+      "number": 3,
+      "name": "LEVEL 3",
+      "file": "level3.json"
     }
-  ],
-  "_hold_note": "Level 3 authored and committed but HELD OUT of progression: its gate has no `required` and isExit=false, so it cannot be opened. Re-add { number: 3, name: \"LEVEL 3\", file: \"level3.json\" } once those are set."
+  ]
 }

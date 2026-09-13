@@ -973,3 +973,36 @@ Both data URIs decode to a single well-formed `<svg>` root with a real path, and
 **Ratified his judgment call on `index_classic.html`:** he left it untouched and asked. Correct — it is a legacy page, not part of the game-vs-editor confusion Chief actually hit, and giving it a third colour would add a distinction nobody needs. Leaving it plain also means it can never be mistaken for the live game.
 
 **Gate:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK, zero page errors. Favicons need a hard refresh to appear — browsers cache them aggressively.
+
+---
+
+## 2026-09-12 — Exit-cost ruling applied · Level 3 PUBLISHED · COMMIT&PUSH button · fence/switch art installed
+
+### Chief ruling: ALL exit gates cost 8
+Applied and solvability re-verified for each level rather than assumed:
+- `level1` / `1_NEON_RISE`: already 8. Energy 8 vs 8 → **margin 0**.
+- `level2`: `EXIT` **6 → 8**. Must charge `SW1`(2) + `EXIT`(8) = 10 vs 10 energy → **margin 0**.
+- `level3` / `3_LEVEL_3`: gate had **no `required` and `isExit:false`** — the level was uncompletable. Set `required: 8` and marked it the exit (it was the only non-barrier gate). Energy 15 vs 8 → margin 7.
+
+Margin 0 on levels 1 and 2 is safe and deliberate: **neither has enemies**, so there is no charge-loss path; gates cap transfer at `needed` and pip surplus returns to the bar, so no waste path exists either. Recorded so nobody "fixes" it later — and noted in the fence order that Level 2 cannot absorb a third cost.
+
+### Level 3 PUBLISHED
+Chief: *"publish lvl 3 i need to test it."* Gate values now defined, so the hold reason is gone. Re-added to `levels.json` (order 1,2,3) and the `_hold_note` removed. Boot smoke confirms the runtime loads **3 levels** and the Builder dropdown lists all three. Parity went from **134/2 → 138/0** — the two failures were exactly that undefined gate.
+
+### COMMIT & PUSH TO GITHUB button (LEVEL ACTIONS §5)
+**Honest scope, and the wording matters:** the Builder is a static page and **cannot run git**. So the button does the part it genuinely can and never claims otherwise:
+1. Performs a real **verified save** into the Git folder. A failed save **aborts** and says "NOT PUBLISHED — nothing new to commit", because pushing without saving would publish stale bytes.
+2. Copies the exact `cd … && git add src_scroll/levels && git commit -m … && git push` one-liner to the clipboard and displays it, with the desktop `.bat` as the alternative.
+
+It stages the **whole levels folder**, not just the one file — committing `levelN.json` without its descriptive twin and `levels.json` is how the manifest drifts from the files. Follows Order 005 doctrine: no fake success, and it never reports "pushed".
+
+### Fence + wall-switch art installed
+Chief's two Downloads packs extracted, renamed for what they are, and committed with their `metadata.json` provenance:
+- `assets/objects/wall_switch/` — 56×56: `switch_off`, `switch_on` (green, powered), `switch_destroyed` (burnt/sparking) + 9-frame destroy animation. All frames share bbox 10,1..46,52.
+- `assets/objects/fence/` — 64×64: `fence_dead` (dark, passable) + 9-frame live-electricity animation (luma pulses 50→108→22). All frames share bbox 1,10..62,59.
+
+**Key finding: this INVERTS the existing switch semantics.** The shipped `Switch` starts off and turns on when charged; Chief's wall switch starts **on** (powering the fence) and charging **destroys** it, killing the fence and opening the path. Same underlying mechanism as the existing `Switch` + `blockOnly` pair — **no new energy path needed** — but a new visual state machine and an authoring flag. Deliberately did NOT half-build a new mechanic late in the session; issued `docs/ORDER_FENCE_SHORT_CIRCUIT.md` instead, split Orcha (state machine, `style` flag defaulting to today's behaviour, semantics-doc-before-code) / Aki (manifest, inspector, editor rendering + `boundingRect` so a 56×56 switch is not left under a 22×22 box).
+
+Level 2 already has the exact pair (`SW1` → `BARRIER` blockOnly), so once `style` exists Chief flips two fields and gets the fence puzzle with **no layout change**.
+
+**Tests:** parity **138/0** · energy 88/0 · crate_timed 87/0 · electricity 37/0 · boot smoke OK (3 levels).

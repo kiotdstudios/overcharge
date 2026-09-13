@@ -1,0 +1,41 @@
+{
+  "group_id": "5c463827-bdee-49a4-8896-64f3c3b4c4dd",
+  "objects": [
+    {
+      "id": "eee1013a-555c-43ea-87c0-d87f1f21e6c6",
+      "name": "uncharged gate",
+      "prompt": "electric charged wired fence",
+      "size": {
+        "width": 64,
+        "height": 64
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/uncharged_gate.png"
+      },
+      "animations": {
+        "Bright_sparks_of_electricity_travel_rapidly_along": {
+          "directions": {
+            "unknown": {
+              "frames": [
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_000.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_001.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_002.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_003.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_004.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_005.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_006.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_007.png",
+                "animations/Bright_sparks_of_electricity_travel_rapidly_along/unknown/frame_008.png"
+              ],
+              "frame_count": 9
+            }
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "1.1",
+  "export_date": "2026-09-13T02:29:28.398894"
+}

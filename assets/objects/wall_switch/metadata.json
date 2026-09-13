@@ -1,0 +1,71 @@
+{
+  "group_id": "8eb8d79a-d8ef-4e43-bbd4-39694a8e4501",
+  "objects": [
+    {
+      "id": "207b0a5c-d95c-4f8f-88d8-63a5173f384e",
+      "name": "base",
+      "prompt": "wall switch",
+      "size": {
+        "width": 56,
+        "height": 56
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/wall_switch.png"
+      },
+      "animations": {}
+    },
+    {
+      "id": "bee51585-4642-4a01-ba39-8e3985cf205e",
+      "name": "powered off",
+      "prompt": "wall switch",
+      "size": {
+        "width": 56,
+        "height": 56
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/powered_off.png"
+      },
+      "animations": {}
+    },
+    {
+      "id": "253be2ad-1323-4f87-b2ee-3688c10b70d5",
+      "name": "destroyed from overc",
+      "prompt": "wall switch",
+      "size": {
+        "width": 56,
+        "height": 56
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/destroyed_from_overc.png"
+      },
+      "animations": {
+        "The_metallic_circuit_panel_begins_to_vibrate_inten": {
+          "directions": {
+            "unknown": {
+              "frames": [
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_000.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_001.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_002.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_003.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_004.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_005.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_006.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_007.png",
+                "animations/The_metallic_circuit_panel_begins_to_vibrate_inten/unknown/frame_008.png"
+              ],
+              "frame_count": 9
+            }
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "1.1",
+  "export_date": "2026-09-13T02:35:41.276576"
+}
