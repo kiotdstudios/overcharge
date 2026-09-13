@@ -375,3 +375,80 @@ dedicated TRUE DEAD art, static and unlit — not idle-animated).
 - **`timed` + `isExit` is REFUSED** as an authoring error (console-warn, `timed`
   ignored): a timed exit could expire during the level-complete transition and
   strand the player. The parity harness also rejects this combination.
+
+---
+
+## `style` — powered fence + wall switch (ORDER FENCE_SHORT_CIRCUIT v1)
+
+Optional, additive, default-off. **Absent `style` is byte-identical to
+pre-order behaviour** — Levels 1/2/3 are unaffected until Chief authors the flag.
+
+### Switch: `style: "wall"`
+
+```js
+{ ...existing switch fields..., style: "wall" }   // optional
+```
+
+Renders the `assets/objects/wall_switch/` art (56x56) and **inverts the
+presentation**:
+
+| `switch.on` | renders |
+|---|---|
+| `false` | `switch_on.png` — green, **powering the fence** |
+| `true` | `frame_001..008` once (~0.67s burn) → `switch_destroyed.png` **permanently** |
+
+**`on` means FIRED, not lit.** Charging a wall switch does not turn something on,
+it **destroys** the thing holding the fence up. No state-machine change and no new
+energy path — only the render mapping inverts.
+
+A `style:"wall"` switch must have a `linkedId` pointing at an existing
+**blockOnly** gate. Enforced by the parity harness.
+
+`switch_off.png` is installed but **unused in v1** and deliberately reserved: it
+is genuinely unpowered art and this puzzle has no "intact but unpowered" state.
+
+### blockOnly gate: `style: "fence"`
+
+```js
+{ ...existing gate fields..., blockOnly: true, style: "fence" }   // optional
+```
+
+Renders the `assets/objects/fence/` art (64x64):
+
+- **closed (live):** loops `frame_001..frame_008` at 10fps — blocking
+- **open (shorted):** static `fence_dead.png` — passable
+
+`style:"fence"` **requires `blockOnly: true`**. A fence is opened by its linked
+wall switch and is never charged by the player, so `style:"fence"` on a chargeable
+gate is an authoring error: console-warn and ignore. Also rejected by parity.
+
+The sprite is drawn **larger than the hitbox and tiled** to cover it, the same
+convention `PowerGate` already uses. Level 2's `BARRIER` (32w x 128h) tiles the
+64x64 art exactly 2x vertically, centred horizontally. **The hitbox is never
+changed** — collision stays exactly as authored.
+
+### FRAME INDEXING — animate from 001, never 000
+
+`frame_000.png` is **byte-identical to the rest pose** in both packs
+(`fence_dead.png`, `switch_destroyed.png`). PixelLab exports frame 0 as the
+object's base pose, so the motion is frames **001-008**.
+
+Animating from 000 would make a **live, blocking fence flash its dead passable
+art one frame in nine**, and would play the switch's **destroyed end-state as the
+first frame of its own destruction**. `_dev/parity_regression.mjs` now detects this
+pack layout mechanically for any future asset pack.
+
+**Motion, not brightness, is the fence state signal.** Measured, `fence_dead` is
+lum 50.4 while live frames 001/008 are 22.7/22.0 — the live fence at its darkest
+is darker than dead. A live fence moves; a dead fence is static.
+
+### Timing on open
+
+The fence becomes passable **the instant the switch fires**, with the burn playing
+out concurrently. The fence going dark IS the player's confirmation that the
+charge worked, so it is never delayed behind an animation.
+
+### Snapshot
+
+The switch snapshot carries `_destroyT` (burn progress), so a checkpoint taken
+mid-burn neither replays nor skips the destruction.

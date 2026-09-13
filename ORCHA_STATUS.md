@@ -5,6 +5,81 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## ORDER FENCE_SHORT_CIRCUIT — powered fence + short-circuit wall switch
+
+- **Date:** 2026-09-12T23:40-04:00
+- **Branch:** `agent/orcha-dev` (synced from live `08d54cd` first)
+- **Order:** `docs/ORDER_FENCE_SHORT_CIRCUIT.md` · **Ruling:** `docs/KIRO_RULING_FENCE_V1.md` (F1-F11 all RATIFIED)
+- **Status:** COMPLETE — pushed, awaiting Kiro QA gate
+
+### Tests
+
+| Suite | Baseline | After |
+|---|---|---|
+| `_dev/fence_switch.mjs` (new) | — | **62 passed, 0 failed** |
+| `_dev/parity_regression.mjs` | 141/0 | **163 passed, 0 failed** |
+| `_dev/energy_authority.mjs` | 88/0 | **88 passed, 0 failed** |
+| `_dev/crate_timed.mjs` | 87/0 | **87 passed, 0 failed** |
+| `_dev/test_electricity.mjs` | 37/0 | **37 passed, 0 failed** |
+| Main boot smoke | — | **PAGES_RUNTIME_BOOT_OK** |
+| Testbed headless play | — | **FENCE_TESTBED_PLAYABLE_OK** |
+
+**437 passing, zero regressions.**
+
+### Implemented
+
+- **Fence** (`style:"fence"` on a blockOnly gate): live loop is frames
+  **001-008** at 10fps; open draws static `fence_dead.png`. Sprite tiled over the
+  hitbox — Level 2's 32x128 barrier tiles the 64x64 art exactly 2x vertically,
+  centred, **hitbox never changed**.
+- **Wall switch** (`style:"wall"`): `on === false` draws `switch_on.png` (the F5
+  inversion); on firing, burn frames **001-008** play once over ~0.67s, then it
+  settles permanently on `switch_destroyed.png`. Never loops, never reverts.
+- Both anchored from the **uniform canvas** (56x56 / 64x64), never per-frame bbox.
+- `_destroyT` snapshotted (F11); `style` validated with warn-and-fallback;
+  `style:"fence"` on a non-blockOnly gate refused.
+- Parity guards: known style values, fence requires blockOnly, fence is not an
+  exit, wall switch has a linkedId resolving to an existing blockOnly gate.
+
+### Mutation-tested rather than trusted
+
+62/0 on first run is not evidence, so I broke the code three ways to prove the
+assertions bite:
+
+1. fence live loop set to include `frame_000` → **3 failures**
+2. switch burn set to start at `frame_000` → **4 failures**
+3. `!burnDone` latch removed from `update()` → **initially 0 failures**
+
+Mutation 3 exposed a real gap in my own suite. Removing the latch renders
+*identically* (`burnDone` stays true), so nothing failed — but `_destroyT` then
+grows without bound and is written into every snapshot. I had asserted that latch
+in a code comment and never verified it. Added an explicit bound assertion; the
+mutation now fails. **The invariant was claimed but untested until mutation
+testing found it.**
+
+### Verified in a real level, not just in units
+
+Testbed run: fence blocks → player charges the wall switch through the real
+`spendEnergy` path (spent exactly 2) → **fence is open and passable on the same
+frame, while `burnDone` is still false** — the F7 ruling confirmed end to end —
+then the burn completes and latches.
+
+### Scope
+
+Levels 1/2/3 verified to have **zero** `style` fields, so they are untouched until
+Chief flips Level 2's `SW1`/`BARRIER`. Testbed is a `99_` file kept out of
+`levels.json`. No editor work (Aki's lane). No art changes.
+
+### Notes
+
+- Removed a stray `_fenceImg(` file created by a mangled shell mutation attempt —
+  caught in `git status` before committing.
+- Level 2 remains **margin 0** (2 + 8 spent vs 10 available). Flipping `SW1` and
+  `BARRIER` to `wall`/`fence` changes no costs, so the budget is unaffected.
+- **Next per Kiro's queue ruling:** `PLACEMENT_GUARDS_GROUNDED` P1, then P2.
+
+---
+
 ## ORDER FENCE_SHORT_CIRCUIT — v1 semantics proposed (HOLDING)
 
 - **Date:** 2026-09-12T22:58-04:00
