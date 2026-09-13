@@ -10,7 +10,7 @@ import { clear } from './render.js';
 import { Level }  from './level.js';
 import { init as bgInit, update as bgUpdate } from './background.js';
 import { Player } from './player.js';
-import { drawHUD, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
+import { drawHUD, drawWorldPrompts, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
 import { initViewport, viewW } from './viewport.js';
 import { logLevelSource } from './levelsig.js';
@@ -295,6 +295,10 @@ function _drawScrollGame() {
   ctx.translate(-Math.round(camX), 0);
   level.draw(ctx, t);
   player.draw(ctx);
+  // World-anchored prompts belong INSIDE the camera transform — they position
+  // themselves on world objects, so drawing them in screen space offset them by
+  // camX. Screen-space HUD (charge meter, banner, pips) stays in drawHUD().
+  drawWorldPrompts(ctx, player, t);
   ctx.restore();
 }
 

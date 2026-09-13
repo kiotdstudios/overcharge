@@ -3,12 +3,26 @@ import { MAX_CHARGE, MAX_BANKED_PIPS, C, W, H } from './constants.js';
 import { drawGlowRect, drawText } from './render.js';
 import { viewW, safeInsetX } from './viewport.js';
 
+// SCREEN-SPACE HUD only. Called after the camera transform has been restored,
+// so everything in here is positioned in viewport pixels.
 export function drawHUD(ctx, player, level, t) {
   _drawBankedPips(ctx, player, t);
   _drawChargeMeter(ctx, player, t);
   _drawLevelBanner(ctx, level, t);
-  _drawContextPrompts(ctx, player, t);
   if (level.cols > 25) _drawProgressBar(ctx, player, level);
+}
+
+// WORLD-SPACE prompts. MUST be called INSIDE the camera translate (see
+// main.js::_drawScrollGame), because every prompt in here anchors to a world
+// object — `src.cx`, `e.cx`, `dev.cx`, `cr.cx`.
+//
+// This used to be called from drawHUD, which runs AFTER ctx.restore() undoes the
+// camera translate. The prompts were therefore drawn at world-x as if it were
+// screen-x, i.e. shifted right by exactly camX — invisible at level start where
+// camX is 0, and increasingly wrong the further right the player walked. Chief
+// hit it as "POWER REQUIRED / ABSORB ENERGY text is waaay to the right".
+export function drawWorldPrompts(ctx, player, t) {
+  _drawContextPrompts(ctx, player, t);
 }
 
 // ── Banked pip rack — power-up display, top-left above charge bar ──
