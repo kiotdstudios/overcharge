@@ -1140,3 +1140,47 @@ Do not produce switch art; do not restyle the default switch. Reasoning:
 3. **The ambiguity I myself raised is benign on inspection.** The only collision is a *fired* default switch vs an *unfired* wall switch, and those never compete for attention — one is spent and inert, the other is the live target. The neighbouring object disambiguates anyway: spent default switch beside an OPEN barrier, live wall switch beside a SPARKING fence.
 
 Recorded the reversal path explicitly: if play says switches should look unified, it is one branch in `Switch.draw` to reuse `switch_off`/`switch_on` for the default style. Revisit only when a level actually authors a default switch — no speculative work.
+
+---
+
+## 2026-09-12 — Chief override on P6a accepted; two labeled orders issued
+
+### Chief reversed my P6a cancellation, and he was right
+
+> "switch works but is a placeholder for the actual in game switch; use art that was provided to complete task; the logic is the same; wall switch needs to be overcharged to open electric fence blocking player from x path"
+
+My cancellation reasoning was that no level would contain a default-style switch once Level 2 flips to `style:"wall"`, so the art had zero consumers. **That reasoning was scoped too narrowly.** I evaluated the switch as a device with no current callers instead of as a *placeholder Chief never signed off on*. The vector glow-rect was scaffolding I inherited and treated as finished work. Chief owns the game's visual identity — that is explicitly on the escalate-to-Chief list in `docs/GIT_GOVERNANCE.md`, and I ruled on it anyway.
+
+Correction recorded: **"zero current consumers" is not sufficient grounds to cancel art work when the thing being replaced is a placeholder.** A placeholder is a debt, not a working device.
+
+Accepted with no argument. The delegation loop worked exactly as designed on its first real test — I shipped a call, Chief reversed it from judgment, I took it.
+
+### Labeled order scheme (new, at Chief's request)
+
+> "write orders for aki and orcha, label them so i can say read x from kiro"
+
+Created `docs/KIRO_ORDER_AKI_01.md` and `docs/KIRO_ORDER_ORCHA_01.md`. Chief says **"read AKI 01 from Kiro"** / **"read ORCHA 01 from Kiro"**. Both files are **self-contained** — no cross-references to other order docs, so an agent can start from the file alone.
+
+Self-containment is deliberate, and it fixes a real failure that just happened.
+
+### Aki was reading a stale file — the orders were never missing
+
+Aki reported: *"same document from yesterday — ends at line 400, no new entries since the P5 scope change note."* She then offered to have the content pasted into chat.
+
+Verified against the remote rather than trusting either side: **P7 is present on `origin/agent/orcha-gameplay` at line 480**, along with the P6a hold note and the Technical Director ruling block. The order was never missing. **Aki is 31 commits behind** and was reading her local copy.
+
+Two lessons:
+1. **Declined the paste.** Governance says orders are committed files, never chat relays. Pasting would have let her work from content with no SHA, and produced exactly the drift that caused this. The fix is `git fetch` — which is now **Step 0** of her order, with the 31-commit figure stated so she cannot mistake it for a small gap.
+2. **Appending to a long-lived queue file is a bad delivery mechanism for a behind agent.** A new entry at line 480 of a file she already believes she has read is invisible to her. A **new file with a name Chief can say out loud** cannot be mistaken for already-read content. This is why the labeled scheme replaces queue appends going forward.
+
+### AKI 01 scope
+- **A1** real art for the default switch (`switch_off` → `switch_on`), **charge fill bar kept** — it is the only progress feedback and it currently works
+- **A2** wall switch + fence rendered in the Builder (runtime draws them; Builder still shows the old schematic, so Chief is authoring blind)
+- **A3** `boundingRect` updated for the new sprites — a 56×56 sprite under a 22×22 box is the exact checkpoint defect Chief already reported
+- **A4** manifest registration; state sprites stay **out** of the palette, exactly ONE gate entry survives
+- Carried forward: anchors copied from `electricity.js`, **never re-derived** (per-frame bbox would flatten the switch's 2px vibration into a slide); `frame_000` is the rest pose, animate `001..008`; **boot smoke mandatory** — her last merge shipped a parse error that killed the whole Builder while her suites passed blind
+
+### ORCHA 01 scope
+- **O1** placement guards in parity. His own `99_CRATE_TIMED_TESTBED.json` has 3 floating objects (GEN_A, GEN_B, CP1) — **his to fix, and explicitly not to exempt.** Pre-stated the exemptions (drones, platforms, bottomless columns, backup files), the "no `y % 32`" rule, and the "no positive-margin assertion" rule so he does not flag Chief's clean content
+- **O2** grounded zone as an **environmental zone, not a character** — no character art needed, so Level 6 unblocks without an art decision. Semantics doc first, **HOLD for ratification** (that process has already caught a guaranteed crash on paper and three factual errors of mine)
+- Told him plainly: **no runtime changes requested.** "Overcharged" is Chief's word for charging to completion, which is what he already built.
