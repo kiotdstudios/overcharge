@@ -1079,3 +1079,25 @@ Parity landed at 177 rather than his 163 because my spawn-reachability guard (ad
 **Chief's next step is one flip:** set Level 2's `SW1` to `style:"wall"` and `BARRIER` to `style:"fence"`. No costs change, so Level 2's margin 0 is unaffected.
 
 **Queue:** per my ruling, Orcha now proceeds to `PLACEMENT_GUARDS_GROUNDED` P1, then P2 grounded zone.
+
+---
+
+## 2026-09-12 — Chief: "are the assets added to the builder so i can place and test?" — they were NOT. Now they are.
+
+**Answer was no.** Orcha's fence order explicitly excluded editor work (that was queued to Aki), so the runtime supported `style` but the Builder had **no `style` field and zero references to the fence/wall_switch art** — Chief could not author or test the mechanic without hand-editing JSON. Added the authoring path myself rather than leaving him blocked behind another agent.
+
+**Added to the inspector (`editor/main.js`):**
+- **switch** → `style` dropdown: `(default)` / `wall`
+- **blockOnly gate** → `style` dropdown: `(default)` / `fence`
+
+**The `style` dropdown is only offered on a `blockOnly` gate.** Verified live: the BARRIER exposes `style`, the EXIT gate does **not** — because the runtime warns-and-ignores a fence that is not `blockOnly`, so offering it there would invite an authoring mistake the engine would silently refuse.
+
+**Caught a bug I was about to introduce.** The `sel` field handler only special-cased the literal label `'(none)'`. My `'(default)'` option would have written the **string `"(default)"`** into the level JSON, and the runtime would have seen an unknown style. Fixed generically: any parenthesised label is treated as a placeholder meaning "unset". Also changed placeholder selection to **`delete` the key** instead of storing `null` — an absent `style` is what keeps a level byte-identical to a pre-fence one, whereas `style: null` would appear in every diff.
+
+**Verified in a real browser, not by reading:** switch keys `[id, required, linkedId, style, label]`; BARRIER keys end in `style`; EXIT keys do not include it; selecting `wall` writes `"wall"`; selecting the placeholder leaves **no `style` key at all**. Zero page errors.
+
+**Chief's test path is now:** select `SW1` → style `wall`; select `BARRIER` → style `fence`; SAVE; PLAY. No costs change, so Level 2's margin 0 is unaffected.
+
+**Still outstanding (Aki's lane, not blocking the test):** the Builder still draws the *old schematic/gate art* for styled objects — the new fence and wall-switch sprites only appear in the game. Editor rendering of the new art plus `boundingRect` sizing remains hers.
+
+**Tests:** parity 177/0 · fence_switch 62/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **451/0** · boot smoke OK.

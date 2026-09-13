@@ -1156,6 +1156,10 @@ function _refreshSelectedProps() {
       { label:'id',       key:'id',       text:true },
       { label:'required', key:'required', num:true, min:0 },
       { label:'linkedId', key:'linkedId', sel:true, opts:['(none)',...gateIds] },
+      // ORDER FENCE_SHORT_CIRCUIT: 'wall' renders the wall-switch art and
+      // SHORT-CIRCUITS on charge (burns out, stays destroyed) instead of lighting
+      // up. Pair it with a blockOnly gate set to style 'fence'.
+      { label:'style',    key:'style',    sel:true, opts:['(default)','wall'] },
       { label:'label',    key:'label',    text:true },
     ];
   } else if (kind === 'checkpoint') {
@@ -1194,6 +1198,10 @@ function _refreshSelectedProps() {
       { label:'blockOnly', key:'blockOnly', bool:true },
       { label:'timed',     key:'timed',     bool:true },
       ...(isTimed ? [{ label:'duration', key:'duration', num:true, min:1 }] : []),
+      // ORDER FENCE_SHORT_CIRCUIT: 'fence' renders the live/dead fence art.
+      // Only valid on a blockOnly gate — the runtime warns and ignores it
+      // otherwise, so the dropdown is only offered when blockOnly is set.
+      ...(ref.blockOnly ? [{ label:'style', key:'style', sel:true, opts:['(default)','fence'] }] : []),
     ];
   } else if (kind === 'crate') {
     color = '#aa55ff'; badge = 'CRATE';
@@ -1213,7 +1221,12 @@ function _refreshSelectedProps() {
     } else if (f.bool) {
       html += `<div class="prop-row"><span class="prop-label">${f.label}</span><input class="prop-input" data-key="${f.key}" data-vtype="bool" type="checkbox"${ref[f.key]?' checked':''} style="flex:0;width:16px;height:16px;cursor:pointer"></div>`;
     } else if (f.sel) {
-      const opts = f.opts.map(o=>{const v=o==='(none)'?'':o;const s=(ref[f.key]===v||(ref[f.key]==null&&o==='(none)'))?'selected':'';return`<option value="${v}" ${s}>${o}</option>`;}).join('');
+      // Any parenthesised label — '(none)', '(default)' — is a PLACEHOLDER meaning
+      // "field unset", and maps to ''. Previously only '(none)' was special-cased,
+      // so adding a '(default)' option would have written the literal string
+      // "(default)" into the level JSON and the runtime would see an unknown style.
+      const isPlaceholder = o => /^\(.*\)$/.test(o);
+      const opts = f.opts.map(o=>{const v=isPlaceholder(o)?'':o;const s=(ref[f.key]===v||(ref[f.key]==null&&isPlaceholder(o)))?'selected':'';return`<option value="${v}" ${s}>${o}</option>`;}).join('');
       html += `<div class="prop-row"><span class="prop-label">${f.label}</span><select class="prop-select" data-key="${f.key}" data-vtype="sel">${opts}</select></div>`;
     } else {
       const t = f.num ? 'number' : 'text';
@@ -1227,7 +1240,13 @@ function _refreshSelectedProps() {
       const vt = el.dataset.vtype;
       if (vt === 'number') ref[el.dataset.key] = Number(el.value);
       else if (vt === 'bool') ref[el.dataset.key] = el.checked;
-      else if (vt === 'sel')  ref[el.dataset.key] = el.value === '' ? null : el.value;
+      else if (vt === 'sel') {
+        // Placeholder selected -> DELETE the key rather than storing null. An
+        // absent `style` is what makes a level byte-identical to a pre-fence one;
+        // writing `style: null` would show up in every diff and in the manifest.
+        if (el.value === '') delete ref[el.dataset.key];
+        else ref[el.dataset.key] = el.value;
+      }
       else ref[el.dataset.key] = el.value;
       state.dirty = true; notify();
     });
