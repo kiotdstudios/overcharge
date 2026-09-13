@@ -423,29 +423,6 @@
       }
     },
     {
-      "id": "env_tile_purple_edge_ref",
-      "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "category": "construction_tile",
-      "tags": [
-        "construction",
-        "purple_edge",
-        "reference",
-        "purple_city"
-      ],
-      "frame_width": 50,
-      "frame_height": 50,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "",
-      "generation": {
-        "eligible": false,
-        "ineligible_reason": "50×50 visual reference for the env_edge_purple_* construction family; use env_edge_purple_* tiles for level building"
-      },
-      "_art_note": "FILENAME LIES — file is named crate_large.png but the art is a purple bordered FRAME tile (50x50, purple border + dark fill), not a crate. Verified by rendering the pixels 2026-09-12. The ID describes the ART and is authoritative. Do NOT rename from the filename."
-    },
-    {
       "id": "env_container_small_a",
       "path": "assets/tilesets/purple_city/containers/container_small_a.png",
       "category": "container",
@@ -1374,6 +1351,55 @@
         "density": "medium"
       },
       "notes": "Split from platform_long_b.png (right block). Dark blue-purple horizontal ledge/beam construction tile. 32x32 — 10px decorated surface at top, interior fill below. Replaces env_pipe_segment_long_b."
+    },
+    {
+      "id": "crate_conductive",
+      "category": "container",
+      "path": "assets/tilesets/purple_city/containers/crate_conductive.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "tags": [
+        "crate",
+        "pushable",
+        "conductive",
+        "container",
+        "puzzle",
+        "purple_city"
+      ],
+      "notes": "Conductive crate — 32x32, grid-true, Purple City palette. Pushable puzzle object for CRATE_TIMED_DEVICE system (Orcha). Base state (not conducting). Distinct from scenery containers by: full 32x32 size, circuit-cross trace, 4-edge contact pads. Energized variant: crate_conductive_energized.png.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical object — requires scripted placement by level designer"
+      }
+    },
+    {
+      "id": "crate_conductive_energized",
+      "category": "container",
+      "path": "assets/tilesets/purple_city/containers/crate_conductive_energized.png",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "tags": [
+        "crate",
+        "pushable",
+        "conductive",
+        "energized",
+        "container",
+        "puzzle",
+        "purple_city"
+      ],
+      "notes": "Conductive crate energized state — circuit traces and contacts shift to gold/yellow to show active charge bridging. Wired by Orcha when crate is in contact with a device. Runtime state file: do NOT show as separate palette entry.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Runtime state file — energized visual state, not a separately placeable object"
+      }
     }
   ]
 }

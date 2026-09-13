@@ -179,17 +179,6 @@
       ]
     },
     {
-      "id": "crate_large.png",
-      "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "category": "container",
-      "width": 50,
-      "height": 50,
-      "tags": [
-        "purple_city",
-        "containers"
-      ]
-    },
-    {
       "id": "crates_double.png",
       "path": "assets/tilesets/purple_city/containers/crates_double.png",
       "category": "container",

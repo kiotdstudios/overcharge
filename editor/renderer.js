@@ -35,9 +35,24 @@ const MARKER = {
   enemy:      '#ff2244',
   checkpoint: '#44ff88',
   platform:   '#44aadd',
+  crate:      '#aa55ff',
   playerStart:'#ffffff',
   selection:  '#ffee00',
 };
+
+// Checkpoint sprite anchor constants — copied verbatim from src_scroll/entities.js.
+// Do not re-derive: any drift here breaks WYSIWYG.
+const CP_SRC   = 128;  // source frame is 128×128
+const CP_DEST  = 66;   // Math.round(128 * 56/108)
+const CP_OFF_X = 31;   // Math.round(60  * 56/108)
+const CP_OFF_Y = 61;   // Math.round(117 * 56/108)
+
+// Player sprite anchor constants — from src_scroll/player.js.
+const PLAYER_SPRITE_W    = 92;
+const PLAYER_SPRITE_H    = 92;
+const PLAYER_SPRITE_FEET = 78;  // pixel row of feet within the 92px frame
+const PLAYER_HIT_W       = 20;  // collision box width (PLAYER_W in constants.js)
+const PLAYER_HIT_H       = 30;  // collision box height
 
 // Terrain tile PNG lookup — keyed by ASSET ID, not by array position, so a
 // new manifest tile inserted at any position does not renumber saved cells.
@@ -183,6 +198,8 @@ export function render(ctx, canvas) {
   _drawMarkers(ctx, L.checkpoints, 'checkpoint', 'CP');
   _drawGates(ctx, L.gates);
   _drawEnemies(ctx, L.enemies);
+  _drawPlatforms(ctx, L.platforms);
+  _drawCrates(ctx, L.crates);
   _drawPlayerStart(ctx, L.playerStart);
 
   // Selection highlights — decorations, gameplay markers, tiles, playerStart.
@@ -203,24 +220,27 @@ export function render(ctx, canvas) {
     // Decorations
     for (const d of state.selection.decorations) drawOutline({ x: d.x, y: d.y, w: d.w, h: d.h });
 
-    // Gameplay markers — hit-box footprints match the visible marker size
-    // (see selection.js::boundingRect for the source of truth).
-    // Source: outline the 64×64 sprite footprint (matches _drawSources render area)
-    for (const o of state.selection.sources)     drawOutline({ x: o.x - 18, y: o.y - 36, w: 64, h: 64 });
-    // Switch + Enemy: top-left hitbox
-    for (const o of state.selection.switches)    drawOutline({ x: o.x,      y: o.y,      w: 22,            h: 22 });
-    for (const o of state.selection.checkpoints) drawOutline({ x: o.x - 11, y: o.y - 11, w: 22,            h: 22 });
-    for (const o of state.selection.enemies) {
-      const ew = o.type === 'patrol' ? 20 : o.type === 'drone' ? 40 : 22;
-      const eh = o.type === 'patrol' ? 26 : o.type === 'drone' ? 36 : 24;
-      drawOutline({ x: o.x, y: o.y, w: ew, h: eh });
-    }
-    for (const o of (state.selection.platforms || [])) drawOutline({ x: o.x, y: o.y, w: o.w || 96, h: o.h || 12 });
-    for (const o of state.selection.gates)       drawOutline({ x: o.x,     y: o.y,     w: o.w, h: o.h });
+    // Gameplay markers — geometry comes from selection.js::boundingRect, which
+    // is the SINGLE SOURCE OF TRUTH for what each object's box is.
+    //
+    // This block used to hard-code the rects inline while its own comment claimed
+    // boundingRect was authoritative. The two drifted, and the checkpoint box ended
+    // up drawn as a 22x22 dot at the sign's base instead of around the sign
+    // (Chief 2026-09-12: "checkpoint box anchored to the bottom of the sprite").
+    // Deriving it here means the outline you SEE and the area you can CLICK can
+    // never disagree again — fix the box in one place and both follow.
+    const outlineByKind = (kind, ref) => drawOutline(Selection.boundingRect(kind, ref));
 
-    // playerStart triangle bounds
+    for (const o of state.selection.sources)            outlineByKind('source', o);
+    for (const o of state.selection.switches)           outlineByKind('switch', o);
+    for (const o of state.selection.checkpoints)        outlineByKind('checkpoint', o);
+    for (const o of state.selection.enemies)            outlineByKind('enemy', o);
+    for (const o of (state.selection.platforms || []))  outlineByKind('platform', o);
+    for (const o of (state.selection.crates     || [])) outlineByKind('crate', o);
+    for (const o of state.selection.gates)              outlineByKind('gate', o);
+
     if (state.selection.playerStart && L.playerStart) {
-      drawOutline({ x: L.playerStart.x, y: L.playerStart.y, w: 14, h: 14 });
+      outlineByKind('playerStart', L.playerStart);
     }
 
     // Selected tiles — yellow fill overlay (not just outline, so they're
@@ -430,13 +450,12 @@ function _drawGates(ctx, arr) {
     const img = getImage('assets/objects/gate_closed.png');
     ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      // Sprite
+      // Sprite only. The 0.28-alpha colour wash that used to sit on top of this
+      // was removed 2026-09-12 (Chief: "gate on builder has this purple film
+      // over it") — it obscured the art the Builder exists to preview. Gate TYPE
+      // is still unambiguous from the badge + label drawn below in this function
+      // ("EXIT · GATE" / "GATE · BARRIER") and from the selection outline.
       ctx.drawImage(img, sp.x, sp.y, sw, sh);
-      // Colour tint so types are distinguishable (multiply-like: overlay at low alpha)
-      ctx.globalAlpha = 0.28;
-      ctx.fillStyle = color;
-      ctx.fillRect(sp.x, sp.y, sw, sh);
-      ctx.globalAlpha = 1;
     } else {
       // Hatched fallback (image is loading — getImage already wired the repaint)
       const hp = worldToScreen(g.x, g.y);
@@ -507,14 +526,42 @@ function _drawSwitches(ctx, arr) {
   }
 }
 
-// Checkpoints: green flag column (x,y = CENTRE of trigger zone).
+// Checkpoints: real checkpoint_flag art (x = CENTRE, y = standing-ground line).
+//
+// ANCHORS ARE COPIED FROM THE RUNTIME, NOT RE-DERIVED. src_scroll/entities.js
+// measures the art's opaque bbox as 17,10..103,117 inside a 128x128 frame and
+// derives: scale = 56/108, dest = 128*scale, offX = 60*scale, offY = 117*scale.
+// If these two ever disagree, Chief authors to a lie — the Builder must show
+// exactly what the game draws.
+// NOTE: the CP_* anchor constants live at the top of this file alongside the
+// other sprite-anchor constants. They were duplicated here during a merge, which
+// made this module throw "Identifier 'CP_SRC' has already been declared" and took
+// the whole Builder down. One declaration only — see the block near line 42.
 function _drawCheckpoints(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const o of arr) {
-    // Draw a vertical pole with a small flag at top
-    const bx = o.x - 11, by = o.y - 11;
-    const p  = worldToScreen(bx, by);
+    // Frame 0 = the DARK/inactive panel. The Builder always shows the resting
+    // state; the "GAME SAVED" frames only mean anything once a player triggers it.
+    const img = getImage('assets/objects/checkpoint_flag/frame_000.png');
+    if (img.complete && img.naturalWidth > 0) {
+      const sp = worldToScreen(o.x - CP_OFF_X, o.y - CP_OFF_Y);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(img, 0, 0, CP_SRC, CP_SRC, sp.x, sp.y, CP_DEST * z, CP_DEST * z);
+      // Authoring info stays ON TOP of the art: id label under the ground line.
+      if (o.label || o.id) {
+        const lp = worldToScreen(o.x, o.y);
+        ctx.fillStyle = MARKER.checkpoint;
+        ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+        ctx.fillText(o.label || o.id, lp.x, lp.y + 3);
+      }
+      continue;
+    }
+
+    // Fallback: the original CP box while the sprite loads (getImage wires the
+    // repaint). Never leave an object invisible.
+    const p  = worldToScreen(o.x - 11, o.y - 11);
     const sw = 22 * z, sh = 22 * z;
     ctx.fillStyle = MARKER.checkpoint; ctx.globalAlpha = 0.3;
     ctx.fillRect(p.x, p.y, sw, sh);
@@ -526,9 +573,14 @@ function _drawCheckpoints(ctx, arr) {
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('CP', p.x + sw / 2, p.y + sh / 2);
     if (o.label || o.id) {
+      // Was `spriteY + CP_DEST` — spriteY is not in scope in this fallback branch,
+      // so this threw a ReferenceError whenever the art had not loaded. Use the
+      // CP box coords that ARE in scope: label sits just under the box.
+      const lp = { x: p.x + sw / 2, y: p.y + sh };
+      ctx.fillStyle = MARKER.checkpoint;
       ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillText(o.label || o.id, p.x + sw / 2, p.y + sh + 2);
+      ctx.fillText(o.label || o.id, lp.x, lp.y + 2);
     }
   }
 }
@@ -578,6 +630,45 @@ function _drawEnemies(ctx, arr) {
                  : type === 'drone'  ? '#88cc44'
                  :                     '#ff7733'; // patrol
 
+    // Drone: draw real sprite (straight blit at o.x, o.y, w×h — matches runtime entities.js:468)
+    if (type === 'drone') {
+      const droneImg = getImage('assets/sprites/drone/idle/frame_000.png');
+      ctx.imageSmoothingEnabled = false;
+      if (droneImg.complete && droneImg.naturalWidth > 0) {
+        ctx.save();
+        ctx.drawImage(droneImg, p.x, p.y, ew, eh);
+        ctx.restore();
+        // Glow outline on top so it reads as selected-friendly
+        ctx.save();
+        ctx.shadowBlur = Math.max(4, 6 * z); ctx.shadowColor = stroke;
+        ctx.strokeStyle = stroke; ctx.lineWidth = Math.max(1, 1.5 * z); ctx.globalAlpha = 0.55;
+        ctx.strokeRect(p.x, p.y, ew, eh);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+        // Patrol range line + label (drawn below after this block)
+        if (e.patrolLeft != null && e.patrolRight != null) {
+          const lineY = p.y + eh + 2;
+          const pl2 = worldToScreen(e.patrolLeft,  0).x;
+          const pr2 = worldToScreen(e.patrolRight, 0).x;
+          ctx.strokeStyle = stroke; ctx.globalAlpha = 0.5;
+          ctx.setLineDash([4, 3]); ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(pl2, lineY); ctx.lineTo(pr2, lineY); ctx.stroke();
+          ctx.setLineDash([]); ctx.globalAlpha = 1;
+          ctx.strokeStyle = stroke; ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(pl2, lineY - 4); ctx.lineTo(pl2, lineY + 4);
+          ctx.moveTo(pr2, lineY - 4); ctx.lineTo(pr2, lineY + 4);
+          ctx.stroke();
+        }
+        ctx.fillStyle = stroke;
+        ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
+        ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+        ctx.fillText('DRONE', p.x + ew + 2, p.y);
+        continue;
+      }
+    }
+
+    // Schematic fallback (drain/patrol always; drone while image loads)
     // Glow border
     ctx.save();
     ctx.shadowBlur  = Math.max(6, 8 * z); ctx.shadowColor = stroke;
@@ -681,17 +772,88 @@ function _drawPlatforms(ctx, arr) {
   }
 }
 
+// Conductive crate: draws crate_conductive.png (straight blit at o.x, o.y, w×h).
+// Falls back to the schematic while the image loads.
+function _drawCrates(ctx, arr) {
+  if (!Array.isArray(arr)) return;
+  const z = state.camera.zoom;
+  const COLOR = MARKER.crate;
+  const CRATE_PATH = 'assets/tilesets/purple_city/containers/crate_conductive.png';
+  for (const cr of arr) {
+    const cw = (cr.w || 32) * z, ch = (cr.h || 32) * z;
+    const p  = worldToScreen(cr.x, cr.y);
+    const img = getImage(CRATE_PATH);
+    ctx.imageSmoothingEnabled = false;
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, p.x, p.y, cw, ch);
+      // Faint outline so it's easy to see at zoom-out
+      ctx.save();
+      ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1, 1.5 * z); ctx.globalAlpha = 0.45;
+      ctx.strokeRect(p.x, p.y, cw, ch);
+      ctx.restore();
+    } else {
+      // Schematic fallback while loading
+      ctx.fillStyle = 'rgba(50,20,90,0.75)';
+      ctx.fillRect(p.x, p.y, cw, ch);
+      ctx.save();
+      ctx.shadowBlur = Math.max(5, 7 * z); ctx.shadowColor = COLOR;
+      ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1.5, 2 * z);
+      ctx.strokeRect(p.x, p.y, cw, ch);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      ctx.strokeStyle = COLOR; ctx.globalAlpha = 0.4; ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(p.x + 4, p.y + 4); ctx.lineTo(p.x + cw - 4, p.y + ch - 4);
+      ctx.moveTo(p.x + cw - 4, p.y + 4); ctx.lineTo(p.x + 4, p.y + ch - 4);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COLOR;
+      ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('CR', p.x + cw / 2, p.y + ch / 2);
+    }
+    // ID label always shown below crate
+    if (cr.id) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COLOR;
+      ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(cr.id, p.x + cw / 2, p.y + ch + 2);
+    }
+  }
+}
+
+
+// Player start: draws idle east frame_000 at the exact same anchor the runtime uses.
+// Runtime: sx = cx - SPRITE_W/2, sy = y + h - SPRITE_FEET_Y
+//   => sx = ps.x + PLAYER_HIT_W/2 - PLAYER_SPRITE_W/2 = ps.x - 36
+//      sy = ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET   = ps.y - 48
 function _drawPlayerStart(ctx, ps) {
   if (!ps) return;
-  const p = worldToScreen(ps.x, ps.y);
-  ctx.fillStyle = MARKER.playerStart;
-  ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(p.x, p.y);
-  ctx.lineTo(p.x + 14, p.y + 7);
-  ctx.lineTo(p.x, p.y + 14);
-  ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
-  ctx.fillText('SPAWN', p.x + 18, p.y + 12);
+  const z = state.camera.zoom;
+  const spriteX = ps.x - 36;   // = ps.x + PLAYER_HIT_W/2 - PLAYER_SPRITE_W/2
+  const spriteY = ps.y - 48;   // = ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET
+  const sp = worldToScreen(spriteX, spriteY);
+  const sw = PLAYER_SPRITE_W * z, sh = PLAYER_SPRITE_H * z;
+  const img = getImage('assets/sprites/idle_2.0/east/frame_000.png');
+  ctx.imageSmoothingEnabled = false;
+  if (img.complete && img.naturalWidth > 0) {
+    ctx.drawImage(img, sp.x, sp.y, sw, sh);
+  } else {
+    // Fallback triangle while loading
+    const p = worldToScreen(ps.x, ps.y);
+    ctx.fillStyle = MARKER.playerStart;
+    ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    ctx.lineTo(p.x + 14, p.y + 7);
+    ctx.lineTo(p.x, p.y + 14);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+  // "SPAWN" label always shown
+  const lp = worldToScreen(ps.x, ps.y);
+  ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.max(8, Math.round(10 * z))}px monospace`;
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText('SPAWN', lp.x + 4, lp.y + 2);
 }

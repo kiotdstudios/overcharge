@@ -357,6 +357,10 @@
             <button class="tp-btn warn" id="btn-revert-local"  title="Reload this level from the Git JSON, discarding unsaved editor changes">↺ REVERT TO GIT</button>
             <button class="tp-btn warn" id="btn-delete-level"  title="Delete this level's JSON files from the Git folder">&#128465; DELETE LEVEL</button>
           </div>
+          <div class="tp-row" style="margin-top:4px;padding-top:4px;border-top:1px solid #1c2436">
+            <button class="tp-btn primary" id="btn-commit-push" title="SAVE this level into the Git folder (verified), then hand you the exact commit+push command — copied to your clipboard. A web page cannot run git itself.">&#11014; COMMIT &amp; PUSH TO GITHUB</button>
+          </div>
+          <div id="commit-push-out" style="display:none;margin-top:4px;padding:5px 6px;background:#0d1420;border:1px solid #1c2436;border-radius:3px;font-family:monospace;font-size:10px;color:#8fb; white-space:pre-wrap;word-break:break-all"></div>
           <div class="tp-row" style="margin-top:3px">
             <button class="tp-btn" id="btn-export-backups" title="Download all snapshots as one backup package">⬇ EXPORT BACKUPS</button>
             <button class="tp-btn" id="btn-import-backups" title="Import a snapshot backup package">⬆ IMPORT BACKUP</button>
@@ -394,6 +398,7 @@
           <div class="tp-row">
             <button class="tp-btn" id="spawn-checkpoint" title="Place Checkpoint (click = center X)">+ Checkpoint</button>
             <button class="tp-btn" id="spawn-platform"   title="Place Moving Platform (96×12)">+ Platform</button>
+            <button class="tp-btn" id="spawn-crate"      title="Place Conductive Crate (32×32) — level must also contain a Checkpoint">+ Crate</button>
           </div>
           <div id="spawn-status" style="font-family:monospace;font-size:10px;color:#44ccff;margin-top:4px;min-height:14px;letter-spacing:0.5px;"></div>
         </div>

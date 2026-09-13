@@ -1,0 +1,41 @@
+{
+  "group_id": "6b205e16-59e7-4563-97ac-99ef3c3d34d9",
+  "objects": [
+    {
+      "id": "f018f152-c1da-4dcc-bfa1-059f793e9a82",
+      "name": "powered off led pane",
+      "prompt": "checkpoint flag",
+      "size": {
+        "width": 128,
+        "height": 128
+      },
+      "directions": 1,
+      "view": "low top-down",
+      "rotations": {
+        "unknown": "rotations/powered_off_led_pane.png"
+      },
+      "animations": {
+        "The_dark_inactive_LED_panel_flickers_to_life_its": {
+          "directions": {
+            "unknown": {
+              "frames": [
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_000.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_001.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_002.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_003.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_004.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_005.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_006.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_007.png",
+                "animations/The_dark_inactive_LED_panel_flickers_to_life_its/unknown/frame_008.png"
+              ],
+              "frame_count": 9
+            }
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "1.1",
+  "export_date": "2026-09-12T19:46:39.830835"
+}

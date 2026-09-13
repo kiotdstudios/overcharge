@@ -1,9 +1,15 @@
 // Game-wide constants — change here, reflects everywhere
 export const W = 800;
-export const H = 450;
+// Chief 2026-09-12: map grown vertically by 4 tiles (450 -> 578, ROWS 14 -> 18).
+// The 4 new rows are SKY at the top; all level content shifted down 128px, so the
+// ground keeps its distance from the bottom of the screen. viewport.js locks the
+// vertical axis (full world height always visible at a uniform scale), so the
+// taller world scales to fit rather than cropping. 578 preserves the original 2px
+// slack: floor(578/32) = 18, exactly as floor(450/32) was 14.
+export const H = 578;
 export const TILE = 32;
 export const COLS = 25;   // W / TILE
-export const ROWS = 14;   // H / TILE (floor)
+export const ROWS = 18;   // H / TILE (floor) — was 14, +4 per Chief 2026-09-12
 
 // Physics
 export const GRAVITY      = 900;

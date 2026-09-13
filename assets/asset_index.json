@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-12T18:26:50.740Z",
-  "count": 202,
+  "generated": "2026-09-12T21:14:00.131Z",
+  "count": 213,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -165,10 +165,70 @@
       "size": 1662
     },
     {
+      "path": "assets/objects/checkpoint_flag/frame_000.png",
+      "name": "frame_000",
+      "category": "other",
+      "size": 5261
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_001.png",
+      "name": "frame_001",
+      "category": "other",
+      "size": 7047
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_002.png",
+      "name": "frame_002",
+      "category": "other",
+      "size": 6895
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_003.png",
+      "name": "frame_003",
+      "category": "other",
+      "size": 7271
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_004.png",
+      "name": "frame_004",
+      "category": "other",
+      "size": 6850
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_005.png",
+      "name": "frame_005",
+      "category": "other",
+      "size": 6776
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_006.png",
+      "name": "frame_006",
+      "category": "other",
+      "size": 6525
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_007.png",
+      "name": "frame_007",
+      "category": "other",
+      "size": 6778
+    },
+    {
+      "path": "assets/objects/checkpoint_flag/frame_008.png",
+      "name": "frame_008",
+      "category": "other",
+      "size": 7239
+    },
+    {
       "path": "assets/objects/gate_closed.png",
       "name": "gate_closed",
       "category": "other",
       "size": 4498
+    },
+    {
+      "path": "assets/objects/gate_electric_dead.png",
+      "name": "gate_electric_dead",
+      "category": "other",
+      "size": 4680
     },
     {
       "path": "assets/objects/gate_electric_open.png",
@@ -1053,16 +1113,22 @@
       "size": 558
     },
     {
+      "path": "assets/tilesets/purple_city/containers/crate_conductive_energized.png",
+      "name": "crate_conductive_energized",
+      "category": "terrain",
+      "size": 272
+    },
+    {
+      "path": "assets/tilesets/purple_city/containers/crate_conductive.png",
+      "name": "crate_conductive",
+      "category": "terrain",
+      "size": 273
+    },
+    {
       "path": "assets/tilesets/purple_city/containers/crate_large_hollow.png",
       "name": "crate_large_hollow",
       "category": "terrain",
       "size": 3382
-    },
-    {
-      "path": "assets/tilesets/purple_city/containers/crate_large.png",
-      "name": "crate_large",
-      "category": "terrain",
-      "size": 3366
     },
     {
       "path": "assets/tilesets/purple_city/containers/crates_double.png",

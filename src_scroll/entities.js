@@ -210,6 +210,26 @@ function _drawHpBar(ctx, ex, ey, ew, hp, maxHp) {
 // ──────────────────────────────────────────────
 // Checkpoint: flag pole — saves respawn position
 // ──────────────────────────────────────────────
+// Sprite art (Chief-supplied 2026-09-12, "checkpoint_flag"): a 9-frame LED sign.
+//   frame 0      = DARK / inactive panel   (byte-identical to the pack's
+//                  powered_off_led_pane.png, verified by hash — one set covers
+//                  both states, so there is no separate dead file to drift)
+//   frames 1..8  = "GAME SAVED" lit, flickering
+// All 9 frames are 128x128 with an identical opaque bbox of 17,10..103,117
+// (87x108) — measured, so the anchor constants below are derived from real
+// pixels rather than guessed padding.
+const CP_FRAMES   = 9;
+const CP_ART_H    = 56;            // on-screen height of the sign art (~1.9x player)
+const CP_SRC      = 128;           // source canvas is square
+const CP_BOX_H    = 108;           // measured art height inside the canvas
+const CP_BOX_CX   = 60;            // measured art centre x inside the canvas
+const CP_BOX_BOT  = 117;           // measured art bottom y inside the canvas
+const CP_SCALE    = CP_ART_H / CP_BOX_H;
+const CP_DEST     = Math.round(CP_SRC * CP_SCALE);        // dest square size
+const CP_OFF_X    = Math.round(CP_BOX_CX  * CP_SCALE);    // centre-x offset
+const CP_OFF_Y    = Math.round(CP_BOX_BOT * CP_SCALE);    // ground-align offset
+const CP_FPS      = 8;             // matches the generator's flicker cadence
+
 export class Checkpoint {
   constructor({ x, y }) {
     this.x         = x;   // world-space center x
@@ -217,6 +237,16 @@ export class Checkpoint {
     this.activated = false;
     this._animT    = 0;
     this._range    = 40;  // px horizontal trigger zone
+    this._frame    = 0;   // 0 = dark; 1..8 cycle once activated
+    // Guarded so importing this module in a plain Node context (no Image stub)
+    // can never throw — the draw path falls back to vector art if unloaded.
+    this._imgs = typeof Image !== 'undefined'
+      ? Array.from({ length: CP_FRAMES }, (_, i) => {
+          const img = new Image();
+          img.src = `assets/objects/checkpoint_flag/frame_${String(i).padStart(3, '0')}.png`;
+          return img;
+        })
+      : [];
   }
 
   tryActivate(player) {
@@ -228,9 +258,34 @@ export class Checkpoint {
     return false;
   }
 
-  update(dt) { this._animT += dt; }
+  update(dt) {
+    this._animT += dt;
+    // Same model as the generator: frame 0 is the dead state, frames 1-8 cycle
+    // only once the thing is live. An inactive checkpoint must never animate.
+    if (!this.activated) { this._frame = 0; return; }
+    this._frame += dt * CP_FPS;
+    if (this._frame >= CP_FRAMES) this._frame = 1;   // cycle 1..8, never back to 0
+    if (this._frame < 1)          this._frame = 1;
+  }
 
   draw(ctx) {
+    // ── Sprite path: Chief's checkpoint_flag art ──────────────────────
+    const fi  = this.activated ? Math.floor(this._frame) % CP_FRAMES : 0;
+    const img = this._imgs[fi];
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      // NO glow (Chief 2026-09-12). The art already carries its own lighting —
+      // an added canvas shadow just smeared a halo around the sign.
+      ctx.shadowBlur = 0;
+      ctx.drawImage(img, 0, 0, CP_SRC, CP_SRC,
+        Math.round(this.x - CP_OFF_X), Math.round(this.y - CP_OFF_Y),
+        CP_DEST, CP_DEST);
+      ctx.restore();
+      return;
+    }
+
+    // ── Fallback: original vector flag, if the art has not loaded ─────
     const t       = this._animT;
     const poleTop = this.y - 44;
     const poleBot = this.y + 4;

@@ -288,6 +288,62 @@ btnSave?.addEventListener('click', async () => {
   }
   _updateFolderDisplay();
 });
+// ── COMMIT & PUSH TO GITHUB ────────────────────────────────────────────────
+// HONEST SCOPE (Order 005 doctrine: never fake success). The Builder is a static
+// page — it CANNOT run git. So this button does the part it genuinely can, then
+// hands over the exact command instead of pretending to have published:
+//   1. SAVE the level into the Git folder with read-back verification. Pushing
+//      without saving first would publish stale bytes, so a failed save aborts.
+//   2. Copy the commit+push one-liner to the clipboard and show it.
+// It never reports "pushed". The wording says what actually happened.
+const btnCommitPush = document.getElementById('btn-commit-push');
+const commitPushOut = document.getElementById('commit-push-out');
+btnCommitPush?.addEventListener('click', async () => {
+  const num  = state.level?.number;
+  const name = state.level?.name || 'level';
+
+  // Step 1 — a verified save. No save, no publish.
+  const r = await Persistence.saveCurrentLevel();
+  if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
+  showSaveFlash(r);
+  _updateFolderDisplay();
+  if (!r || !r.ok) {
+    if (commitPushOut) {
+      commitPushOut.style.display = 'block';
+      commitPushOut.style.color   = '#ff8888';
+      commitPushOut.textContent   =
+        'NOT PUBLISHED — the save failed, so there is nothing new to commit.\n' +
+        (r?.message || 'Set the FOLDER to your Git clone\'s src_scroll/levels and try again.');
+    }
+    return;
+  }
+  try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
+
+  // Step 2 — hand over the command. Stages the whole levels folder so the
+  // canonical file, the descriptive twin AND levels.json all go together;
+  // committing only one of them is how the manifest drifts from the files.
+  const msg = `level${num ?? ''}: ${name} from Builder`;
+  const cmd = [
+    'cd "%USERPROFILE%\\Documents\\GitHub\\overcharge"',
+    'git add src_scroll/levels',
+    `git commit -m "${msg}"`,
+    'git push origin agent/orcha-gameplay',
+  ].join(' && ');
+
+  let copied = false;
+  try { await navigator.clipboard.writeText(cmd); copied = true; } catch { /* clipboard blocked */ }
+
+  if (commitPushOut) {
+    commitPushOut.style.display = 'block';
+    commitPushOut.style.color   = '#8fb';
+    commitPushOut.textContent   =
+      `SAVED + VERIFIED into the Git folder. Not published yet — run this:\n\n${cmd}\n\n` +
+      (copied ? '(copied to your clipboard — paste into a terminal)'
+              : '(clipboard blocked — select the text above and copy it)') +
+      '\n\nOr just double-click push_overcharge.bat on your Desktop.';
+  }
+});
+
 // Let Chief pick (or re-pick) the save folder. Once set, all future saves
 // write directly into that folder — no more Downloads downloads.
 btnChooseFolder?.addEventListener('click', async () => {
@@ -938,7 +994,7 @@ document.getElementById('import-backups-input')?.addEventListener('change', asyn
 // ── Spawn mode ──────────────────────────────────────────────────────────────
 // state.pendingSpawn = null | { kind } where kind is one of:
 //   'drain-enemy', 'patrol-enemy', 'drone-enemy',
-//   'source', 'switch', 'gate', 'checkpoint', 'platform'
+//   'source', 'switch', 'gate', 'checkpoint', 'platform', 'crate'
 // Set by spawn buttons. Cleared after placement or Escape.
 
 state.pendingSpawn = null;
@@ -995,7 +1051,10 @@ function _doSpawn(e, canvas) {
     obj = { type: 'patrol', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 50 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
   } else if (kind === 'drone-enemy') {
-    const w = 40, px = Math.round(wx), py = Math.round(wy);
+    // Grid-snapped like every other object (Chief 2026-09-12). NOT ground-snapped:
+    // the drone is a HOVERING enemy, so it legitimately sits above the floor —
+    // but its position should still land on the grid so patrols line up.
+    const w = 40, px = _snapGrid(wx), py = _snapGrid(wy);
     obj = { type: 'drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
   } else if (kind === 'source') {
@@ -1011,12 +1070,19 @@ function _doSpawn(e, canvas) {
     obj = { id: 'gate_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), w: 32, h: 96, required: 1, isExit: false, blockOnly: false, label: 'GATE' };
     arr = L.gates || (L.gates = []); arrLabel = 'add_gate';
   } else if (kind === 'checkpoint') {
-    obj = { id: 'cp_' + Date.now(), x: Math.round(wx), y: Math.round(wy) };
+    // Chief 2026-09-12: objects must snap to the grid and sit ON ground tiles,
+    // not hover. Checkpoint.y is the STANDING-GROUND line (see LEVEL_SCHEMA), so
+    // objH = 0 puts it exactly on the surface rather than a body-height above it.
+    obj = { id: 'cp_' + Date.now(), x: _snapGrid(wx), y: _groundAt(wx, wy, 0) };
     arr = L.checkpoints || (L.checkpoints = []); arrLabel = 'add_checkpoint';
   } else if (kind === 'platform') {
     const w = 96, px = _snapGrid(wx), py = _snapGrid(wy);
     obj = { x: px, y: py, w, h: 12, x1: px - 64, x2: px + 64 + w, speed: 80 };
     arr = L.platforms || (L.platforms = []); arrLabel = 'add_platform';
+  } else if (kind === 'crate') {
+    const cw = 32, ch = 32, px = _snapGrid(wx), py = _groundAt(wx, wy, ch);
+    obj = { id: 'crate_' + Date.now(), x: px, y: py, w: cw, h: ch };
+    arr = L.crates || (L.crates = []); arrLabel = 'add_crate';
   }
 
   if (obj && arr !== null) {
@@ -1025,7 +1091,7 @@ function _doSpawn(e, canvas) {
     const kindMap = {
       'drain-enemy': 'enemy', 'patrol-enemy': 'enemy', 'drone-enemy': 'enemy',
       'source': 'source', 'switch': 'switch', 'gate': 'gate',
-      'checkpoint': 'checkpoint', 'platform': 'platform',
+      'checkpoint': 'checkpoint', 'platform': 'platform', 'crate': 'crate',
     };
     Selection.selectByKind(kindMap[kind], obj);
   }
@@ -1042,6 +1108,7 @@ function _doSpawn(e, canvas) {
   ['spawn-gate',       'gate'],
   ['spawn-checkpoint', 'checkpoint'],
   ['spawn-platform',   'platform'],
+  ['spawn-crate',      'crate'],
 ].forEach(([id, kind]) => {
   document.getElementById(id)?.addEventListener('click', () => {
     state.pendingSpawn = { kind };
@@ -1062,7 +1129,7 @@ function _refreshSelectedProps() {
   let kind = null, ref = null;
   for (const [k, kname] of [
     ['enemies','enemy'],['switches','switch'],['checkpoints','checkpoint'],
-    ['platforms','platform'],['sources','source'],['gates','gate'],
+    ['platforms','platform'],['sources','source'],['gates','gate'],['crates','crate'],
   ]) {
     if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
   }
@@ -1114,16 +1181,28 @@ function _refreshSelectedProps() {
       { label:'x',     key:'x',     num:true }, { label:'y',key:'y',num:true },
     ];
   } else if (kind === 'gate') {
-    color = ref.isExit ? '#ff44ff' : (ref.blockOnly ? '#ff8800' : '#44ccff');
-    badge = ref.isExit ? 'GATE · EXIT' : (ref.blockOnly ? 'GATE · BARRIER' : 'GATE');
+    const isTimed = !!ref.timed;
+    color = ref.isExit ? '#ff44ff' : (ref.blockOnly ? '#ff8800' : (isTimed ? '#ff44aa' : '#44ccff'));
+    badge = ref.isExit ? 'GATE · EXIT' : (ref.blockOnly ? 'GATE · BARRIER' : (isTimed ? 'GATE · TIMED' : 'GATE'));
     fields = [
-      { label:'id',      key:'id',       text:true },
-      { label:'label',   key:'label',    text:true },
-      { label:'required',key:'required', num:true, min:0 },
-      { label:'w',       key:'w',        num:true, min:1 },
-      { label:'h',       key:'h',        num:true, min:1 },
-      { label:'isExit',  key:'isExit',   bool:true },
-      { label:'blockOnly',key:'blockOnly',bool:true },
+      { label:'id',        key:'id',        text:true },
+      { label:'label',     key:'label',     text:true },
+      { label:'required',  key:'required',  num:true, min:0 },
+      { label:'w',         key:'w',         num:true, min:1 },
+      { label:'h',         key:'h',         num:true, min:1 },
+      { label:'isExit',    key:'isExit',    bool:true },
+      { label:'blockOnly', key:'blockOnly', bool:true },
+      { label:'timed',     key:'timed',     bool:true },
+      ...(isTimed ? [{ label:'duration', key:'duration', num:true, min:1 }] : []),
+    ];
+  } else if (kind === 'crate') {
+    color = '#aa55ff'; badge = 'CRATE';
+    fields = [
+      { label:'id', key:'id', text:true },
+      { label:'x',  key:'x',  num:true },
+      { label:'y',  key:'y',  num:true },
+      { label:'w',  key:'w',  num:true, min:1 },
+      { label:'h',  key:'h',  num:true, min:1 },
     ];
   }
 

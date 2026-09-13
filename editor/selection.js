@@ -32,13 +32,15 @@ if (!state.selection) {
     checkpoints: new Set(),
     enemies:     new Set(),
     platforms:   new Set(),
+    crates:      new Set(),   // was MISSING — selectByKind('crate') threw on s.crates.add
     playerStart: false,
   };
   state.clipboard = null;
 }
 
 // Kinds that live in Sets (playerStart is a boolean, handled separately).
-const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms'];
+// 'crates' was missing here too, so clearSelection() silently left crates selected.
+const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms', 'crates'];
 
 // ── Read helpers ─────────────────────────────────────────────────────────
 export function selectedDecorations() { return [...state.selection.decorations]; }
@@ -95,6 +97,9 @@ export function selectedRefs() {
   for (const o of s.checkpoints) out.push({ kind: 'checkpoint', ref: o });
   for (const o of s.enemies)     out.push({ kind: 'enemy',      ref: o });
   for (const o of s.platforms)  out.push({ kind: 'platform',    ref: o });
+  // Crates were omitted here, so a selected crate was never added to the move
+  // tool's drag set — it highlighted but refused to move with the group.
+  for (const o of (s.crates || [])) out.push({ kind: 'crate',   ref: o });
   if (s.playerStart && state.level?.playerStart) out.push({ kind: 'playerStart', ref: state.level.playerStart });
   return out;
 }
@@ -110,6 +115,7 @@ export function clearSelection() {
   s.checkpoints.clear();
   s.enemies.clear();
   s.platforms.clear();
+  if (s.crates) s.crates.clear();   // was missing — crates stayed selected forever
   s.playerStart = false;
   notify();
 }
@@ -127,6 +133,7 @@ export function selectByKind(kind, ref, additive = false) {
   else if (kind === 'checkpoint') s.checkpoints.add(ref);
   else if (kind === 'enemy')      s.enemies.add(ref);
   else if (kind === 'platform')   s.platforms.add(ref);
+  else if (kind === 'crate')      s.crates.add(ref);
   else if (kind === 'tile')       s.tiles.add(ref);   // ref is "col,row"
   else return;
   notify();
@@ -142,6 +149,7 @@ export function toggleByKind(kind, ref) {
   else if (kind === 'checkpoint') s.checkpoints.has(ref) ? s.checkpoints.delete(ref) : s.checkpoints.add(ref);
   else if (kind === 'enemy')      s.enemies.has(ref)     ? s.enemies.delete(ref)     : s.enemies.add(ref);
   else if (kind === 'platform')   s.platforms.has(ref)   ? s.platforms.delete(ref)   : s.platforms.add(ref);
+  else if (kind === 'crate')      s.crates.has(ref)      ? s.crates.delete(ref)      : s.crates.add(ref);
   else if (kind === 'tile')       s.tiles.has(ref)       ? s.tiles.delete(ref)       : s.tiles.add(ref);
   else return;
   notify();
@@ -158,6 +166,7 @@ export function isRefSelected(kind, ref) {
   if (kind === 'checkpoint') return s.checkpoints.has(ref);
   if (kind === 'enemy')      return s.enemies.has(ref);
   if (kind === 'platform')   return s.platforms.has(ref);
+  if (kind === 'crate')      return s.crates.has(ref);
   if (kind === 'tile')       return s.tiles.has(ref);
   return false;
 }
@@ -198,12 +207,21 @@ export function boundingRect(kind, ref) {
   if (!ref) return null;
   if (kind === 'decoration') return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
   if (kind === 'gate')       return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
-  // Source: x,y = top-left of 28×28 hitbox (matches ElectricalSource runtime).
-  if (kind === 'source')     return { x: ref.x,      y: ref.y,      w: 28, h: 28 };
+  // Source: the runtime HITBOX is 28×28 at x,y, but the generator SPRITE is 64×64
+  // drawn at (x-18, y-34) — see renderer.js::_drawSources. The box wraps what you
+  // SEE, so clicking the visible generator selects it and the outline matches the
+  // art (Chief's rule, 2026-09-12). Runtime collision is unaffected: this is an
+  // editor-only selection rect.
+  if (kind === 'source')     return { x: ref.x - 18, y: ref.y - 34, w: 64, h: 64 };
   // Switch: x,y = top-left, runtime hitbox 22×22.
   if (kind === 'switch')     return { x: ref.x,      y: ref.y,      w: 22, h: 22 };
-  // Checkpoint: x,y = CENTRE (runtime inconsistency, documented in LEVEL_SCHEMA.md).
-  if (kind === 'checkpoint') return { x: ref.x - 11, y: ref.y - 11, w: 22, h: 22 };
+  // Checkpoint: x = CENTRE, y = standing-ground line (documented in LEVEL_SCHEMA.md).
+  // The box wraps the VISIBLE SIGN, not the old 22x22 trigger dot that used to sit
+  // at its base (Chief 2026-09-12: "checkpoint box anchored to the bottom of the
+  // sprite"). Derived from the same measured art bbox the renderer uses —
+  // 17,10..103,117 inside a 128 frame at scale 56/108 — which yields a 44x56 box
+  // standing ON the ground line. Clicking the sign now selects it.
+  if (kind === 'checkpoint') return { x: ref.x - 22, y: ref.y - 56, w: 44, h: 56 };
   // Enemy: x,y = top-left. w/h NOT in JSON — derive from type to match runtime class.
   if (kind === 'enemy') {
     const ew = ref.type === 'patrol' ? 20 : ref.type === 'drone' ? 40 : 22;
@@ -212,8 +230,12 @@ export function boundingRect(kind, ref) {
   }
   // Platform: x,y = top-left. w/h explicit or defaulted to match MovingPlatform class.
   if (kind === 'platform') return { x: ref.x, y: ref.y, w: ref.w || 96, h: ref.h || 12 };
+  // Crate: x,y = top-left. w/h explicit or defaulted to 32×32.
+  if (kind === 'crate')    return { x: ref.x, y: ref.y, w: ref.w || 32, h: ref.h || 32 };
   // SPAWN triangle points right — 14x14 rect from (x, y).
-  if (kind === 'playerStart') return { x: ref.x, y: ref.y, w: 14, h: 14 };
+  // playerStart: 20×30 collision box, but the idle sprite is 92×92 drawn at
+  // (x-36, y-48) — see renderer.js::_drawPlayerStart. Wrap the visible player.
+  if (kind === 'playerStart') return { x: ref.x - 36, y: ref.y - 48, w: 92, h: 92 };
   return null;
 }
 
@@ -253,6 +275,7 @@ export function objectAt(worldX, worldY) {
     ['checkpoint', L.checkpoints || []],
     ['enemy',      L.enemies     || []],
     ['platform',   L.platforms   || []],
+    ['crate',      L.crates      || []],
   ]) {
     for (let i = arr.length - 1; i >= 0; i--) {
       const rect = hitRect(kind, arr[i]);
@@ -327,7 +350,7 @@ export function tilesInRect(x, y, w, h) {
 export function objectsInRect(x, y, w, h) {
   const L = state.level;
   if (!L) return {};
-  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], platforms: [], playerStart: false };
+  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], platforms: [], crates: [], playerStart: false };
   const check = (kind, ref) => {
     const r = boundingRect(kind, ref);
     return r && r.x + r.w > x && r.x < x + w && r.y + r.h > y && r.y < y + h;
@@ -338,6 +361,7 @@ export function objectsInRect(x, y, w, h) {
   for (const o of L.checkpoints || []) if (check('checkpoint', o)) out.checkpoints.push(o);
   for (const o of L.enemies     || []) if (check('enemy',      o)) out.enemies.push(o);
   for (const o of L.platforms   || []) if (check('platform',   o)) out.platforms.push(o);
+  for (const o of L.crates      || []) if (check('crate',      o)) out.crates.push(o);
   if (L.playerStart && check('playerStart', L.playerStart)) out.playerStart = true;
   return out;
 }

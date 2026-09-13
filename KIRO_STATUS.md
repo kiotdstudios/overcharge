@@ -700,3 +700,309 @@ Full verdict in `docs/KIRO_RULING_CRATE_TIMED_V1.md` (Addendum 2).
 **Level 5 consequence propagated to `docs/LEVEL4_5_DESIGN_BRIEF.md` as a hard rule:** a 1-tile crate makes the mechanic invisible — `INTERACT_RADIUS` is 50px, so a player positioned to push a 32px crate is already in direct range of the device behind it. Orcha's first testbed passed a playability check while never touching the crate. Level 5 needs a 64px crate or a device the player cannot stand beside. Without this, Level 5 ships feeling pointless with nobody able to explain why.
 
 **Aki's P2 unblocked** in `docs/AKI_ORDER_QUEUE.md` with the real field names, the testbed as a reference level, and the behavioural constraints her UI must not contradict. Told her P4 (crate art) outranks P2 if she must choose — the runtime still has no crate sprite.
+
+---
+
+## 2026-09-12 — Acted on Orcha's QA note: dormancy tests strengthened + a false assertion corrected
+
+Orcha stood down clean on CRATE_TIMED (`4514319`, 0 behind, delivery confirmed as ancestor of the live line, 321/0 re-verified on his synced tree). In standing down he flagged a real weakness in tests **I** shipped, and explicitly did not touch them unprompted. He was right on both counts.
+
+**His point:** the shipped dormancy assertions keyed on `sx`/`sy` only, so they would pass even if the WRONG image were drawn at those coordinates. Keying on image identity (as he did in `crate_timed.mjs`) is strictly stronger.
+
+**Fixed in `_dev/energy_authority.mjs` (87 → 88/0):**
+1. **Corrected a false assertion message I introduced.** `'  ...from row 0, the neutral base art'` was still passing while describing something untrue — since the dead-art swap, `sy=0` is the top of the standalone dead PNG, not row 0 of the spritesheet. Now reads `'  ...from a single source row'`. A passing test that lies is worse than a failing one.
+2. **Added image-identity assertion for the awake path:** an animating gate must draw from `gate_electric_spritesheet.png` and **never** from the dead art. Previously nothing would have caught the awake gate rendering dead art at varying sx.
+
+**Mutation-verified rather than assumed.** Sabotaged the dormant branch (forced it to skip the dead art) and confirmed the suite FAILS (86/2, reporting the spritesheet where dead art was expected), then restored and confirmed 88/0. `electricity.js` verified byte-restored — only the test file changed. Proving a test catches the regression it targets is the point of writing it.
+
+**MVP engine list closed:** gate ✓ switch ✓ movable conductive object ✓ timed device ✓ (GDD §12).
+
+**Open gaps, agent board:**
+- **Chief:** Level 3 in the Builder (drone lesson level) — unblocked, all mechanics exist.
+- **Aki:** P4 crate ART is the live blocker (runtime currently draws a procedural box), then P2 editor support.
+- **Orcha:** idle, clean, awaiting directive. Remaining GDD engine gap is the **grounded enemy/hazard** (§7 + §12's second enemy type: "charge drainer and grounded patrol") for Level 6 "Grounded" — but the drain-enemy art was purged on Chief's order, so any enemy work needs an art decision from Chief first. Not self-assigning.
+
+---
+
+## 2026-09-12 — Checkpoint art replaced with Chief's `checkpoint_flag` (dead + GAME SAVED animation)
+
+**Source:** `Downloads\checkpoint_flag (1).zip` — 9 frames + `metadata.json` (generator object "powered off led pane", prompt "checkpoint flag").
+
+**Verified before wiring:**
+- All 9 frames are 128×128 with an **identical** opaque bbox `17,10..103,117` (87×108) — consistent registration, so anchors are derived from measured pixels, not guessed padding.
+- `frame_000.png` is **byte-identical (MD5) to the pack's `powered_off_led_pane.png`** — the dead state IS frame 0, so one set covers both states and there is no separate dead file that can drift out of sync. That is why no extra "dead" PNG was installed.
+- Frame content: frame 0 = dark inactive panel; frames 1-8 = "GAME SAVED" lit and flickering (mean luma 37.2 dark vs 44-79 lit).
+
+**Installed:** `assets/objects/checkpoint_flag/frame_000..008.png` + `metadata.json` (provenance, same convention as `gate_electric_dead.json`).
+
+**Replaced the procedural checkpoint** in `src_scroll/entities.js`. It was previously a hand-drawn pole + triangle + "CP"/"SAVED" text. Now:
+- inactive → frame 0, static, **no glow** (same rule as the dead gate: an unpowered thing must not look powered)
+- activated → frames 1-8 cycle at 8fps, glowing — mirrors the generator's proven model (frame 0 = dead, 1-8 = live), and `_frame` can never fall back to 0 while active
+- **the original vector art is retained as a fallback** if the PNGs fail to load, so a missing asset degrades instead of drawing nothing
+- image construction is guarded by `typeof Image !== 'undefined'` so importing `entities.js` in a plain Node context cannot throw (only `crate_timed.mjs` imports it today, and it does stub Image — the guard protects future suites)
+
+**Anchoring is derived, not eyeballed:** art height 56px on screen (~1.9× player), scale from the measured 108px bbox; offsets place the art bottom exactly at `checkpoint.y` (ground level) and its centre exactly at `checkpoint.x`. Probe at (100,200) returned dest `x69,y139,66×66` → art base at 199.7, centre at 100.1. The parity contract ("checkpoint preserves center-x and standing-ground y") is unchanged.
+
+**Verified in a real browser** (`_kiro_tools/probe_checkpoint.mjs`, driving the actual class): inactive draws ONLY `frame_000.png` across 60 frames and never advances; activated cycles exactly `frame_001..008`; the vector fallback is never reached; zero page errors.
+
+**Tests:** crate_timed 87/0 · parity 110/0 · energy 88/0 · electricity 37/0 = **322/0** · boot smoke OK.
+
+**Not added to the editor art palette** — consistent with the `gate_electric_dead.png` ruling: these are runtime state sprites, and checkpoints are placed via SPAWN OBJECTS → `+ Checkpoint`, not from the art browser. The Builder continues to show its schematic marker for checkpoints, which is intentional for authoring.
+
+---
+
+## 2026-09-12 — QA gate: Aki's P4 (crate art) + P2 (editor support) PASSED, merged; P5 issued (real art in Builder)
+
+**Merged** `8b5a107` (P2) + `d748ab8` (P4 art) to the live line. The `checkpoint_flag` deletions showing in her branch diff were her being 2 behind my checkpoint commit, not deletions by her — verified by inspecting what the merge actually carried (7 files, all hers) and confirming all 10 checkpoint files survived.
+
+**P4 art verified by decoding pixels, not by trusting the filename** (the mistake I made earlier today): both crate PNGs are **32×32, fill the tile exactly, single island, ZERO stray alpha pixels**, 10 colours. Silhouette distinct from `container_small_a/b`. Manifest entries accurate (`category: container`, correct tags) and she did **not** add a second gate entry — the one-gate ruling held through her re-curation.
+
+**P2 verified:** crate spawn + inspector, gate `timed`/`duration` with the duration row conditional on the checkbox, crate threaded through all of `selection.js`. She also found and fixed `_drawPlatforms` being defined but never called — a genuine pre-existing bug.
+
+Suites on merged tree: parity 110/0 · energy 88/0 · electricity 37/0 · crate_timed 87/0 = **322/0**.
+
+**Corrected her reporting:** she quoted "electricity 87/87" (it is a 37-check suite) and "energy 87/87" (now 88 after my image-identity assertion). Told her counts must be quoted from the run — a wrong count is exactly what hides a regression.
+
+**Flagged to Chief, not blocked:** her energized crate glows **yellow**, while every other energised thing in the game glows purple/magenta (`#cc44ff`). Art is Chief's call.
+
+**P5 issued — Chief: "real art in the editor for everything; add the drone enemy to the builder too."**
+- **Corrected the premise:** `+ Drone` already exists (`#spawn-drone`), as does `+ Crate`. The actual gap is the Builder drawing **schematic markers** instead of sprites, so Chief can't see what he's building.
+- Audited every type: sources and gates ALREADY draw real art; checkpoint, drone, crate, platform and playerStart have art available but draw schematics; **switch has NO art at all** — ordered her to leave it schematic rather than borrow an unrelated sprite, and to report it as the remaining gap for Chief to decide on.
+- **The load-bearing constraint I set: editor anchors must EQUAL runtime anchors.** I extracted and handed her the verified runtime maths for all six types (source `-18,-34`; gate `cx-32,(y+h)-128`; checkpoint dest 66 with offsets 31/61 derived from the measured bbox; drone/crate/platform straight blits; playerStart feet at `y+30`). If the Builder draws at different offsets than the game, Chief authors to a lie and every level is subtly misplaced — that is a parity defect and I will fail it at the gate.
+- Also required: schematics retained as fallbacks, selection outlines/labels drawn ON TOP of art, `imageSmoothingEnabled = false` (Chief now zooms to 625%), and reuse of the proven `_drawSources` `getImage` + repaint-on-load pattern rather than a new one.
+
+---
+
+## 2026-09-12 — Chief field report: 5 defects. 4 fixed now, 1 is Aki's in-flight P5.
+
+**1. Checkpoint glow — REMOVED.** I added `shadowBlur = 10` when activated; it smeared a halo around the sign. The art carries its own lighting. Verified: max `shadowBlur` recorded during an activated draw is now **0**, sprite still drawn.
+
+**2. Gate "vertical charging" — REMOVED (Chief was right, old logic was still live).** `PowerGate.draw` still had the pre-spritesheet overlay: `fillRect(x+2, splitY, w-4, fillH)` — a purple strip rising from the gate's base. It double-reported the same state the sprite rows already show. Deleted. Verified precisely: with the sheet **loaded** and the gate at 4/8 charge, the draw comes from `sx=672, sy=128` (row 1 = idle/charged) and **zero** strip-like rects are emitted. The two remaining `fillRect`s are the small 48×6 horizontal progress bar BELOW the gate (track + 50% fill) — a separate readout, not the vertical fill. Say the word if that should go too.
+
+**3. Objects hovering / not grid-snapped — ROOT CAUSE FOUND AND FIXED IN BOTH PLACES.**
+- *The Builder bug:* checkpoint spawn used `x: Math.round(wx), y: Math.round(wy)` — **no grid snap, no ground snap at all**, unlike sources/gates/switches/platforms which use `_snapGrid`/`_groundAt`. Drone spawn also skipped snapping. Fixed: checkpoint now `_snapGrid(x)` + `_groundAt(..., 0)` (its `y` IS the standing-ground line per LEVEL_SCHEMA, so objH 0 puts it exactly on the surface). Drone now grid-snaps but is deliberately **not** ground-snapped — it is a hovering enemy.
+- *The already-authored damage:* level1 had `CP1` at `y=168` where the surface is `224` — **floating 56px**, and off-grid. `src_3` was at `510,290` (both axes off-grid). Snapped and grounded all of it in `level1.json` + `1_NEON_RISE.json` (kept byte-identical).
+- Verified against the tile data: every source, checkpoint and gate now reports `grounded: true` and `xOnGrid: true`. Note source `y=196` is intentionally not a multiple of 32 — a 28px-tall object must sit at `surface − 28` to rest ON the tile; grounding wins over grid-aligning on the Y axis.
+
+**4. Builder gate purple film — REMOVED.** `editor/renderer.js _drawGates` painted a `globalAlpha = 0.28` colour wash over the whole gate sprite to distinguish gate types. It obscured the art the Builder exists to preview. Removed; type remains unambiguous from the badge/label ("EXIT · GATE", "GATE · BARRIER") and the selection outline. Occurrences of the tint now 0.
+
+**5. Checkpoint still schematic in the Builder — EXPECTED, not a regression.** That is exactly what Aki's **P5** order covers (real art in the editor for every object type). She is mid-flight on it.
+
+**Tests:** parity 110/0 · energy 88/0 · electricity 37/0 · crate_timed 87/0 = **322/0** · boot smoke OK, zero page errors.
+
+---
+
+## 2026-09-12 — Chief ruling + new orders for both agents
+
+**Chief ruling:** the gate's small horizontal progress bar below the sprite **stays**. Only the vertical in-gate fill strip was wrong, and that is removed.
+
+**Verified Level 3 is genuinely buildable before proposing anything else** (so Chief doesn't lose a Builder session to a broken mechanic): `level.js:24` instantiates `DroneEnemy` for `type: 'drone'`, and `entities.js:447` confirms the drone stuns + calls `player.scatter(level)` on overlap with a cooldown. The hit → scatter → recover loop Level 3 teaches is live.
+
+**`docs/ORCHA_ORDER_PLACEMENT_GUARDS_GROUNDED.md` issued** (Orcha was idle since standing down):
+- **P1 placement guards** — closes the defect Chief reported today. I fixed the cause and the data, but nothing prevents recurrence; the Builder can still be dragged and hand-edited JSON can reintroduce floating objects silently. Same pattern as the required-less gate: fix once, then guard forever. Specified per-type grounding contracts (source `y+28`, gate `y+h`, switch `y+22`, checkpoint `y`, crate `y+h`), X-grid alignment, and three deliberate exemptions — **drones hover by design, platforms float by design, and a pit column must report as its own clearer failure** rather than a confusing grounding mismatch. Also told him explicitly NOT to assert `y % 32`: a 28px source on a 224 surface must sit at 196, so grounding beats grid-alignment on Y. And not to "fix" Chief's level data if a guard fires — report and stop.
+- **P2 grounded hazard** (GDD §7 / Level 6, the last engine gap) — ordered as an **environmental zone, not a character**, specifically because Chief purged the drain-enemy art and a new enemy would stall on an art decision. A zone needs no character art. Semantics-doc-before-implementation again, with my recommendations pre-stated (refuse both absorb and discharge, honestly, with a reason; block use rather than drain, since the GDD says "weakened or disabled" not "emptied").
+
+**`docs/AKI_ORDER_QUEUE.md` P6 queued** (after her in-flight P5):
+- **P6a switch art** — the last missing object sprite, found during my P5 audit. Told her 2 states is sufficient (not a 9-frame sheet), that the 22×22 hitbox is a harness-asserted contract, and that she may draw larger than the hitbox like sources do (28×28 hitbox, 64×64 sprite) provided she states the size and anchor so I can wire editor and runtime to the same numbers.
+- **P6b** — the yellow energized crate is still awaiting Chief's ruling; told her not to pre-emptively change it, and that if Chief keeps yellow she must record WHY in the manifest so nobody later "fixes" it back.
+
+---
+
+## 2026-09-12 — Checkpoint real art in the Builder — implemented directly (Chief asked twice)
+
+Chief reported the "CP" schematic box a second time. It was assigned to Aki's in-flight P5, but leaving him unable to see his own level while waiting on another agent was the wrong trade. Implemented it myself and rescoped her order.
+
+**`editor/renderer.js _drawCheckpoints`** now draws `checkpoint_flag/frame_000.png` — the dark/resting frame, since the "GAME SAVED" frames only mean something once a player triggers it. The CP box is retained as the load-time fallback (an object must never be invisible), and the id label is drawn on top of the art.
+
+**Anchors are COPIED from `src_scroll/entities.js`, not re-derived** — the `CP_*` constants mirror the runtime line for line, with a comment stating why: if the Builder and the game disagree on placement, Chief authors to a lie. This is the WYSIWYG parity rule I set for Aki in P5, so the implementation had to obey it too.
+
+**Verified via the real render path, not a stub:** patched `CanvasRenderingContext2D.prototype.drawImage` before boot and confirmed the live editor draws `generator 1/frame_000.png`, `objects/gate_closed.png` and `checkpoint_flag/frame_000.png`, zero page errors. Screenshot confirms the sign renders grounded on the surface line, centred on its x, with the gate now free of its purple film.
+
+**Aki's P5 rescoped** in `docs/AKI_ORDER_QUEUE.md`: checkpoint marked DONE with "do not redo", and pointed at my implementation as the reference for the pattern (runtime-copied anchors, `getImage` + fallback, no smoothing, labels on top). Her remaining scope: drone/enemies, crate, platform, playerStart. Switch stays schematic pending P6a art.
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0**.
+
+---
+
+## 2026-09-12 — QA gate: Aki's P5 — caught a BUILDER-KILLING merge defect, fixed, then PASSED
+
+**Aki reported "322/0 on the merged tree, pushed, holding for QA" and flagged a possible `spriteY` scope bug in my checkpoint fallback, saying "his code, his call."**
+
+**She was half right, and the reality was worse than either of us said.**
+
+**1. The `spriteY` bug was NOT my code — it was her merge artifact.** My live version has `spriteY` only in `_drawSources` and `_drawGates`; there is none in `_drawCheckpoints`. Her conflict resolution spliced a label line from her own checkpoint implementation into my fallback branch, where `spriteY` is undeclared. Real ReferenceError, and NOT low-probability as she assumed — the fallback runs whenever the art has not loaded, i.e. on cold-cache first paint.
+
+**2. Far worse, and unreported: `Identifier 'CP_SRC' has already been declared`.** Her merge left **two module-scope `CP_*` declaration blocks** (hers at lines 45-48, mine at 534-537). A duplicate `const` at module scope is a **parse error**, so `editor/renderer.js` never loaded at all. **The Builder was completely dead** — boot smoke showed `EDITOR dropdown: []`, `EDITOR level loaded: loading...`, `BOOT_SMOKE_FAILED`. Not degraded. Dead.
+
+**Why her 322/0 was true and meaningless here:** the Node suites never import `editor/renderer.js`. They cannot see an editor parse error. **The boot smoke I explicitly required in her P5 gate criteria catches it in one run** — she did not run it. Recorded as the lesson: for editor work, green unit suites prove nothing; the boot smoke is the only thing that loads the module.
+
+**Fixes applied:** removed my duplicate `CP_*` block (kept hers at the top of the file — it is co-located with `PLAYER_SPRITE_*`, which is the better organisation) and repaired the fallback label to use the `p`/`sw`/`sh` box coords that are actually in scope. Both sites carry a comment explaining the failure so it is not reintroduced.
+
+**Then verified her actual P5 work properly, by observation rather than by report.** Patched `CanvasRenderingContext2D.prototype.drawImage` before boot and swept the camera across two levels; platforms and drones exist in NO committed level, so I injected one of each rather than claiming untested types worked. Result — real art confirmed drawing for **all six**: `generator 1/frame_000.png`, `gate_closed.png`, `checkpoint_flag/frame_000.png`, `crate_conductive.png`, `drone/idle/frame_000.png`, `idle_2.0/east/frame_000.png` (player start), plus tile and decoration art. Zero page errors.
+
+**Also confirmed the fallback path no longer throws** by blocking the checkpoint PNG to force it.
+
+**Verdict: PASSED after fix.** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke **OK**. Switch correctly remains schematic (no art — her P6a).
+
+---
+
+## 2026-09-12 — Selection boxes now wrap the visible sprite (Chief: "checkpoint box anchored to the bottom of the sprite")
+
+**Root cause was duplication, not a wrong number.** `editor/renderer.js` hard-coded every selection-outline rect inline, while its own comment said *"see selection.js::boundingRect for the source of truth."* The two had drifted. `boundingRect` was already fixed to the sign's 44×56 bounds, but the renderer kept drawing the stale 22×22 trigger dot at the sign's base — so Chief saw a tiny box under a 56px-tall sprite.
+
+**Structural fix, not a patch:** the renderer now calls `Selection.boundingRect(kind, ref)` for every kind. What you SEE outlined and what you can CLICK can no longer disagree — fix a box once and both follow. Verified `boundingRect` covers all nine kinds before switching.
+
+**Applied Chief's rule consistently, which caught two more instances of the same bug before he hit them:**
+- **source** — box was the 28×28 runtime hitbox while the generator sprite is 64×64 at `(x-18, y-34)`. Now wraps the visible generator. (Editor-only rect; runtime collision untouched.)
+- **playerStart** — box was 14×14 under Aki's new 92×92 player sprite drawn at `(x-36, y-48)`. Now wraps the visible player.
+- checkpoint — 44×56 standing on the ground line, derived from the measured art bbox `17,10..103,117` at scale 56/108.
+
+**Verified numerically and visually:** `boundingRect('checkpoint')` returns `{1066,168,44,56}` against art bounds left 1066 / right 1110 / top 168 / bottom 224 — exact match, bottom on the ground line, sign midpoint and top both inside (the old 22×22 box contained neither). Screenshot confirms the dashed outline wrapping the whole sign.
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK. No test imports `editor/selection.js`, so these rects were unguarded — noted as a coverage gap.
+
+---
+
+## 2026-09-12 — P5 verdict delivered to Aki as a FILE (governance gap of my own, closed)
+
+Aki re-sent her P5 handoff still "standing by for the QA gate." I had gated and merged it, and recorded the verdict in KIRO_STATUS.md — **but never wrote it into `docs/AKI_ORDER_QUEUE.md`, which is the file she actually reads.** That is precisely the failure the "orders are files, never chat relays" rule exists to prevent, and I broke it myself. Closed: the verdict now lives in her queue file.
+
+**Confirmed before writing:** `origin/agent/aki-editor` (`b6df5ea`) is an ancestor of the live line, live HEAD `2503c0c`, and live carries exactly **one** `CP_SRC` declaration — the duplicate is genuinely resolved, not just locally.
+
+**Written into her file:** P5 PASSED with the six verified sprite paths; the `CP_SRC` duplicate-declaration defect that killed the Builder, with the exact boot-smoke output; why her 322/0 was true but blind (the `_dev` suites never import `editor/renderer.js`) and the boot-smoke command to run before every editor handoff; the correction that the `spriteY` bug was her merge artifact rather than my code and was high-probability rather than low; an explicit "do not re-add a second `CP_*` block when you sync"; and notice that selection outlines now derive from `boundingRect` so she changes geometry in one place only. **P6a switch art cleared to start**, with the added requirement that she add the switch's `boundingRect` entry so its box wraps the new sprite instead of the 22×22 hitbox.
+
+She is 3 behind live and was told to sync first.
+
+---
+
+## 2026-09-12 — Board state + proactive grounding audit across all levels
+
+**Branch state:** live `8ceddc6` · Aki `b6df5ea` (5 behind, P6a just cleared, nothing pushed yet) · Orcha `7cfa2fd` (25 behind, **0 ahead** — placement-guards order not started yet). Both agents have live orders; neither has delivered.
+
+**Ran the grounding audit across every committed level** rather than waiting for Chief to find another floating object the way he found `CP1`:
+- `level1.json` / `1_NEON_RISE.json` — **clean**, all grounded + on grid (margin 0, ratified)
+- `level2.json` SPLIT DECISION — **clean**, all grounded + on grid (margin 4)
+- `99_CRATE_TIMED_TESTBED.json` — **3 floating objects** (two sources 36px up, checkpoint 64px up). Orcha's own hand-authored fixture, predates the grounding rule, not in `levels.json`, never seen by a player.
+
+**Told Orcha in his order addendum** what his own P1 guards will report, so he doesn't misread it: Chief's content is clean and must not be touched, his testbed legitimately fails and he should ground it rather than exempt it, `*_prev_backup.json` must be skipped (Builder safety copy, gitignored), and **not** to add a "margin must be positive" assertion — Level 1's margin 0 is deliberate and soft-lock-proof because it has no enemies and the checkpoint snapshot restores source and player charge together.
+
+**Critical path is now Chief's own lane.** Engine-side the GDD MVP system list is closed (gate, switch, conductive crate, timed device) and every mechanic Level 3 needs is verified working — the drone stuns and calls `player.scatter()` on contact. GDD §12 asks for three complete levels; two exist. Nothing blocks authoring Level 3 except the authoring itself.
+
+**Unvalidated by a human:** nobody has played Level 1 end-to-end since today's changes — economy (generators 4, exit 8), one generator removed, all objects regrounded, gate vertical-fill removed, dead-gate art, checkpoint art. All verified by harness and probe, none by play.
+
+---
+
+## 2026-09-12 — Map grown +4 tiles vertically · Builder drag now snaps · `env_tile_purple_edge_ref` deleted
+
+Rollback tag: `rollback-pre-vertical-expand` (`c3fa3db`).
+
+### 1. Vertical expansion — ROWS 14 → 18
+The 4 new rows are **SKY at the top**; all level content shifted **down 128px**. Rationale: the bottom rows of every level are already solid underground fill, so adding more there buys nothing — adding sky gives real headroom to build upward while the ground keeps its distance from the bottom of the screen.
+
+This was safe because `viewport.js` **locks the vertical axis** (full world height always visible, uniform nearest-neighbour scale), so a taller world scales to fit rather than cropping. No camera work needed — and note there is **no `camY`** at all, only horizontal scroll, so a taller map would have been unreachable if the viewport had not been built this way.
+
+- `constants.js`: `ROWS 14→18`, `H 450→578`. 578 preserves the original 2px slack exactly: `floor(578/32)=18` as `floor(450/32)` was 14.
+- `editor/generator.js`: its hard-coded `ROWS = 14` copy updated (would have generated 14-row levels into an 18-row runtime).
+- `_dev/parity_regression.mjs`: contract assertion updated to `ROWS === 18`.
+- All 5 level files migrated (`level1`, `1_NEON_RISE`, `level2`, crate testbed, and the gitignored `level1_prev_backup` — migrated deliberately so a Builder REVERT cannot resurrect a 14-row level into an 18-row runtime).
+- Verified live: `tiles.length 1800` (100×18), canvas backing store now `578` tall, editor reports `100×18`, zero errors, game renders with the ground at the bottom and open sky above.
+
+### 2. Chief's in-flight Builder edits were preserved, and one was broken
+While I worked, Chief moved the gate and checkpoint in the Builder and saved (uncommitted). The migration preserved both and added +128 correctly — verified against HEAD: sources and playerStart shifted exactly +128 with X untouched.
+
+His **gate drag left it sunk 16px INTO the terrain** and off-grid at `x=1200`. Grounded it (`y 304→288`, bottom now flush at 352). Initially left X alone rather than guess between 1184/1216; on Chief's "fix this" instruction, snapped it to **1216** — which is what the Builder's drag now produces anyway.
+
+### 3. Root cause fixed: dragging never snapped (spawning did)
+`tools.js` move applied `snapDelta()` to the movement **DELTA**, so an object that started off-grid stayed off-grid forever and nothing re-grounded it. That is exactly how the gate ended up at 1200, sunk.
+
+Added `_reanchorGameplay()`, run after the delta and magnetic passes and **during** the drag so the preview equals the committed result (mouseUp derives its delta from the same refs). Gameplay objects grid-snap X and rest on the first surface below; **decorations are excluded** (fine snapping is correct for art); **drones and moving platforms grid-align but are never pulled to the floor**, since floating is their purpose. Checkpoint handled as the documented special case (its `y` IS the standing-ground line, so anchor height 0).
+
+**Found a real latent bug while doing it:** `_anchorObjBottom` called `tileIsSolid(footCol, r)`, but `tileIsSolid(v)` takes a tile **VALUE** — so it evaluated `footCol >= 10` and reported "solid" on the very first row scanned for any object past column 10, anchoring it into thin air. Now `tileIsSolid(getTile(footCol, r))`.
+
+**Verified in a real browser:** deliberately corrupted the gate to `x=1203, y=100` and the checkpoint to `x=1101, y=90`, ran the real re-anchor pass — gate → `1216/288` (on grid, bottom flush at surface), checkpoint → `1088/352` (on grid, on the ground line). Added a narrow `__testReanchor` export as the test seam so the probe drives production code rather than a copy.
+
+### 4. `env_tile_purple_edge_ref` deleted
+`containers/crate_large.png` — the purple bordered frame tile, confirmed referenced by **no level and no code**. Archived to `Documents\Archived\crate_large_env_tile_purple_edge_ref_2026-09-12.png` first. Manifests pruned: ASSET_MANIFEST 53→52, PURPLE_CITY_INDEX 51→50, asset_index regenerated (213).
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK.
+
+**Outstanding:** Orcha's crate testbed still has 3 floating objects (his fixture, pre-dates the rule, already flagged in his P1 order addendum — his to ground).
+
+---
+
+## 2026-09-12 — Multi-select + multi-move: the feature EXISTED but was broken for crates, and drags were half-tile
+
+**Chief asked to "add ability to highlight and move multiple assets at the same time." It was already built** — the **Select** tool (key `2`) has marquee box-select, shift+click to add/remove, a group move-handle, and a move path that applies one snapped delta to every selected ref across all kinds, with an LCM group-snap so the delta is legal for every member. Nothing needed inventing. What it needed was fixing.
+
+**Four defects found, all real:**
+
+1. **`state.selection.crates` was never initialised.** `selectByKind('crate', …)` threw `Cannot read properties of undefined (reading 'add')`. Crates could not be selected at all.
+2. **`crates` missing from `SET_KINDS`** → `clearSelection()` skipped them, so crates stayed selected forever.
+3. **`crates` missing from `clearSelection()`'s explicit clears** — same effect.
+4. **`crates` missing from `selectedRefs()`** — the move tool builds `_origPositions` from that list, so even a highlighted crate was **excluded from the drag set**: it looked selected and refused to move. Precisely the symptom Chief described.
+5. **`crates` missing from the marquee handler** — `objectsInRect` returned them, but `onMouseUp` never consumed `gp.crates`, so box-selection silently skipped crates.
+
+Aki's P2 report claimed "full crate support across all selection infrastructure — Set, SET_KINDS, boundingRect, …". The Set and SET_KINDS entries were **not** there. **My P2 gate missed it** because I verified crate *rendering* and never exercised crate *selection* — and no committed level in the editor's default load contains a crate. Recorded as a gate lesson: for a new object kind, exercise select → clear → group-move, not just draw.
+
+**Root cause of Chief's off-grid gate, found properly:** `SNAP_GAMEPLAY_DEFAULT` was **16** — half a tile. Every gameplay drag moved in legal 16px steps, which is exactly how a gate came to rest at `x=1200`. Set to `TILE_SIZE` (32). Because group moves use the LCM of members' snaps, this fixes single *and* multi-object drags through the existing, well-designed snap system rather than a patch.
+
+**Corrected my own regression from the previous commit:** `_reanchorGameplay` re-grounded every dragged object independently, which on a **multi-select** drag would scatter a built cluster the moment it crossed uneven terrain. Now scoped to single-object drags (`size !== 1` returns early); groups move as a rigid body and rely on the 32px LCM delta for alignment.
+
+**Verified in a real browser:** injected a crate, a moving platform and a drone into a level, marquee-selected all three (`inRect` 1/1/1, `selectionCount` 3, `selectedKinds` `[crate, enemy, platform]` — crate now present), group snap resolved to 32, applied delta `dx 64`, and confirmed **relative offsets unchanged (rigid) and every member still on the 32 grid**.
+
+**Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's favicon (`42c6204`) — PASSED, promoted
+
+**Cherry-picked, not merged.** Orcha's branch was **22 behind** live, so a branch merge would have dragged 22 commits of stale state (pre-vertical-expansion, pre-multi-select fixes). Confirmed `index.html` had **not** been touched on live since his base, so the pick was conflict-free → `6f736a1`.
+
+**His diagnosis was right and better than the request implied.** The complaint was about telling the tabs apart; the actual cause was that **the game had no favicon AND no `<title>` at all** — browser default globe plus a raw URL — while the editor already had a yellow bolt. He fixed both.
+
+**Verified by decoding and loading, not by reading the string:**
+| page | title | bolt | accent | bg | loads |
+|---|---|---|---|---|---|
+| `index.html` | `OVERCHARGE` | `#cc44ff` purple | `#7711cc` | `#091526` | ✓ |
+| `editor.html` | `OVERCHARGE — Editor` | `#ffee00` yellow | `#ff8800` | `#091526` | ✓ |
+
+Both data URIs decode to a single well-formed `<svg>` root with a real path, and I confirmed each actually resolves as a loadable image in-browser rather than assuming the URI was valid. Colour distance **310.7 / 441** — his figure was accurate, and that is clearly distinguishable at 16px. Purple is the right choice: it is the charge/gate colour used throughout play, so the tab matches the game on screen. Inline data URI means nothing can 404 on the Pages deploy.
+
+**Reporting correction:** he quoted "suites unchanged at 321/0". Live is **322/0** — his baseline predates the image-identity assertion I added to `energy_authority` (87→88). Same class of slip as Aki's: counts must be quoted from a run on the current base, not carried forward. Not a defect in his work.
+
+**Ratified his judgment call on `index_classic.html`:** he left it untouched and asked. Correct — it is a legacy page, not part of the game-vs-editor confusion Chief actually hit, and giving it a third colour would add a distinction nobody needs. Leaving it plain also means it can never be mistaken for the live game.
+
+**Gate:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK, zero page errors. Favicons need a hard refresh to appear — browsers cache them aggressively.
+
+---
+
+## 2026-09-12 — Exit-cost ruling applied · Level 3 PUBLISHED · COMMIT&PUSH button · fence/switch art installed
+
+### Chief ruling: ALL exit gates cost 8
+Applied and solvability re-verified for each level rather than assumed:
+- `level1` / `1_NEON_RISE`: already 8. Energy 8 vs 8 → **margin 0**.
+- `level2`: `EXIT` **6 → 8**. Must charge `SW1`(2) + `EXIT`(8) = 10 vs 10 energy → **margin 0**.
+- `level3` / `3_LEVEL_3`: gate had **no `required` and `isExit:false`** — the level was uncompletable. Set `required: 8` and marked it the exit (it was the only non-barrier gate). Energy 15 vs 8 → margin 7.
+
+Margin 0 on levels 1 and 2 is safe and deliberate: **neither has enemies**, so there is no charge-loss path; gates cap transfer at `needed` and pip surplus returns to the bar, so no waste path exists either. Recorded so nobody "fixes" it later — and noted in the fence order that Level 2 cannot absorb a third cost.
+
+### Level 3 PUBLISHED
+Chief: *"publish lvl 3 i need to test it."* Gate values now defined, so the hold reason is gone. Re-added to `levels.json` (order 1,2,3) and the `_hold_note` removed. Boot smoke confirms the runtime loads **3 levels** and the Builder dropdown lists all three. Parity went from **134/2 → 138/0** — the two failures were exactly that undefined gate.
+
+### COMMIT & PUSH TO GITHUB button (LEVEL ACTIONS §5)
+**Honest scope, and the wording matters:** the Builder is a static page and **cannot run git**. So the button does the part it genuinely can and never claims otherwise:
+1. Performs a real **verified save** into the Git folder. A failed save **aborts** and says "NOT PUBLISHED — nothing new to commit", because pushing without saving would publish stale bytes.
+2. Copies the exact `cd … && git add src_scroll/levels && git commit -m … && git push` one-liner to the clipboard and displays it, with the desktop `.bat` as the alternative.
+
+It stages the **whole levels folder**, not just the one file — committing `levelN.json` without its descriptive twin and `levels.json` is how the manifest drifts from the files. Follows Order 005 doctrine: no fake success, and it never reports "pushed".
+
+### Fence + wall-switch art installed
+Chief's two Downloads packs extracted, renamed for what they are, and committed with their `metadata.json` provenance:
+- `assets/objects/wall_switch/` — 56×56: `switch_off`, `switch_on` (green, powered), `switch_destroyed` (burnt/sparking) + 9-frame destroy animation. All frames share bbox 10,1..46,52.
+- `assets/objects/fence/` — 64×64: `fence_dead` (dark, passable) + 9-frame live-electricity animation (luma pulses 50→108→22). All frames share bbox 1,10..62,59.
+
+**Key finding: this INVERTS the existing switch semantics.** The shipped `Switch` starts off and turns on when charged; Chief's wall switch starts **on** (powering the fence) and charging **destroys** it, killing the fence and opening the path. Same underlying mechanism as the existing `Switch` + `blockOnly` pair — **no new energy path needed** — but a new visual state machine and an authoring flag. Deliberately did NOT half-build a new mechanic late in the session; issued `docs/ORDER_FENCE_SHORT_CIRCUIT.md` instead, split Orcha (state machine, `style` flag defaulting to today's behaviour, semantics-doc-before-code) / Aki (manifest, inspector, editor rendering + `boundingRect` so a 56×56 switch is not left under a 22×22 box).
+
+Level 2 already has the exact pair (`SW1` → `BARRIER` blockOnly), so once `style` exists Chief flips two fields and gets the fence puzzle with **no layout change**.
+
+**Tests:** parity **138/0** · energy 88/0 · crate_timed 87/0 · electricity 37/0 · boot smoke OK (3 levels).

@@ -2,7 +2,20 @@
   "_schema": "overcharge-levels-manifest@1",
   "_note": "Git-tracked level order (ORDER 005). The Builder lists/edits this via the ORDER buttons and the runtime's progression + dev [ / ] switcher follow it. Never inferred from browser state or filenames.",
   "order": [
-    { "number": 1, "name": "NEON RISE", "file": "level1.json" },
-    { "number": 2, "name": "SPLIT DECISION", "file": "level2.json" }
+    {
+      "number": 1,
+      "name": "NEON RISE",
+      "file": "level1.json"
+    },
+    {
+      "number": 2,
+      "name": "SPLIT DECISION",
+      "file": "level2.json"
+    },
+    {
+      "number": 3,
+      "name": "LEVEL 3",
+      "file": "level3.json"
+    }
   ]
 }
