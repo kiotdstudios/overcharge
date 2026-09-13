@@ -1101,3 +1101,21 @@ Parity landed at 177 rather than his 163 because my spawn-reachability guard (ad
 **Still outstanding (Aki's lane, not blocking the test):** the Builder still draws the *old schematic/gate art* for styled objects — the new fence and wall-switch sprites only appear in the game. Editor rendering of the new art plus `boundingRect` sizing remains hers.
 
 **Tests:** parity 177/0 · fence_switch 62/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **451/0** · boot smoke OK.
+
+---
+
+## 2026-09-12 — Aki P7 issued (fence/wall-switch in Builder); P6a switch art put ON HOLD
+
+Aki is at `b6df5ea`, **27 behind live, 0 ahead** — she never started P6a. Issued P7 in `docs/AKI_ORDER_QUEUE.md`.
+
+**P7a** — draw the new art in the Builder. This is the real remaining gap: the runtime shows fence/wall-switch sprites but the Builder still draws the old schematic, so Chief authors blind. Told her to **copy the anchors from `electricity.js`, not re-derive them**, and specifically why Orcha anchored from the uniform canvas: the switch's frames 001-003 widen by 2px and *that is the vibration* — per-frame bbox anchoring would flatten it into a slide. Also carried forward the `frame_000` rest-pose warning (now mechanically guarded).
+
+**P7b** — `boundingRect` only, since selection geometry is now single-source and the renderer derives outlines from it. Named the failure mode explicitly: a 56×56 wall switch under a 22×22 box is **the exact defect Chief reported on the checkpoint**.
+
+**P7c** — manifest registration, with the `gate_electric_dead.png` precedent (runtime state sprites stay OUT of the palette) and a requirement to re-verify the one-gate-entry ruling survives her pass.
+
+**Re-emphasised the boot-smoke requirement** with the reason: her last merge left two module-scope `CP_*` blocks — a parse error that killed the entire Builder — and her unit suites passed because they never import the renderer.
+
+**P6a switch art put ON HOLD rather than left queued.** Switch art now exists from Chief's pack, and `switch_off` → `switch_on` maps **exactly** onto the default switch's off→on semantics (the default switch currently draws vector art — confirmed in `electricity.js`). One pack could cover both styles with no new art commissioned.
+
+**Flagged the real trade for Chief rather than deciding it:** if a default switch that is ON uses `switch_on.png`, it becomes visually identical to a wall switch that has not yet fired — two devices with different behaviour sharing one look. Context disambiguates (wall switch sits beside a fence, default beside a barrier), but it is a genuine readability call. Told Aki to report it and **not** produce speculative art or restyle the default switch on her own initiative.
