@@ -13,6 +13,20 @@ semantics section before writing code — this INVERTS the existing switch.**
 
 ## Art inventory (installed, committed, do not re-import)
 
+> ⚠ **CORRECTION (2026-09-12): the two tables below are WRONG in three ways.**
+> See `docs/KIRO_RULING_FENCE_V1.md` — Orcha caught them and I verified:
+> 1. **`frame_000` is the REST POSE, byte-identical to the dead/destroyed art in
+>    BOTH packs. Animate from `frame_001`.** Animating from 000 flashes a live
+>    fence's passable-looking dead art one frame in nine.
+> 2. **Bboxes are NOT constant** — fence has 2 distinct boxes, switch has 6 (the
+>    2px spread on frames 001-003 IS the vibration). Anchor from the uniform
+>    canvas, never per-frame bbox.
+> 3. **Luma cannot signal state** — `fence_dead` (50.4) is BRIGHTER than live
+>    frames 001 (22.7) and 008 (22.0). Motion is the signal.
+>
+> My error came from sampling only even frames and generalising. The ruling doc is
+> authoritative where it conflicts with this file.
+
 `assets/objects/wall_switch/` — **56×56**, all frames share bbox ~10,1..46,52
 | file | reads as |
 |---|---|

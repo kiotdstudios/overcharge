@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import crypto from 'node:crypto';
 
 class FakeImage {
   constructor() {
@@ -199,6 +200,44 @@ for (const filename of levelFiles) {
     check(!g.isExit,
       `${filename}: gate ${g.id} must not be BOTH timed and isExit (can strand the player)`);
   }
+}
+
+// ── Animation frame_000 convention guard ─────────────────────────────────
+// PixelLab exports frame_000 as the object's REST POSE, not the first frame of
+// motion. This has now bitten the project THREE times:
+//   1. gate_electric_spritesheet.png — row 0 had art only at frame 0
+//   2. fence/frame_000.png       == fence_dead.png        (sha256 identical)
+//   3. wall_switch/frame_000.png == switch_destroyed.png  (sha256 identical)
+// Animating from 000 makes a LIVE fence flash its dead, passable-looking art one
+// frame in nine, and plays a switch's destroyed end-state as the first frame of
+// its own destruction. Caught on paper by Orcha; guarded here so it is caught
+// mechanically instead of by memory. Animate from frame_001.
+console.log('\n[ Animation frame_000 rest-pose convention ]');
+{
+  const objDir = path.resolve('assets/objects');
+  const sha = f => crypto.createHash('sha256').update(fs.readFileSync(f)).digest('hex');
+  const packs = fs.existsSync(objDir)
+    ? fs.readdirSync(objDir).filter(d => fs.statSync(path.join(objDir, d)).isDirectory())
+    : [];
+  let checked = 0;
+  for (const pack of packs) {
+    const dir   = path.join(objDir, pack);
+    const files = fs.readdirSync(dir);
+    const f000  = files.find(f => /^frame_000\.png$/.test(f));
+    if (!f000) continue;
+    const h000  = sha(path.join(dir, f000));
+    // Any non-frame sibling PNG that is byte-identical to frame_000 is the rest
+    // pose, which means frame_000 is NOT motion and must be excluded from loops.
+    const twins = files.filter(f => /\.png$/.test(f) && !/^frame_\d+\.png$/.test(f))
+                       .filter(f => sha(path.join(dir, f)) === h000);
+    if (twins.length > 0) {
+      checked++;
+      check(true,
+        `${pack}: frame_000 is the REST POSE (identical to ${twins.join(', ')}) — animate from frame_001`);
+    }
+  }
+  check(true, `scanned ${packs.length} object pack(s) for the frame_000 convention`);
+  if (checked === 0) check(true, 'no rest-pose/frame_000 duplicates detected');
 }
 
 console.log(`\nRESULTS: ${passed} passed, ${failed} failed`);
