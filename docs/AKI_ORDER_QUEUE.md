@@ -474,3 +474,109 @@ section above. Sync first (you are 3 behind), and remember the switch is the las
 object type still rendering as a schematic — once its art exists, wire it using the
 same `getImage` + fallback pattern, and add its `boundingRect` entry so the box
 wraps the new sprite rather than the 22×22 hitbox.
+
+---
+
+# P7 — ✅ GO. FENCE + WALL SWITCH in the Builder (and P6a is now on HOLD)
+
+**Read this whole section before starting — one of your queued tasks is probably
+unnecessary now, and I do not want you making art nobody will use.**
+
+## ⚠ FIRST: sync. You are 27 commits behind.
+
+A lot landed while you were away: map height **ROWS 14 → 18**, the fence/wall-switch
+runtime, Level 3, selection boxes now derived from `boundingRect`, `SNAP_GAMEPLAY_DEFAULT`
+16 → 32, and `style` dropdowns in the inspector.
+
+**Your last merge shipped a defect that killed the entire Builder** — two
+module-scope `CP_*` declaration blocks, a parse error, so `editor/renderer.js`
+never loaded. Your unit suites passed because they never import the renderer.
+**Run boot smoke before you hand anything over:**
+
+```bash
+node C:/Users/diepowel/Documents/_kiro_tools/boot_smoke.mjs <repo> <port>
+```
+
+Current live baseline: parity 177 · fence_switch 62 · energy 88 · crate_timed 87 ·
+electricity 37 = **451/0**, boot smoke OK.
+
+## Context — what already exists, so you do not rebuild it
+
+Chief supplied two art packs. They are **installed, committed, and wired into the
+RUNTIME** (Orcha, QA-passed):
+
+- `assets/objects/wall_switch/` — 56×56 · `switch_off` · `switch_on` (green) ·
+  `switch_destroyed` (burnt) · `frame_001..008` burn animation
+- `assets/objects/fence/` — 64×64 · `fence_dead` · `frame_001..008` live electricity
+
+**`frame_000` in BOTH packs is the REST POSE**, byte-identical to the dead/destroyed
+file (sha256-verified). **Animate from `frame_001`.** The parity harness now guards
+this mechanically — do not reintroduce 000 into a loop.
+
+I already added the **authoring** path so Chief can test: `style` dropdowns on
+switches (`wall`) and on blockOnly gates (`fence`). The dropdown is only offered on
+a blockOnly gate, because the runtime warns-and-ignores a fence that is not.
+
+## P7a — Draw the new art in the Builder (the actual gap)
+
+Right now the Builder still draws the OLD schematic for styled objects, so Chief
+authors blind — the real sprites only appear in-game.
+
+- `style:"wall"` switch → draw `switch_on.png` (its resting, powering state).
+- `style:"fence"` blockOnly gate → draw a representative **live** frame, or loop
+  `frame_001..008`. Static is acceptable; do NOT animate from `frame_000`.
+- Default (unstyled) switch and gate rendering must be **unchanged**.
+
+**Anchors: copy them from `src_scroll/electricity.js`, do not re-derive.** Orcha
+anchored both from the **uniform canvas**, never per-frame bbox — the switch's
+frames 001-003 widen by 2px and *that is the vibration*; per-frame anchoring would
+turn it into a jitter-free slide. Fence art tiles over the gate hitbox (Level 2's
+32×128 barrier tiles the 64×64 art exactly 2× vertically).
+
+If the Builder and the game disagree on placement, Chief authors to a lie. I will
+fail that at the gate.
+
+## P7b — `boundingRect` for the new sprites
+
+Selection geometry now lives in **ONE place**: `selection.js::boundingRect`, and
+`renderer.js` derives outlines from it. Change it there only.
+
+A 56×56 wall switch under a 22×22 box is **the exact defect Chief reported on the
+checkpoint** — the box sat at the sprite's base instead of around it. Do not repeat
+it. Box wraps the visible sprite; the runtime hitbox is unchanged.
+
+## P7c — Manifest registration
+
+Register both packs in `ASSET_MANIFEST.json` with accurate ids/categories/tags.
+
+**These are runtime STATE sprites**, so follow the `gate_electric_dead.png`
+precedent: they do **not** enter the art palette, and the palette must still show
+**exactly ONE gate entry**. Verify that after your pass — you have re-curated this
+file before and the one-gate ruling has to survive.
+
+## P6a switch art — ON HOLD, do not start
+
+**Switch art now exists**, and I do not want you drawing more until Chief rules.
+
+`switch_off.png` (dark icon) → `switch_on.png` (green icon) maps **exactly** onto the
+DEFAULT switch's off→on semantics, and the wall style already uses
+`switch_on` → `switch_destroyed`. One pack could cover both, with no new art.
+
+The default switch currently draws **vector art** (glow rect + fill bar), confirmed
+in `electricity.js`.
+
+**The open question, which is Chief's to answer, not yours:** if a default switch
+that is ON uses `switch_on.png`, it looks identical to a wall switch that has NOT yet
+fired — two devices with different behaviour sharing one appearance. Context
+disambiguates them (a wall switch sits beside a fence, a default switch beside a
+barrier), but it is a real readability trade.
+
+**Report this in your handoff and let Chief decide.** Do not produce new switch art
+speculatively, and do not restyle the default switch on your own initiative.
+
+## Gate criteria
+
+Rendered proof (Builder screenshot showing fence + wall switch as real art),
+selection boxes wrapping the new sprites, default styles visually unchanged, palette
+still exactly ONE gate entry, **all five suites 0 failed**, and **boot smoke OK**.
+Push to `agent/aki-editor` and HOLD.
