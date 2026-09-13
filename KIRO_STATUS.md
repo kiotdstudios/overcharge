@@ -1053,3 +1053,29 @@ All three stuck cases pinned at sprite x = −24, i.e. **player.x = 12**.
 **Mutation-verified rather than assumed** — the guard must fail on the real bug, so I forced it: spawn x=32 → *"playerStart is not inside a closed gate's blocking column"* FAILS; spawn x=0 → *"spawn can reach at least one energy source"* FAILS with a message naming the trap; real spawn restored → **153/0**.
 
 **Chief's fix is one field:** keep the Level 3 spawn at x ≥ 64 (right of the exit gate), or move the exit gate off the far-left edge. The guard now blocks either mistake from shipping.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's ORDER FENCE_SHORT_CIRCUIT (`2dbe46a`) — PASSED, merged to live
+
+**Merged** (he was only 1 behind). Scope exactly as claimed: `electricity.js`, `level.js`, new `_dev/fence_switch.mjs`, new `99_FENCE_TESTBED.json`, schema docs, status. **No level, asset or editor files touched.**
+
+**Suites on the merged tree — 451/0:** parity **177/0** · fence_switch **62/0** · energy 88/0 · crate_timed 87/0 · electricity 37/0 · boot smoke OK (3 levels, zero page errors).
+
+Parity landed at 177 rather than his 163 because my spawn-reachability guard (added after his base) also applies to his new testbed — **and his fence testbed passes it**, which is a genuine cross-check: his hand-authored level satisfies a guard he had not seen.
+
+**Verified his claims rather than accepting them:**
+- **Animation starts at `frame_001`** — confirmed in code: `Array.from({length:8},(_,k)=>…frame_00${k+1}.png)`. `frame_000` is **not in either array at all**, so the rest-pose bug is impossible by construction rather than by convention. Both packs carry the sha256 of the identical rest pose in a comment.
+- **Shipped levels carry no `style` field** — checked all five files: `level1/2/3` and both descriptive twins are clean, so behaviour is byte-identical until Chief flips Level 2.
+- **Testbed excluded** from `levels.json` (order 1,2,3).
+- **Stray `_fenceImg(` file** genuinely gone — 0 tracked, 0 on disk.
+- **F7 ruling honoured end to end** — his suite asserts *"the frame the switch fires, the fence is ALREADY open"* and *"immediately passable (no delay)"*, proven in a real level through the actual `spendEnergy` path.
+- Bonus: a misauthored fence (`style:"fence"` without `blockOnly`) **warns and ignores the style** rather than half-applying it — honest-refusal doctrine applied without being asked.
+
+**His mutation testing is the standard I want cited.** 62/0 on a first run is not evidence, so he broke his own code three ways. Two mutations were caught; **the third exposed a real hole in his own suite** — removing the `!burnDone` latch renders identically, so nothing failed, but `_destroyT` then grows unbounded into every snapshot. He had asserted that latch in a comment and never tested it; he added a bound assertion and the mutation now fails.
+
+**And he caught a false green in his own method:** his first mutation attempt silently did nothing because the shell mangled a template literal, so the suite "passed" a mutation that was never applied. He checked the file contents instead of trusting the exit code. A green run from a no-op mutation is worse than a red one — recorded as method, not just outcome.
+
+**Chief's next step is one flip:** set Level 2's `SW1` to `style:"wall"` and `BARRIER` to `style:"fence"`. No costs change, so Level 2's margin 0 is unaffected.
+
+**Queue:** per my ruling, Orcha now proceeds to `PLACEMENT_GUARDS_GROUNDED` P1, then P2 grounded zone.
