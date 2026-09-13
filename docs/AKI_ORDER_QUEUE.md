@@ -571,8 +571,30 @@ fired — two devices with different behaviour sharing one appearance. Context
 disambiguates them (a wall switch sits beside a fence, a default switch beside a
 barrier), but it is a real readability trade.
 
-**Report this in your handoff and let Chief decide.** Do not produce new switch art
-speculatively, and do not restyle the default switch on your own initiative.
+### ✅ RULED (Kiro, Technical Director authority, 2026-09-12)
+
+Chief delegated this call. **Decision: P6a is CANCELLED. Do not produce switch art,
+and do not restyle the default switch.**
+
+Reasoning, so it can be reversed cleanly if play proves it wrong:
+
+1. **The default switch has zero consumers.** Level 2 is the only level with a
+   switch, and Chief is flipping `SW1` to `style:"wall"` — which means after that
+   flip **no level contains a default-style switch at all**. Restyling it would be
+   art and code for a device nothing currently uses.
+2. **It already works.** The default switch draws a glow rect *plus a charge fill
+   bar* that reads correctly. Replacing it means re-implementing that fill over
+   sprite art — real regression risk on a working device, for no gameplay gain.
+3. **The ambiguity I raised is benign on inspection.** The only collision is a
+   *fired* default switch (green) versus an *unfired* wall switch (green). Those
+   never compete for attention: a fired default switch is spent and inert, while an
+   unfired wall switch is the live target. And the neighbouring object settles it —
+   spent default switch sits beside an OPEN barrier, live wall switch beside a
+   SPARKING fence.
+
+**Revisit only when a level actually authors a default switch.** No speculative
+work. If Chief plays it and wants switches visually unified, this reverses to "reuse
+`switch_off`/`switch_on` for the default style" — one branch in `Switch.draw`.
 
 ## Gate criteria
 

@@ -58,6 +58,32 @@ BUILDER: https://kiotdstudios.github.io/overcharge/editor.html
 - The QA gate (parity + electricity + energy + boot smoke, all green) still runs
   **before** every merge to `agent/orcha-gameplay`. Speed does not waive the gate.
 
+## Technical Director authority (Chief directive, 2026-09-12)
+
+> "i'll listen to you as the technical director and have you make the call from
+> here on out and i'll change if need be upon testing in game"
+
+Kiro decides **technical and mechanical** questions directly and records the
+reasoning. Chief overrides from play — the loop is *decide → ship → Chief tests →
+Chief reverses if it feels wrong*. Agents do not wait on Chief for these.
+
+**Kiro now rules on, without asking:**
+- device/mechanic semantics, state machines, schema shape
+- costs, budgets and solvability tuning
+- art integration: which sprite serves which state, anchors, whether art is needed
+- editor/UX behaviour, defaults, snapping, tool wiring
+- test strategy, guards, and what blocks a merge
+
+**Still escalated to Chief, always:**
+- destructive git (force-push, reset --hard, branch deletion) and asset deletion
+- creative direction: what a level is *about*, art style, the game's identity
+- anything that cannot be undone by a test-and-revert cycle
+- scope: adding or dropping a feature Chief asked for
+
+**Every ruling must be written down** with its reasoning, so Chief can reverse a
+decision without having to reconstruct why it was made. A ruling that only exists
+in an agent's head is not a ruling.
+
 ## Orders are files, never chat relays (Chief directive, 2026-09-12)
 
 Chief does not copy-paste instructions between agents. Every order, ruling,
