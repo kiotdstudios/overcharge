@@ -144,7 +144,10 @@ export class Level {
         // not a full duration — otherwise rewinding hands the player free time.
         _timeLeft: g._timeLeft || 0,
       })),
-      switches:    this.switches.map(sw => ({ charged: sw.charged, on: sw.on })),
+      // F11: `_destroyT` is the wall-switch burn progress. Without it, a
+      // checkpoint taken mid-burn would either replay the destruction or skip
+      // straight to destroyed — same reasoning as `_timeLeft` for timed gates.
+      switches:    this.switches.map(sw => ({ charged: sw.charged, on: sw.on, _destroyT: sw._destroyT || 0 })),
       checkpoints: this.checkpoints.map(cp => ({ activated: cp.activated })),
       enemies:     this.enemies.map(e => ({
         x: e.x, y: e.y, vx: e.vx, hp: e.hp, alive: e.alive,

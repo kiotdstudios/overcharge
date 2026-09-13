@@ -106,9 +106,35 @@ export class ElectricalSource {
 // Idle/charging switch is triggered by `receive()` bumping `_reactT`;
 // while _reactT > 0 the gate plays the 'charging' animation, otherwise 'idle'.
 // ──────────────────────────────────────────────
+// ── Fence art (ORDER FENCE_SHORT_CIRCUIT, ratified F1/F2/F3/F4) ─────────────
+//
+// FRAME INDEXING — the live loop is frames 001..008, EIGHT frames, never 000.
+// `fence/frame_000.png` is BYTE-IDENTICAL to `fence_dead.png` (sha256
+// 5b6955205a5fc63b): PixelLab exported the rest pose as frame 0, and
+// metadata.json shows the animation belongs to an object named "uncharged gate"
+// whose base rotation IS that image. Looping 000..008 would render the DEAD,
+// PASSABLE-LOOKING art one frame in nine on a LIVE, BLOCKING fence — telling the
+// player to walk into it. Kiro corrected his own order on this; parity guards it
+// mechanically now.
+//
+// F2 — MOTION is the state signal, NOT brightness. Measured mean luma:
+//   fence_dead 50.4 | 001 22.7 | 002 80.4 | 003 94.5 | 004 108.5 (peak)
+//                   | 005 95.3 | 006 82.9 | 007 38.9 | 008 22.0
+// Live frames 001/008 are DARKER than dead, so brightness cannot carry the
+// state and is deliberately not compensated for in code. A live fence MOVES; a
+// dead fence is static and slack. If brightness should also carry it, that is an
+// art change to 001/008 and Chief's call.
+const FENCE_FPS    = 10;
+const FENCE_CANVAS = 64;          // uniform export canvas; anchor from THIS (F4)
+const _fenceImg = (name) => { const i = new Image(); i.src = `assets/objects/fence/${name}`; return i; };
+const FENCE = {
+  dead: _fenceImg('fence_dead.png'),
+  live: Array.from({ length: 8 }, (_, k) => _fenceImg(`frame_00${k + 1}.png`)),
+};
+// ──────────────────────────────────────────────
 export class PowerGate {
   constructor({ id, x, y, w, h, required, isExit = false, blockOnly = false, label = '',
-                timed = false, duration = 3 }) {
+                timed = false, duration = 3, style = null }) {
     this.id        = id;
     this.x         = x; this.y = y;
     this.w         = w; this.h = h;
@@ -140,6 +166,22 @@ export class PowerGate {
     }
     this.duration  = duration;
     this._timeLeft = 0;     // >0 only while a timed gate is open and counting down
+
+    // ── style (F6/F9): additive, default-off ────────────────────────────
+    // "fence" renders the powered-fence art instead of the gate art. It is only
+    // meaningful on a blockOnly barrier — a fence is held up by a wall switch,
+    // not charged by the player — so style:"fence" on a chargeable gate is an
+    // authoring error. Warn and ignore, same doctrine as timed+isExit.
+    if (style !== null && style !== undefined && style !== 'default' && style !== 'fence') {
+      console.warn(`[gate] "${id}" has unknown style "${style}" — falling back to default.`);
+      style = null;
+    }
+    if (style === 'fence' && !blockOnly) {
+      console.warn(`[gate] "${id}" declares style:"fence" but is not blockOnly — ignoring style. ` +
+        `A fence is opened by its linked wall switch, never charged directly.`);
+      style = null;
+    }
+    this.style = (style === 'fence') ? 'fence' : null;
     // Sprite art — fallback + animated sheet + open frame.
     // Attach onload logging so we can verify in the browser devtools
     // that the sheet actually loaded (prior "static gate" report was
@@ -255,7 +297,58 @@ export class PowerGate {
     return !(rx + rw <= this.x || rx >= this.x + this.w);
   }
 
+  // ── Fence render (F1/F2/F3/F4) ──────────────────────────────────────
+  // F3: the sprite is drawn LARGER than the hitbox and TILED to cover it — the
+  // same convention PowerGate already uses for its own art (40x64 hitbox under a
+  // 64x128 sprite). Level 2's BARRIER is 32w x 128h, so a 64x64 fence tiles
+  // exactly 2x vertically and is centred horizontally on the 32-wide hitbox.
+  // The HITBOX IS NEVER CHANGED — collision stays exactly as authored.
+  //
+  // Anchored from the uniform 64x64 canvas, never per-frame bbox: measured,
+  // frame_008 is 4,10..58,58 against 1,10..62,59 everywhere else, so per-frame
+  // anchoring would make the fence twitch sideways on the last frame.
+  _drawFence(ctx) {
+    const cols = Math.max(1, Math.ceil(this.w / FENCE_CANVAS));
+    const rows = Math.max(1, Math.ceil(this.h / FENCE_CANVAS));
+    // Centre the tiled block horizontally on the hitbox, bottom-align it.
+    const totalW = cols * FENCE_CANVAS;
+    const baseX  = Math.round(this.cx - totalW / 2);
+    const baseY  = (this.y + this.h) - rows * FENCE_CANVAS;
+
+    let img;
+    if (this.open) {
+      img = FENCE.dead;                    // shorted out — slack, static, passable
+    } else {
+      // Live: cycle frames 001..008. `% 8` over an 8-element array, so index 0
+      // here is frame_001 — frame_000 is not in the array at all and can never
+      // be drawn while live.
+      const k = Math.floor(this._t * FENCE_FPS) % FENCE.live.length;
+      img = FENCE.live[k];
+    }
+
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (!this.open) { ctx.shadowBlur = 12; ctx.shadowColor = '#66ccff'; }
+    if (img && img.complete && img.naturalWidth > 0) {
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          ctx.drawImage(img,
+            baseX + c * FENCE_CANVAS, baseY + r * FENCE_CANVAS,
+            FENCE_CANVAS, FENCE_CANVAS);
+        }
+      }
+    } else if (!this.open) {
+      // Art not loaded yet — never leave a BLOCKING fence invisible.
+      drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#0a1a26', '#66ccff', 14);
+    }
+    ctx.restore();
+  }
+
   draw(ctx) {
+    // Style branch FIRST. A fence is blockOnly, so it never shows a charge bar,
+    // never shows a [SPACE] prompt, and never reaches the gate/dormancy art path
+    // below. A styleless gate is completely unaffected by this branch.
+    if (this.style === 'fence') { this._drawFence(ctx); return; }
     const t = this._t;
 
     // ── Draw geometry (independent from hitbox) ──
@@ -436,8 +529,32 @@ export class PowerGate {
 // ──────────────────────────────────────────────
 // Switch: spend charge to trigger linked gate/barrier
 // ──────────────────────────────────────────────
+// ── Wall-switch art (ORDER FENCE_SHORT_CIRCUIT, ratified F1/F4/F6) ──────────
+// Module-level so every wall switch shares one set of Image objects.
+//
+// FRAME INDEXING — animate from 001, NEVER 000.
+// `wall_switch/frame_000.png` is BYTE-IDENTICAL to `switch_destroyed.png`
+// (sha256 918e59165c0f902f). PixelLab exports frame_000 as the object's REST
+// POSE, not the first frame of motion — metadata.json shows the animation belongs
+// to the object "destroyed from overc" whose base rotation IS that image. Playing
+// 000 first would show the destroyed END STATE as the opening frame of the
+// destruction. Kiro corrected his own order on this; parity now guards it
+// mechanically.
+const WALL_SW_DESTROY_FPS = 12;   // 8 frames -> ~0.67s burn
+const _wallSwImg = (name) => { const i = new Image(); i.src = `assets/objects/wall_switch/${name}`; return i; };
+const WALL_SW = {
+  on:        _wallSwImg('switch_on.png'),         // powered, feeding the fence
+  destroyed: _wallSwImg('switch_destroyed.png'),  // settled end state
+  // frames 001..008 = the vibrate/arc/burn motion (frame_000 deliberately absent)
+  burn: Array.from({ length: 8 }, (_, k) => _wallSwImg(`frame_00${k + 1}.png`)),
+  // F8: switch_off.png is installed but UNUSED in v1 and deliberately not loaded.
+  // It is genuinely unpowered art (greenBias 0.5) and this puzzle has no
+  // "intact but unpowered" state. Reserved, not dropped — ratified.
+};
+const WALL_SW_CANVAS = 56;        // uniform export canvas; anchor from THIS (F4)
+
 export class Switch {
-  constructor({ id, x, y, required, linkedId, label = '' }) {
+  constructor({ id, x, y, required, linkedId, label = '', style = null }) {
     this.id       = id;
     this.x        = x; this.y = y;
     this.w        = 22; this.h = 22;
@@ -446,14 +563,45 @@ export class Switch {
     this.on       = false;
     this.linkedId = linkedId;
     this.label    = label;
+
+    // ── style (F6/F9): additive and default-off ──────────────────────
+    // Absent style == byte-identical behaviour to every switch authored before
+    // this order. Only "wall" is recognised; anything else warns and falls back
+    // to default rather than silently rendering nothing.
+    if (style !== null && style !== undefined && style !== 'default' && style !== 'wall') {
+      console.warn(`[switch] "${id}" has unknown style "${style}" — falling back to default.`);
+      style = null;
+    }
+    this.style = (style === 'wall') ? 'wall' : null;
+
     this._t       = 0;
     this._pipFlash = 0;
+    // F11: elapsed destroy-animation time, snapshotted so a checkpoint taken
+    // mid-burn neither replays nor skips the animation.
+    this._destroyT = 0;
   }
 
   get cx() { return this.x + this.w / 2; }
   get cy() { return this.y + this.h / 2; }
 
-  update(dt) { this._t += dt; this._pipFlash = Math.max(0, this._pipFlash - dt); }
+  // ── F5: `on` means FIRED, not "lit" ─────────────────────────────────
+  // For a wall switch the presentation INVERTS: the switch starts visually
+  // powered (green, feeding the fence) and charging it DESTROYS it.
+  //   on === false -> switch_on.png      (powering the fence)
+  //   on === true  -> burn 001..008 once -> switch_destroyed.png forever
+  // No state-machine change and no new energy path: `on` already means "charged
+  // to required". Only the render mapping inverts.
+  get isWall()      { return this.style === 'wall'; }
+  get burnFrames()  { return WALL_SW.burn.length; }               // 8
+  get burnDone()    { return this._destroyT >= this.burnFrames / WALL_SW_DESTROY_FPS; }
+
+  update(dt) {
+    this._t += dt;
+    this._pipFlash = Math.max(0, this._pipFlash - dt);
+    // Advance the burn only while it is still running, so _destroyT does not
+    // grow without bound and `burnDone` latches permanently once reached.
+    if (this.isWall && this.on && !this.burnDone) this._destroyT += dt;
+  }
 
   inRange(px, py) { return dist(px, py, this.cx, this.cy) < INTERACT_RADIUS; }
 
@@ -464,7 +612,65 @@ export class Switch {
     return false;
   }
 
+  // ── Wall-switch render (F1/F4/F5/F6) ───────────────────────────────
+  // Anchored from the UNIFORM 56x56 CANVAS, never per-frame bbox. Measured, the
+  // frames do NOT share a bbox: frame_000 is 10,1..46,52 while 001-003 widen to
+  // 8,1..48,52 — and that 2px spread IS the vibration. Anchoring per-frame would
+  // cancel the shake into a jitter-free slide and make the panel appear to jump.
+  // Drawn LARGER than the 22x22 hitbox, centred on the hitbox and bottom-aligned,
+  // the same convention PowerGate already uses. The hitbox is never changed.
+  _drawWall(ctx) {
+    const dX = Math.round(this.cx - WALL_SW_CANVAS / 2);
+    const dY = (this.y + this.h) - WALL_SW_CANVAS;
+    let img;
+    if (!this.on) {
+      img = WALL_SW.on;                       // F5: NOT lit — powered, feeding the fence
+    } else if (!this.burnDone) {
+      const k = Math.min(this.burnFrames - 1,
+        Math.floor(this._destroyT * WALL_SW_DESTROY_FPS));
+      img = WALL_SW.burn[k];                  // frames 001..008, once, in order
+    } else {
+      img = WALL_SW.destroyed;                // settles here permanently
+    }
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (this.on && !this.burnDone) { ctx.shadowBlur = 20; ctx.shadowColor = '#ffee66'; }
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, dX, dY, WALL_SW_CANVAS, WALL_SW_CANVAS);
+    } else {
+      // Art not loaded yet — vector fallback so the switch is never invisible.
+      drawGlowRect(ctx, this.x, this.y, this.w, this.h,
+        this.on ? '#201808' : '#082010', this.on ? '#ffaa22' : '#44ff88', 12);
+    }
+    ctx.restore();
+
+    // Charge bar only while it is still intact and chargeable.
+    if (!this.on) {
+      const sbW = this.w + 8, sbH = 5;
+      const sbX = this.x - 4, sbY = dY - 8;
+      const sfill = this.required > 0 ? this.charged / this.required : 0;
+      ctx.fillStyle = '#0a2014';
+      ctx.fillRect(sbX, sbY, sbW, sbH);
+      ctx.shadowBlur  = 6;
+      ctx.shadowColor = '#44ff88';
+      ctx.fillStyle   = '#44ff88';
+      ctx.fillRect(sbX, sbY, Math.round(sbW * sfill), sbH);
+      ctx.shadowBlur  = 0;
+    }
+    ctx.fillStyle = this.on ? '#ff7744' : '#44ff88';
+    ctx.font      = '9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(this.on ? 'SHORTED' : 'LIVE', this.cx, this.y + this.h + 11);
+    if (this.label) {
+      ctx.fillStyle = '#888';
+      ctx.fillText(this.label, this.cx, this.y + this.h + 22);
+    }
+  }
+
   draw(ctx) {
+    // Style branch FIRST: a default switch never reaches the wall renderer and
+    // is byte-identical to its pre-order behaviour.
+    if (this.isWall) { this._drawWall(ctx); return; }
     const t     = this._t;
     const color = this.on ? '#44ff88' : '#ff8800';
     const pulse = this.on ? 1 : (0.5 + 0.5 * Math.sin(t * 4));

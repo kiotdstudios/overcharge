@@ -200,6 +200,42 @@ for (const filename of levelFiles) {
     check(!g.isExit,
       `${filename}: gate ${g.id} must not be BOTH timed and isExit (can strand the player)`);
   }
+
+  // ── style guards (ORDER FENCE_SHORT_CIRCUIT, F6/F9) ──────────────────
+  // Catch a typo'd or misplaced style in the harness rather than as a silently
+  // default-rendered object in play.
+  for (const g of data.gates ?? []) {
+    if (g.style === undefined || g.style === null) continue;
+    check(g.style === 'default' || g.style === 'fence',
+      `${filename}: gate ${g.id} style is a known value (default|fence), got "${g.style}"`);
+    if (g.style === 'fence') {
+      // A fence is held up by its linked wall switch and is never charged
+      // directly, so style:"fence" only makes sense on a blockOnly barrier.
+      check(g.blockOnly === true,
+        `${filename}: gate ${g.id} has style:"fence" so it MUST be blockOnly ` +
+        `(a fence is opened by its wall switch, never charged by the player)`);
+      check(!g.isExit,
+        `${filename}: gate ${g.id} must not be BOTH style:"fence" and isExit`);
+    }
+  }
+  for (const s of data.switches ?? []) {
+    if (s.style === undefined || s.style === null) continue;
+    check(s.style === 'default' || s.style === 'wall',
+      `${filename}: switch ${s.id} style is a known value (default|wall), got "${s.style}"`);
+    if (s.style === 'wall') {
+      // A wall switch exists to short out a fence, so it must actually link to
+      // something — an unlinked wall switch is a dead-end puzzle.
+      check(typeof s.linkedId === 'string' && s.linkedId.length > 0,
+        `${filename}: wall switch ${s.id} has a non-empty linkedId`);
+      const target = (data.gates ?? []).find(g => g.id === s.linkedId);
+      check(!!target,
+        `${filename}: wall switch ${s.id} links to an existing gate ("${s.linkedId}")`);
+      if (target) {
+        check(target.blockOnly === true,
+          `${filename}: wall switch ${s.id} links to ${target.id}, which must be blockOnly`);
+      }
+    }
+  }
 }
 
 // ── Spawn reachability guard ─────────────────────────────────────────────
