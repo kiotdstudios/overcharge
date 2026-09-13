@@ -5,6 +5,89 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## KIRO_ORDER_ORCHA_01 — O1 PLACEMENT GUARDS
+
+- **Date:** 2026-09-13T00:26-04:00 · **Branch:** `agent/orcha-dev` (synced 0 behind)
+- **Order:** `docs/KIRO_ORDER_ORCHA_01.md` (O1) · **Status:** COMPLETE, pushed, awaiting QA
+
+### Tests
+
+| Suite | Baseline | After |
+|---|---|---|
+| `parity_regression.mjs` | 177/0 | **254 passed, 0 failed** |
+| `fence_switch.mjs` | 62/0 | **62 / 0** |
+| `energy_authority.mjs` | 88/0 | **88 / 0** |
+| `crate_timed.mjs` | 87/0 | **87 / 0** |
+| `test_electricity.mjs` | 37/0 | **37 / 0** |
+| Boot smoke | — | **PAGES_RUNTIME_BOOT_OK** |
+| Both testbeds | — | **BOTH_TESTBEDS_PLAYABLE_OK** |
+
+**528 passing, zero regressions.**
+
+### Guards added
+
+X grid alignment (`x % 32`) and Y grounding for sources, gates, switches,
+checkpoints, crates, and non-drone enemies, across every `levelN.json` AND
+`N_NAME.json` twin.
+
+Grounding is **derived from the shipped `_anchorObjBottom` contract**, not restated:
+foot column = `floor((x + w/2)/32)`, scan down from the object's own row, first
+solid tile top = `surfaceY`, grounded ⇔ `y + h === surfaceY`. Guard and Builder
+therefore cannot disagree about what "grounded" means.
+
+As ordered: no `y % 32` assertion, no positive-margin assertion, bottomless columns
+get their own distinct failure, drones/platforms exempt, `*_prev_backup.json`
+already excluded by the existing filename filter.
+
+### Chief's content was clean — I did not touch it
+
+`level1`/`1_NEON_RISE`, `level2`, `level3`/`3_LEVEL_3` all pass grid + grounding,
+exactly as Kiro's audit predicted.
+
+### 7 failures, all mine, all fixed rather than exempted
+
+Kiro predicted 3 in my crate testbed. There were **7** — my *fence* testbed was
+new and unaudited:
+
+```
+99_CRATE_TIMED_TESTBED  GEN_A +36px · GEN_B +36px · CP1 +64px
+99_FENCE_TESTBED        GEN_A +4px · GEN_B +4px · CP1 +30px · EXIT x=1200 off-grid
+```
+
+All regrounded (sources y=516, checkpoints y=544, EXIT x 1200→1216). Both testbeds
+re-verified end to end afterwards: fence still blocks→shorts→opens, crate still
+bridges and the timed gate still expires to dormant.
+
+### Mutation-tested (4/4 caught)
+
+float a source · move a gate off-grid · punch out a floor column · float a
+checkpoint — each produced exactly one targeted failure, and the bottomless case
+produced its own distinct message rather than a grounding mismatch.
+
+### My own exemption assertion was VACUOUS — found and fixed
+
+**No authored level contains a single enemy or platform.** So the drone/platform
+exemption branches were never exercised by real data — an untested exemption is
+how a guard silently stops guarding. Added a synthetic fixture proving the
+exemption is load-bearing: a hovering drone and a mid-air platform genuinely FAIL
+the grounded test that a walking enemy passes at the same column.
+
+### FLAGGED FOR CHIEF — Level 3 has no enemies
+
+`level3.json` is published in the manifest with **`enemies: []`**, but
+`docs/LEVEL3_DESIGN_BRIEF.md` requires "a drone patrolling a stretch the player
+must cross", and the level's entire teaching goal is *getting hit scatters your
+charge → recover it*. As shipped, Level 3 **cannot teach its lesson** — there is
+nothing to be hit by. Its name is also still `"LEVEL 3"` rather than
+`"DON'T GET HIT"`. Level content is Chief's lane, so this is reported, not fixed.
+
+### Next
+
+O2 grounded zone — propose `docs/ORCHA_GROUNDED_ZONE_V1_SEMANTICS.md` and HOLD
+for ratification before implementing.
+
+---
+
 ## ORDER FENCE_SHORT_CIRCUIT — powered fence + short-circuit wall switch
 
 - **Date:** 2026-09-12T23:40-04:00

@@ -238,6 +238,127 @@ for (const filename of levelFiles) {
   }
 }
 
+// ── Placement guards: grid alignment + grounding (KIRO_ORDER_ORCHA_01 O1) ──
+// Chief 2026-09-12: "objects seem to be hovering on top of the ground; objects
+// need to snap to the grid and be placed on round tiles."
+//
+// Every CAUSE is already repaired (checkpoint/drone spawn snapping, drag
+// re-anchoring, SNAP_GAMEPLAY_DEFAULT 16->32, and the `tileIsSolid(footCol,r)`
+// misuse that evaluated `footCol >= 10` and reported "solid" on the first row
+// scanned for any object past column 10). Nothing PREVENTS recurrence: a
+// hand-edited JSON or a future tool change reintroduces it silently. Same
+// pattern as the required-less gate — fixed once, then guarded forever.
+//
+// GROUNDING CONTRACT — mirrors editor/tools.js `_anchorObjBottom` exactly:
+//   foot column = floor((x + w/2) / 32)   i.e. the object's horizontal CENTRE
+//   scan DOWN from the object's own row for the first solid tile
+//   surfaceY = thatRow * 32               i.e. the TOP of the solid tile
+//   grounded  <=>  y + objectHeight === surfaceY
+// Deriving it from the shipped anchor rather than restating it means the guard
+// and the Builder can never disagree about what "grounded" means.
+console.log('\n[ Placement: grid alignment + grounding ]');
+{
+  // Heights are the runtime collision heights, NOT sprite heights. A source is
+  // 28px, a switch 22px; a checkpoint's `y` IS the standing-ground line (height
+  // 0), which is why it is compared directly against surfaceY.
+  const FOOT_H = { sources: 28, switches: 22, checkpoints: 0 };
+  const SOLID  = v => v === 1 || v >= 10;   // matches Level.solidAt
+
+  for (const filename of levelFiles) {
+    const L = JSON.parse(fs.readFileSync(path.join(levelDir, filename), 'utf8'));
+    const cols = L.cols;
+    const rows = Math.round((L.tiles?.length ?? 0) / (cols || 1));
+    const tileAt = (tx, ty) =>
+      (tx < 0 || tx >= cols || ty < 0 || ty >= rows) ? 0 : (L.tiles[ty * cols + tx] || 0);
+
+    // First solid surface at or below the object's own row, at its foot column.
+    // Returns null when the column is bottomless — reported as its own failure.
+    const surfaceUnder = (x, w, y) => {
+      const footCol = Math.max(0, Math.min(Math.floor((x + w / 2) / TILE), cols - 1));
+      const fromRow = Math.max(0, Math.floor(y / TILE));
+      for (let r = fromRow; r < rows; r++) if (SOLID(tileAt(footCol, r))) return r * TILE;
+      return null;
+    };
+
+    const checkPlacement = (kind, obj, w, h, label) => {
+      // X: grid alignment. Objects are authored on 32px columns.
+      check(Number.isFinite(obj.x) && obj.x % TILE === 0,
+        `${filename}: ${label} x is 32px grid-aligned (x=${obj.x})`);
+
+      const surfaceY = surfaceUnder(obj.x, w, obj.y);
+      if (surfaceY === null) {
+        // Clearer, separate failure than a grounding mismatch — the object is
+        // not floating above a floor, there IS no floor.
+        check(false, `${filename}: ${label} is placed over a bottomless column (no solid tile below x=${obj.x})`);
+        return;
+      }
+      // Y: grounded. Deliberately NOT `y % 32` — a 28px source resting on a
+      // surface at 224 must sit at y=196, so grounding wins over grid on Y.
+      const foot = obj.y + h;
+      check(foot === surfaceY,
+        `${filename}: ${label} rests on the surface (y+${h}=${foot}, surface=${surfaceY}` +
+        (foot === surfaceY ? ')' : `, floating ${surfaceY - foot}px)`));
+    };
+
+    for (const s of L.sources ?? [])
+      checkPlacement('sources', s, 28, FOOT_H.sources, `source ${s.id}`);
+    for (const g of L.gates ?? [])
+      checkPlacement('gates', g, g.w ?? 32, g.h ?? 64, `gate ${g.id}`);
+    for (const sw of L.switches ?? [])
+      checkPlacement('switches', sw, 22, FOOT_H.switches, `switch ${sw.id}`);
+    for (const cp of L.checkpoints ?? [])
+      checkPlacement('checkpoints', cp, 22, FOOT_H.checkpoints, `checkpoint ${cp.id}`);
+    for (const c of L.crates ?? [])
+      checkPlacement('crates', c, c.w ?? 32, c.h ?? 32, `crate ${c.id}`);
+
+    // ── Deliberate exemptions, asserted rather than silently skipped ──
+    // A hovering drone is SUPPOSED to float, and a moving platform legitimately
+    // sits in mid-air. Recording the counts means a future reader can see they
+    // were considered, not overlooked.
+    const drones = (L.enemies ?? []).filter(e => e.type === 'drone');
+    const ground = (L.enemies ?? []).filter(e => e.type !== 'drone');
+    for (const e of ground)
+      checkPlacement('enemies', e, e.w ?? 20, e.h ?? 26, `enemy ${e.id ?? e.type}`);
+    check(true,
+      `${filename}: ${drones.length} drone(s) and ${(L.platforms ?? []).length} platform(s) exempt from grounding by design`);
+  }
+
+  // ── The exemptions above are VACUOUS on current content ──────────────
+  // No authored level currently contains a single enemy or platform, so the
+  // drone/platform exemption branches are never exercised by real data. An
+  // untested exemption is exactly how a guard silently stops guarding, so it is
+  // proven here against a synthetic fixture instead of being taken on trust.
+  {
+    const cols = 10, rows = 18;
+    const tiles = new Array(cols * rows).fill(0);
+    for (let x = 0; x < cols; x++) tiles[17 * cols + x] = 10;   // floor, surface y = 544
+    const tileAt = (tx, ty) =>
+      (tx < 0 || tx >= cols || ty < 0 || ty >= rows) ? 0 : (tiles[ty * cols + tx] || 0);
+    const SOLID2 = v => v === 1 || v >= 10;
+    const surfaceUnder2 = (x, w, y) => {
+      const footCol = Math.max(0, Math.min(Math.floor((x + w / 2) / TILE), cols - 1));
+      for (let r = Math.max(0, Math.floor(y / TILE)); r < rows; r++)
+        if (SOLID2(tileAt(footCol, r))) return r * TILE;
+      return null;
+    };
+    const grounded = (x, w, y, h) => (y + h) === surfaceUnder2(x, w, y);
+
+    // A drone deliberately hovers 200px up. It must be EXEMPT, i.e. the harness
+    // must not evaluate it — proven by showing the same coordinates FAIL the
+    // grounded test that a walking enemy would be held to.
+    const droneY = 320;
+    check(!grounded(64, 20, droneY, 26),
+      'exemption fixture: a hovering drone would FAIL the grounded test (so exempting it is meaningful, not a no-op)');
+    const walker = { x: 64, y: 544 - 26 };
+    check(grounded(walker.x, 20, walker.y, 26),
+      'exemption fixture: a ground enemy at the same column DOES satisfy the grounded test');
+    // A platform in mid-air is likewise exempt for a real reason.
+    check(!grounded(96, 96, 288, 12),
+      'exemption fixture: a mid-air moving platform would FAIL the grounded test (exemption is load-bearing)');
+    check(surfaceUnder2(64, 20, 0) === 544,
+      'exemption fixture: surfaceUnder resolves the floor at y=544 as expected');
+  }
+}
 // ── Spawn reachability guard ─────────────────────────────────────────────
 // Chief 2026-09-12: "placing the player before where he is in the screenshot
 // prevents the player from moving."
