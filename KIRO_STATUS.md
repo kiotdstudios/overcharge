@@ -951,3 +951,25 @@ Aki's P2 report claimed "full crate support across all selection infrastructure 
 **Verified in a real browser:** injected a crate, a moving platform and a drone into a level, marquee-selected all three (`inRect` 1/1/1, `selectionCount` 3, `selectedKinds` `[crate, enemy, platform]` — crate now present), group snap resolved to 32, applied delta `dx 64`, and confirmed **relative offsets unchanged (rigid) and every member still on the 32 grid**.
 
 **Tests:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK.
+
+---
+
+## 2026-09-12 — QA gate: Orcha's favicon (`42c6204`) — PASSED, promoted
+
+**Cherry-picked, not merged.** Orcha's branch was **22 behind** live, so a branch merge would have dragged 22 commits of stale state (pre-vertical-expansion, pre-multi-select fixes). Confirmed `index.html` had **not** been touched on live since his base, so the pick was conflict-free → `6f736a1`.
+
+**His diagnosis was right and better than the request implied.** The complaint was about telling the tabs apart; the actual cause was that **the game had no favicon AND no `<title>` at all** — browser default globe plus a raw URL — while the editor already had a yellow bolt. He fixed both.
+
+**Verified by decoding and loading, not by reading the string:**
+| page | title | bolt | accent | bg | loads |
+|---|---|---|---|---|---|
+| `index.html` | `OVERCHARGE` | `#cc44ff` purple | `#7711cc` | `#091526` | ✓ |
+| `editor.html` | `OVERCHARGE — Editor` | `#ffee00` yellow | `#ff8800` | `#091526` | ✓ |
+
+Both data URIs decode to a single well-formed `<svg>` root with a real path, and I confirmed each actually resolves as a loadable image in-browser rather than assuming the URI was valid. Colour distance **310.7 / 441** — his figure was accurate, and that is clearly distinguishable at 16px. Purple is the right choice: it is the charge/gate colour used throughout play, so the tab matches the game on screen. Inline data URI means nothing can 404 on the Pages deploy.
+
+**Reporting correction:** he quoted "suites unchanged at 321/0". Live is **322/0** — his baseline predates the image-identity assertion I added to `energy_authority` (87→88). Same class of slip as Aki's: counts must be quoted from a run on the current base, not carried forward. Not a defect in his work.
+
+**Ratified his judgment call on `index_classic.html`:** he left it untouched and asked. Correct — it is a legacy page, not part of the game-vs-editor confusion Chief actually hit, and giving it a third colour would add a distinction nobody needs. Leaving it plain also means it can never be mistaken for the live game.
+
+**Gate:** parity 110/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **322/0** · boot smoke OK, zero page errors. Favicons need a hard refresh to appear — browsers cache them aggressively.
