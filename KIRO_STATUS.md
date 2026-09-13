@@ -1119,3 +1119,24 @@ Aki is at `b6df5ea`, **27 behind live, 0 ahead** — she never started P6a. Issu
 **P6a switch art put ON HOLD rather than left queued.** Switch art now exists from Chief's pack, and `switch_off` → `switch_on` maps **exactly** onto the default switch's off→on semantics (the default switch currently draws vector art — confirmed in `electricity.js`). One pack could cover both styles with no new art commissioned.
 
 **Flagged the real trade for Chief rather than deciding it:** if a default switch that is ON uses `switch_on.png`, it becomes visually identical to a wall switch that has not yet fired — two devices with different behaviour sharing one look. Context disambiguates (wall switch sits beside a fence, default beside a barrier), but it is a genuine readability call. Told Aki to report it and **not** produce speculative art or restyle the default switch on her own initiative.
+
+---
+
+## 2026-09-12 — Chief delegated decision authority to Kiro as Technical Director
+
+**Chief:** *"i'll listen to you as the technical director and have you make the call from here on out and i'll change if need be upon testing in game."*
+
+Recorded in `docs/GIT_GOVERNANCE.md` so agents stop waiting on Chief for technical questions. The loop is now **decide → ship → Chief tests → Chief reverses if it feels wrong.**
+
+**I now rule directly on:** device/mechanic semantics and state machines, schema shape, costs/budgets/solvability, art integration (which sprite serves which state, anchors, whether art is even needed), editor behaviour and defaults, and test/guard strategy.
+
+**Still escalated to Chief, always:** destructive git and asset deletion · creative direction (what a level is *about*, art style, the game's identity) · anything not undoable by a test-and-revert cycle · scope changes. Also made it a standing rule that **every ruling is written down with its reasoning**, so Chief can reverse a call without reconstructing why it was made — a ruling that exists only in an agent's head is not a ruling.
+
+### First ruling under that authority: P6a CANCELLED (was "on hold")
+
+Do not produce switch art; do not restyle the default switch. Reasoning:
+1. **Zero consumers.** Level 2 is the only level with a switch, and it is being flipped to `style:"wall"` — so after that flip **no level contains a default-style switch at all.**
+2. **It already works.** The default switch draws a glow rect *plus a charge fill bar*. Replacing it means re-implementing that fill over sprite art — regression risk on a working device for no gameplay gain.
+3. **The ambiguity I myself raised is benign on inspection.** The only collision is a *fired* default switch vs an *unfired* wall switch, and those never compete for attention — one is spent and inert, the other is the live target. The neighbouring object disambiguates anyway: spent default switch beside an OPEN barrier, live wall switch beside a SPARKING fence.
+
+Recorded the reversal path explicitly: if play says switches should look unified, it is one branch in `Switch.draw` to reuse `switch_off`/`switch_on` for the default style. Revisit only when a level actually authors a default switch — no speculative work.
