@@ -1024,3 +1024,32 @@ Verdict in `docs/KIRO_RULING_FENCE_V1.md`. **My order `ORDER_FENCE_SHORT_CIRCUIT
 **Rulings:** F5 render-only `on`-inversion RATIFIED (one Switch authority, one charge path, inversion confined to presentation) · F8 `switch_off.png` reserved-not-dropped RATIFIED, plus his sharp note that if Chief meant it as the START state that is a different puzzle (power it up, not short it out) · **F7 RULED: fence dies IMMEDIATELY**, burn animation plays concurrently — in a puzzle game a ~1s window where the player cannot tell if their charge worked is worse than perfect cause-and-effect ordering, and the fence going dark IS the only feedback that matters.
 
 **Queue ruled: FENCE first, P1 placement guards second.** My own reasoning changed since issuing P1 — the hovering defect it guards is **already fixed at source** (spawn snap, drag snap via `SNAP_GAMEPLAY_DEFAULT` 16→32 + re-anchor, `tileIsSolid` misuse, and every level re-grounded). P1 is now regression protection rather than a live fix, so Chief's player-facing fence wins. P1/P2 not dropped, just sequenced after.
+
+---
+
+## 2026-09-12 — Chief's "player can't move" report: REPRODUCED, root-caused, guarded
+
+**Chief:** *"placing the player on the map before where he is in the screenshot prevents the player from moving; I think somewhere there is a default start and if you put a player before that default spot they are unable to move."*
+
+**His symptom is real. His hypothesis about a hardcoded default is not the cause.** There IS a default (`level.js:43` → `def.playerStart || {x:48,y:354}`) but it is unreachable — `main.js:67` throws on a level with no `playerStart`.
+
+**Reproduced empirically** by intercepting the level JSON in flight (no repo file touched) and tracking the player sprite's world X across frames:
+
+| spawn x | result |
+|---|---|
+| 64 (as authored) | moves 28 → 217 — **fine** |
+| 32 | **STUCK** |
+| 16 | **STUCK** |
+| 0 | **STUCK** |
+
+All three stuck cases pinned at sprite x = −24, i.e. **player.x = 12**.
+
+**Root cause — and 12 is the proof.** `PowerGate.blocksHorizontal(rx, rw)` (`electricity.js:249-256`) **deliberately ignores Y**: a closed gate is treated as a floor-to-ceiling barrier so the player cannot jump over it. That is intentional and correct. The consequence is that **a closed gate seals the level into horizontal regions**. Chief's Level 3 exit gate sits at x=32..64, so a spawn at or left of it strands the player between the world edge and the gate column, pinned at exactly `gate.x − PLAYER_W = 32 − 20 = 12`. Measured value matches the predicted value.
+
+**Why it is worse than "can't move":** a stranded player can never reach a source, so can never earn the 8 charge needed to open the very gate trapping them. Unrecoverable soft-lock, with nothing on screen explaining it. Also note this is the same false-lead that made my own earlier headless probe fail to walk the player — I blamed the harness and moved on; Chief's report is what proved it deserved attention.
+
+**Guard added** (`_dev/parity_regression.mjs`, parity **141 → 153**): for every level, compute the widest X interval the player's box can occupy without overlapping a closed gate column, then assert (a) the spawn is not inside a gate column and (b) at least one source lies inside the reachable interval.
+
+**Mutation-verified rather than assumed** — the guard must fail on the real bug, so I forced it: spawn x=32 → *"playerStart is not inside a closed gate's blocking column"* FAILS; spawn x=0 → *"spawn can reach at least one energy source"* FAILS with a message naming the trap; real spawn restored → **153/0**.
+
+**Chief's fix is one field:** keep the Level 3 spawn at x ≥ 64 (right of the exit gate), or move the exit gate off the far-left edge. The guard now blocks either mistake from shipping.

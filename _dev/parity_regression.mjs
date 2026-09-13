@@ -202,6 +202,62 @@ for (const filename of levelFiles) {
   }
 }
 
+// ── Spawn reachability guard ─────────────────────────────────────────────
+// Chief 2026-09-12: "placing the player before where he is in the screenshot
+// prevents the player from moving."
+//
+// Cause (measured, not guessed): PowerGate.blocksHorizontal() deliberately
+// IGNORES Y — a closed gate is a floor-to-ceiling barrier so the player cannot
+// jump over it (electricity.js:249-256). So a closed gate divides the level into
+// sealed horizontal regions. Spawn the player on the wrong side of one and they
+// are trapped in a sliver: reproduced at spawn x=0/16/32 in level3, where the
+// player pinned at exactly gate.x - PLAYER_W = 32 - 20 = 12.
+//
+// A trapped player can never reach a source, so can never earn the charge needed
+// to open the gate that is trapping them — an unrecoverable soft-lock with no
+// on-screen explanation. Guard it: from playerStart, walk out to the nearest
+// blocking gate column in each direction and require at least one source inside
+// the reachable interval.
+console.log('\n[ Spawn reachability (closed gates seal horizontal regions) ]');
+{
+  const levelDirR = path.resolve('src_scroll/levels');
+  const files = fs.readdirSync(levelDirR)
+    .filter(n => /\.json$/.test(n) && n !== 'levels.json' && !/_prev_backup\.json$/.test(n))
+    .sort();
+  for (const filename of files) {
+    const L = JSON.parse(fs.readFileSync(path.join(levelDirR, filename), 'utf8'));
+    if (!L.playerStart || !Array.isArray(L.tiles)) continue;
+    const pxW = L.cols * TILE;
+    const sx  = L.playerStart.x;
+
+    // Gates that block by column while closed. blockOnly barriers count too:
+    // they also block until their switch fires.
+    const walls = (L.gates || []).map(g => ({ id: g.id, x0: g.x, x1: g.x + (g.w ?? 32) }));
+
+    // Widest interval the player's box can occupy without overlapping a wall column.
+    let lo = 0, hi = pxW - PLAYER_W;
+    for (const w of walls) {
+      if (sx + PLAYER_W <= w.x0)      hi = Math.min(hi, w.x0 - PLAYER_W); // wall to the right
+      else if (sx >= w.x1)            lo = Math.max(lo, w.x1);            // wall to the left
+      else                            { lo = Infinity; hi = -Infinity; }  // spawned INSIDE a wall
+    }
+
+    const insideWall = lo > hi;
+    check(!insideWall,
+      `${filename}: playerStart is not inside a closed gate's blocking column`,
+      insideWall ? `spawn x=${sx} overlaps a gate column — player cannot move at all` : '');
+
+    if (!insideWall) {
+      const reachable = (L.sources || []).filter(s => s.x + 28 > lo && s.x < hi + PLAYER_W);
+      check(reachable.length > 0 || (L.sources || []).length === 0,
+        `${filename}: spawn can reach at least one energy source`,
+        reachable.length > 0
+          ? `reachable x[${lo}..${hi}], ${reachable.length}/${(L.sources || []).length} source(s)`
+          : `TRAPPED: spawn x=${sx} can only occupy x[${lo}..${hi}] — no source in reach, so the gate sealing it can never be charged`);
+    }
+  }
+}
+
 // ── Animation frame_000 convention guard ─────────────────────────────────
 // PixelLab exports frame_000 as the object's REST POSE, not the first frame of
 // motion. This has now bitten the project THREE times:
