@@ -187,3 +187,107 @@ Chief playing the game outranks it.
   ask again.
 
 — Kiro, Technical Director
+
+
+---
+---
+
+# ADDENDUM — issued after Chief re-cut the gate art
+
+**Read this before starting O5.1. It changes that item materially.**
+
+## O5.1 IS REVISED — and the §6.2 exception is WITHDRAWN
+
+Chief found the cause himself: *"the gate sprite had some black lines at the bottom of it i cleaned
+it up."* He re-cut the art and it fixes the problem properly.
+
+Measured, every frame of the new pack:
+
+```
+idle      botPad 0-8:  13  13  13  13  13  13  13  13  13
+charging  botPad 0-8:  13  13  13  13  13  13  13  13  13
+rest pose            :  13        dead gate: 13
+topPad, all frames   :  10
+```
+
+**Uniform. Every single frame.** Compare the old sheet's idle row — `0,12,12,13,13,0,13,13,13` —
+which is what produced the hover *and* the once-per-loop twitch.
+
+### Consequences
+1. **The per-frame normalisation I ordered is no longer needed.** A **single constant offset of
+   13px** grounds every frame, because the padding no longer varies.
+2. **I am withdrawing the exception to standing ruling §6.2.** Uniform-canvas anchoring stands, with
+   no carve-out for the gate. Do not implement per-frame bbox anchoring. §6.2 is intact and applies
+   everywhere again.
+3. The diagnostic test I gave you still holds and is now demonstrated: *erratic variance = defect,
+   consistent variance = animation.* Here the defect was in the art, and the art is where it got
+   fixed. **Prefer fixing the asset over compensating in code** — code compensation would have
+   hidden a broken sheet forever.
+
+## The art is installed. Wire it up.
+
+`assets/objects/gate/` — I placed the files so you are not blocked. **`assets/objects/gate/GEOMETRY.md`
+carries the measurements; read it rather than re-deriving.**
+
+```
+assets/objects/gate/rest.png                    neutral/base  (was frame_000)
+assets/objects/gate/dead.png                    dormant/spent
+assets/objects/gate/idle/frame_001..008.png     holds some charge
+assets/objects/gate/charging/frame_001..008.png actively charging
+```
+
+### frame_000 is absent ON PURPOSE
+In the source pack, `idle/frame_000.png` and `charging/frame_000.png` are **byte-identical to the
+rest pose** (sha256 `583f40329cb7380a`, verified). They are the rest pose, not frame 1. I installed
+only `001..008` and kept that shared pose as `rest.png`.
+
+**Its absence is the guard.** Fourth time this pattern has appeared in this project; a missing file
+cannot be animated by accident, which a written rule has failed to prevent three times.
+
+### Geometry — this is the part that needs care
+```
+canvas           128 x 128
+content          cols 17..110  (94 wide)   rows 10..114  (105 tall)
+padding          left 17  right 17  top 10  bottom 13
+```
+
+The old path cropped a **centred 64-wide slice** (`sx = col*128 + 32`) and drew it 64×128. **That
+crop would clip the new art**, whose content spans columns 17–110. So the draw geometry has to
+change, not just the file paths.
+
+Also note the aspect has changed: content is 94×105 (≈0.9), where the old draw was 64×128 (0.5).
+**The gate will not look the same size.** Drawing the new content at 64 wide would squash it badly.
+
+**My call, and correct it from play:** draw the **content region** (not the padded canvas),
+preserving natural aspect, horizontally centred on `this.cx`, with the content's bottom row landing
+exactly on `this.y + this.h`. Start from a **105px drawn height** (content's natural height) giving
+~94 wide, then let Chief judge the size on screen. On-screen proportions are his lane — if it reads
+too large or small, he rules and you adjust.
+
+**Do not stretch to fit the hitbox.** Level 1's gate hitbox is 32×64 and Level 2's EXIT is 40×64;
+the sprite has always been larger than the hitbox and that is intentional.
+
+### Old files: leave them for now
+`gate_electric_spritesheet.png`, `gate_electric_dead.png`, `gate_electric_open.png` and
+`gate_closed.png` stay in the repo until the new path is gated and Chief has seen it. Once he
+approves, I will archive them in one commit. **Keep the fallback behaviour** — a missing image must
+still degrade to the vector glow rect rather than drawing nothing.
+
+Row 0's hazard note in `electricity.js` (frames 1–8 empty, frame index hard-pinned to 0) is
+specific to the old sheet. When the sheet stops being used, delete that comment rather than leaving
+it to mislead someone later.
+
+## Revised scope for this order
+1. **Wire the new gate art** with the corrected geometry above.
+2. **O5.2** labels clear the sprite's drawn bounds — now easier, since the content bounds are
+   uniform and documented.
+3. **O5.3** charge bar and EXIT label above the gate.
+4. **O5.4** shorted switch renders `switch_off.png`.
+5. ~~per-frame baseline normalisation~~ — **withdrawn**, single constant offset instead.
+
+## Not yours: the Builder gap
+Chief also reported he cannot see or place the wall switch and fence in the Builder, and wants the
+electrical filter available. **That is Aki's lane and is ordered separately** — partly caused by a
+correction of mine that was too broad. Do not touch `editor/**`.
+
+— Kiro, Technical Director
