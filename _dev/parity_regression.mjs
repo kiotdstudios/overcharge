@@ -453,5 +453,110 @@ console.log('\n[ Animation frame_000 rest-pose convention ]');
   if (checked === 0) check(true, 'no rest-pose/frame_000 duplicates detected');
 }
 
+// ── TILE REGISTRY SYNC GUARD (KIRO_ORDER_ORCHA_02, O3) ───────────────────
+// `TILE_ID_REGISTRY` is duplicated, hand-synced, and until now enforced only by a
+// pair of code comments:
+//
+//   editor/state.js       ID -> MANIFEST ASSET ID   (12: 'env_tile_purple_a')
+//   src_scroll/render.js  ID -> PNG BASENAME        (12: 'tile_purple_a')
+//
+// The Builder and the runtime can therefore disagree about what tile 12 looks
+// like, with no error anywhere: Chief paints one tile and plays another. Latent
+// and harmless so far, but Aki is about to append new IDs from the new tilesheet,
+// so this guard is sequenced ahead of that work to protect it.
+//
+// HOW THE TWO SIDES ARE JOINED — via the MANIFEST, not a string transform.
+// Today's convention happens to be `env_tile_x` <-> `tile_x`, but hardcoding an
+// `env_` strip would break the moment Aki names something differently. The
+// manifest entry holds the real path, so the authoritative check is:
+//     editor id -> manifest path -> basename === runtime basename
+// That keeps the guard correct under any future naming choice.
+//
+// Registries are parsed from SOURCE TEXT rather than imported: `render.js` touches
+// `Image` at module scope and `state.js` is Builder-side, so importing either into
+// Node would need browser shims and would run side effects. Reading the literal is
+// both side-effect free and closer to what a human reviewer sees.
+console.log('\n[ Tile registry sync: editor <-> runtime <-> disk ]');
+{
+  const readRegistry = (file, label) => {
+    const src = fs.readFileSync(file, 'utf8');
+    const m = src.match(/TILE_ID_REGISTRY\s*=\s*Object\.freeze\(\{([\s\S]*?)\}\)/);
+    check(!!m, `${label}: TILE_ID_REGISTRY literal is parseable`);
+    if (!m) return null;
+    const out = {};
+    for (const entry of m[1].matchAll(/(\d+)\s*:\s*['"]([^'"]+)['"]/g)) {
+      out[Number(entry[1])] = entry[2];
+    }
+    return out;
+  };
+
+  const editorReg  = readRegistry(path.resolve('editor/state.js'),        'editor/state.js');
+  const runtimeReg = readRegistry(path.resolve('src_scroll/render.js'),   'src_scroll/render.js');
+
+  if (editorReg && runtimeReg) {
+    const eKeys = Object.keys(editorReg).map(Number).sort((a, b) => a - b);
+    const rKeys = Object.keys(runtimeReg).map(Number).sort((a, b) => a - b);
+
+    check(eKeys.length > 0, `registries are non-empty (editor has ${eKeys.length} ID(s))`);
+
+    // 1. Identical key sets — no extras on either side.
+    const onlyEditor  = eKeys.filter(k => !rKeys.includes(k));
+    const onlyRuntime = rKeys.filter(k => !eKeys.includes(k));
+    check(onlyEditor.length === 0,
+      `every editor tile ID exists in the runtime registry` +
+      (onlyEditor.length ? ` — MISSING from runtime: ${onlyEditor.join(', ')}` : ''));
+    check(onlyRuntime.length === 0,
+      `every runtime tile ID exists in the editor registry` +
+      (onlyRuntime.length ? ` — MISSING from editor: ${onlyRuntime.join(', ')}` : ''));
+
+    // Manifest index: asset id -> path.
+    const manifest = JSON.parse(fs.readFileSync(path.resolve('assets/ASSET_MANIFEST.json'), 'utf8'));
+    const manifestList = Array.isArray(manifest) ? manifest : (manifest.assets ?? []);
+    const byId = new Map();
+    for (const a of manifestList) if (a && a.id) byId.set(a.id, a.path ?? a.src ?? a.file ?? null);
+
+    // The runtime builds its path as tiles/<basename>.png — mirror that here so
+    // the on-disk check tests the path the GAME actually requests.
+    const RUNTIME_DIR = 'assets/tilesets/purple_city/tiles';
+
+    for (const id of eKeys) {
+      const assetId  = editorReg[id];
+      const runtimeK = runtimeReg[id];
+      if (runtimeK === undefined) continue;   // already reported above
+
+      // 2. Consistent mapping, derived from the manifest.
+      const manifestPath = byId.get(assetId);
+      check(!!manifestPath,
+        `tile ${id}: editor asset id "${assetId}" is present in ASSET_MANIFEST.json`);
+      if (manifestPath) {
+        const base = path.basename(String(manifestPath)).replace(/\.png$/i, '');
+        check(base === runtimeK,
+          `tile ${id}: editor and runtime resolve to the SAME file ` +
+          `(manifest basename "${base}" vs runtime key "${runtimeK}")`);
+      }
+
+      // 3. The file the runtime asks for must exist on disk. A registered key
+      //    whose PNG is missing renders as a flat fill, not a missing-texture
+      //    box, so it is easy to ship blind.
+      const onDisk = path.resolve(RUNTIME_DIR, `${runtimeK}.png`);
+      check(fs.existsSync(onDisk),
+        `tile ${id}: runtime PNG exists on disk (${RUNTIME_DIR}/${runtimeK}.png)`);
+    }
+
+    // 4. Reserved band. 3-9 are documented as "Builder must not emit"; 1 is
+    //    legacy solid and 2 is the one-way platform, both of which are live
+    //    contract and must NOT appear in the registry as art IDs.
+    for (const [label, reg] of [['editor', editorReg], ['runtime', runtimeReg]]) {
+      const reserved = Object.keys(reg).map(Number).filter(k => k >= 3 && k <= 9);
+      check(reserved.length === 0,
+        `${label} registry uses no ID in the RESERVED 3-9 band` +
+        (reserved.length ? ` — found ${reserved.join(', ')}` : ''));
+      const belowTen = Object.keys(reg).map(Number).filter(k => k < 10);
+      check(belowTen.length === 0,
+        `${label} registry has no art ID below 10 (1=legacy solid, 2=one-way are contract, not art)` +
+        (belowTen.length ? ` — found ${belowTen.join(', ')}` : ''));
+    }
+  }
+}
 console.log(`\nRESULTS: ${passed} passed, ${failed} failed`);
 if (failed > 0) process.exitCode = 1;

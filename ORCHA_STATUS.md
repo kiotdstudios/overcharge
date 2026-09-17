@@ -5,6 +5,103 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## KIRO_ORDER_ORCHA_02 — O3 TILE REGISTRY SYNC GUARD (+ P1 questions filed)
+
+- **Date:** 2026-09-17T00:40-04:00 · **Branch:** `agent/orcha-dev` · synced from `d5597fb`
+- **Status:** COMPLETE, pushed, awaiting QA
+
+### Suites (before → after)
+
+| Suite | Before | After |
+|---|---|---|
+| `parity_regression.mjs` | 254/0 | **275 / 0** |
+| `fence_switch.mjs` | 62/0 | **62 / 0** |
+| `energy_authority.mjs` | 88/0 | **88 / 0** |
+| `crate_timed.mjs` | 87/0 | **87 / 0** |
+| `test_electricity.mjs` | 37/0 | **37 / 0** |
+| Boot smoke (port 3812) | — | **BOOT_SMOKE_OK**, `ERRORS: []` |
+
+**549 passing, zero regressions.**
+
+### O3 — what the guard enforces
+
+`TILE_ID_REGISTRY` lives in two files, hand-synced, previously enforced only by
+code comments. The guard now fails when they diverge:
+
+1. **Identical key sets** — no ID present on one side only.
+2. **Consistent mapping, derived from the MANIFEST** — not a string transform.
+   `editor id → manifest path → basename === runtime basename`. Today's convention
+   is `env_tile_x` ↔ `tile_x`, but a hardcoded `env_` strip would break the moment
+   Aki names something differently, so the manifest is the join.
+3. **Every registered ID resolves to a PNG on disk**, using the path the runtime
+   actually requests (`tiles/<basename>.png`). A missing file renders as a flat
+   fill, not a missing-texture box, so it ships blind.
+4. **No ID in the reserved 3-9 band, and none below 10** — `1` legacy solid and
+   `2` one-way are live contract, not art.
+
+Registries are parsed from **source text**, not imported: `render.js` touches
+`Image` at module scope and `state.js` is Builder-side, so importing either would
+need browser shims and would run side effects.
+
+### Mutation-tested 4/4, each verified as actually applied
+
+| Mutation | Result |
+|---|---|
+| ID 14 added to editor only | **CAUGHT** — named the missing ID |
+| runtime `12 → tile_dark_b` vs editor `env_tile_purple_a` | **CAUGHT** — named both sides |
+| `tile_purple_b.png` hidden, key left | **CAUGHT** — named the exact path |
+| reserved ID `7` registered | **CAUGHT ×3** — band + below-10 + key-set |
+
+Every mutation printed `APPLIED` with what changed **before** the suite ran, and
+the tree was restored to 275/0 after. This is the discipline that came out of my
+earlier false green, where the shell mangled a template literal and a no-op
+mutation "passed".
+
+### Two corrections I made to my own work
+
+- I first wrote the guard against a `repoRoot` variable that **does not exist** in
+  the harness (it uses `path.resolve` from CWD). Caught by grepping my own
+  references rather than trusting `node --check`, which passed regardless since the
+  identifier only fails at runtime inside a conditional branch.
+- A `git commit` failed with `Permission denied` appending to the worktree reflog.
+  The push output looked like success because it reported the earlier fast-forward.
+  I verified `git log` and found **the commit had not been created**, retried, and
+  confirmed the file on the remote before moving on.
+
+### P1 — questions filed as ordered
+
+`docs/ORCHA_QUESTIONS_01.md` at `9e3011b`. All ten committed, with the **five
+already answered** by the brief/order marked closed rather than re-asking:
+Q1 O1 status, Q2 priority, Q4 Level 2 flip owner, Q6 Level 3 stub, Q10 MVP done.
+
+**Genuinely open:** Q3 engine/content usage gap, Q5 dev-only manifest for the
+`99_` testbeds, Q7 margin rule when enemies land, Q8 whether Aki has my measured
+anchor numbers, Q9 fence brightness with Chief.
+
+On **Q7** I offered a concrete option: a *conditional* margin assertion that fires
+only when `enemies.length > 0`. It would not fire on any level as authored today
+and I did **not** add it unruled, since you told me not to assert margin.
+
+### Dangling decoration refs — informational only, no assertion
+
+Per the order I added **no** guard. Counted for visibility after the `ffcf7d8`
+purge: `level2.json` 30, `level3.json` 6, `3_LEVEL_3.json` 6,
+`level1_prev_backup.json` 30. `level.js:203` skips images that fail to load,
+decorations carry no collision, Level 1 checksum unchanged at `6CFACDF6`.
+
+### POST-WEEKEND ITEM (logged as instructed)
+
+**Unify the two `TILE_ID_REGISTRY` copies into one shared module.** Deliberately
+not attempted now — it touches Aki's lane and the runtime in the same change while
+she has a large task in flight. The guard delivers the safety without the
+collision. Yours to schedule.
+
+### Next
+
+**O2** — grounded zone semantics doc, then HOLD. Not started.
+
+---
+
 ## KIRO_ORDER_ORCHA_01 — O1 PLACEMENT GUARDS
 
 - **Date:** 2026-09-13T00:26-04:00 · **Branch:** `agent/orcha-dev` (synced 0 behind)
