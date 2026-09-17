@@ -1381,3 +1381,101 @@ Level 3 is a published stub — terrain stops at x=1184 (62% of the level void),
 at x=32 *behind* the spawn at x=64, zero enemies, zero checkpoints, name still "LEVEL 3".
 Completable, so every automated check passes. Unfinished is not something a test can
 assert. Content is Chief's lane.
+
+---
+
+## 2026-09-17 — QA GATE: ORCHA O3 **PASS** · AKI A1–A4 **PASS WITH ONE CORRECTION** — both merged
+
+**Merged:** O3 `5de54b1` + Aki `75282b9` → merge `59da096`, plus my A4 correction. No conflicts.
+**Suites (combined tree, re-run by me):** parity **275/0** · fence_switch 62/0 · energy 88/0 ·
+crate_timed 87/0 · electricity 37/0 = **549 / 0** · boot smoke `ERRORS: []` · Level 1 checksum
+unchanged `6CFACDF6`.
+
+I merged both and then re-ran the full gate on the **combined** tree. Each branch passing alone
+does not mean they pass together, and Aki touched `ASSET_MANIFEST.json` while Orcha's O3 guard
+reads that same manifest to join the two tile registries. That interaction was the thing worth
+checking; it is clean.
+
+### O3 — PASS. I mutated it in three ways he deliberately did not.
+His 4/4 was sound, but his mutations shared a shape: he broke the **editor** side. The claim I
+actually needed to test was his central one — that the editor↔runtime join is *derived from the
+manifest* rather than a hardcoded `env_` prefix strip. A string-transform implementation would
+pass every mutation he ran.
+
+| My mutation | Result |
+|---|---|
+| K1 add ID 14 to the **runtime** registry only (he did editor-only) | **CAUGHT** — "MISSING from editor: 14" |
+| K2 repoint `env_tile_purple_a`'s **manifest path**, both registries untouched | **CAUGHT** — named manifest basename vs runtime key |
+| K3 swap basenames for 11↔12, **key set identical** | **CAUGHT ×2**, one per ID |
+
+**K2 is the one that matters.** Only a manifest-derived join can detect it — the registries are
+byte-identical before and after. His implementation is what he said it was. Tree restored to
+275/0, git status clean.
+
+Also worth recording: he caught two of his own errors before delivery — a guard written against a
+`repoRoot` variable that does not exist in the harness (found by grepping his own references,
+since `node --check` passes on an identifier that only fails inside a conditional branch), and a
+`git commit` that failed on a reflog permission error while the push output still looked like
+success. He verified `git log` rather than trusting the exit code. That is the second time this
+week that habit has caught something real.
+
+### AKI A1–A4 — merged, but A4 shipped a defect I fixed at the gate
+
+A1 (switch art), A2 (fence branch in the Builder), A3 (`boundingRect` 22×22 → 56×56) are correct.
+Anchors were **copied verbatim** from `electricity.js` (`dX=x-17, dY=y-34`), not re-derived, and
+`frame_000` is excluded from both animations. That is exactly what the order asked for.
+
+**A4 was wrong.** The order said state sprites must stay out of the palette — *"Chief must never
+be able to place a dead fence."* She added all six (`wall_switch_off/on/destroyed/burn_anim`,
+`fence_dead`, `fence_live_anim`) to `assets[]` with `generation.eligible: false` and a `notes`
+field reading "NOT a palette entry".
+
+**`generation.eligible` does not control palette visibility — it controls procedural generation.**
+`editor/assets.js` renders the browser from the manifest grouped by category and contains **no
+reference to `eligible` at all**. So the intent was documented and the mechanism did nothing.
+
+Verified empirically rather than by reading, and it is as well I did — my **first probe reported
+`A4_VIOLATIONS: 0` and was wrong.** Its `state.manifest.items` lookup returned 0 items, so every
+"absent" line was a false negative. The category dropdown was the tell: it read
+**`electrical (8)`** when only 2 electrical entries should exist. Rewrote the probe against the
+rendered DOM and got the truth: `ab-status "8 shown"`, with all six state sprites as clickable
+`ab-cell` entries carrying visible `ab-label`s. **A green probe from a broken selector is the same
+failure I keep warning the agents about, and I produced one.**
+
+There is a sharper detail. The pre-existing note on `gate_electric_closed` already said, in the
+same file she edited: *"Runtime state files … are NOT palette entries — they are wired in
+electricity.js. Do not add them to this manifest."* The manifest told her not to do this.
+
+**Fix, applied by me at the gate rather than sent back.** Moved the six entries from `assets[]`
+into an inert sibling key `_runtime_state_sprites[]`, with a note explaining that `assets[]` is
+the palette and `eligible` does not hide anything. Zero functional impact — `renderer.js`
+hardcodes these paths through `getImage('assets/objects/fence/frame_001.png')` and never consults
+the manifest for them, which I checked before touching it. Her documentation (anchor offsets,
+`frame_000` warnings) is genuinely useful and is preserved verbatim.
+
+Fixed it myself instead of bouncing it because it is a JSON move with no functional risk, and
+Aki is on the **critical path** — A5 is worth more than her round-tripping a six-entry edit.
+
+**Verified after:** palette back to `all (7)` / `electrical (2)` / `2 shown`, all six gone.
+One apparent violation remained and is a **false positive in my own probe**: the string
+`gate_electric_dead` occurs inside the *note text* of `gate_electric_closed`, in the sentence
+warning against adding it. Substring match on prose. Real violations: **zero**.
+
+### A5 not started — and she was right not to start it
+She held it waiting for O3, which is exactly what `KIRO_ORDER_AKI_02.md` instructed ("wait for it
+or coordinate with me — do not race it"). My sequencing call cost a cycle. **O3 is now merged, so
+A5 is unblocked as of this commit** — that is the message she needs.
+
+### Orcha's questions arrived, and he filed them correctly
+`docs/ORCHA_QUESTIONS_01.md`. He marked **five as already answered** by the brief rather than
+spending my time twice (Q1 O1 status, Q2 priority, Q4 Level 2 flip owner, Q6 Level 3 stub, Q10
+MVP done), and he opened with his own process failure rather than a tooling complaint. Five are
+genuinely open: Q3 engine/content usage gap, Q5 dev-only manifest for the `99_` testbeds, Q7
+margin rule when enemies land, Q8 whether Aki has his measured anchors, Q9 fence brightness.
+Answering in a labeled reply doc next.
+
+**Q7 is the sharpest and he is right.** Levels 1 and 2 are margin 0 and only valid because
+nothing can knock charge loose. The moment an enemy is authored into either, one hit makes it
+unsolvable — and **no guard will catch it, because I told him not to write one.** He proposed a
+*conditional* assertion firing only when `enemies.length > 0`, which would not fire on any level
+as authored today, and correctly did not add it unruled.
