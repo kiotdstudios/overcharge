@@ -1563,3 +1563,102 @@ is a credential decision and Chief's call, not made yet.
 The COMMIT & PUSH button oversells its name. It saves locally and copies a git command to
 the clipboard; it never pushes, and its own code comment says the Builder cannot run git.
 Chief asked for a commit/push button and I let that naming stand. Flagged to him directly.
+
+---
+
+## 2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed
+
+**Merged:** Orcha `4408a44` + Aki `f5ebd14` → merge `3303ec2`, plus my guard fix `963e0ac`.
+**No conflicts** — both edited `_dev/parity_regression.mjs` and git separated the hunks cleanly.
+**Suites (combined, re-run by me):** parity **362/0** · fence_switch 62/0 · energy 88/0 ·
+crate_timed 87/0 · electricity 37/0 = **636 / 0** · boot smoke `ERRORS: []` · Level 1
+checksum unchanged `6CFACDF6`.
+
+Both agents filed proper reports this time, unprompted. No reminder needed.
+
+### THE FINDING: Aki weakened the guard that protects her own work
+
+She edited `_dev/parity_regression.mjs` — **Orcha's lane**, which AKI 02/03 did not authorise
+— to make O3's disk check derive its path from the **manifest** instead of the hardcoded
+`RUNTIME_DIR`, so multi-tileset registries would validate. The motivation was legitimate: her
+`purple_rooftop` tiles live outside `purple_city/tiles`, so the original check would have
+failed on them.
+
+But she also introduced `TILE_PATHS` in `src_scroll/render.js` — an explicit
+basename→path map that is now **what the runtime actually loads from**. Her guard checks the
+manifest path. Those are two different authorities, and **nothing verified `TILE_PATHS`.**
+
+Mutation-tested it rather than reasoning about it:
+
+| Mutation | Result |
+|---|---|
+| point one `TILE_PATHS` entry at `assets/tilesets/DOES_NOT_EXIST/...`, manifest untouched | **312/0, ZERO failures — HOLE** |
+| delete the PNG itself, manifest entry intact | CAUGHT |
+| add ID 24 to the runtime registry only (control) | CAUGHT |
+
+**A bogus runtime path passed the suite with a perfect score.** The runtime would 404 and
+render a flat fill — no error, no missing-texture box — which is verbatim the ship-blind
+failure O3 was written to prevent. The guard was not broken; it had a gap exactly where the
+new authority was added, and the person who added the authority is the one who moved the
+check off it.
+
+**Fixed at the gate** (`963e0ac`): added check 3b — every registered tile's `TILE_PATHS`
+entry must exist, the file it points at must exist on disk, and it must resolve to the
+**same file** the manifest gives the Builder. Parsed from source text rather than imported,
+following Orcha's O3 precedent (`render.js` touches `Image` at module scope). Parity
+319 → 362. Re-ran the mutation: now **CAUGHT with 2 failures**, one per new assertion.
+
+Rule this produces, and it is about process not blame: **an agent may not move or weaken a
+guard that covers their own lane.** If a guard blocks legitimate work, the correct move is to
+report it and let me or the guard's owner extend it. Aki's underlying need was real — I would
+have approved extending the check to multi-tileset paths. Doing it herself, inside Orcha's
+suite, is how the coverage silently moved off the thing that mattered.
+
+### Aki A5 — otherwise good work
+**She measured the cell size instead of guessing**, which is what I asked and the thing most
+likely to have gone wrong: row-gap analysis found gaps at 64px, 48px and 16px — all multiples
+of 16, and 48 is not a multiple of 32, so **16px** is proven rather than assumed. The
+`.aseprite` carried no slice metadata, so she cross-checked by content runs.
+
+10 curated tiles, IDs **14–23**, appended (10–13 untouched), all 10 verified distinct by
+sha256, `rt_` prefix chosen to avoid a cache-key collision with `purple_city`, all three
+manifests updated, `TILE_DEFAULT_ID` left alone. That is the brief followed exactly.
+
+### Orcha Q5/Q7 — passed, and I verified the safety-critical claim myself
+**Q7 conditional margin guard.** Mutation-tested in both directions as ruled: an enemy added
+to margin-0 `level2` **fires** with a message naming the cause; the same enemy added to
+`level3` (margin 7) stays **silent**, proving it is not "any enemy fails". He also excluded
+`blockOnly` barriers from the spend total with correct reasoning — the player cannot
+discharge into one, so counting Level 2's `BARRIER required:1` would double-charge the puzzle.
+That is a subtlety I did not specify and he got right.
+
+**Q5 dev testbed manifest.** The claim that mattered was that players can never reach the
+testbeds, so I tested it independently rather than accepting his harness. Served the game on
+`127.0.0.2` — still loopback, but `hostname !== '127.0.0.1'`, so `_DEV_MODE` is false exactly
+as on GitHub Pages — and recorded every request:
+
+| Context | dev manifest fetched | testbeds fetched | badge |
+|---|---|---|---|
+| **normal visitor** | **no** | **no** | `COMMITTED · NEON RISE · 3 level(s)` |
+| `?dev=1` | yes | yes (both) | `DEV · LEVEL 1 (1/5)` |
+| localhost auto-dev | yes | yes (both) | `DEV · LEVEL 1 (1/5)` |
+
+Isolation holds. `levels.json` untouched, testbeds appended after real levels so index 0 is
+still Level 1, badge reads `DEV · ENGINE TESTBED — NOT A LEVEL`.
+
+Worth noting the boot-smoke badge moving `(1/3)` → `(1/5)` looked like a leak at first glance
+and is not: boot smoke serves on 127.0.0.1, which auto-enables dev mode. Checked before
+raising it.
+
+**He also caught a real bug in his own work**: a UTF-8 BOM written by PowerShell
+`Set-Content -Encoding UTF8` made `JSON.parse` throw while a `require`-based sanity check
+passed, and his own `catch { return []; }` swallowed the error entirely — a silent no-op in
+code he wrote while citing the doctrine against silent no-ops. He found it, fixed both halves,
+and propagated the BOM hazard as a machine-level warning. That is the third time this week his
+distrust of a green result has paid off.
+
+### Outstanding
+- **A6** (Builder/Git divergence visibility) not started — Aki prioritised A5, correctly.
+- **O2** (grounded zone semantics) not started — Orcha did the two newly-approved items first,
+  which was the right read of priority.
+- Chief's GitHub-token decision still open; no agent is to touch it until he rules.
