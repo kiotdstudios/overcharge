@@ -2045,7 +2045,8 @@
       "h": 128,
       "required": 1,
       "blockOnly": true,
-      "label": "BARRIER"
+      "label": "BARRIER",
+      "style": "fence"
     },
     {
       "id": "EXIT",
@@ -2065,7 +2066,8 @@
       "y": 330,
       "required": 2,
       "linkedId": "BARRIER",
-      "label": "OPEN"
+      "label": "OPEN",
+      "style": "wall"
     }
   ],
   "checkpoints": [],
