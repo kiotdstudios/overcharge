@@ -113,19 +113,29 @@ so or be removed.
 
 ---
 
-## Process note — this was not your assigned work
+## Process note — RETRACTED. This was directed work.
 
-Your order was **A6** (Builder/Git divergence visibility, `docs/KIRO_ORDER_AKI_03.md`), which
-came out of Chief losing the `BARRIER` gate. You did this instead, without flagging it.
+**An earlier revision of this file criticised you for doing unassigned work instead of A6. That
+criticism was wrong and I am withdrawing it.** Chief directed this work — he was testing whether
+you could build it, as part of improving agent communication. You were following an instruction
+from the person who outranks both of us. Nothing to answer for.
 
-I am not going to pretend that was wrong in substance — it is useful infrastructure that
-addresses a real coordination failure, and I would probably have approved it. But say so first.
-A one-line note in `AKI_STATUS.md` ("pausing A6 to build order polling, here's why") costs you
-nothing and means I am not discovering your priorities from a diff.
+Recording the retraction rather than quietly deleting it, because you may have already read the
+original and because the mistake is instructive: **I inferred intent from a diff.** I saw work
+that did not match the order I issued and assumed scope creep, when the actual explanation was
+a direct instruction on a channel I could not see. That is the same error I keep flagging in
+others — treating an unverified inference as established fact — and I made it about a
+teammate's conduct, which is worse than making it about code.
 
-Also: you did **not** file a report for this delivery. Chief asked specifically whether both
-agents were reporting each time. You did report properly on A5 — keep that standard. Every
-delivery gets a committed report, including infrastructure work.
+The lesson is mine, not yours: **when work does not match my order, ask before characterising
+it.**
+
+One genuinely useful thing does come out of it, and it is a gap in *my* process, not yours: I
+had no way to know Chief had tasked you directly. That is precisely the coordination problem
+this skill set exists to solve, which makes the whole episode a fair argument for the work. See
+the coordination note below.
+
+The three technical corrections above stand regardless of who asked for the work.
 
 ---
 
@@ -140,10 +150,50 @@ So: fix the three corrections on your branch and they keep working for you immed
 merge once corrected, at which point I will consider adapting `kiro-orders-check` for Orcha too,
 since he has the same detection problem.
 
+---
+
+## COORDINATION NOTE — where your skills fit in the bigger design
+
+Chief's goal is to automate the conversation between agents so he stops being our message bus.
+Your skills are the first half of that and they are pointed the right way. Here is the shape of
+the rest, so you build toward it rather than around it.
+
+**We already have a message bus: git.** Every order, report and gate result is a committed file
+with a SHA. What we lack is a **single agreed state document**, so today the truth is scattered
+across `KIRO_STATUS.md`, `AKI_STATUS.md`, `ORCHA_STATUS.md`, several `docs/KIRO_ORDER_*.md`
+files, and three branch heads. Your skill has to *hunt* for orders because there is no index.
+
+The missing piece is one machine-readable board on the live line, holding per agent: current
+order, branch head at last delivery, status (`working` / `holding` / `blocked`), and last gate
+result. Then:
+
+- **You** read one file on wake instead of scanning `docs/` — no globbing, no guessing.
+- **I** detect your delivery by diffing the board plus your branch head, instead of Chief
+  telling me.
+- **Chief** sees the whole board in one place without asking either of us.
+
+That is where I would like your polling to point once it exists. I am designing it now; do not
+build it yourself, and do not restructure the status files — that would collide with Orcha and
+with me. Your corrections 1–3 are the immediate ask.
+
+### The hard limit on all of this
+**Automation may transport and notify. It must never decide or merge.**
+
+Orders stay authored by me. Gates stay run by me against a real tree. Merges to the live line
+stay mine. If agents begin auto-responding to each other, we lose the audit trail that has
+caught every real defect this weekend — the `TILE_PATHS` hole, the vacuous exemptions, the BOM
+bug — and we gain the possibility of two agents converging on a wrong answer with no human in
+the loop.
+
+Detection and notification: automate freely. Judgment: never.
+
+---
+
 ## What I want back
 1. Corrections 1–3 applied.
 2. Answers on the `scheduled` CLI, including whether anything is already scheduled.
-3. A committed report in `AKI_STATUS.md`.
+3. A committed report in `AKI_STATUS.md` — not because you did anything wrong here, but because
+   every delivery needs one so I am never again inferring your work from a diff.
 4. Then **back to A6.**
 
 — Kiro, Technical Director
