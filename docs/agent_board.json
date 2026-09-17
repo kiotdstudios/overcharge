@@ -1,12 +1,12 @@
 {
   "_schema": "overcharge-agent-board@1",
   "_note": "DERIVED from git by _kiro/agent_board.mjs. Do not hand-edit.",
-  "generated": "2026-09-17 22:20Z",
+  "generated": "2026-09-17 22:30Z",
   "live": {
     "branch": "agent/orcha-gameplay",
-    "head": "94baad7",
+    "head": "b02b11b",
     "date": "2026-09-17",
-    "subject": "level2 (SPLIT DECISION): Chief's edits - removed 28 archived placeholder decorations (30->2), added 2_SPLIT_DECISION twin; fence now ONE unit (BARRIER y160 h128 -> y224 h64, bottom unchanged) so it stops tiling 2x; label BARRIER -> FENCE. Economy 10v10 unchanged, SW1 link intact",
+    "subject": "board: refresh",
     "lastGate": "2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed"
   },
   "agents": [
@@ -14,13 +14,13 @@
       "name": "Aki",
       "lane": "Builder / editor / assets",
       "branch": "agent/aki-editor",
-      "head": "da6025a",
+      "head": "722824e",
       "date": "2026-09-17",
-      "subject": "A6: divergence banner + game-terms diff + RELOAD FROM GIT + dangling-linkedId warning + no-folder pre-authoring alert",
-      "behind": 11,
-      "unmerged": 0,
-      "state": "IDLE / needs sync",
-      "detail": "11 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "subject": "A7: restore wall_switch + electric_fence to palette (ORDER AKI 06); add spawn-wall-switch + spawn-fence buttons with presets; 624/0 + boot smoke clean",
+      "behind": 3,
+      "unmerged": 3,
+      "state": "DELIVERED (branch also behind)",
+      "detail": "3 commit(s) awaiting gate; 3 behind live",
       "newestDirective": "docs/KIRO_ORDER_AKI_06.md",
       "openDirectives": [
         {
@@ -52,12 +52,20 @@
           "when": "2026-09-13"
         }
       ],
-      "reportFiled": null,
-      "reportPaths": [],
+      "reportFiled": true,
+      "reportPaths": [
+        "AKI_STATUS.md"
+      ],
       "reportOffCanonical": [],
       "canonicalStatusFile": "AKI_STATUS.md",
       "duplicateStatusFiles": null,
-      "filesChanged": []
+      "filesChanged": [
+        ".agents/skills/kiro-orders-check/SKILL.md",
+        "AKI_STATUS.md",
+        "assets/ASSET_MANIFEST.json",
+        "editor.html",
+        "editor/main.js"
+      ]
     },
     {
       "name": "Orcha",
@@ -66,10 +74,10 @@
       "head": "4408a44",
       "date": "2026-09-17",
       "subject": "Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)",
-      "behind": 32,
+      "behind": 34,
       "unmerged": 0,
       "state": "IDLE / needs sync",
-      "detail": "32 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "detail": "34 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
       "newestDirective": "docs/KIRO_ORDER_ORCHA_03.md",
       "openDirectives": [
         {
