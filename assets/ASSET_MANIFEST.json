@@ -183,62 +183,6 @@
       }
     },
     {
-      "id": "env_rt_tile_dark_a",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_rooftop",
-        "rooftop"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Purple Rooftop tileset. dark_a — darkest rooftop tile, avg RGB (9,11,39). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
-      "id": "env_rt_tile_dark_b",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_rooftop",
-        "rooftop"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Purple Rooftop tileset. dark_b — dark rooftop variant, avg RGB (9,11,39), distinct pattern. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
       "id": "env_rt_tile_mid_a",
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",
       "category": "tile",
