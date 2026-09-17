@@ -257,3 +257,57 @@ A6 — Builder/Git divergence visibility (IndexedDB vs committed JSON diff, RELO
 ---
 
 *Last updated: 2026-09-17*
+
+
+## DELIVERY: A6 — Builder/Git Divergence + Save Honesty
+
+_Updated: 2026-09-17 ET_
+
+### SHA: pending · branch: agent/aki-editor · not yet merged
+
+### Files changed
+- `editor/main.js`
+
+### What was built (per KIRO_ORDER_AKI_04.md)
+
+**1. Committed baseline tracking**
+`_captureCommittedBaseline(level)` called after every clean server fetch (bootstrap + level-select switch). Deep-copies the level and stores its checksum. Recovery restores, stale localStorage snapshots, and any other path that lands different content on screen will be detected automatically.
+
+**2. Divergence detection + game-terms summary**
+`refreshParityStatus()` now compares `levelChecksum(state.level)` to `_committedChecksum`. When they differ, a new red banner replaces the "TESTING LOCAL UNSAVED LEVEL" strip:
+```
+● LOCAL STATE DIVERGES FROM COMMITTED | GAME USES COMMITTED LEVEL JSON
+2 gates -> 1, 30 decorations -> 2
+[↺ RELOAD FROM GIT]
+```
+The game-terms line (`_gameDiff`) counts gates, decorations, switches, enemies, checkpoints and names exactly what changed. Clean edits that happen to match the committed content stay green.
+
+**3. RELOAD FROM GIT inline button**
+Injected into the parity strip when diverged. `_doReloadFromGit()` (shared with the REVERT toolbar button) fetches the committed JSON, shows a confirm that names the game-terms diff ("This will discard: 2 gates -> 1, 30 decorations -> 2"), then reloads and re-anchors the baseline so the strip returns to green immediately.
+
+**4. Dangling linkedId warning**
+`_danglingLinks(level)` scans every switch for a `linkedId` that does not match any gate `id` in the level. When found, a red sub-line appears in the parity strip:
+```
+⚠ DANGLING LINK: "SW1" -> "BARRIER" (gate not found) — fence puzzle will silently break.
+```
+Displayed in all parity states (dirty, clean, diverged) so it is never hidden.
+
+**5. No-folder pre-authoring warning**
+On the first dirty edit of a session, if FSA is available and no save folder is set, `showSaveFlash` fires: "⚠ No save folder set — SAVE will DOWNLOAD to Downloads, not write to your Git clone. Set 📁 FOLDER first." Resets when the level returns to clean so each new authoring session gets the warning.
+
+### What was NOT touched
+- No GitHub API, no token handling, no credential storage.
+- No runtime or asset changes — `editor/**` only.
+- COMMIT & PUSH button honesty unchanged (already correct per ORDER 005 doctrine).
+
+### Suites
+parity 362/0 · fence_switch 62/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **636 / 0**
+
+### Boot smoke
+BOOT_SMOKE_OK (port 8430) · ERRORS: []
+
+### Rollback point
+`44e15ae` — pre-A6 (sync merge)
+
+### Status
+HOLDING for Kiro gate.

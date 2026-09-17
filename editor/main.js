@@ -80,6 +80,64 @@ inspShowTab?.addEventListener('click', () => setInspectorCollapsed(false));
 // Redraw flag — hoisted here so the ResizeObserver below can reference it
 // without hitting a TDZ. Actual redraw loop wiring lives further down.
 let needsRedraw = true;
+
+// -- A6: Divergence tracking -------------------------------------------
+// Store the committed level at load time so content comparisons work
+// regardless of state.dirty (which only tracks edits this session).
+// Recovery restores and any non-loadLevel() path show up correctly here.
+let _committedLevel = null;
+let _committedChecksum = null;
+
+function _captureCommittedBaseline(level) {
+  if (!level) { _committedLevel = null; _committedChecksum = null; return; }
+  try {
+    _committedLevel    = JSON.parse(JSON.stringify(level));
+    _committedChecksum = levelChecksum(level);
+  } catch { _committedLevel = null; _committedChecksum = null; }
+}
+
+// Human-readable game-terms diff: '2 gates -> 1, 30 decorations -> 2'.
+function _gameDiff(committed, current) {
+  if (!committed || !current) return null;
+  var fields = [
+    ['gates', 'gate'], ['decorations', 'decoration'],
+    ['switches', 'switch'], ['enemies', 'enemy'], ['checkpoints', 'checkpoint'],
+  ];
+  var parts = [];
+  for (var _fi = 0; _fi < fields.length; _fi++) {
+    var key = fields[_fi][0]; var label = fields[_fi][1];
+    var a = (committed[key] || []).length;
+    var b = (current[key] || []).length;
+    if (a !== b) parts.push(a + ' ' + label + (a !== 1 ? 's' : '') + ' -> ' + b);
+  }
+  return parts.length ? parts.join(', ') : null;
+}
+
+// Returns switches whose linkedId does not match any gate in the level.
+function _danglingLinks(level) {
+  if (!level) return [];
+  var gateIds = new Set((level.gates || []).map(function(g) { return g.id; }).filter(Boolean));
+  return (level.switches || []).filter(function(sw) { return sw.linkedId && !gateIds.has(sw.linkedId); });
+}
+
+// Shared reload-from-git: REVERT button + inline parity button both call this.
+// Includes game-terms diff in confirm so Chief sees exactly what is discarded.
+async function _doReloadFromGit() {
+  var num = state.level && state.level.number != null ? state.level.number : null;
+  if (num == null) return;
+  var diff = (_committedLevel && state.level) ? _gameDiff(_committedLevel, state.level) : null;
+  var diffLine = diff ? ('\n\nThis will discard: ' + diff + '.') : '';
+  var msg = 'Reload level ' + num + ' from the committed Git JSON (src_scroll/levels/level' + num + '.json), '
+            + 'discarding any unsaved editor changes?' + diffLine + '\n\nSnapshots in history are NOT affected.';
+  if (!window.confirm(msg)) return;
+  state.dirty = false;
+  var committed = (state.availableLevels || []).find(function(l) { return l.source !== 'dir' && l.number === num; });
+  var ok = await Persistence.switchToLevel(committed || ('src_scroll/levels/level' + num + '.json'));
+  if (ok && state.level) _captureCommittedBaseline(state.level);
+  state.availableLevels = await Persistence.discoverLevels();
+  refreshLevelSelect();
+  showSaveFlash({ ok: ok, message: ok ? ('Reloaded level ' + num + ' from Git.') : ('Could not load level ' + num + ' from Git.') });
+}
 // Match canvas backing-store size to its current CSS box. Called on window
 // resize, inspector-collapse toggle, and by a ResizeObserver so any future
 // layout change auto-syncs — preventing CSS-vs-backing coordinate skew.
@@ -382,25 +440,8 @@ _updateFolderDisplay();
 // ORDER 005: REVERT reloads the level from Git-tracked JSON, discarding
 // in-memory edits. There is no IndexedDB copy to discard anymore.
 const btnRevertLocal = document.getElementById('btn-revert-local');
-btnRevertLocal?.addEventListener('click', async () => {
-  const num = state.level?.number;
-  if (num == null) return;
-  const msg = `Reload level ${num} from the Git JSON (src_scroll/levels/level${num}.json), `
-            + `discarding any unsaved editor changes?\n\nSnapshots in history are NOT affected.`;
-  if (!window.confirm(msg)) return;
-  state.dirty = false;   // deliberate discard — skip the dirty prompt in switchToLevel
-  const committed = (state.availableLevels || [])
-    .find(l => l.source !== 'dir' && l.number === num);
-  const ok = await Persistence.switchToLevel(
-    committed || `src_scroll/levels/level${num}.json`);
-  state.availableLevels = await Persistence.discoverLevels();
-  refreshLevelSelect();
-  showSaveFlash({ ok, message: ok
-    ? `Reloaded level ${num} from Git.`
-    : `Could not load level ${num} from Git.` });
-});
-
-// ORDER 005: level ORDER buttons — move the current level in the Git-tracked
+// A6: delegate to _doReloadFromGit which shows game-terms diff in the confirm.
+btnRevertLocal?.addEventListener('click', () => _doReloadFromGit());
 // manifest (src_scroll/levels/levels.json). Requires the FOLDER so the edit
 // lands in the clone and can be committed; never stored in the browser.
 async function _moveOrder(delta) {
@@ -476,11 +517,15 @@ levelSelect?.addEventListener('change', async (e) => {
   const entry = list[idx];
   const priorValue = levelSelect._priorValue || '';
   if (!entry) return;
-  // Loading another level replaces everything on screen — snapshot first.
+  // Loading another level replaces everything on screen - snapshot first.
   await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_LOAD);
   const ok = await Persistence.switchToLevel(entry);
   if (!ok) e.target.value = priorValue;
-  else levelSelect._priorValue = e.target.value;
+  else {
+    levelSelect._priorValue = e.target.value;
+    // A6: capture committed baseline for server-fetched levels.
+    if (!_isLocalOnly() && state.level) _captureCommittedBaseline(state.level);
+  }
 });
 
 function showSaveFlash(result) {
@@ -688,6 +733,10 @@ function refreshLevelInfo() {
 // Chief §2: make it impossible to confuse "what I am testing" with
 // "what the game will load".
 const parityStatus = document.getElementById('parity-status');
+// A6: event delegation for the inline RELOAD FROM GIT button injected into parity strip.
+parityStatus && parityStatus.addEventListener('click', function(e) {
+  if (e.target && e.target.id === 'btn-parity-reload') _doReloadFromGit();
+});
 
 // ORDER 005: the level on screen came from a Git-folder file (dir:) rather
 // than the served committed copy — meaning it may be ahead of what's pushed.
@@ -695,33 +744,61 @@ const _isLocalOnly = () => String(state.levelPath || '').startsWith('dir:');
 
 function refreshParityStatus() {
   if (!parityStatus || !state.level) return;
-  const sum = levelChecksum(state.level);
-  if (state.dirty) {
+  var sum = levelChecksum(state.level);
+
+  // A6: dangling linkedId warning.
+  var dangling = _danglingLinks(state.level);
+  var danglingHtml = dangling.length > 0
+    ? ('<div style="color:#ff4466;margin-top:4px;font-family:monospace">&#9888; DANGLING LINK: ' +
+       dangling.map(function(sw) { return '"' + (sw.id||'?') + '" -> "' + sw.linkedId + '" (gate not found)'; }).join(', ') +
+       ' &#8212; fence puzzle will silently break.</div>')
+    : '';
+
+  // A6: content-based comparison to committed baseline.
+  var diverged = !!_committedChecksum && sum !== _committedChecksum;
+  var diff = diverged && _committedLevel ? _gameDiff(_committedLevel, state.level) : null;
+
+  if (diverged) {
+    var diffLine = diff
+      ? ('<br><span style="color:#ff8800;font-family:monospace;font-size:10px">' + diff + '</span>')
+      : '';
+    parityStatus.innerHTML =
+      '<span style="color:#ff4444">\u25CF LOCAL STATE DIVERGES FROM COMMITTED</span>' +
+      '<span style="color:#556"> \u2502 </span>' +
+      '<span style="color:#8aaabb">GAME USES COMMITTED LEVEL JSON</span>' +
+      diffLine +
+      '<br><button id="btn-parity-reload" style="margin-top:4px;padding:2px 9px;font-size:10px;' +
+      'font-family:monospace;background:#0a1a0a;border:1px solid #44ff88;color:#44ff88;' +
+      'cursor:pointer;border-radius:2px">\u21BA RELOAD FROM GIT</button>' +
+      danglingHtml;
+    parityStatus.title = 'In-memory level differs from committed JSON. ' + (diff || 'Content has changed.');
+  } else if (state.dirty) {
     parityStatus.innerHTML =
       '<span style="color:#ff8800">\u25CF TESTING LOCAL UNSAVED LEVEL</span>' +
       '<span style="color:#556"> \u2502 </span>' +
       '<span style="color:#8aaabb">GAME USES COMMITTED LEVEL JSON</span>' +
       '<span style="color:#556"> \u2502 </span>' +
-      '<span style="color:#44ccff">editor checksum ' + sum + '</span>';
-    parityStatus.title = 'Your edits are local only. The normal game still loads the committed src_scroll/levels/level1.json until you SAVE and commit it.';
+      '<span style="color:#44ccff">editor checksum ' + sum + '</span>' +
+      danglingHtml;
+    parityStatus.title = 'Your edits are local only. The game still loads the committed JSON until you SAVE and commit.';
   } else if (_isLocalOnly()) {
     parityStatus.innerHTML =
       '<span style="color:#ffee00">\u25CF LOCAL SAVE \u2014 NOT COMMITTED</span>' +
       '<span style="color:#556"> \u2502 </span>' +
       '<span style="color:#ffee00">GAME PLAYS THIS SAVE IN YOUR BROWSER ONLY</span>' +
       '<span style="color:#556"> \u2502 </span>' +
-      '<span style="color:#44ccff">checksum ' + sum + '</span>';
-    parityStatus.title = 'Saved on this machine only (disk + browser storage). The game in THIS browser '
-      + 'plays it, but everyone else still gets the committed src_scroll/levels JSON until '
-      + 'you publish it to git (PUBLISH_LEVELS.bat).';
+      '<span style="color:#44ccff">checksum ' + sum + '</span>' +
+      danglingHtml;
+    parityStatus.title = 'Saved locally only. Others still get the committed JSON until published.';
   } else {
     parityStatus.innerHTML =
       '<span style="color:#44ff88">\u25CF IN SYNC WITH COMMITTED LEVEL JSON</span>' +
       '<span style="color:#556"> \u2502 </span>' +
       '<span style="color:#8aaabb">GAME USES COMMITTED LEVEL JSON</span>' +
       '<span style="color:#556"> \u2502 </span>' +
-      '<span style="color:#44ccff">checksum ' + sum + '</span>';
-    parityStatus.title = 'Editor state matches the level file it was loaded from. TEST and the normal game will report the same checksum.';
+      '<span style="color:#44ccff">checksum ' + sum + '</span>' +
+      danglingHtml;
+    parityStatus.title = 'Editor state matches the level file it was loaded from.';
   }
 }
 
@@ -1321,6 +1398,16 @@ document.querySelectorAll('#tools-icon-rail [data-rail]').forEach(btn => {
 // Hook the debounced saver into the state change stream. Fires only when
 // state.dirty is true — clean loads don't overwrite the previous recovery.
 subscribe(() => { if (state.dirty) _scheduleRecoverySave(); });
+// A6 save honesty: warn once when the first dirty edit is made and no save folder is set.
+// Only fires when FSA is available — without it, download IS the correct save path.
+var _warnedNoFolder = false;
+subscribe(function() {
+  if (state.dirty && !_warnedNoFolder && Persistence.hasFSA() && !Persistence.saveFolderName()) {
+    _warnedNoFolder = true;
+    showSaveFlash({ ok: false, message: '\u26A0 No save folder set \u2014 SAVE will DOWNLOAD to Downloads, not write to your Git clone. Set \uD83D\uDCC1 FOLDER first.' });
+  }
+  if (!state.dirty) _warnedNoFolder = false;
+});
 // Persistence.save*() flips state.dirty = false on success — clear the
 // recovery slot when a level is successfully saved to disk.
 subscribe(() => { if (!state.dirty && !_recoverySuppress) _clearRecoverySnapshot(); });
@@ -1338,6 +1425,8 @@ async function bootstrap() {
     await preloadManifestImages();
     state.availableLevels = await Persistence.discoverLevels();
     await loadLevel(DEFAULT_LEVEL_URL);
+    // A6: capture committed baseline immediately after the clean server fetch.
+    _captureCommittedBaseline(state.level);
     // Prefer a previous session's local save over the committed copy.
     // ORDER 005: no IndexedDB restore — the fetched Git JSON is the truth.
     History.clearAll();
