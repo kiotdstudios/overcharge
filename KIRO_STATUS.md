@@ -1273,3 +1273,111 @@ an inconsistency in the naming convention. Not worth a commit on its own.
 ### Next
 Orcha → **O2** grounded zone: semantics doc first, HOLD for ratification.
 Aki → still **32 behind**, nothing delivered; `git fetch` is step 0 of `docs/KIRO_ORDER_AKI_01.md`.
+
+---
+
+## 2026-09-16 — WEEKEND PUSH: asset purge executed + master brief and two orders issued
+
+### Chief's ruling on the asset purge, executed at `ffcf7d8`
+
+> "remove all tiles that isnt game related … all the other design tiles get rid of them
+> (archive is fine we will bring some back later)"
+> "whats currently being used on level one can stay the rest got to go"
+
+`assets/tilesets/purple_city/` **55 PNGs → 5**. Kept the four terrain tiles (IDs 10–13,
+all in live use in Level 1) plus `props/env_waste_platform_long.png` (6 instances in
+Level 1). 50 removed, 8 now-empty directories dropped.
+
+**All three manifests pruned together** — `ASSET_MANIFEST.json` 52→7,
+`PURPLE_CITY_INDEX.json` 50→5, `asset_index.json` 213→163. This mattered: `editor/state.js`
+merges `PURPLE_CITY_INDEX.json` in as a **disk-index fallback**, so pruning only
+`ASSET_MANIFEST.json` would have let every deleted asset reappear in the palette. That is
+the trap the prior `env_tile_purple_edge_ref` deletion (`bec9e7f`) also had to handle.
+
+Archived two ways before deleting anything: tag **`asset-archive-purple-city-v1`**
+(pushed, authoritative) and a browsable copy at `_kiro_archive/purple_city_v1/` including
+`.prepurge` snapshots of all three manifests.
+
+**Verified after:** suites **528/0** unchanged · boot smoke `ERRORS: []` ·
+Level 1 checksum still **`6CFACDF6`**.
+
+### Two judgment calls I made inside Chief's ruling
+
+**1. Left the dangling decoration references in the level JSON.** `level2.json` and
+`level1_prev_backup.json` now hold 30 dead `decorations[].src` each; `level3.json` and
+`3_LEVEL_3.json` hold 6 each.
+
+Rejected stripping them. Chief said *"we will bring some back later"* — leaving the
+references means a restore from the tag makes the decorations reappear automatically,
+where stripping would force him to re-place 30 props by hand. Cost is some console 404s.
+Verified this is safe rather than assuming: `level.js:203` skips any image failing
+`complete && naturalWidth > 0`, and decorations are background draws with **no collision**
+(solidity comes only from `tiles[]`, `v === 1 || v >= 10`). So the loss is strictly
+cosmetic and zero-gameplay. Told Orcha explicitly **not** to add a guard that fails on
+dangling refs — it would fire on Chief's published levels immediately.
+
+**2. Did the purge myself instead of assigning it to Aki.** It is her lane
+(`assets/**`), but she is 32 behind with nothing delivered, the work is mechanical and
+fully reversible via the tag, and it was blocking Chief on day one of a three-day push.
+Gave her the part that actually needs judgment — slicing and registering the new sheet.
+
+### Correcting my own earlier claim
+I told Chief the audit found "decorations aren't rendered by the runtime". That was
+wrong — it came from a grep whose brace-glob silently matched nothing. The runtime
+**does** draw them, at `level.js:201`, as background art behind tiles. Re-checked
+directly before acting on it; the purge decision holds either way because decorations
+carry no collision, but the reasoning had to be right rather than lucky.
+
+### New tilesheet located, deliberately not sliced by me
+`Downloads\Purple Rooftop\Purple Rooftop\main.png` — **800×800**, plus a `.aseprite`
+source. 800 divides evenly at both 16px (50×50 = 2500 cells) and 32px (25×25 = 625).
+Existing tiles are 16×16 drawn at `TILE = 32`, so 16 is *likely* — which is exactly why
+I did not act on it. Ordered Aki to **measure** it and report how she established it,
+and to stop and escalate if the sheet is irregular. Standing rule §5j: never guess a
+number. Also capped her at a curated 8–16 tile starter set; 2500 palette entries would
+bury the gameplay objects.
+
+### Sequencing call: Orcha's registry guard lands BEFORE Aki's tile work
+Found a live hazard while mapping the tile system. `TILE_ID_REGISTRY` exists **twice** —
+`editor/state.js` (keyed by asset id) and `src_scroll/render.js` (keyed by PNG basename)
+— hand-synced, with **no test enforcing the sync**. Builder and runtime can silently
+disagree about what tile 12 looks like; Chief paints one thing and plays another with no
+error. Latent and harmless until now. Aki appending new IDs this weekend is what makes it
+dangerous, so O3 (the guard) is ordered ahead of A5 (the tiles) to protect her work.
+
+Rejected ordering a unification into one shared module: it touches her lane and the
+runtime in one change, mid-weekend, with a large task of hers in flight. The guard buys
+the safety without the collision. Logged as post-weekend.
+
+### Orcha's 10 questions — not in Git, not answered
+Chief says Orcha sent 10 questions. Searched all branches, both worktrees, uncommitted
+files, and every filename matching questions/ask/Q. **They do not exist in Git.** His
+most recent commit is the O1 report.
+
+Declined to invent answers to questions I have not read — ten guessed rulings is how bad
+rulings happen, and I have already reversed one this week. Ordered him to commit
+`docs/ORCHA_QUESTIONS_01.md`, numbered Q1–Q10, and I will answer in a labeled reply doc.
+Same governance point I made to Aki, applied symmetrically: **if it has no SHA it does not
+exist**, as an order *or* as a question.
+
+Pre-ruled the seven decisions I expect are in that list so he is not idle while waiting.
+
+### Documents issued
+- `docs/WEEKEND_PUSH_BRIEF.md` — shared master brief. What the game is, the ONE URL pair,
+  core loop, controls, energy authority, device inventory, level states, the 3-day
+  definition of done, ownership lanes, full protocol, and 13 standing rulings collected in
+  one place for the first time.
+- `docs/KIRO_ORDER_AKI_02.md` — A5 tilesheet (top priority, blocking), A2 fence/switch in
+  Builder, A3 `boundingRect`, A1 real switch art, A4 manifest hygiene.
+- `docs/KIRO_ORDER_ORCHA_02.md` — questions doc, O3 registry guard, O2 grounded zone semantics.
+
+Cited Orcha's O1 mutation write-up as the worked example of the testing standard in the
+master brief, including his own finding that a green run from a no-op mutation is worse
+than a red one. Named the critical path plainly: **everything Chief wants this weekend is
+downstream of Aki's A5.**
+
+### Escalated to Chief, unchanged
+Level 3 is a published stub — terrain stops at x=1184 (62% of the level void), exit gate
+at x=32 *behind* the spawn at x=64, zero enemies, zero checkpoints, name still "LEVEL 3".
+Completable, so every automated check passes. Unfinished is not something a test can
+assert. Content is Chief's lane.
