@@ -236,6 +236,47 @@ for (const filename of levelFiles) {
       }
     }
   }
+
+  // ── CONDITIONAL margin guard (Kiro ruling, ANSWERS_ORCHA_01 Q7) ──────────
+  // Standing ruling §6.10 "margin 0 is acceptable" STANDS, unchanged, for
+  // enemy-free levels. This NARROWS it rather than reversing it: margin 0 is fine
+  // right up until something can take charge away from you.
+  //
+  // Why this hole existed. Levels 1 and 2 are both margin 0 today and solvable
+  // only because nothing can knock charge loose. Author one enemy into either and
+  // a single hit makes the level unsolvable — and no guard caught it, because the
+  // ruling that forbade a blanket margin assertion also removed the only place
+  // such a check could live. So the assertion is gated on the exact condition
+  // that makes margin matter.
+  //
+  // Deliberately fires on NO level as authored today (1 and 2 are margin 0 with
+  // zero enemies; 3 has margin 7). Mutation-tested in both directions, because an
+  // assertion that cannot fire is the vacuous-exemption problem from O1.
+  {
+    const enemyCount = (data.enemies ?? []).length;
+    const available  = (data.sources ?? []).reduce((sum, s) => sum + (s.charge ?? 0), 0);
+    // blockOnly barriers are EXCLUDED from spend: the player cannot discharge into
+    // one, so its `required` is inert and paid by its linked switch instead.
+    // Counting it would double-charge the puzzle (Level 2's BARRIER carries
+    // required:1 that no player ever pays).
+    const spend = (data.switches ?? []).reduce((sum, s) => sum + (s.required ?? 0), 0)
+                + (data.gates ?? []).filter(g => !g.blockOnly)
+                                    .reduce((sum, g) => sum + (g.required ?? 0), 0);
+    const margin = available - spend;
+
+    if (enemyCount > 0) {
+      check(margin > 0,
+        `${filename}: has ${enemyCount} enemy/enemies and margin ${margin} — a level where ` +
+        `charge can be knocked loose MUST have available energy exceeding total cost, ` +
+        `or a single hit makes it unsolvable (energy ${available}, cost ${spend})`);
+    } else {
+      // Recorded rather than skipped, so the exemption is visible in the log and a
+      // future reader can see margin 0 was considered and permitted here.
+      check(true,
+        `${filename}: margin ${margin} with no enemies — margin 0 permitted (§6.10), ` +
+        `conditional guard correctly dormant`);
+    }
+  }
 }
 
 // ── Placement guards: grid alignment + grounding (KIRO_ORDER_ORCHA_01 O1) ──
@@ -519,6 +560,20 @@ console.log('\n[ Tile registry sync: editor <-> runtime <-> disk ]');
     // the on-disk check tests the path the GAME actually requests.
     const RUNTIME_DIR = 'assets/tilesets/purple_city/tiles';
 
+    // TILE_PATHS is the map the RUNTIME actually loads from (src_scroll/render.js).
+    // It was introduced for multi-tileset support, and check 3 below was changed at the
+    // same time to validate the MANIFEST path — which left TILE_PATHS itself unguarded.
+    // KIRO GATE 2026-09-17: pointing a TILE_PATHS entry at a nonexistent directory
+    // passed 312/0 with zero failures. The runtime would 404 and render a flat fill,
+    // which is the exact ship-blind failure this whole guard exists to prevent.
+    const runtimeSrc = fs.readFileSync(path.resolve('src_scroll/render.js'), 'utf8');
+    const tpM = runtimeSrc.match(/TILE_PATHS\s*=\s*Object\.freeze\(\{([\s\S]*?)\}\)/);
+    check(!!tpM, 'src_scroll/render.js: TILE_PATHS literal is parseable');
+    const tilePaths = {};
+    if (tpM) for (const mm of tpM[1].matchAll(/['"]([\w.\-]+)['"]\s*:\s*['"]([^'"]+)['"]/g))
+      tilePaths[mm[1]] = mm[2];
+    const _norm = (s) => String(s).replace(/\\/g, '/').replace(/^\.?\//, '');
+
     for (const id of eKeys) {
       const assetId  = editorReg[id];
       const runtimeK = runtimeReg[id];
@@ -547,6 +602,22 @@ console.log('\n[ Tile registry sync: editor <-> runtime <-> disk ]');
         : path.resolve(RUNTIME_DIR, `${runtimeK}.png`);
       check(fs.existsSync(diskPath),
         `tile ${id}: runtime PNG exists on disk (${diskPath})`);
+
+      // 3b. The path the RUNTIME loads must be explicitly registered, must exist, and
+      //     must be the SAME file the Builder shows. Without this, TILE_PATHS can point
+      //     anywhere while the manifest stays valid and the guard reports green.
+      const rtPath = tilePaths[runtimeK];
+      check(!!rtPath,
+        `tile ${id}: runtime key "${runtimeK}" has an explicit TILE_PATHS entry`);
+      if (rtPath) {
+        check(fs.existsSync(path.resolve(rtPath)),
+          `tile ${id}: the file TILE_PATHS actually requests exists on disk (${rtPath})`);
+        if (manifestPath) {
+          check(_norm(rtPath) === _norm(manifestPath),
+            `tile ${id}: TILE_PATHS and the manifest load the SAME file ` +
+            `(runtime "${_norm(rtPath)}" vs manifest "${_norm(manifestPath)}")`);
+        }
+      }
     }
 
     // 4. Reserved band. 3-9 are documented as "Builder must not emit"; 1 is

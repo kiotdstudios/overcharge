@@ -384,7 +384,9 @@ function _showLevelSourceBadge(kind, detail) {
       'background:rgba(6,8,14,.88)', 'border-radius:3px',
       'pointer-events:none', 'white-space:pre',
     ].join(';');
-    const colors = { local: '#ffee00', committed: '#44ff88', test: '#ff8800' };
+    // `testbed` is deliberately alarm-coloured: it is not a level and must not be
+    // mistaken for one. Unknown kinds still fall back to neutral grey.
+    const colors = { local: '#ffee00', committed: '#44ff88', test: '#ff8800', testbed: '#ff4466' };
     el.style.color  = colors[kind] || '#c8d8f0';
     el.style.border = '1px solid ' + (colors[kind] || '#556');
     el.textContent  = detail;
@@ -404,10 +406,73 @@ const _DEV_MODE = (() => {
 let _DEV_LEVELS = [];   // [{num, def, kind}] populated by _discoverDevLevels
 let _devIdx     = 0;    // index into _DEV_LEVELS currently shown
 
+// ── Dev-only ENGINE TESTBEDS (Kiro ruling ANSWERS_ORCHA_01 Q5) ──────────
+// Mechanics that no shipped level exercises were previously verified ONLY by
+// headless suites — "verified" meant simulated, and nobody had ever SEEN the
+// crate bridge or the fence short. Brief §2 point 2 says only Chief playing it
+// counts, so a mechanic a human cannot reach cannot satisfy definition-of-done.
+//
+// HARD CONSTRAINTS, all deliberate:
+//  • `levels.json` is NOT touched. It stays the player-facing progression and the
+//    single authored source under Order 005.
+//  • This manifest is fetched ONLY when _DEV_MODE is already true, so a normal
+//    Pages visitor never requests it.
+//  • A missing/invalid file is a NO-OP, not an error. It is dev scaffolding and
+//    the game must boot identically without it — boot smoke is run with it absent.
+async function _loadDevTestbeds() {
+  let res;
+  try {
+    res = await fetch('src_scroll/levels/_dev_levels.json', { cache: 'no-store' });
+  } catch (err) {
+    // Network-level failure. Absent scaffolding must never break boot.
+    return [];
+  }
+  if (!res.ok) return [];                         // absent is fine, and expected in prod
+  // NOT wrapped in a silent catch. An earlier version swallowed every error here
+  // and a BOM-prefixed manifest failed JSON.parse with NO message at all — the dev
+  // manifest was fetched, rejected, and reported nothing, so it looked like the
+  // feature simply did not work. Same honest-refusal doctrine as D4: a broken dev
+  // manifest must SAY it is broken.
+  let data;
+  try {
+    data = JSON.parse(await res.text());
+  } catch (err) {
+    console.warn('[game] dev testbed manifest is present but UNPARSEABLE — ignoring it:',
+      err.message, '(a UTF-8 BOM will do this; write the file without one)');
+    return [];
+  }
+  if (!Array.isArray(data.order)) {
+    console.warn('[game] dev testbed manifest has no `order` array — ignoring it');
+    return [];
+  }
+  const out = [];
+  for (const e of data.order) {
+    if (!e || !e.file) continue;
+    try {
+      out.push({
+        num: e.number,
+        def: await _loadJsonLevel('src_scroll/levels/' + e.file,
+                                  e.name || ('TESTBED ' + e.number), e.number),
+        kind: 'testbed',
+      });
+    } catch (err) {
+      console.warn('[game] dev testbed missing, skipped:', e.file, err.message);
+    }
+  }
+  return out;
+}
+
 async function _discoverDevLevels() {
   // ORDER 005: committed JSON only, in Git-tracked manifest order.
   _DEV_LEVELS = (await _loadOrderedLevels())
     .map(({ num, def }) => ({ num, def, kind: 'committed' }));
+  // Engine testbeds appended after the real levels — dev builds only.
+  const testbeds = await _loadDevTestbeds();
+  if (testbeds.length) {
+    _DEV_LEVELS = _DEV_LEVELS.concat(testbeds);
+    console.info('[game] DEV testbeds available:', testbeds.length,
+      '— reachable with [ and ] past the last real level, or ?level=' + testbeds[0].num);
+  }
 }
 
 function _devSwitchLevel(idx) {
@@ -419,9 +484,19 @@ function _devSwitchLevel(idx) {
   state = STATES.PLAYING;
   const old = document.getElementById('level-source-badge');
   if (old) old.remove();
-  _showLevelSourceBadge('committed',
-    'DEV \u00b7 LEVEL ' + entry.num + ' (' + (_devIdx + 1) + '/' + _DEV_LEVELS.length + ') [COMMITTED \u00b7 MANIFEST ORDER]'
-    + '\n[ prev   ] next  \u2014 ?level=N to jump');
+  // The badge must never claim a testbed is a committed level. Kiro's Q5 ruling
+  // requires a player who somehow lands here to be in no doubt, so the wording is
+  // explicit rather than a subtle colour change.
+  if (entry.kind === 'testbed') {
+    _showLevelSourceBadge('testbed',
+      'DEV \u00b7 ENGINE TESTBED \u2014 NOT A LEVEL \u00b7 ' + (entry.def?.name || entry.num)
+      + ' (' + (_devIdx + 1) + '/' + _DEV_LEVELS.length + ')'
+      + '\nnot in levels.json \u00b7 [ prev   ] next');
+  } else {
+    _showLevelSourceBadge('committed',
+      'DEV \u00b7 LEVEL ' + entry.num + ' (' + (_devIdx + 1) + '/' + _DEV_LEVELS.length + ') [COMMITTED \u00b7 MANIFEST ORDER]'
+      + '\n[ prev   ] next  \u2014 ?level=N to jump');
+  }
 }
 
 // ── Boot: fetch level JSON, then launch ──────────

@@ -5,6 +5,99 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## ANSWERS_ORCHA_01 — Q7 conditional margin guard + Q5 dev testbed manifest
+
+- **Date:** 2026-09-17T11:40-04:00 · **Branch:** `agent/orcha-dev` · synced from `7652250`
+- **Status:** COMPLETE, pushed, awaiting QA. O3 confirmed merged.
+
+### Suites (before → after)
+
+| Suite | Before | After |
+|---|---|---|
+| `parity_regression.mjs` | 282/0 | **289 / 0** |
+| `fence_switch.mjs` | 62/0 | **62 / 0** |
+| `energy_authority.mjs` | 88/0 | **88 / 0** |
+| `crate_timed.mjs` | 87/0 | **87 / 0** |
+| `test_electricity.mjs` | 37/0 | **37 / 0** |
+| Boot smoke — manifest PRESENT (3912) | — | **BOOT_SMOKE_OK**, `ERRORS: []` |
+| Boot smoke — manifest ABSENT (4512) | — | **BOOT_SMOKE_OK**, `ERRORS: []` |
+
+**563 passing, zero regressions.**
+
+### Q7 — conditional margin guard
+
+Fires **only** when `enemies.length > 0`. §6.10 (margin 0 acceptable) stands unchanged
+for enemy-free levels; this narrows it rather than reversing it.
+
+`blockOnly` barriers are excluded from spend — the player cannot discharge into one, so
+Level 2's `BARRIER required:1` is inert and paid by `SW1` instead. Counting it would
+double-charge the puzzle.
+
+**Mutation-tested both directions, as ruled:**
+
+| Direction | Result |
+|---|---|
+| patrol enemy added to `level2` (margin 0) | **FIRES** — "has 1 enemy/enemies and margin 0 ... one hit makes it unsolvable (energy 10, cost 10)" |
+| patrol enemy added to `level3` (margin 7) | **SILENT** — passes, proving it is not merely "any enemy fails" |
+
+Dormant on all 7 authored files today, and the dormant case is logged rather than
+skipped so the exemption is visible.
+
+This matters immediately: Level 3's whole purpose is to introduce an enemy, and it has
+margin 7 — so Chief's drone will pass. Levels 1 and 2 at margin 0 are now protected.
+
+### Q5 — dev-only testbed manifest
+
+`src_scroll/levels/_dev_levels.json` + `_loadDevTestbeds()` in `main.js`.
+
+All constraints honoured: `levels.json` **untouched** (verified unmodified in git);
+fetched only when `_DEV_MODE` is already true; reuses the existing `?dev=1` switch;
+testbeds appended **after** real levels so index 0 is still Level 1; badge reads
+`DEV · ENGINE TESTBED — NOT A LEVEL` in alarm red, never claiming "COMMITTED".
+
+**Verified by observation, not by reading the code** — a harness that records every
+`fetch`:
+
+| Scenario | dev manifest fetched | testbeds loaded | errors |
+|---|---|---|---|
+| `?dev=1`, file present | yes | **2** | 0 |
+| `?dev=1`, file 404 | yes | 0 | 0 |
+| `?dev=1`, file BOM-corrupt | yes | 0 | 0 (warns) |
+| **normal visitor** | **no** | 0 | 0 |
+
+### A real bug I introduced and caught — BOM + a silent catch
+
+First implementation reported `testbeds loaded: none` in dev while still passing every
+suite and boot smoke. Two compounding causes:
+
+1. PowerShell `Set-Content -Encoding UTF8` wrote a **UTF-8 BOM**. `JSON.parse` throws on
+   a BOM (`require` strips it, which is why my first sanity check passed). Rewrote via
+   `UTF8Encoding($false)`; committed `levels.json` has no BOM, confirmed by byte check.
+2. My `catch { return []; }` **swallowed the parse error entirely** — fetched, rejected,
+   reported nothing. That is precisely the silent no-op the D4 doctrine forbids, in code
+   I wrote while citing that doctrine elsewhere.
+
+Now warns explicitly and names the likely cause. Verified: a BOM-corrupted manifest
+warns, the game still boots, `console.error` count 0.
+
+**Hazard worth propagating:** any JSON written with PowerShell `Set-Content -Encoding
+UTF8` on this machine gets a BOM and will fail `JSON.parse` at runtime while passing a
+`require`-based check. Relevant to anyone hand-writing level or manifest JSON.
+
+### Q3 / Q8 / Q9 — noted, no action
+
+Q3 conceded as sequencing, with a new standing rule binding order-issuers to name a
+consuming level. **My fence is live in Level 2 as of `da0336b`** — first time a mechanic
+I built is reachable by a human. Q8: Aki copied anchors verbatim from `electricity.js`;
+my per-frame bbox variance is deliberately *not* what she anchored from (§6.2 requires
+the uniform canvas), so the difference is the ruling working. Q9 closed, no code change.
+
+### Next
+
+**O2** grounded zone semantics doc, then HOLD. Not started.
+
+---
+
 ## KIRO_ORDER_ORCHA_02 — O3 TILE REGISTRY SYNC GUARD (+ P1 questions filed)
 
 - **Date:** 2026-09-17T00:40-04:00 · **Branch:** `agent/orcha-dev` · synced from `d5597fb`
