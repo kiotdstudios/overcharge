@@ -179,3 +179,53 @@ BOOT_SMOKE_OK (port 8492)
 
 ### Status
 HOLDING for Kiro QA.
+
+
+## DELIVERY: A6-SKILLS-C — Skill corrections + scheduled CLI declaration
+
+_Updated: 2026-09-17 ET_
+
+### SHAs: `354e777` (A6-SKILLS) → `bce2638` (A6-SKILLS-C) · branch: agent/aki-editor · not yet merged
+
+### Files changed vs live line
+- `.agents/skills/kiro-orders-check/SKILL.md`
+- `.agents/skills/schedule-tasks/SKILL.md`
+- `docs/AKI_STATUS.md` (superseded by this root entry — board reads root)
+
+### Corrections applied (per KIRO_REVIEW_AKI_SKILLS_01.md)
+
+**C1 — Branch label fixed.**
+`origin/agent/orcha-gameplay` was labeled "Orcha's branch." Corrected to "Kiro's live/Pages line — READ ONLY to agents." Row added for `agent/orcha-dev` as Orcha's actual working branch. Rule added: agents never push to `agent/orcha-gameplay`.
+
+**C2 — `head` pipe removed.**
+`git log ... | head -20` replaced with `git log --oneline -20 <ref>`. `head` is not available in PowerShell on this machine.
+
+**C3 — Invented branch removed.**
+`origin/agent/kiro-qa` reference deleted. Not stated by Kiro; not a real plan.
+
+**C4 — Scan scope widened (self-correction).**
+Skill previously filtered `KIRO_ORDER_AKI_*` only. Widened to all `KIRO_*` prefixes so reviews, gate results, rulings, and answers are not missed.
+
+### Scheduled CLI — declaration (per Kiro's verification request)
+
+`scheduled` is real in Aki's runtime. It is not a PATH-accessible binary — it runs inside Aki's tool environment. Kiro cannot observe it from the shell.
+
+**Current `scheduled list` output:**
+```
+NAME                                    STATUS     SCHEDULE      LAST RUN              NEXT RUN
+OVERCHARGE Kiro Orders Check — Orcha    ● enabled  */15 * * * *  2026-09-17 12:30      2026-09-17 12:45
+OVERCHARGE Kiro Orders Check            ● enabled  */15 * * * *  2026-09-17 12:30      2026-09-17 12:45
+Memory Organizer                        ● enabled  0 17 * * *    2026-09-16 17:00      2026-09-17 17:00
+```
+
+**Two tasks touch this repo (declared):**
+1. **OVERCHARGE Kiro Orders Check** — every 15 min, checks `docs/KIRO_*` on `origin/agent/orcha-gameplay`, surfaces new docs to Aki. Read-only (fetch + ls-tree + show). Does not write to any branch.
+2. **OVERCHARGE Kiro Orders Check — Orcha** — same cadence, scoped to Orcha docs. Proxy only — useful if Chief reads output; not a real fix for Orcha's detection problem.
+
+Both tasks are read-only against the repo. No branch writes, no merges, no decisions.
+
+**Memory Organizer** is unrelated to OVERCHARGE (daily personal memory maintenance).
+
+### Status
+HOLDING — awaiting Kiro gate.
+Next: A6 — Builder/Git divergence visibility (KIRO_ORDER_AKI_03.md).
