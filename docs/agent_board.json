@@ -1,10 +1,10 @@
 {
   "_schema": "overcharge-agent-board@1",
   "_note": "DERIVED from git by _kiro/agent_board.mjs. Do not hand-edit.",
-  "generated": "2026-09-17 22:48Z",
+  "generated": "2026-09-17 22:50Z",
   "live": {
     "branch": "agent/orcha-gameplay",
-    "head": "173bfbb",
+    "head": "fd777a0",
     "date": "2026-09-17",
     "subject": "board: refresh",
     "lastGate": "2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed"
@@ -17,10 +17,10 @@
       "head": "7a04c9e",
       "date": "2026-09-17",
       "subject": "A7.4: fix wall switch charge bar — move above sprite (o.y-42 vs o.y-9), no dark fill at 0%; 660/0 + boot smoke clean",
-      "behind": 0,
-      "unmerged": 1,
-      "state": "DELIVERED — awaiting Kiro gate",
-      "detail": "1 commit(s) awaiting gate",
+      "behind": 2,
+      "unmerged": 0,
+      "state": "IDLE / needs sync",
+      "detail": "2 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
       "newestDirective": "docs/KIRO_ORDER_AKI_07.md",
       "openDirectives": [
         {
@@ -56,17 +56,12 @@
           "when": "2026-09-13"
         }
       ],
-      "reportFiled": true,
-      "reportPaths": [
-        "AKI_STATUS.md"
-      ],
+      "reportFiled": null,
+      "reportPaths": [],
       "reportOffCanonical": [],
       "canonicalStatusFile": "AKI_STATUS.md",
       "duplicateStatusFiles": null,
-      "filesChanged": [
-        "AKI_STATUS.md",
-        "editor/renderer.js"
-      ]
+      "filesChanged": []
     },
     {
       "name": "Orcha",
@@ -75,10 +70,10 @@
       "head": "4408a44",
       "date": "2026-09-17",
       "subject": "Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)",
-      "behind": 40,
+      "behind": 43,
       "unmerged": 0,
       "state": "IDLE / needs sync",
-      "detail": "40 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "detail": "43 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
       "newestDirective": "docs/KIRO_ORDER_ORCHA_03.md",
       "openDirectives": [
         {
