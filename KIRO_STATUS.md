@@ -1184,3 +1184,92 @@ Two lessons:
 - **O1** placement guards in parity. His own `99_CRATE_TIMED_TESTBED.json` has 3 floating objects (GEN_A, GEN_B, CP1) — **his to fix, and explicitly not to exempt.** Pre-stated the exemptions (drones, platforms, bottomless columns, backup files), the "no `y % 32`" rule, and the "no positive-margin assertion" rule so he does not flag Chief's clean content
 - **O2** grounded zone as an **environmental zone, not a character** — no character art needed, so Level 6 unblocks without an art decision. Semantics doc first, **HOLD for ratification** (that process has already caught a guaranteed crash on paper and three factual errors of mine)
 - Told him plainly: **no runtime changes requested.** "Overcharged" is Chief's word for charging to completion, which is what he already built.
+
+---
+
+## 2026-09-13 — QA GATE: ORCHA O1 PLACEMENT GUARDS — **PASS, MERGED**
+
+**Merged:** `af7cbd7` fast-forward → `agent/orcha-gameplay` (live/Pages line), pushed.
+**Order:** `docs/KIRO_ORDER_ORCHA_01.md` (O1) · **Suites: 528 / 0** re-run independently, not taken from his report.
+
+| Suite | Baseline | Verified by me |
+|---|---|---|
+| `parity_regression.mjs` | 177/0 | **254 / 0** |
+| `fence_switch.mjs` | 62/0 | **62 / 0** |
+| `energy_authority.mjs` | 88/0 | **88 / 0** |
+| `crate_timed.mjs` | 87/0 | **87 / 0** |
+| `test_electricity.mjs` | 37/0 | **37 / 0** |
+| Boot smoke (port 8571) | — | **BOOT_SMOKE_OK**, `ERRORS: []` |
+
+### The gate I actually cared about: does the guard fire on CHIEF'S content?
+
+O1 modifies `parity_regression.mjs` — **the file that guards everything else.** A defect there
+hides regressions rather than causing them, and a guard that silently checks nothing still
+reports green. Orcha's own 4 mutations proved his guards fire, but he mutated *his own fixtures*.
+That does not rule out a filename-filter or enumeration bug that skips authored levels.
+
+So I mutated **Chief's published levels** instead (`_kiro_tools/gate_o1.mjs`, outside the repo):
+
+| Mutation | Target | Result |
+|---|---|---|
+| M1 source floated +5px | `level1.json` (published) | **CAUGHT** — named the file, object, and −5px |
+| M2 gate off-grid +7px | `level3.json` (published) | **CAUGHT** ×2 |
+| M3 source floated +9px | `1_NEON_RISE.json` (named twin) | **CAUGHT** — twins really are scanned |
+| M4 switch off-grid +11px | `level2.json` (the fence puzzle) | **CAUGHT** |
+| M5 crate floated +6px | crate testbed | **CAUGHT** |
+
+5/5, tree restored clean, baseline back to 254/0. **M2 tripped two independent guards** — the new
+grid check *and* my earlier spawn-reachability guard — which is the defense-in-depth I wanted.
+
+### Credit where it's due: Orcha caught a vacuous assertion I did not think to order
+
+He found that **no authored level contains a single enemy or platform**, so his drone/platform
+exemption branches were never exercised by real data. He added a synthetic fixture proving a
+hovering drone and mid-air platform genuinely FAIL the grounded test a walking enemy passes.
+That is the same class of defect as my own contact-sheet error: *sampling a subset and
+generalizing.* He caught it in his own work unprompted. Recorded as the standard.
+
+He also found **7** placement failures where I predicted 3 — his fence testbed was new and
+unaudited when I wrote the order. He regrounded all 7 and re-verified both testbeds end to end
+rather than writing himself an exemption, exactly as ordered.
+
+### ESCALATED TO CHIEF — Level 3 is a published stub, and it is worse than Orcha reported
+
+Orcha flagged `enemies: []`. Verified, and audited the rest of the file. It is not just missing
+its enemy:
+
+```
+cols=100 (3200px world)  —  terrain stops at column 37 (x=1184)
+columns 38-99 (x=1216-3168) are COMPLETELY EMPTY — 62% of the level is void
+rightmost content object: x=672        checkpoints: 0        enemies: 0
+playerStart x=64   ·   exit gate x=32  ←  the exit is BEHIND the spawn
+name: "LEVEL 3"    (brief calls for "DON'T GET HIT")
+```
+
+Sources 5+5+5 = 15 against a required 8, so it **is** completable — spawn at 64, collect right,
+walk back left to x=32, exit. That is precisely why no automated check caught it: completability
+passes, and the guards O1 just added pass too. Nothing is *broken*; the level is **unfinished**,
+and unfinished is not something a test can assert.
+
+This matters because it is **published in `levels.json`** — anyone finishing SPLIT DECISION lands
+in it. And per `docs/LEVEL3_DESIGN_BRIEF.md` its entire teaching goal is *getting hit scatters
+your charge → reclaim it*. With no enemy there is nothing to be hit by, so the level cannot
+teach the one thing it exists to teach.
+
+Almost certainly a casualty of the player-stuck bug: Chief started authoring near the x=32 gate,
+hit the freeze, reported it, and the session never resumed. The freeze is fixed; the level was
+never picked back up.
+
+**Level content is Chief's lane — reported, NOT fixed.** My recommendation is to either finish it
+this session (drop a drone in the corridor, add a checkpoint, move the exit to the right end,
+rename) or pull it from the manifest until it is ready. I lean toward finishing: the engine work
+is all done, it is pure Builder content, and it is the natural thing to build in a play session.
+
+### Minor, noted not acted on
+`level2.json` has **no `2_*.json` named twin** while Levels 1 and 3 do (`1_NEON_RISE.json`,
+`3_LEVEL_3.json`). Cosmetic and breaks nothing — the manifest points at `level2.json` — but it is
+an inconsistency in the naming convention. Not worth a commit on its own.
+
+### Next
+Orcha → **O2** grounded zone: semantics doc first, HOLD for ratification.
+Aki → still **32 behind**, nothing delivered; `git fetch` is step 0 of `docs/KIRO_ORDER_AKI_01.md`.
