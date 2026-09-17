@@ -1,12 +1,12 @@
 {
   "_schema": "overcharge-agent-board@1",
   "_note": "DERIVED from git by _kiro/agent_board.mjs. Do not hand-edit.",
-  "generated": "2026-09-17 18:08Z",
+  "generated": "2026-09-17 19:54Z",
   "live": {
     "branch": "agent/orcha-gameplay",
-    "head": "84efef9",
+    "head": "fa5c519",
     "date": "2026-09-17",
-    "subject": "board: refresh",
+    "subject": "board: 10-min unattended watcher (Task Scheduler -> _kiro/live/, gitignored, no commits); fix reportFiled to match basename + flag off-canonical and duplicate status files",
     "lastGate": "2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed"
   },
   "agents": [
@@ -17,10 +17,10 @@
       "head": "bce2638",
       "date": "2026-09-17",
       "subject": "A6-SKILLS-C: corrections from KIRO_REVIEW_AKI_SKILLS_01 + AKI_STATUS",
-      "behind": 11,
+      "behind": 12,
       "unmerged": 2,
       "state": "DELIVERED (branch also behind)",
-      "detail": "2 commit(s) awaiting gate; 11 behind live",
+      "detail": "2 commit(s) awaiting gate; 12 behind live",
       "newestDirective": "docs/KIRO_REVIEW_AKI_SKILLS_01.md",
       "openDirectives": [
         {
@@ -65,10 +65,10 @@
       "head": "4408a44",
       "date": "2026-09-17",
       "subject": "Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)",
-      "behind": 11,
+      "behind": 12,
       "unmerged": 0,
       "state": "IDLE / needs sync",
-      "detail": "11 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "detail": "12 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
       "newestDirective": "docs/KIRO_ANSWERS_ORCHA_01.md",
       "openDirectives": [
         {

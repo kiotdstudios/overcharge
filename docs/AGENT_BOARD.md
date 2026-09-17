@@ -3,15 +3,15 @@
 **DERIVED FILE — do not hand-edit.** Regenerate with `node _kiro/agent_board.mjs --write`.
 Every value here comes from git, so it cannot drift from reality. Owned by Kiro.
 
-_Generated 2026-09-17 18:08Z_
+_Generated 2026-09-17 19:54Z_
 
 ## Live line — the only thing GitHub Pages serves
 
 | | |
 |---|---|
 | Branch | `agent/orcha-gameplay` |
-| Head | `84efef9` (2026-09-17) |
-| Last commit | board: refresh |
+| Head | `fa5c519` (2026-09-17) |
+| Last commit | board: 10-min unattended watcher (Task Scheduler -> _kiro/live/, gitignored, no commits); fix reportFiled to match basename + flag off-canonical and duplicate status files |
 | Last gate | 2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed |
 | Game | https://kiotdstudios.github.io/overcharge/index.html |
 | Builder | https://kiotdstudios.github.io/overcharge/editor.html |
@@ -30,7 +30,7 @@ from it; work is pushed to your own branch.
 
 - **Branch:** `agent/aki-editor` at `bce2638` (2026-09-17)
 - **Last commit:** A6-SKILLS-C: corrections from KIRO_REVIEW_AKI_SKILLS_01 + AKI_STATUS
-- **State:** DELIVERED (branch also behind) — 2 commit(s) awaiting gate; 11 behind live
+- **State:** DELIVERED (branch also behind) — 2 commit(s) awaiting gate; 12 behind live
 - **Newest directive:** `docs/KIRO_REVIEW_AKI_SKILLS_01.md` (2026-09-17)
 - **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_REVIEW_AKI_SKILLS_01.md`
 - **All open directives for you (newest first):**
@@ -52,7 +52,7 @@ from it; work is pushed to your own branch.
 
 - **Branch:** `agent/orcha-dev` at `4408a44` (2026-09-17)
 - **Last commit:** Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)
-- **State:** IDLE / needs sync — 11 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
+- **State:** IDLE / needs sync — 12 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
 - **Newest directive:** `docs/KIRO_ANSWERS_ORCHA_01.md` (2026-09-17)
 - **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ANSWERS_ORCHA_01.md`
 - **All open directives for you (newest first):**
