@@ -54,6 +54,19 @@ const PLAYER_SPRITE_FEET = 78;  // pixel row of feet within the 92px frame
 const PLAYER_HIT_W       = 20;  // collision box width (PLAYER_W in constants.js)
 const PLAYER_HIT_H       = 30;  // collision box height
 
+// Wall-switch and fence sprite anchor constants — copied from src_scroll/electricity.js.
+// Do not re-derive: drift here makes the Builder disagree with the runtime.
+//
+// WALL_SW_CANVAS: switch art is 56x56, drawn centred on hitbox cx, bottom-aligned to hitbox bottom.
+//   dX = Math.round(cx - 56/2)  = Math.round(x + 11 - 28) = x - 17
+//   dY = (y + hitH) - 56        = y + 22 - 56             = y - 34
+//
+// FENCE_CANVAS: fence art is 64x64 per tile, tiled to cover the gate hitbox.
+//   baseX = Math.round(cx - ceil(w/64)*64/2)
+//   baseY = (y + h) - ceil(h/64)*64
+const WALL_SW_CANVAS = 56;   // matches WALL_SW_CANVAS in electricity.js
+const FENCE_CANVAS   = 64;   // matches FENCE_CANVAS in electricity.js
+
 // Terrain tile PNG lookup — keyed by ASSET ID, not by array position, so a
 // new manifest tile inserted at any position does not renumber saved cells.
 // Missing images are looked up on demand each frame (getImage caches).
@@ -440,6 +453,58 @@ function _drawGates(ctx, arr) {
   const z = state.camera.zoom;
   const SPRITE_W = 64, SPRITE_H = 128;
   for (const g of arr) {
+    // ── Fence branch: style:"fence" blockOnly gate draws live fence art (64x64 tiles).
+    // Anchor/tiling copied from electricity.js PowerGate._drawFence — see FENCE_CANVAS
+    // constant block at the top of this file.
+    // Builder shows frame_001.png (static first live frame — frame_000 is byte-identical
+    // to fence_dead.png and MUST NOT appear on a live fence; see electricity.js comment).
+    if (g.style === 'fence') {
+      const cols = Math.max(1, Math.ceil(g.w / FENCE_CANVAS));
+      const rows = Math.max(1, Math.ceil(g.h / FENCE_CANVAS));
+      const totalW   = cols * FENCE_CANVAS;
+      const baseWX   = Math.round(g.x + g.w / 2 - totalW / 2);
+      const baseWY   = (g.y + g.h) - rows * FENCE_CANVAS;
+      const fimg     = getImage('assets/objects/fence/frame_001.png');
+      const FCOL     = '#66ccff';
+      ctx.imageSmoothingEnabled = false;
+      if (fimg.complete && fimg.naturalWidth > 0) {
+        ctx.save();
+        ctx.shadowBlur = Math.max(8, 12 * z); ctx.shadowColor = FCOL;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const tp = worldToScreen(baseWX + c * FENCE_CANVAS, baseWY + r * FENCE_CANVAS);
+            ctx.drawImage(fimg, tp.x, tp.y, FENCE_CANVAS * z, FENCE_CANVAS * z);
+          }
+        }
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      } else {
+        // Hatched fallback while image loads
+        const hp = worldToScreen(g.x, g.y);
+        const gw = g.w * z, gh = g.h * z;
+        ctx.fillStyle = FCOL; ctx.globalAlpha = 0.15;
+        ctx.fillRect(hp.x, hp.y, gw, gh);
+        ctx.globalAlpha = 1;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(hp.x, hp.y, gw, gh); ctx.clip();
+        ctx.strokeStyle = FCOL; ctx.lineWidth = 1; ctx.globalAlpha = 0.3;
+        const step = Math.max(8, 14 * z);
+        for (let i = -gh; i < gw + gh; i += step) {
+          ctx.beginPath(); ctx.moveTo(hp.x + i, hp.y); ctx.lineTo(hp.x + i + gh, hp.y + gh); ctx.stroke();
+        }
+        ctx.restore(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = FCOL; ctx.lineWidth = 2;
+        ctx.strokeRect(hp.x, hp.y, gw, gh);
+      }
+      // Badge + label
+      const flp = worldToScreen(g.x + g.w / 2, g.y + g.h);
+      ctx.fillStyle = FCOL;
+      ctx.font = `bold ${Math.max(9, Math.round(10 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText('FENCE' + (g.label && g.label !== 'FENCE' ? ' · ' + g.label : ''), flp.x, flp.y + 3);
+      continue;
+    }
+
     const gcx = g.x + g.w / 2;
     const spriteX = gcx - SPRITE_W / 2;
     const spriteY = (g.y + g.h) - SPRITE_H;   // bottom-aligned, no padding offset
@@ -489,39 +554,76 @@ function _drawGates(ctx, arr) {
   }
 }
 
-// Switches: replicate the game's orange glow-rect with inner fill.
-// Switch x,y = top-left, 22×22 hitbox (matches Switch runtime).
+// Switches: real wall_switch art (switch_off.png / switch_on.png, 56x56).
+// Anchors copied verbatim from src_scroll/electricity.js Switch._drawWall — see
+// WALL_SW_CANVAS constant block near the top of this file.
+//   style:"wall"    → switch_on.png  (resting/powering state — wall switch starts lit)
+//   unstyled/default → switch_off.png (uncharged, not yet fired)
+// Charge fill bar drawn at 0% fill so authors can see the mechanic exists.
+// Schematic fallback while art loads.
 function _drawSwitches(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const o of arr) {
-    const p  = worldToScreen(o.x, o.y);
-    const sw = 22 * z, sh = 22 * z;
-    // Outer glow border
-    ctx.strokeStyle = MARKER.switch; ctx.lineWidth = Math.max(1.5, 2 * z);
-    ctx.shadowBlur  = Math.max(6, 8 * z); ctx.shadowColor = MARKER.switch;
-    ctx.strokeRect(p.x, p.y, sw, sh);
-    ctx.shadowBlur = 0;
-    // Inner fill
-    ctx.fillStyle = 'rgba(255,140,0,0.55)';
-    ctx.fillRect(p.x + 2, p.y + 2, sw - 4, sh - 4);
-    // "SW" glyph
-    ctx.fillStyle = '#fff';
-    ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('SW', p.x + sw / 2, p.y + sh / 2);
-    // Label below
+    const hitW = 22, hitH = 22;
+    const ocx  = o.x + hitW / 2;
+    // Runtime anchor from electricity.js Switch._drawWall:
+    //   dX = Math.round(cx - WALL_SW_CANVAS/2)
+    //   dY = (y + h) - WALL_SW_CANVAS
+    const artWorldX = Math.round(ocx - WALL_SW_CANVAS / 2);
+    const artWorldY = (o.y + hitH) - WALL_SW_CANVAS;
+    const sp   = worldToScreen(artWorldX, artWorldY);
+    const artW = WALL_SW_CANVAS * z, artH = WALL_SW_CANVAS * z;
+
+    // Wall switch rests powered (switch_on); default switch is uncharged (switch_off)
+    const imgPath = (o.style === 'wall')
+      ? 'assets/objects/wall_switch/switch_on.png'
+      : 'assets/objects/wall_switch/switch_off.png';
+    const img = getImage(imgPath);
+    ctx.imageSmoothingEnabled = false;
+
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, sp.x, sp.y, artW, artH);
+    } else {
+      // Schematic fallback while art loads
+      const fp = worldToScreen(o.x, o.y);
+      const fw = hitW * z, fh = hitH * z;
+      ctx.save();
+      ctx.strokeStyle = MARKER.switch; ctx.lineWidth = Math.max(1.5, 2 * z);
+      ctx.shadowBlur  = Math.max(6, 8 * z); ctx.shadowColor = MARKER.switch;
+      ctx.strokeRect(fp.x, fp.y, fw, fh);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255,140,0,0.55)';
+      ctx.fillRect(fp.x + 2, fp.y + 2, fw - 4, fh - 4);
+      ctx.fillStyle = '#fff';
+      ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('SW', fp.x + fw / 2, fp.y + fh / 2);
+      ctx.restore();
+    }
+
+    // Charge fill bar — shown above the hitbox at 0% fill (un-charged authoring state).
+    // Bar layout mirrors Switch.draw() in electricity.js: sbX=x-4, sbY=y-9.
+    {
+      const barW = (hitW + 8) * z, barH = 5 * z;
+      const bp = worldToScreen(o.x - 4, o.y - 9);
+      ctx.fillStyle = '#1a0a00';
+      ctx.fillRect(bp.x, bp.y, barW, barH);
+    }
+
+    // Label and required charge below sprite
+    const lp = worldToScreen(ocx, o.y + hitH);
     if (o.label || o.id) {
       ctx.fillStyle = MARKER.switch;
       ctx.font = `${Math.max(7, Math.round(9 * z))}px monospace`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-      ctx.fillText(o.label || o.id, p.x + sw / 2, p.y + sh + 2);
+      ctx.fillText(o.label || o.id, lp.x, lp.y + 2);
     }
     if (o.required != null) {
       ctx.fillStyle = '#aa5500';
       ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
       ctx.textAlign = 'center';
-      ctx.fillText('\u26a1' + o.required, p.x + sw / 2, p.y + sh + 2 + Math.max(10, 11 * z));
+      ctx.fillText('\u26a1' + o.required, lp.x, lp.y + 2 + Math.max(10, 11 * z));
     }
   }
 }

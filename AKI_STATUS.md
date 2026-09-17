@@ -80,3 +80,49 @@ Holding for Orcha's schema to land on `agent/orcha-gameplay` before building:
 |-----|-------|
 | 2a0a5fa | Post-reset (P1 baseline) |
 | 412b7ed | HEAD — P3 complete |
+---
+
+## ORDER AKI 02 — A1-A4: SWITCH ART + FENCE IN BUILDER — COMPLETE / HOLD FOR KIRO QA
+
+_Updated: 2026-09-17 ET_
+
+### SHA: 20eea4f → agent/aki-editor · not merged
+
+### Files changed
+- `editor/renderer.js`
+- `editor/selection.js`
+- `assets/ASSET_MANIFEST.json`
+
+### A1 — Real switch art
+`_drawSwitches` draws `switch_off.png` (default) or `switch_on.png` (style:wall), 56×56.
+Anchor copied verbatim from `electricity.js` Switch._drawWall (dX=x-17, dY=y-34).
+Charge bar rendered at 0% fill. Schematic fallback while image loads.
+
+### A2 — Fence branch in Builder
+`_drawGates` fence branch draws `frame_001.png` tiled 64×64, centred on gate, cyan glow.
+Anchor copied from `electricity.js` PowerGate._drawFence. frame_000 excluded (byte-identical to fence_dead).
+`WALL_SW_CANVAS=56` and `FENCE_CANVAS=64` constants at top of renderer.js; cross-referenced to electricity.js.
+
+### A3 — Switch boundingRect
+`selection.js` switch bounding rect updated 22×22 hitbox → 56×56 art box (x-17, y-34).
+Runtime hitbox untouched.
+
+### A4 — Manifest registration
+`ASSET_MANIFEST.json`: 6 runtime-state entries appended (wall_switch_off, wall_switch_on,
+wall_switch_destroyed, wall_switch_burn_anim, fence_dead, fence_live_anim). All eligible:false.
+Total: 7 → 13 entries.
+
+### Suites
+parity 254/0 · fence_switch 62/0 · energy 88/0 · crate_timed 87/0 · electricity 37/0 = **528/0**
+
+### Boot smoke
+BOOT_SMOKE_OK
+
+### Rollback point
+`d5597fb` — pre-A1-A4 HEAD
+
+### Status
+HOLDING for Kiro QA.
+
+### Blocked
+A5 (purple_rooftop tilesheet) — waiting for Orcha O3 (registry guard) to land.
