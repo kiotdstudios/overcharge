@@ -58,28 +58,6 @@
       ]
     },
     {
-      "id": "rt_tile_dark_a.png",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_a.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_rooftop",
-        "tiles"
-      ]
-    },
-    {
-      "id": "rt_tile_dark_b.png",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_b.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_rooftop",
-        "tiles"
-      ]
-    },
-    {
       "id": "rt_tile_mid_a.png",
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",
       "category": "tile",

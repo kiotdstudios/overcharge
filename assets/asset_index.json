@@ -1,6 +1,6 @@
 {
   "generated": "2026-09-17T15:23:53.000Z",
-  "count": 174,
+  "count": 172,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -979,18 +979,6 @@
       "name": "tile_purple_b",
       "category": "terrain",
       "size": 637
-    },
-    {
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_a.png",
-      "name": "rt_tile_dark_a",
-      "category": "tilesets/purple_rooftop",
-      "size": 112
-    },
-    {
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_b.png",
-      "name": "rt_tile_dark_b",
-      "category": "tilesets/purple_rooftop",
-      "size": 112
     },
     {
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",

@@ -38,10 +38,7 @@ export const TILE_ID_REGISTRY = Object.freeze({
   12: 'env_tile_purple_a',
   13: 'env_tile_purple_b',
   // Purple Rooftop tileset (IDs 14-23). env_rt_ prefix = rooftop namespace.
-  // basename(manifest path) for each must equal the rt_ key in render.js.
-  14: 'env_rt_tile_dark_a',
-  15: 'env_rt_tile_dark_b',
-  16: 'env_rt_tile_mid_a',
+  // basename(manifest path) for each must equal the rt_ key in render.js.  16: 'env_rt_tile_mid_a',
   17: 'env_rt_tile_mid_b',
   18: 'env_rt_tile_mid_c',
   19: 'env_rt_tile_purple_a',
