@@ -1161,8 +1161,14 @@ function _doSpawn(e, canvas) {
     obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '', style: 'wall' };
     arr = L.switches || (L.switches = []); arrLabel = 'add_switch';
   } else if (kind === 'fence') {
-    // Fence: blockOnly:true, style:'fence', w:32, h:128, required:1 — Level 2 BARRIER defaults (ORDER AKI 06)
-    obj = { id: 'gate_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), w: 32, h: 128, required: 1, isExit: false, blockOnly: true, label: 'FENCE', style: 'fence' };
+    // Fence: blockOnly:true, style:'fence', w:32, h:64, required:1.
+    // h MUST be 64 — exactly ONE fence tile. The renderer tiles the 64x64 art as
+    // rows = ceil(h / 64), and the art has distinct top/bottom caps, so h:128 draws
+    // TWO visibly stacked fences. That is the defect Chief reported on Level 2, and
+    // Level 2's BARRIER was corrected to h:64 for the same reason.
+    // Height here is purely visual: blocksHorizontal() deliberately ignores Y, so a
+    // blockOnly barrier seals floor-to-ceiling whatever h is.
+    obj = { id: 'gate_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), w: 32, h: 64, required: 1, isExit: false, blockOnly: true, label: 'FENCE', style: 'fence' };
     arr = L.gates || (L.gates = []); arrLabel = 'add_gate';
   } else if (kind === 'crate') {
     const cw = 32, ch = 32, px = _snapGrid(wx), py = _groundAt(wx, wy, ch);
