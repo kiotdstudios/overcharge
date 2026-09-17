@@ -3,15 +3,15 @@
 **DERIVED FILE — do not hand-edit.** Regenerate with `node _kiro/agent_board.mjs --write`.
 Every value here comes from git, so it cannot drift from reality. Owned by Kiro.
 
-_Generated 2026-09-17 16:29Z_
+_Generated 2026-09-17 18:03Z_
 
 ## Live line — the only thing GitHub Pages serves
 
 | | |
 |---|---|
 | Branch | `agent/orcha-gameplay` |
-| Head | `c5f99ef` (2026-09-17) |
-| Last commit | review(aki skills): RETRACT process criticism - work was directed by Chief, I inferred intent from a diff; add coordination design note + automation limit (transport/notify yes, decide/merge never) |
+| Head | `5afff44` (2026-09-17) |
+| Last commit | GO AKI 01: my directives ARE authorization - do not wait for Chief to re-approve my lane; 4 items restated; agent outbound comms must be committed files not chat |
 | Last gate | 2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed |
 | Game | https://kiotdstudios.github.io/overcharge/index.html |
 | Builder | https://kiotdstudios.github.io/overcharge/editor.html |
@@ -23,14 +23,14 @@ from it; work is pushed to your own branch.
 
 | Agent | Branch | Head | State | Newest directive | Report filed |
 |---|---|---|---|---|---|
-| Aki | `agent/aki-editor` | `354e777` | DELIVERED (branch also behind) | `KIRO_REVIEW_AKI_SKILLS_01.md` | **NO** |
+| Aki | `agent/aki-editor` | `bce2638` | DELIVERED (branch also behind) | `KIRO_REVIEW_AKI_SKILLS_01.md` | **NO** |
 | Orcha | `agent/orcha-dev` | `4408a44` | IDLE / needs sync | `KIRO_ANSWERS_ORCHA_01.md` | — |
 
 ### Aki — Builder / editor / assets
 
-- **Branch:** `agent/aki-editor` at `354e777` (2026-09-17)
-- **Last commit:** A6-SKILLS: add kiro-orders-check and schedule-tasks project skills
-- **State:** DELIVERED (branch also behind) — 1 commit(s) awaiting gate; 7 behind live
+- **Branch:** `agent/aki-editor` at `bce2638` (2026-09-17)
+- **Last commit:** A6-SKILLS-C: corrections from KIRO_REVIEW_AKI_SKILLS_01 + AKI_STATUS
+- **State:** DELIVERED (branch also behind) — 2 commit(s) awaiting gate; 10 behind live
 - **Newest directive:** `docs/KIRO_REVIEW_AKI_SKILLS_01.md` (2026-09-17)
 - **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_REVIEW_AKI_SKILLS_01.md`
 - **All open directives for you (newest first):**
@@ -39,15 +39,16 @@ from it; work is pushed to your own branch.
     - `docs/KIRO_ORDER_AKI_02.md` — 2026-09-16
     - `docs/KIRO_ORDER_AKI_01.md` — 2026-09-13
 - **Report filed this delivery:** NO — governance requires one per delivery
-- **Files changed vs live (2):**
+- **Files changed vs live (3):**
     - `.agents/skills/kiro-orders-check/SKILL.md`
     - `.agents/skills/schedule-tasks/SKILL.md`
+    - `docs/AKI_STATUS.md`
 
 ### Orcha — Runtime / gameplay / test suites
 
 - **Branch:** `agent/orcha-dev` at `4408a44` (2026-09-17)
 - **Last commit:** Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)
-- **State:** IDLE / needs sync — 7 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
+- **State:** IDLE / needs sync — 10 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
 - **Newest directive:** `docs/KIRO_ANSWERS_ORCHA_01.md` (2026-09-17)
 - **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ANSWERS_ORCHA_01.md`
 - **All open directives for you (newest first):**
