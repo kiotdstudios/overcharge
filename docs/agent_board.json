@@ -1,12 +1,12 @@
 {
   "_schema": "overcharge-agent-board@1",
   "_note": "DERIVED from git by _kiro/agent_board.mjs. Do not hand-edit.",
-  "generated": "2026-09-17 20:24Z",
+  "generated": "2026-09-17 21:48Z",
   "live": {
     "branch": "agent/orcha-gameplay",
-    "head": "da6025a",
+    "head": "458cee8",
     "date": "2026-09-17",
-    "subject": "A6: divergence banner + game-terms diff + RELOAD FROM GIT + dangling-linkedId warning + no-folder pre-authoring alert",
+    "subject": "level1 (NEON RISE): Chief's Builder edit - exit gate 1216,288 -> 1984,256; CP1 1120 -> 1248; 36 tile rotations. Verified: energy 8v8 margin 0 unchanged, arrays 1800, all rotations legal and on solid cells, parity 350/0",
     "lastGate": "2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed"
   },
   "agents": [
@@ -17,10 +17,10 @@
       "head": "bce2638",
       "date": "2026-09-17",
       "subject": "A6-SKILLS-C: corrections from KIRO_REVIEW_AKI_SKILLS_01 + AKI_STATUS",
-      "behind": 19,
+      "behind": 23,
       "unmerged": 0,
       "state": "IDLE / needs sync",
-      "detail": "19 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "detail": "23 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
       "newestDirective": "docs/KIRO_ORDER_AKI_04.md",
       "openDirectives": [
         {
@@ -61,10 +61,10 @@
       "head": "4408a44",
       "date": "2026-09-17",
       "subject": "Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)",
-      "behind": 21,
+      "behind": 25,
       "unmerged": 0,
       "state": "IDLE / needs sync",
-      "detail": "21 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "detail": "25 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
       "newestDirective": "docs/KIRO_ANSWERS_ORCHA_01.md",
       "openDirectives": [
         {
