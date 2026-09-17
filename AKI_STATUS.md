@@ -383,3 +383,60 @@ Per `KIRO_ORDER_SHIP_3DAY.md`: no speculative work. A7 complete. Available for B
 > with the AKI 06 entry appended. **`AKI_STATUS.md` is an append-only history, not a status
 > snapshot** — the current snapshot lives in `docs/AGENT_BOARD.md`, which is derived from git and
 > cannot go stale. Append new entries; never replace the file.
+
+---
+
+## ORDER AKI 07 — A7.4 COMPLETE
+
+**Filed:** 2026-09-17
+**Branch:** agent/aki-editor
+
+### A7.4 — Wall switch charge bar: dark line fix
+
+**Bug:** Dark background of charge bar was drawn unconditionally at `o.y - 9` — inside the 56×56 sprite (which spans `o.y - 34` to `o.y + 22`).
+
+**Fix in `editor/renderer.js` `_drawSwitches()`:**
+
+1. **Bar Y moved to above the sprite** — matching runtime `sbY = artWorldY - 8`:
+   - Old: `o.y - 9` (mid-sprite, hitbox-relative)
+   - New: `(o.y + hitH) - WALL_SW_CANVAS - 8 = o.y - 42` (8px above sprite top)
+   - Gap between bar bottom and sprite top: `(o.y - 42 + 5) - (o.y - 34) = -3px` → 3 world-px clear
+
+2. **Dark background removed at 0% fill:**
+   - `charged > 0`: draw dark background + orange fill (unchanged runtime-match behaviour)
+   - `charged == 0` (always in Builder): faint orange outline only — mechanic is discoverable, no dark fill
+
+Bar X unchanged: `o.x - 4` (matches runtime `sbX = x - 4`).
+
+### Geometry (for Kiro's visual verification)
+
+| Measurement | Value |
+|---|---|
+| Hitbox | `o.x, o.y` · 22×22 |
+| Sprite top | `o.y - 34` (world Y) |
+| Bar Y | `o.y - 42` (world Y) |
+| Bar H | 5px world |
+| Bar bottom | `o.y - 37` |
+| Gap (bar bottom → sprite top) | **3 world-px clear** |
+| Bar X | `o.x - 4` |
+| Bar W | 30px world (hitW + 8) |
+
+Bar rect `[o.x-4, o.y-42, 30, 5]` does not intersect sprite rect `[o.x-17, o.y-34, 56, 56]`. ✓
+
+### Suites
+
+| Suite | Result |
+|---|---|
+| parity_regression.mjs | 386 / 0 |
+| fence_switch.mjs | 62 / 0 |
+| energy_authority.mjs | 88 / 0 |
+| crate_timed.mjs | 87 / 0 |
+| test_electricity.mjs | 37 / 0 |
+| **TOTAL** | **660 / 0** |
+| boot_smoke | BOOT_SMOKE_OK |
+| ERRORS | [] |
+
+### Noted from ORDER AKI 07
+
+- `AKI_STATUS.md` is append-only — never replace, only append. Understood.
+- Fence spawn default corrected by Kiro to `h:64` (1× tile, not 2×). My default in spawn handler still says `h:128` — correcting now.

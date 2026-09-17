@@ -602,13 +602,30 @@ function _drawSwitches(ctx, arr) {
       ctx.restore();
     }
 
-    // Charge fill bar — shown above the hitbox at 0% fill (un-charged authoring state).
-    // Bar layout mirrors Switch.draw() in electricity.js: sbX=x-4, sbY=y-9.
+    // Charge fill bar — positioned above the SPRITE, not the hitbox.
+    // Runtime: sbX = x - 4, sbY = artWorldY - 8 (electricity.js Switch._drawWall).
+    // Dark background NOT drawn at 0% fill — unconditional background reads as a
+    // dark line across the art. Faint outline only at 0% so authors see the mechanic.
     {
       const barW = (hitW + 8) * z, barH = 5 * z;
-      const bp = worldToScreen(o.x - 4, o.y - 9);
-      ctx.fillStyle = '#1a0a00';
-      ctx.fillRect(bp.x, bp.y, barW, barH);
+      // artWorldY = (o.y + hitH) - WALL_SW_CANVAS = o.y - 34; bar sits 8px above that
+      const sbY = (o.y + hitH) - WALL_SW_CANVAS - 8;  // = o.y - 42
+      const bp  = worldToScreen(o.x - 4, sbY);
+      const charged = o.charged || 0;
+      const req     = o.required || 1;
+      if (charged > 0) {
+        // Background only when there is actual fill to show
+        ctx.fillStyle = '#1a0a00';
+        ctx.fillRect(bp.x, bp.y, barW, barH);
+        const fillW = Math.round(barW * Math.min(1, charged / req));
+        ctx.fillStyle = '#ff8800';
+        ctx.fillRect(bp.x, bp.y, fillW, barH);
+      } else {
+        // 0% — faint outline so the mechanic is discoverable, no dark fill
+        ctx.strokeStyle = 'rgba(255,136,0,0.35)';
+        ctx.lineWidth = Math.max(1, z);
+        ctx.strokeRect(bp.x + 0.5, bp.y + 0.5, barW - 1, barH - 1);
+      }
     }
 
     // Label and required charge below sprite
