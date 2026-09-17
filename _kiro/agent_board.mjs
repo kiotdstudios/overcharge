@@ -26,6 +26,11 @@ import path from 'node:path';
 
 const REPO = process.env.OVERCHARGE_REPO || process.cwd();
 const WRITE = process.argv.includes('--write');
+// --live writes to _kiro/live/ (gitignored) instead of docs/. Used by the every-10-min
+// scheduled task so unattended refreshes never dirty the working tree or spam commits.
+// The committed board in docs/ is updated deliberately, by me, during a gate.
+const LIVE_MODE = process.argv.includes('--live');
+const QUIET = process.argv.includes('--quiet');
 
 // execFileSync with an argv array bypasses the shell entirely. This matters on
 // this machine: through cmd.exe/PowerShell a git --format=%h gets its % eaten
@@ -107,7 +112,20 @@ const rows = AGENTS.map(a => {
     : [];
 
   // Did they file a report alongside the work? Governance requires one per delivery.
-  const reported = unmerged > 0 ? changed.includes(a.status) : null;
+  // Match on BASENAME, not an exact path. An exact-path check reported "no report
+  // filed" when Aki had written a real report to docs/AKI_STATUS.md while the
+  // canonical file sits at the repo root — technically true, but it read as "she
+  // skipped the report" when the actual problem was a duplicate in the wrong place.
+  // Detect the report wherever it landed, then say plainly if it is off-canonical.
+  const statusHits = changed.filter(f => path.basename(f) === a.status);
+  const reported = unmerged > 0 ? statusHits.length > 0 : null;
+  const reportPaths = statusHits;
+  const offCanonical = statusHits.filter(f => f !== a.status);
+
+  // A second status file anywhere in the tree splits the history. Flag it.
+  const allStatusFiles = gitOk('ls-tree', '-r', '--name-only', ref)
+    .split('\n').filter(f => path.basename(f.trim()) === a.status).map(s => s.trim());
+  const duplicateStatus = allStatusFiles.length > 1 ? allStatusFiles : null;
 
   // Status is DERIVED, never asserted by an agent.
   let state, detail;
@@ -118,7 +136,8 @@ const rows = AGENTS.map(a => {
 
   const directives = directivesFor(a.key);
   const order = directives[0] || null;
-  return { ...a, head, date, subj, behind, unmerged, changed, reported, state, detail, order, directives };
+  return { ...a, head, date, subj, behind, unmerged, changed, reported, reportPaths,
+           offCanonical, duplicateStatus, state, detail, order, directives };
 });
 
 // ── render ──────────────────────────────────────────────────────────────────
@@ -169,8 +188,15 @@ for (const r of rows) {
     for (const d of r.directives.slice(0, 6)) L.push(`    - \`${d.file}\` — ${d.when}`);
     if (r.directives.length > 6) L.push(`    - _…and ${r.directives.length - 6} older_`);
   }
+  if (r.duplicateStatus) {
+    L.push(`- **⚠ DUPLICATE STATUS FILES — history is split. Canonical is \`${r.status}\` at the repo root:**`);
+    for (const f of r.duplicateStatus) L.push(`    - \`${f}\`${f === r.status ? '  ← canonical' : '  ← consolidate into the canonical file and delete'}`);
+  }
   if (r.unmerged > 0) {
-    L.push(`- **Report filed this delivery:** ${r.reported ? 'yes' : 'NO — governance requires one per delivery'}`);
+    L.push(`- **Report filed this delivery:** ${r.reported ? `yes (${r.reportPaths.join(', ')})` : 'NO — governance requires one per delivery'}`);
+    if (r.offCanonical && r.offCanonical.length) {
+      L.push(`- **⚠ Report is NOT in the canonical file.** Written to \`${r.offCanonical.join(', ')}\`; canonical is \`${r.status}\`.`);
+    }
     L.push(`- **Files changed vs live (${r.changed.length}):**`);
     for (const f of r.changed.slice(0, 20)) L.push(`    - \`${f}\``);
     if (r.changed.length > 20) L.push(`    - _…and ${r.changed.length - 20} more_`);
@@ -209,11 +235,39 @@ const json = {
         state: r.state, detail: r.detail,
         newestDirective: r.order ? r.order.file : null,
         openDirectives: (r.directives || []).map(d => ({ file: d.file, when: d.when })),
-        reportFiled: r.reported, filesChanged: r.changed,
+        reportFiled: r.reported, reportPaths: r.reportPaths || [],
+        reportOffCanonical: r.offCanonical || [],
+        canonicalStatusFile: r.status, duplicateStatusFiles: r.duplicateStatus,
+        filesChanged: r.changed,
       }),
 };
 
-console.log(md);
+if (!QUIET) console.log(md);
+
+if (LIVE_MODE) {
+  // Unattended path: gitignored, so nothing here touches git state.
+  const dir = path.join(REPO, '_kiro', 'live');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'board.md'), md, 'utf8');
+  fs.writeFileSync(path.join(dir, 'board.json'), JSON.stringify(json, null, 2) + '\n', 'utf8');
+
+  // Append-only event log. One line per refresh, and only when something CHANGED —
+  // so this is a record of deliveries, not 144 identical lines a day.
+  const logPath = path.join(dir, 'events.log');
+  const sig = rows.map(r => r.missing ? `${r.name}:missing` : `${r.name}:${r.head}:${r.unmerged}`).join(' | ')
+    + ` | live:${liveHead}`;
+  let prev = '';
+  try {
+    const lines = fs.readFileSync(logPath, 'utf8').trim().split('\n');
+    prev = (lines[lines.length - 1] || '').split('  ::  ')[1] || '';
+  } catch { /* first run */ }
+  if (sig !== prev) {
+    fs.appendFileSync(logPath, `${now}  ::  ${sig}\n`, 'utf8');
+    if (!QUIET) console.error('[board] CHANGE detected, logged');
+  }
+  console.error(`[board] live -> _kiro/live/board.{md,json}`);
+}
+
 if (WRITE) {
   fs.mkdirSync(path.join(REPO, 'docs'), { recursive: true });
   fs.writeFileSync(path.join(REPO, 'docs', 'AGENT_BOARD.md'), md, 'utf8');
