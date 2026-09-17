@@ -560,6 +560,20 @@ console.log('\n[ Tile registry sync: editor <-> runtime <-> disk ]');
     // the on-disk check tests the path the GAME actually requests.
     const RUNTIME_DIR = 'assets/tilesets/purple_city/tiles';
 
+    // TILE_PATHS is the map the RUNTIME actually loads from (src_scroll/render.js).
+    // It was introduced for multi-tileset support, and check 3 below was changed at the
+    // same time to validate the MANIFEST path — which left TILE_PATHS itself unguarded.
+    // KIRO GATE 2026-09-17: pointing a TILE_PATHS entry at a nonexistent directory
+    // passed 312/0 with zero failures. The runtime would 404 and render a flat fill,
+    // which is the exact ship-blind failure this whole guard exists to prevent.
+    const runtimeSrc = fs.readFileSync(path.resolve('src_scroll/render.js'), 'utf8');
+    const tpM = runtimeSrc.match(/TILE_PATHS\s*=\s*Object\.freeze\(\{([\s\S]*?)\}\)/);
+    check(!!tpM, 'src_scroll/render.js: TILE_PATHS literal is parseable');
+    const tilePaths = {};
+    if (tpM) for (const mm of tpM[1].matchAll(/['"]([\w.\-]+)['"]\s*:\s*['"]([^'"]+)['"]/g))
+      tilePaths[mm[1]] = mm[2];
+    const _norm = (s) => String(s).replace(/\\/g, '/').replace(/^\.?\//, '');
+
     for (const id of eKeys) {
       const assetId  = editorReg[id];
       const runtimeK = runtimeReg[id];
@@ -588,6 +602,22 @@ console.log('\n[ Tile registry sync: editor <-> runtime <-> disk ]');
         : path.resolve(RUNTIME_DIR, `${runtimeK}.png`);
       check(fs.existsSync(diskPath),
         `tile ${id}: runtime PNG exists on disk (${diskPath})`);
+
+      // 3b. The path the RUNTIME loads must be explicitly registered, must exist, and
+      //     must be the SAME file the Builder shows. Without this, TILE_PATHS can point
+      //     anywhere while the manifest stays valid and the guard reports green.
+      const rtPath = tilePaths[runtimeK];
+      check(!!rtPath,
+        `tile ${id}: runtime key "${runtimeK}" has an explicit TILE_PATHS entry`);
+      if (rtPath) {
+        check(fs.existsSync(path.resolve(rtPath)),
+          `tile ${id}: the file TILE_PATHS actually requests exists on disk (${rtPath})`);
+        if (manifestPath) {
+          check(_norm(rtPath) === _norm(manifestPath),
+            `tile ${id}: TILE_PATHS and the manifest load the SAME file ` +
+            `(runtime "${_norm(rtPath)}" vs manifest "${_norm(manifestPath)}")`);
+        }
+      }
     }
 
     // 4. Reserved band. 3-9 are documented as "Builder must not emit"; 1 is
