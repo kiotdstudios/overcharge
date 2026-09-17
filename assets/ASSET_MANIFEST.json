@@ -181,6 +181,151 @@
         ],
         "notes": "Modular waste platform segment — place via construction system, not random generation."
       }
+    },
+    {
+      "id": "wall_switch_off",
+      "path": "assets/objects/wall_switch/switch_off.png",
+      "category": "electrical",
+      "tags": [
+        "switch",
+        "wall_switch",
+        "runtime_state",
+        "off",
+        "electrical"
+      ],
+      "frame_width": 56,
+      "frame_height": 56,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Runtime state sprite — default switch, uncharged/unfired state. 56x56, drawn centred on hitbox cx, bottom-aligned to hitbox bottom (dX=x-17, dY=y-34). NOT a palette entry. Wired in editor/renderer.js _drawSwitches.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Runtime state sprite — wired in electricity.js and editor renderer, not palette-placeable"
+      }
+    },
+    {
+      "id": "wall_switch_on",
+      "path": "assets/objects/wall_switch/switch_on.png",
+      "category": "electrical",
+      "tags": [
+        "switch",
+        "wall_switch",
+        "runtime_state",
+        "on",
+        "powered",
+        "electrical"
+      ],
+      "frame_width": 56,
+      "frame_height": 56,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Runtime state sprite — wall switch, powered/live state. 56x56, same anchor as switch_off. NOT a palette entry.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Runtime state sprite — wired in electricity.js and editor renderer, not palette-placeable"
+      }
+    },
+    {
+      "id": "wall_switch_destroyed",
+      "path": "assets/objects/wall_switch/switch_destroyed.png",
+      "category": "electrical",
+      "tags": [
+        "switch",
+        "wall_switch",
+        "runtime_state",
+        "destroyed",
+        "electrical"
+      ],
+      "frame_width": 56,
+      "frame_height": 56,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Runtime state sprite — wall switch settled end state after overcharge/burn. frame_000.png is byte-identical to this file — animate only frames 001-008. NOT a palette entry.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Runtime state sprite — wired in electricity.js, not palette-placeable"
+      }
+    },
+    {
+      "id": "wall_switch_burn_anim",
+      "path": "assets/objects/wall_switch/frame_{n}.png",
+      "category": "electrical",
+      "tags": [
+        "switch",
+        "wall_switch",
+        "runtime_state",
+        "animation",
+        "burn",
+        "electrical"
+      ],
+      "frame_width": 56,
+      "frame_height": 56,
+      "frame_count": 8,
+      "fps": 12,
+      "directions": null,
+      "loop": false,
+      "notes": "Burn/destroy animation for wall switch. 8 frames: frame_001..frame_008 (SKIP frame_000 — byte-identical to switch_destroyed.png). NOT a palette entry.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Runtime animation — wired in electricity.js Switch._drawWall, not palette-placeable"
+      }
+    },
+    {
+      "id": "fence_dead",
+      "path": "assets/objects/fence/fence_dead.png",
+      "category": "electrical",
+      "tags": [
+        "fence",
+        "gate",
+        "barrier",
+        "runtime_state",
+        "dead",
+        "passable",
+        "electrical"
+      ],
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Runtime state sprite — fence in shorted/dead/passable state. 64x64, tiled to cover gate hitbox. frame_000.png is byte-identical to this file — do not use frame_000 in the live animation. NOT a palette entry.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Runtime state sprite — wired in electricity.js PowerGate._drawFence, not palette-placeable"
+      }
+    },
+    {
+      "id": "fence_live_anim",
+      "path": "assets/objects/fence/frame_{n}.png",
+      "category": "electrical",
+      "tags": [
+        "fence",
+        "gate",
+        "barrier",
+        "runtime_state",
+        "animation",
+        "live",
+        "blocking",
+        "electrical"
+      ],
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 8,
+      "fps": 10,
+      "directions": null,
+      "loop": true,
+      "notes": "Live/blocking fence animation. 8 frames: frame_001..frame_008 (SKIP frame_000 — byte-identical to fence_dead.png). Tiled 64x64 to cover gate hitbox. NOT a palette entry.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Runtime animation — wired in electricity.js PowerGate._drawFence, not palette-placeable"
+      }
     }
   ]
 }

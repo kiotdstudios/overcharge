@@ -213,8 +213,12 @@ export function boundingRect(kind, ref) {
   // art (Chief's rule, 2026-09-12). Runtime collision is unaffected: this is an
   // editor-only selection rect.
   if (kind === 'source')     return { x: ref.x - 18, y: ref.y - 34, w: 64, h: 64 };
-  // Switch: x,y = top-left, runtime hitbox 22×22.
-  if (kind === 'switch')     return { x: ref.x,      y: ref.y,      w: 22, h: 22 };
+  // Switch: 56x56 art (wall_switch/switch_off.png or switch_on.png) drawn centred on
+  // the hitbox cx and bottom-aligned to the hitbox bottom. Anchor from electricity.js
+  // Switch._drawWall: dX = Math.round(cx - 56/2) = x-17, dY = (y+22)-56 = y-34.
+  // Both switch styles use the same art size, so one bounding rect covers all.
+  // Runtime hitbox (22x22) is untouched — this only affects selection and move handle.
+  if (kind === 'switch')     return { x: ref.x - 17, y: ref.y - 34, w: 56, h: 56 };
   // Checkpoint: x = CENTRE, y = standing-ground line (documented in LEVEL_SCHEMA.md).
   // The box wraps the VISIBLE SIGN, not the old 22x22 trigger dot that used to sit
   // at its base (Chief 2026-09-12: "checkpoint box anchored to the bottom of the
