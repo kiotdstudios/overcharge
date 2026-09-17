@@ -1,0 +1,79 @@
+{
+  "_schema": "overcharge-agent-board@1",
+  "_note": "DERIVED from git by _kiro/agent_board.mjs. Do not hand-edit.",
+  "generated": "2026-09-17 16:29Z",
+  "live": {
+    "branch": "agent/orcha-gameplay",
+    "head": "c5f99ef",
+    "date": "2026-09-17",
+    "subject": "review(aki skills): RETRACT process criticism - work was directed by Chief, I inferred intent from a diff; add coordination design note + automation limit (transport/notify yes, decide/merge never)",
+    "lastGate": "2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed"
+  },
+  "agents": [
+    {
+      "name": "Aki",
+      "lane": "Builder / editor / assets",
+      "branch": "agent/aki-editor",
+      "head": "354e777",
+      "date": "2026-09-17",
+      "subject": "A6-SKILLS: add kiro-orders-check and schedule-tasks project skills",
+      "behind": 7,
+      "unmerged": 1,
+      "state": "DELIVERED (branch also behind)",
+      "detail": "1 commit(s) awaiting gate; 7 behind live",
+      "newestDirective": "docs/KIRO_REVIEW_AKI_SKILLS_01.md",
+      "openDirectives": [
+        {
+          "file": "docs/KIRO_REVIEW_AKI_SKILLS_01.md",
+          "when": "2026-09-17"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_03.md",
+          "when": "2026-09-17"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_02.md",
+          "when": "2026-09-16"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_01.md",
+          "when": "2026-09-13"
+        }
+      ],
+      "reportFiled": false,
+      "filesChanged": [
+        ".agents/skills/kiro-orders-check/SKILL.md",
+        ".agents/skills/schedule-tasks/SKILL.md"
+      ]
+    },
+    {
+      "name": "Orcha",
+      "lane": "Runtime / gameplay / test suites",
+      "branch": "agent/orcha-dev",
+      "head": "4408a44",
+      "date": "2026-09-17",
+      "subject": "Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)",
+      "behind": 7,
+      "unmerged": 0,
+      "state": "IDLE / needs sync",
+      "detail": "7 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "newestDirective": "docs/KIRO_ANSWERS_ORCHA_01.md",
+      "openDirectives": [
+        {
+          "file": "docs/KIRO_ANSWERS_ORCHA_01.md",
+          "when": "2026-09-17"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_02.md",
+          "when": "2026-09-16"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_01.md",
+          "when": "2026-09-13"
+        }
+      ],
+      "reportFiled": null,
+      "filesChanged": []
+    }
+  ]
+}

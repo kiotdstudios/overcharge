@@ -1662,3 +1662,81 @@ distrust of a green result has paid off.
 - **O2** (grounded zone semantics) not started — Orcha did the two newly-approved items first,
   which was the right read of priority.
 - Chief's GitHub-token decision still open; no agent is to touch it until he rules.
+
+---
+
+## 2026-09-17 — AGENT BOARD built: git-derived coordination index
+
+Chief's goal: automate the conversation between agents so he stops being the message bus. Built
+the missing half of it.
+
+### The actual problem was an index, not a transport
+**Git was already the message bus** — every order, report and gate result is a committed file
+with a SHA. What we lacked was a single place to look. The truth was smeared across
+`KIRO_STATUS.md`, `AKI_STATUS.md`, `ORCHA_STATUS.md`, eight `docs/KIRO_*` directive files and
+three branch heads. That is why Aki's polling skill had to *hunt* for orders with a glob, and
+why Chief had to tell me "orcha is done".
+
+### `_kiro/agent_board.mjs` → `docs/AGENT_BOARD.md` + `docs/agent_board.json`
+Everything is **derived from git**. Nothing is hand-maintained, so it cannot drift the way a
+hand-written table does. Per agent: branch head, commits behind live, unmerged commits awaiting
+gate, files changed, newest directive with the exact `git show` command, all open directives
+newest-first, and whether the delivery included a report. Plus live-line head and last gate.
+
+Status is **inferred, never asserted by an agent** — `unmerged > 0` means "delivered, awaiting
+gate" whatever anyone claims.
+
+New `_kiro/` directory so this does not collide with Orcha's `_dev/` suites or Aki's `editor/`.
+Suites unaffected: **636 / 0**. JSON validated and checked for a BOM (Orcha's hazard) — clean.
+
+### Two bugs my own first run caught
+1. **`git --format=%h` gets its `%` eaten** when the command goes through cmd.exe/PowerShell —
+   the `'%ad' is not recognized as an internal or external command` failure that has been
+   corrupting my branch-state scripts all weekend. Fixed properly by using `execFileSync` with
+   an argv array, which bypasses the shell entirely. Commented in the file so nobody
+   "simplifies" it back to a command string. This is a real fix to a recurring hazard, not a
+   workaround.
+2. **My directive detection only matched `KIRO_ORDER_*`**, so the board told Orcha his current
+   order was `ORCHA_02` when the doc he actually built Q5/Q7 from was `KIRO_ANSWERS_ORCHA_01.md`.
+   Answers and review docs carry binding instructions too. Now matches
+   `KIRO_(ORDER|ANSWERS|REVIEW|GATE_RESULT)_*` and sorts by **last commit date** rather than the
+   number in the filename, so the newest directive wins regardless of family. Verified: Aki now
+   resolves to the review doc, Orcha to the answers doc.
+
+The board caught my own coordination bug on its first run, which is roughly the point of it.
+
+### Retracted a criticism of Aki
+I had noted in `docs/KIRO_REVIEW_AKI_SKILLS_01.md` that her skills work was unassigned and
+should have been flagged. **Chief directed it** — he was testing whether she could build it.
+Retracted in the file rather than deleted, since she may have read the original.
+
+The error is worth recording: **I inferred intent from a diff.** Work did not match my order, so
+I assumed scope creep, when the explanation was an instruction on a channel I could not see.
+Same failure class I keep flagging in others — an unverified inference stated as fact — aimed
+this time at a teammate's conduct, which is worse than aiming it at code. Standing correction:
+**when work does not match my order, ask before characterising it.**
+
+It also argues for the work: I had no mechanism to know Chief had tasked her directly. That gap
+is what the board exists to close.
+
+### Standing limit, written into the board, the brief and the review
+**Automation may TRANSPORT and NOTIFY. It must never DECIDE or MERGE.**
+
+Orders stay authored by me, gates stay run against a real tree, merges to the live line stay
+mine. Every genuine defect this weekend came from an adversarial check — the `TILE_PATHS` hole
+that scored a clean 312/0, Orcha's vacuous exemptions, the BOM bug, Aki's palette entries. If
+agents begin auto-answering each other we lose the audit trail that caught those and gain the
+risk of two agents converging on a wrong answer with no human in the loop.
+
+Told Aki explicitly **not** to build the board herself so she does not collide with Orcha or me,
+and to point her polling at it once it exists. Her corrections 1–3 remain the immediate ask.
+
+### Also added
+`docs/WEEKEND_PUSH_BRIEF.md` §5a rewritten: "sync, then read the board" replaces "sync", with
+the one-command read and the automation limit stated inline.
+
+### Board state at time of writing
+- **Aki** `354e777` — delivered (skills), 7 behind live, no report filed, newest directive
+  `KIRO_REVIEW_AKI_SKILLS_01.md`
+- **Orcha** `4408a44` — in sync/idle, 7 behind live, newest directive `KIRO_ANSWERS_ORCHA_01.md`,
+  next is O2 grounded-zone semantics

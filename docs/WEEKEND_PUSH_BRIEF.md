@@ -210,11 +210,28 @@ fix it. That was the right call. Report content problems, never quietly repair t
 
 ## 5. PROTOCOL — NON-NEGOTIABLE
 
-### 5a. Sync before you do anything
+### 5a. Sync, then read the board — one file, not a hunt
 ```
 git fetch origin
-git log --oneline -1 origin/agent/orcha-gameplay
+git show origin/agent/orcha-gameplay:docs/AGENT_BOARD.md
 ```
+
+**`docs/AGENT_BOARD.md` is the index.** It is DERIVED from git by `_kiro/agent_board.mjs`, so
+it cannot drift the way a hand-written status table does. Your row gives you:
+
+- your branch head, and whether you are **behind** the live line
+- your **newest directive** and every open one, newest first
+- the exact `git show` command to read it
+- whether your last delivery included a report
+
+Read it on wake instead of globbing `docs/`. If your row says `needs sync`, sync first — a
+stale branch is exactly how an order gets reported "missing" while sitting on origin.
+
+**Kiro's side:** a non-empty `unmerged` count on your row is a delivery awaiting a gate. Chief
+does not need to relay it.
+
+**Limit:** the board transports and notifies. It never decides or merges. Orders stay authored
+by Kiro, gates stay run against a real tree, merges to the live line stay Kiro's.
 `agent/orcha-gameplay` is the live line and the only truth. If you are behind, you
 are reading fiction. **Aki, this is aimed at you** — you reported an order was
 "missing" while it sat on origin, because you were reading a 32-commit-stale local
