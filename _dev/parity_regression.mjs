@@ -579,9 +579,15 @@ console.log('\n[ Tile registry sync: editor <-> runtime <-> disk ]');
       // 3. The file the runtime asks for must exist on disk. A registered key
       //    whose PNG is missing renders as a flat fill, not a missing-texture
       //    box, so it is easy to ship blind.
-      const onDisk = path.resolve(RUNTIME_DIR, `${runtimeK}.png`);
-      check(fs.existsSync(onDisk),
-        `tile ${id}: runtime PNG exists on disk (${RUNTIME_DIR}/${runtimeK}.png)`);
+      // Derive the disk path from the manifest path (not RUNTIME_DIR) so tiles from
+      // multiple tilesets (purple_city, purple_rooftop, ...) are each checked at
+      // their actual location. RUNTIME_DIR is the fallback for any tile not in the
+      // manifest — kept for safety but should not be reached for well-registered tiles.
+      const diskPath = manifestPath
+        ? path.resolve(String(manifestPath))
+        : path.resolve(RUNTIME_DIR, `${runtimeK}.png`);
+      check(fs.existsSync(diskPath),
+        `tile ${id}: runtime PNG exists on disk (${diskPath})`);
     }
 
     // 4. Reserved band. 3-9 are documented as "Builder must not emit"; 1 is
