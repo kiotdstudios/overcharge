@@ -3,15 +3,15 @@
 **DERIVED FILE — do not hand-edit.** Regenerate with `node _kiro/agent_board.mjs --write`.
 Every value here comes from git, so it cannot drift from reality. Owned by Kiro.
 
-_Generated 2026-09-17 22:13Z_
+_Generated 2026-09-17 22:20Z_
 
 ## Live line — the only thing GitHub Pages serves
 
 | | |
 |---|---|
 | Branch | `agent/orcha-gameplay` |
-| Head | `6b4343e` (2026-09-17) |
-| Last commit | board: refresh |
+| Head | `94baad7` (2026-09-17) |
+| Last commit | level2 (SPLIT DECISION): Chief's edits - removed 28 archived placeholder decorations (30->2), added 2_SPLIT_DECISION twin; fence now ONE unit (BARRIER y160 h128 -> y224 h64, bottom unchanged) so it stops tiling 2x; label BARRIER -> FENCE. Economy 10v10 unchanged, SW1 link intact |
 | Last gate | 2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed |
 | Game | https://kiotdstudios.github.io/overcharge/index.html |
 | Builder | https://kiotdstudios.github.io/overcharge/editor.html |
@@ -23,29 +23,30 @@ from it; work is pushed to your own branch.
 
 | Agent | Branch | Head | State | Newest directive | Report filed |
 |---|---|---|---|---|---|
-| Aki | `agent/aki-editor` | `da6025a` | IDLE / needs sync | `KIRO_ORDER_AKI_05.md` | — |
+| Aki | `agent/aki-editor` | `da6025a` | IDLE / needs sync | `KIRO_ORDER_AKI_06.md` | — |
 | Orcha | `agent/orcha-dev` | `4408a44` | IDLE / needs sync | `KIRO_ORDER_ORCHA_03.md` | — |
 
 ### Aki — Builder / editor / assets
 
 - **Branch:** `agent/aki-editor` at `da6025a` (2026-09-17)
 - **Last commit:** A6: divergence banner + game-terms diff + RELOAD FROM GIT + dangling-linkedId warning + no-folder pre-authoring alert
-- **State:** IDLE / needs sync — 8 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
-- **Newest directive:** `docs/KIRO_ORDER_AKI_05.md` (2026-09-17)
-- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_AKI_05.md`
+- **State:** IDLE / needs sync — 11 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
+- **Newest directive:** `docs/KIRO_ORDER_AKI_06.md` (2026-09-17)
+- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_AKI_06.md`
 - **All open directives for you (newest first):**
+    - `docs/KIRO_ORDER_AKI_06.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_05.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_04.md` — 2026-09-17
     - `docs/KIRO_REVIEW_AKI_SKILLS_01.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_03.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_02.md` — 2026-09-16
-    - `docs/KIRO_ORDER_AKI_01.md` — 2026-09-13
+    - _…and 1 older_
 
 ### Orcha — Runtime / gameplay / test suites
 
 - **Branch:** `agent/orcha-dev` at `4408a44` (2026-09-17)
 - **Last commit:** Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)
-- **State:** IDLE / needs sync — 29 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
+- **State:** IDLE / needs sync — 32 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
 - **Newest directive:** `docs/KIRO_ORDER_ORCHA_03.md` (2026-09-17)
 - **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_ORCHA_03.md`
 - **All open directives for you (newest first):**
