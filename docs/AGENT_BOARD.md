@@ -3,14 +3,14 @@
 **DERIVED FILE — do not hand-edit.** Regenerate with `node _kiro/agent_board.mjs --write`.
 Every value here comes from git, so it cannot drift from reality. Owned by Kiro.
 
-_Generated 2026-09-17 22:30Z_
+_Generated 2026-09-17 22:48Z_
 
 ## Live line — the only thing GitHub Pages serves
 
 | | |
 |---|---|
 | Branch | `agent/orcha-gameplay` |
-| Head | `b02b11b` (2026-09-17) |
+| Head | `173bfbb` (2026-09-17) |
 | Last commit | board: refresh |
 | Last gate | 2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed |
 | Game | https://kiotdstudios.github.io/overcharge/index.html |
@@ -23,37 +23,34 @@ from it; work is pushed to your own branch.
 
 | Agent | Branch | Head | State | Newest directive | Report filed |
 |---|---|---|---|---|---|
-| Aki | `agent/aki-editor` | `722824e` | DELIVERED (branch also behind) | `KIRO_ORDER_AKI_06.md` | yes |
+| Aki | `agent/aki-editor` | `7a04c9e` | DELIVERED — awaiting Kiro gate | `KIRO_ORDER_AKI_07.md` | yes |
 | Orcha | `agent/orcha-dev` | `4408a44` | IDLE / needs sync | `KIRO_ORDER_ORCHA_03.md` | — |
 
 ### Aki — Builder / editor / assets
 
-- **Branch:** `agent/aki-editor` at `722824e` (2026-09-17)
-- **Last commit:** A7: restore wall_switch + electric_fence to palette (ORDER AKI 06); add spawn-wall-switch + spawn-fence buttons with presets; 624/0 + boot smoke clean
-- **State:** DELIVERED (branch also behind) — 3 commit(s) awaiting gate; 3 behind live
-- **Newest directive:** `docs/KIRO_ORDER_AKI_06.md` (2026-09-17)
-- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_AKI_06.md`
+- **Branch:** `agent/aki-editor` at `7a04c9e` (2026-09-17)
+- **Last commit:** A7.4: fix wall switch charge bar — move above sprite (o.y-42 vs o.y-9), no dark fill at 0%; 660/0 + boot smoke clean
+- **State:** DELIVERED — awaiting Kiro gate — 1 commit(s) awaiting gate
+- **Newest directive:** `docs/KIRO_ORDER_AKI_07.md` (2026-09-17)
+- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_AKI_07.md`
 - **All open directives for you (newest first):**
+    - `docs/KIRO_ORDER_AKI_07.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_06.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_05.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_04.md` — 2026-09-17
     - `docs/KIRO_REVIEW_AKI_SKILLS_01.md` — 2026-09-17
     - `docs/KIRO_ORDER_AKI_03.md` — 2026-09-17
-    - `docs/KIRO_ORDER_AKI_02.md` — 2026-09-16
-    - _…and 1 older_
+    - _…and 2 older_
 - **Report filed this delivery:** yes (AKI_STATUS.md)
-- **Files changed vs live (5):**
-    - `.agents/skills/kiro-orders-check/SKILL.md`
+- **Files changed vs live (2):**
     - `AKI_STATUS.md`
-    - `assets/ASSET_MANIFEST.json`
-    - `editor.html`
-    - `editor/main.js`
+    - `editor/renderer.js`
 
 ### Orcha — Runtime / gameplay / test suites
 
 - **Branch:** `agent/orcha-dev` at `4408a44` (2026-09-17)
 - **Last commit:** Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)
-- **State:** IDLE / needs sync — 34 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
+- **State:** IDLE / needs sync — 40 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
 - **Newest directive:** `docs/KIRO_ORDER_ORCHA_03.md` (2026-09-17)
 - **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_ORCHA_03.md`
 - **All open directives for you (newest first):**
