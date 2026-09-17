@@ -135,3 +135,80 @@ Additionally:
 - **No GO needed.** This order is your authorisation — do not ask me or Chief to confirm it.
 
 — Kiro, Technical Director
+
+
+---
+---
+
+# ADDENDUM — Level 2 playtest findings
+
+**Chief's verdict: *"other than that level 2 works."*** The fence puzzle you and Orcha built is
+playable. That is the first time a mechanic of this project has been confirmed working by a human.
+
+Three findings came out of that session. **Two I have already fixed in level data** (committed at
+`94baad7`) — they are listed so you understand what changed and do not re-fix them. **One is yours.**
+
+## FIXED BY ME — fence was rendering as two stacked units
+
+`rows = Math.ceil(g.h / FENCE_CANVAS)` = `ceil(128 / 64)` = **2**, so a 128-tall barrier tiled the
+64×64 art twice. Because the fence art has distinct top and bottom caps, tiling can never read as
+one continuous fence — it reads as two fences stacked.
+
+Fixed in level data rather than code: `BARRIER` is now `y=224, h=64` (bottom edge unchanged at 288),
+so it tiles exactly **1×**. Gameplay is unaffected — `blocksHorizontal()` deliberately ignores Y, so
+a `blockOnly` barrier's hitbox height is purely visual.
+
+**Your tiling code is not wrong and should not change.** It correctly mirrors the PowerGate
+convention, and it is right for a genuinely tall barrier. Keep it.
+
+**Design limitation now on the record:** the fence art is **not seamlessly tileable** — it has caps,
+so any hitbox taller than 64 will always look like stacked units. If Chief later wants a
+floor-to-ceiling fence, that needs either seamless art or a capped-top/tiled-middle/capped-bottom
+scheme. That is an art decision for Chief, not something either of us should invent.
+
+## FIXED BY ME — label read "FENCE · BARRIER"
+
+Your renderer already prints just `FENCE` when the label *is* `"FENCE"`, so this was level data, not
+a code defect. Renamed the label `BARRIER` → `FENCE`. The gate **id** stays `BARRIER` because
+`SW1.linkedId` points at it — verified intact after the change.
+
+Nothing for you here. Your conditional was written correctly.
+
+## A7.4 — YOURS: the switch has a dark line through it
+
+Chief: *"switch has a wierd line going through it."* His screenshot is **the Builder**, so this is
+`editor/renderer.js`, not the runtime.
+
+It is almost certainly the **charge fill bar drawn across the sprite**. Your A1 report says
+*"Charge bar rendered at 0% fill"* — at 0% the fill is invisible but the bar's dark background is
+not, and it appears to be landing over the switch art rather than clear of it.
+
+For reference, the runtime puts it **above** the sprite: `sbY = dY - 8` where
+`dY = (y + h) - WALL_SW_CANVAS`. If the Builder derives its bar position from the 22×22 **hitbox**
+instead of the 56×56 **sprite**, it will land in the middle of the artwork — the identical mistake
+that put `[SPACE] CHARGE` across the gate in the runtime.
+
+### Required
+- Position the bar clear of the **sprite's drawn bounds**, not the hitbox. Match the runtime's
+  placement so the Builder and the game agree.
+- **Do not draw the dark background at 0% fill.** There is precedent: an unconditional background
+  on the gate previously read as a stray purple tile and was removed for exactly this reason. Draw
+  the background only when there is fill to show, or when the object is selected.
+- Keep the bar itself — Chief approved it as the progress feedback. This is placement only.
+
+### Verification
+- **Screenshot the Builder** with a wall switch placed and confirm no line crosses the art.
+- Confirm the bar still appears once charge is present.
+- Confirm the Builder and runtime place it in the same spot — divergence here is what makes Chief
+  author blind.
+
+## Priority for this order
+1. **A7.4** — the switch line. Chief is looking at it right now.
+2. **A7.2** — `+ Wall Switch` and `+ Fence` spawn buttons. He cannot place these devices at all.
+3. **A7.1** — palette entries so the electrical filter shows them.
+4. **A7.3** — confirm they render once placed.
+
+Note that A7.2's fence default should now be **`w:32, h:64`** with `blockOnly:true`, matching the
+corrected Level 2 barrier — one fence unit, not two.
+
+— Kiro, Technical Director
