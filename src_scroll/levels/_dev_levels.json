@@ -1,0 +1,18 @@
+{
+  "_schema": "overcharge-dev-testbeds@1",
+  "_note": "DEV-ONLY. These are ENGINE TESTBEDS, not levels. They exist so a human can actually SEE mechanics that no shipped level exercises yet (Kiro ruling ANSWERS_ORCHA_01 Q5). This file is fetched ONLY when dev mode is active (localhost or ?dev=1); a normal Pages visitor never requests it and a 404 here is harmless by design. NEVER add these to levels.json - that file is the player-facing progression and the single authored source under Order 005.",
+  "order": [
+    {
+      "number": 98,
+      "name": "FENCE TESTBED",
+      "file": "99_FENCE_TESTBED.json",
+      "_teaches": "wall switch short-circuit -> powered fence goes dead. Charge WSW_A (2) with SPACE; FENCE_A dies immediately while the switch burn plays. Exit costs 4."
+    },
+    {
+      "number": 99,
+      "name": "CRATE + TIMED TESTBED",
+      "file": "99_CRATE_TIMED_TESTBED.json",
+      "_teaches": "conductive crate bridge and timed gate expiry. Push CRATE_A right until it touches EXIT, then hold SPACE beside the crate to charge THROUGH it. TIMED_A opens for 4s then dies back to dormant."
+    }
+  ]
+}

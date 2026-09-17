@@ -236,6 +236,47 @@ for (const filename of levelFiles) {
       }
     }
   }
+
+  // ── CONDITIONAL margin guard (Kiro ruling, ANSWERS_ORCHA_01 Q7) ──────────
+  // Standing ruling §6.10 "margin 0 is acceptable" STANDS, unchanged, for
+  // enemy-free levels. This NARROWS it rather than reversing it: margin 0 is fine
+  // right up until something can take charge away from you.
+  //
+  // Why this hole existed. Levels 1 and 2 are both margin 0 today and solvable
+  // only because nothing can knock charge loose. Author one enemy into either and
+  // a single hit makes the level unsolvable — and no guard caught it, because the
+  // ruling that forbade a blanket margin assertion also removed the only place
+  // such a check could live. So the assertion is gated on the exact condition
+  // that makes margin matter.
+  //
+  // Deliberately fires on NO level as authored today (1 and 2 are margin 0 with
+  // zero enemies; 3 has margin 7). Mutation-tested in both directions, because an
+  // assertion that cannot fire is the vacuous-exemption problem from O1.
+  {
+    const enemyCount = (data.enemies ?? []).length;
+    const available  = (data.sources ?? []).reduce((sum, s) => sum + (s.charge ?? 0), 0);
+    // blockOnly barriers are EXCLUDED from spend: the player cannot discharge into
+    // one, so its `required` is inert and paid by its linked switch instead.
+    // Counting it would double-charge the puzzle (Level 2's BARRIER carries
+    // required:1 that no player ever pays).
+    const spend = (data.switches ?? []).reduce((sum, s) => sum + (s.required ?? 0), 0)
+                + (data.gates ?? []).filter(g => !g.blockOnly)
+                                    .reduce((sum, g) => sum + (g.required ?? 0), 0);
+    const margin = available - spend;
+
+    if (enemyCount > 0) {
+      check(margin > 0,
+        `${filename}: has ${enemyCount} enemy/enemies and margin ${margin} — a level where ` +
+        `charge can be knocked loose MUST have available energy exceeding total cost, ` +
+        `or a single hit makes it unsolvable (energy ${available}, cost ${spend})`);
+    } else {
+      // Recorded rather than skipped, so the exemption is visible in the log and a
+      // future reader can see margin 0 was considered and permitted here.
+      check(true,
+        `${filename}: margin ${margin} with no enemies — margin 0 permitted (§6.10), ` +
+        `conditional guard correctly dormant`);
+    }
+  }
 }
 
 // ── Placement guards: grid alignment + grounding (KIRO_ORDER_ORCHA_01 O1) ──
