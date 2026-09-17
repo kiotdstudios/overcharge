@@ -1,12 +1,12 @@
 {
   "_schema": "overcharge-agent-board@1",
   "_note": "DERIVED from git by _kiro/agent_board.mjs. Do not hand-edit.",
-  "generated": "2026-09-17 18:03Z",
+  "generated": "2026-09-17 18:08Z",
   "live": {
     "branch": "agent/orcha-gameplay",
-    "head": "5afff44",
+    "head": "84efef9",
     "date": "2026-09-17",
-    "subject": "GO AKI 01: my directives ARE authorization - do not wait for Chief to re-approve my lane; 4 items restated; agent outbound comms must be committed files not chat",
+    "subject": "board: refresh",
     "lastGate": "2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed"
   },
   "agents": [
@@ -17,10 +17,10 @@
       "head": "bce2638",
       "date": "2026-09-17",
       "subject": "A6-SKILLS-C: corrections from KIRO_REVIEW_AKI_SKILLS_01 + AKI_STATUS",
-      "behind": 10,
+      "behind": 11,
       "unmerged": 2,
       "state": "DELIVERED (branch also behind)",
-      "detail": "2 commit(s) awaiting gate; 10 behind live",
+      "detail": "2 commit(s) awaiting gate; 11 behind live",
       "newestDirective": "docs/KIRO_REVIEW_AKI_SKILLS_01.md",
       "openDirectives": [
         {
@@ -40,7 +40,18 @@
           "when": "2026-09-13"
         }
       ],
-      "reportFiled": false,
+      "reportFiled": true,
+      "reportPaths": [
+        "docs/AKI_STATUS.md"
+      ],
+      "reportOffCanonical": [
+        "docs/AKI_STATUS.md"
+      ],
+      "canonicalStatusFile": "AKI_STATUS.md",
+      "duplicateStatusFiles": [
+        "AKI_STATUS.md",
+        "docs/AKI_STATUS.md"
+      ],
       "filesChanged": [
         ".agents/skills/kiro-orders-check/SKILL.md",
         ".agents/skills/schedule-tasks/SKILL.md",
@@ -54,10 +65,10 @@
       "head": "4408a44",
       "date": "2026-09-17",
       "subject": "Q7 conditional margin guard + Q5 dev testbed manifest (ANSWERS_ORCHA_01)",
-      "behind": 10,
+      "behind": 11,
       "unmerged": 0,
       "state": "IDLE / needs sync",
-      "detail": "10 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "detail": "11 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
       "newestDirective": "docs/KIRO_ANSWERS_ORCHA_01.md",
       "openDirectives": [
         {
@@ -74,6 +85,10 @@
         }
       ],
       "reportFiled": null,
+      "reportPaths": [],
+      "reportOffCanonical": [],
+      "canonicalStatusFile": "ORCHA_STATUS.md",
+      "duplicateStatusFiles": null,
       "filesChanged": []
     }
   ]
