@@ -1479,3 +1479,87 @@ nothing can knock charge loose. The moment an enemy is authored into either, one
 unsolvable — and **no guard will catch it, because I told him not to write one.** He proposed a
 *conditional* assertion firing only when `enemies.length > 0`, which would not fire on any level
 as authored today, and correctly did not add it unruled.
+
+---
+
+## 2026-09-17 — Follow-up orders issued: Orcha's 5 questions answered, Aki unblocked on A5
+
+Chief asked whether the agents had been given tasks. They had orders (AKI 02 / ORCHA 02)
+and both delivered, but **I had two open commitments I had not closed**: I promised Orcha
+a labeled answers doc and had not written it, and neither agent had been told the gate
+outcome — so Aki did not know A5 was unblocked. Both closed now.
+
+### `docs/KIRO_ANSWERS_ORCHA_01.md` — all five open questions ruled
+
+**Q3 (engine/content usage gap) — conceded as MY failure.** He audited the shipped
+manifest: crates 0, timed gates 0, fence 0, wall switch 0, enemies 0, checkpoints 1. Six
+systems built, none reachable in play. He was right that this is the same failure shape as
+Level 3 passing every check while being unfinished.
+
+The cause is my sequencing: I ordered mechanics without naming the level that would
+consume them. A mechanic with no content is indistinguishable from one that does not work,
+because the only thing exercising it was his own headless suite.
+
+Two changes. First, his fence is **now live** — `da0336b` flipped Level 2's `SW1`/`BARRIER`
+to `wall`/`fence`, so `FENCE_SHORT_CIRCUIT` is human-reachable for the first time. Parity
+rose 275 → 282 on that commit alone, which is itself evidence his style guards had
+previously been asserting against nothing but fixtures. Second, a new standing rule that
+**binds me, not him**: every future mechanic order must name the level that will consume it
+and the human check that will witness it. If I cannot name one, the order is premature.
+Told him to push back and cite the ruling if I break it.
+
+**Q5 (dev-only manifest for the `99_` testbeds) — APPROVED.** Direct mitigation for Q3 and
+cheap. His "verified" means simulated; nobody has ever *seen* the crate bridge or the fence
+short. Constrained it: never in `levels.json`, separate dev manifest fetched only under the
+existing `?dev=1`, 404 must be harmless, boot smoke must pass with it absent.
+
+**Q7 (conditional margin assertion) — APPROVED. The sharpest question in the set.**
+Levels 1 and 2 are margin 0 and valid only because nothing can knock charge loose. Add one
+enemy and a single hit makes them unsolvable, and **no guard catches it because I told him
+not to assert margin.** He found a hole my own ruling created and declined to fix it
+unruled. Approved the conditional form (fires only when `enemies.length > 0`), which fires
+on no level as authored today. This **narrows** ruling §6.10 rather than reversing it:
+margin 0 is fine until something can take charge away. Urgent because Level 3's entire
+purpose is to introduce an enemy.
+
+**Q8 (Aki's anchors) — confirmed aligned, and his implied mismatch is correct behaviour.**
+She copied `dX=x-17, dY=y-34` verbatim from `electricity.js` rather than re-measuring.
+Clarified the thing his question got wrong: his per-frame bbox variance is deliberately
+*not* what she anchored from, because §6.2 requires the uniform canvas — per-frame
+anchoring would flatten the 2px vibration into a slide. His numbers are the authority for
+what the art does; the uniform canvas for where it is drawn.
+
+**Q9 (fence brightness) — CLOSED.** Measurement stands and is documented. Closing because
+Chief confirmed it reads correctly and the fence is now live in Level 2, so he sees it in
+motion at 10fps rather than in a still — the condition under which motion-as-signal works.
+If he reports otherwise it reopens as an **art** task for Aki, never a runtime brightness
+fudge.
+
+### `docs/KIRO_ORDER_AKI_03.md` — A5 GO, plus A6
+
+Told her plainly that A1–A3 passed and she avoided all three historical anchor traps, that
+A4 was wrong and why, and that **A5 is unblocked as of the O3 merge**. Also stated that my
+sequencing cost her a cycle and that waiting was the correct behaviour — she followed the
+order exactly.
+
+Included the detail that the manifest **already told her not to do A4**: the pre-existing
+note on `gate_electric_closed`, in the same file she edited, says runtime state files are
+not palette entries and must not be added. And recorded my own false-green probe, since
+holding her to a standard I just violated would be worthless.
+
+**A6 is new and comes straight from today's data loss:** make Builder/Git divergence
+visible. `editor/localstore.js` restores from IndexedDB in preference to committed JSON
+with no indication, so Chief authored 29 history steps on top of a diverged copy and lost
+the `BARRIER` gate. Ordered: compare on load, summarise the difference **in game terms**
+("2 gates → 1 gate"), offer an explicit RELOAD FROM GIT, warn on dangling `linkedId`, and
+**do not auto-repair or auto-discard** — his local copy may be the version he wants. Also
+required proof the warning fires and proof the clean case stays silent, or he will learn to
+ignore it.
+
+Explicitly told her **not** to start GitHub-API publishing or add any token handling: that
+is a credential decision and Chief's call, not made yet.
+
+### Standing correction recorded
+The COMMIT & PUSH button oversells its name. It saves locally and copies a git command to
+the clipboard; it never pushes, and its own code comment says the Builder cannot run git.
+Chief asked for a commit/push button and I let that naming stand. Flagged to him directly.
