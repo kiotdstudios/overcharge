@@ -1156,6 +1156,14 @@ function _doSpawn(e, canvas) {
     const w = 96, px = _snapGrid(wx), py = _snapGrid(wy);
     obj = { x: px, y: py, w, h: 12, x1: px - 64, x2: px + 64 + w, speed: 80 };
     arr = L.platforms || (L.platforms = []); arrLabel = 'add_platform';
+  } else if (kind === 'wall-switch') {
+    // Wall switch: style:'wall' preset — hitbox 22×22, art 56×56 (ORDER AKI 06)
+    obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '', style: 'wall' };
+    arr = L.switches || (L.switches = []); arrLabel = 'add_switch';
+  } else if (kind === 'fence') {
+    // Fence: blockOnly:true, style:'fence', w:32, h:128, required:1 — Level 2 BARRIER defaults (ORDER AKI 06)
+    obj = { id: 'gate_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), w: 32, h: 128, required: 1, isExit: false, blockOnly: true, label: 'FENCE', style: 'fence' };
+    arr = L.gates || (L.gates = []); arrLabel = 'add_gate';
   } else if (kind === 'crate') {
     const cw = 32, ch = 32, px = _snapGrid(wx), py = _groundAt(wx, wy, ch);
     obj = { id: 'crate_' + Date.now(), x: px, y: py, w: cw, h: ch };
@@ -1168,6 +1176,7 @@ function _doSpawn(e, canvas) {
     const kindMap = {
       'drain-enemy': 'enemy', 'patrol-enemy': 'enemy', 'drone-enemy': 'enemy',
       'source': 'source', 'switch': 'switch', 'gate': 'gate',
+      'wall-switch': 'switch', 'fence': 'gate',
       'checkpoint': 'checkpoint', 'platform': 'platform', 'crate': 'crate',
     };
     Selection.selectByKind(kindMap[kind], obj);
@@ -1186,6 +1195,8 @@ function _doSpawn(e, canvas) {
   ['spawn-checkpoint', 'checkpoint'],
   ['spawn-platform',   'platform'],
   ['spawn-crate',      'crate'],
+  ['spawn-wall-switch', 'wall-switch'],
+  ['spawn-fence',       'fence'],
 ].forEach(([id, kind]) => {
   document.getElementById(id)?.addEventListener('click', () => {
     state.pendingSpawn = { kind };

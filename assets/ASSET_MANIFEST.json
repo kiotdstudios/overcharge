@@ -405,6 +405,51 @@
         "density": "dense",
         "stackable": true
       }
+    },
+    {
+      "id": "wall_switch",
+      "path": "assets/objects/wall_switch/switch_off.png",
+      "category": "electrical",
+      "tags": [
+        "switch",
+        "wall_switch",
+        "electrical",
+        "placeable"
+      ],
+      "frame_width": 56,
+      "frame_height": 56,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Palette entry for the wall switch object (ONE entry per device — ORDER AKI 06). Art: switch_off.png (unpowered state — reads as not-yet-activated, correct thumbnail for a freshly placed switch). Hitbox 22\u00d722, sprite 56\u00d756 drawn centred on hitbox cx, bottom-aligned to hitbox bottom. Runtime states (switch_on, destroyed, burn_anim) are in _runtime_state_sprites[], not here.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+      }
+    },
+    {
+      "id": "electric_fence",
+      "path": "assets/objects/fence/frame_001.png",
+      "category": "electrical",
+      "tags": [
+        "fence",
+        "gate",
+        "barrier",
+        "electrical",
+        "placeable"
+      ],
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Palette entry for the electric fence object (ONE entry per device — ORDER AKI 06). Art: frame_001.png (first real frame of the live loop — reads as active/charged; frame_000 excluded, byte-identical to fence_dead.png). Default spawn: w:32, h:128, blockOnly:true, required:1. Runtime states (fence_dead, fence_live_anim) are in _runtime_state_sprites[], not here.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
