@@ -1740,3 +1740,105 @@ the one-command read and the automation limit stated inline.
   `KIRO_REVIEW_AKI_SKILLS_01.md`
 - **Orcha** `4408a44` — in sync/idle, 7 behind live, newest directive `KIRO_ANSWERS_ORCHA_01.md`,
   next is O2 grounded-zone semantics
+
+---
+
+## 2026-09-17 — Level 1 & 2 PLAYTESTED by Chief · Aki A7 complete · Orcha ORCHA 03 outstanding
+
+**Live line:** `7a04c9e` · suites **660 / 0** · boot smoke clean
+
+### The milestone
+**Chief playtested Levels 1 and 2.** *"ive tested lvl 1 everything works as it should"* and, on
+Level 2, *"other than that level 2 works."*
+
+That is the first time any mechanic in this project has been confirmed working **by a human** rather
+than by a headless suite. It closes the gap Orcha raised in Q3 — six systems built, none reachable
+in play. The wall-switch/fence short circuit is now witnessed.
+
+### Chief's own art fix beat my code workaround
+He diagnosed the "floating gate" himself: *"the gate sprite had some black lines at the bottom."*
+
+The old sheet's idle row measured `0,12,12,13,13,0,13,13,13` — erratic, so the gate hovered **and
+twitched once per loop**. His re-cut art measures **13px on every one of 18 frames**.
+
+**I withdrew the §6.2 exception I had granted.** I had authorised per-frame bbox anchoring to
+compensate for erratic art; with uniform padding a single constant offset does it, so uniform-canvas
+anchoring stands everywhere with no carve-out. **Fixing the asset beat compensating in code** — the
+code fix would have hidden a broken sheet permanently. Recorded as the preference.
+
+His cleaned art was still sitting in `Downloads` and had never reached the repo — I installed it at
+`assets/objects/gate/` with measured geometry in `GEOMETRY.md`. **`frame_000` deliberately not
+copied**: byte-identical to the rest pose in both animations (sha `583f40329cb7380a`). Fourth
+occurrence of that pattern; a missing file cannot be animated by accident, which a written rule has
+failed to prevent three times.
+
+Geometry changed materially — content is 94×105 in a 128×128 canvas, where the old path cropped a
+centred 64-wide slice that **would clip the new art**. Aspect moved 0.5 → 0.9, so the gate will not
+be the same size on screen. Orcha wires it; final size is Chief's call from play.
+
+### Level fixes I made directly
+- **Level 1** (`458cee8`): committed Chief's Builder edit — exit gate `1216,288 → 1984,256`, CP1
+  `1120 → 1248`, 36 tile rotations. Verified arrays still 1800, all rotations legal and on solid
+  cells, energy 8v8 unchanged.
+- **Level 2** (`94baad7`): his 28 placeholder-decoration deletions (30 → 2), plus the missing
+  `2_SPLIT_DECISION` twin. **Fence was rendering as two stacked units** — `rows = ceil(128/64) = 2`
+  and the art has top/bottom caps, so tiling can never read as one fence. Corrected `BARRIER` to
+  `y=224, h=64`, bottom edge unchanged. Gameplay unaffected: `blocksHorizontal()` ignores Y, so a
+  `blockOnly` hitbox height is purely visual. Label `BARRIER → FENCE`, which the renderer already
+  collapses to just `FENCE`. `SW1.linkedId` verified intact.
+
+### Aki A7 — all four items PASS, browser-verified
+She stated honestly that she **could not do browser-level verification**. Correct thing to say
+rather than claim, so I ran it:
+
+| Check | Result |
+|---|---|
+| electrical palette | `2 → 4` — generator, gate, `wall_switch`, `electric_fence` |
+| state sprites placeable | **none** — dead fence still unplaceable, the original A4 rule survived |
+| `+ Wall Switch` / `+ Fence` | present, and each spawns with correct `style` / `blockOnly` |
+| A7.4 dark line through the switch | **GONE** — pixel-scanned the sprite, no dark band |
+
+Her A7.4 fix derives `sbY = (o.y + hitH) - WALL_SW_CANVAS - 8` from the same expression the runtime
+uses rather than hardcoding `-42`, so it cannot drift. At 0% fill she draws a faint outline instead
+of the dark background — keeps the mechanic discoverable without the artefact. Better than what I
+specified.
+
+**My own probe produced a false green first.** It locked onto the brightest row, found a 6px-tall
+object, and declared the 56px sprite clean. I caught it because 6px cannot be a 56px sprite,
+rewrote it to identify the sprite by **contiguous run height** rather than peak brightness, and only
+then got a real answer. Third false green of mine this weekend; the pattern is always a narrow check
+reporting a broad conclusion.
+
+### Two corrections I made at the gate
+1. **Fence spawn default `h:128 → 64`.** Her report even said it *"tiles 64×64 art exactly 2×
+   vertically"* — the exact defect Chief reported. She could not have known (see below).
+2. **`AKI_STATUS.md` restored.** `722824e` rewrote it as a summary, dropping **13,727 → 2,755 bytes**
+   and 14 sections including her own rollback points. Restored from `b02b11b` with her entry
+   appended, and ruled: **that file is append-only history; `AGENT_BOARD.md` is the snapshot.** She
+   appended correctly on the next delivery.
+
+### MY FAILURE — I appended a new directive to an order she had already read
+A7.4 was never delivered in her first pass **because she never saw it.** I appended it as an addendum
+to `KIRO_ORDER_AKI_06.md` after she had read that file, and her poller detects **new files**, not
+modifications.
+
+**This is verbatim the failure I diagnosed days ago and claimed to have fixed.** Her original
+"order is missing" report was caused by me appending to a long-lived `AKI_ORDER_QUEUE.md`; I replaced
+it with labeled self-contained files so a directive could never hide in an already-read document —
+then appended addenda to two order files anyway (`AKI_06` and `ORCHA_03`).
+
+**New rule, binding on me: a pushed order file is immutable. New directives get a new numbered
+file.** Reissued as `KIRO_ORDER_AKI_07.md`, which she completed immediately.
+
+### Tooling fixed
+`whats_new.mjs` now uses `execFileSync` with an argv array, killing the `'%ad' is not recognized`
+failure that has been corrupting my branch-state reads all weekend. Same fix as the board. Added
+`push.mjs` for the same reason.
+
+### Outstanding
+- **ORCHA 03 not started.** Orcha is **40 commits behind** with nothing delivered. He owns every
+  remaining item from Chief's playtest: wiring the new gate art, labels clearing the sprite bounds
+  (`[SPACE] CHARGE` prints across the gate), the charge bar above the gate, and the shorted switch
+  rendering `switch_off`. **These are the visible defects in the GAME**; Aki's work covered the
+  Builder side only.
+- **Level 3** is next for Chief and is still the unfinished stub.
