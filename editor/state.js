@@ -32,10 +32,23 @@ export const SNAP_TERRAIN            = TILE_SIZE;   // 32 - do not change
 //   manifest sort order or array position. Old saved levels remain valid
 //   even if a new alphabetically-earlier tile asset is added later.
 export const TILE_ID_REGISTRY = Object.freeze({
+  // Purple City tileset (IDs 10-13)
   10: 'env_tile_dark_a',
   11: 'env_tile_dark_b',
   12: 'env_tile_purple_a',
   13: 'env_tile_purple_b',
+  // Purple Rooftop tileset (IDs 14-23). env_rt_ prefix = rooftop namespace.
+  // basename(manifest path) for each must equal the rt_ key in render.js.
+  14: 'env_rt_tile_dark_a',
+  15: 'env_rt_tile_dark_b',
+  16: 'env_rt_tile_mid_a',
+  17: 'env_rt_tile_mid_b',
+  18: 'env_rt_tile_mid_c',
+  19: 'env_rt_tile_purple_a',
+  20: 'env_rt_tile_purple_b',
+  21: 'env_rt_tile_purple_c',
+  22: 'env_rt_tile_light_a',
+  23: 'env_rt_tile_accent_a',
 });
 // Reverse map (asset id → tile value). Computed once at module load.
 const _TILE_REV_REGISTRY = Object.freeze(

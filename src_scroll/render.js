@@ -1,22 +1,52 @@
 // Canvas drawing utilities — pixel-art glow aesthetic
 
-// ── Purple City tileset ───────────────────────────────────────────────────
+// ── Tile registry ────────────────────────────────────────────────────────
 // TILE_ID_REGISTRY — PERMANENT binding of stored tile-value → asset filename.
 // MUST match editor/state.js TILE_ID_REGISTRY exactly. New tile variants
 // ALWAYS append a new value. Never renumber. Never derive from array position.
+// Short name (basename without .png) keyed by tile ID integer.
 const TILE_ID_REGISTRY = Object.freeze({
+  // Purple City tileset (IDs 10–13)
   10: 'tile_dark_a',
   11: 'tile_dark_b',
   12: 'tile_purple_a',
   13: 'tile_purple_b',
+  // Purple Rooftop tileset (IDs 14–23). rt_ prefix avoids _pc cache collision.
+  14: 'rt_tile_dark_a',
+  15: 'rt_tile_dark_b',
+  16: 'rt_tile_mid_a',
+  17: 'rt_tile_mid_b',
+  18: 'rt_tile_mid_c',
+  19: 'rt_tile_purple_a',
+  20: 'rt_tile_purple_b',
+  21: 'rt_tile_purple_c',
+  22: 'rt_tile_light_a',
+  23: 'rt_tile_accent_a',
 });
 const TILE_DEFAULT_KEY = 'tile_dark_a';
-// Preload the current registry entries. New keys added to the registry are
-// picked up automatically on next module load.
+// Explicit per-name path map — replaces the old `purple_city/tiles/${name}` string
+// construction so tiles from multiple tilesets can coexist without a path collision.
+const TILE_PATHS = Object.freeze({
+  'tile_dark_a':      'assets/tilesets/purple_city/tiles/tile_dark_a.png',
+  'tile_dark_b':      'assets/tilesets/purple_city/tiles/tile_dark_b.png',
+  'tile_purple_a':    'assets/tilesets/purple_city/tiles/tile_purple_a.png',
+  'tile_purple_b':    'assets/tilesets/purple_city/tiles/tile_purple_b.png',
+  'rt_tile_dark_a':   'assets/tilesets/purple_rooftop/tiles/rt_tile_dark_a.png',
+  'rt_tile_dark_b':   'assets/tilesets/purple_rooftop/tiles/rt_tile_dark_b.png',
+  'rt_tile_mid_a':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png',
+  'rt_tile_mid_b':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_b.png',
+  'rt_tile_mid_c':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_c.png',
+  'rt_tile_purple_a': 'assets/tilesets/purple_rooftop/tiles/rt_tile_purple_a.png',
+  'rt_tile_purple_b': 'assets/tilesets/purple_rooftop/tiles/rt_tile_purple_b.png',
+  'rt_tile_purple_c': 'assets/tilesets/purple_rooftop/tiles/rt_tile_purple_c.png',
+  'rt_tile_light_a':  'assets/tilesets/purple_rooftop/tiles/rt_tile_light_a.png',
+  'rt_tile_accent_a': 'assets/tilesets/purple_rooftop/tiles/rt_tile_accent_a.png',
+});
+// Preload all registered tiles using the explicit path map.
 const _pc = {};
 Object.values(TILE_ID_REGISTRY).forEach(name => {
   const img = new Image();
-  img.src = `assets/tilesets/purple_city/tiles/${name}.png`;
+  img.src = TILE_PATHS[name] || `assets/tilesets/purple_city/tiles/${name}.png`;
   _pc[name] = img;
 });
 

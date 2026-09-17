@@ -181,6 +181,286 @@
         ],
         "notes": "Modular waste platform segment — place via construction system, not random generation."
       }
+    },
+    {
+      "id": "env_rt_tile_dark_a",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. dark_a — darkest rooftop tile, avg RGB (9,11,39). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_dark_b",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_b.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. dark_b — dark rooftop variant, avg RGB (9,11,39), distinct pattern. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_mid_a",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. mid_a — medium purple rooftop, avg RGB (40,24,69). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_mid_b",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_b.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. mid_b — darker mid variant, avg RGB (29,20,49). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_mid_c",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_c.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. mid_c — medium-dark rooftop, avg RGB (34,26,72). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_purple_a",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. purple_a — brighter purple, partial (219/256), edge tile. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_purple_b",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_b.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. purple_b — blue-purple tone, avg RGB (36,38,113). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_purple_c",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_c.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. purple_c — purple accent, partial (206/256). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_light_a",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_light_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. light_a — lightest rooftop tile, avg RGB (67,46,131), partial (228/256). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
+    },
+    {
+      "id": "env_rt_tile_accent_a",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_accent_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset. accent_a — accent tile from alternate sheet region, avg RGB (20,21,50). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "walkable"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "dense",
+        "stackable": true
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",

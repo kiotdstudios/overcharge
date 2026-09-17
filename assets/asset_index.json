@@ -1,6 +1,6 @@
 {
-  "generated": "2026-09-12T21:14:00.131Z",
-  "count": 163,
+  "generated": "2026-09-17T15:23:53.000Z",
+  "count": 174,
   "items": [
     {
       "path": "assets/sprites/generator 1/frame_000.png",
@@ -979,6 +979,72 @@
       "name": "tile_purple_b",
       "category": "terrain",
       "size": 637
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_a.png",
+      "name": "rt_tile_dark_a",
+      "category": "tilesets/purple_rooftop",
+      "size": 112
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_dark_b.png",
+      "name": "rt_tile_dark_b",
+      "category": "tilesets/purple_rooftop",
+      "size": 112
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",
+      "name": "rt_tile_mid_a",
+      "category": "tilesets/purple_rooftop",
+      "size": 240
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_b.png",
+      "name": "rt_tile_mid_b",
+      "category": "tilesets/purple_rooftop",
+      "size": 233
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_c.png",
+      "name": "rt_tile_mid_c",
+      "category": "tilesets/purple_rooftop",
+      "size": 233
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_a.png",
+      "name": "rt_tile_purple_a",
+      "category": "tilesets/purple_rooftop",
+      "size": 230
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_b.png",
+      "name": "rt_tile_purple_b",
+      "category": "tilesets/purple_rooftop",
+      "size": 230
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_c.png",
+      "name": "rt_tile_purple_c",
+      "category": "tilesets/purple_rooftop",
+      "size": 418
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_light_a.png",
+      "name": "rt_tile_light_a",
+      "category": "tilesets/purple_rooftop",
+      "size": 233
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_accent_a.png",
+      "name": "rt_tile_accent_a",
+      "category": "tilesets/purple_rooftop",
+      "size": 259
+    },
+    {
+      "path": "assets/tilesets/purple_rooftop/main.png",
+      "name": "main",
+      "category": "tilesets/purple_rooftop",
+      "size": 48488
     }
   ]
 }
