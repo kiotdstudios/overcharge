@@ -360,6 +360,45 @@ btnCommitPush?.addEventListener('click', async () => {
   const num  = state.level?.number;
   const name = state.level?.name || 'level';
 
+  // A8: Pre-flight 1 — no save folder means publish will find nothing.
+  // Chief hit this exact case: PUBLISH ran, found nothing, he then moved a
+  // generator — having received false confirmation that the publish worked.
+  if (!Persistence.saveFolderName()) {
+    if (commitPushOut) {
+      commitPushOut.style.display = 'block';
+      commitPushOut.style.color   = '#ff8888';
+      commitPushOut.textContent   =
+        'NO FOLDER SET — nothing to publish.\n\n' +
+        'Click \u{1F4C1} FOLDER and pick the src_scroll/levels folder in your Git clone. ' +
+        'Without it, SAVE has no target and PUBLISH will commit nothing new.';
+    }
+    return;
+  }
+
+  // A8: Pre-flight 2 — nothing new since the last publish.
+  // If the level checksum matches the committed baseline and there are no
+  // unsaved edits, running the git command would produce an empty commit.
+  const _a8Sum    = state.level ? levelChecksum(state.level) : null;
+  const _a8Synced = !state.dirty && !_isLocalOnly()
+                  && !!_committedChecksum && !!_a8Sum && _a8Sum === _committedChecksum;
+  if (_a8Synced) {
+    if (commitPushOut) {
+      commitPushOut.style.display = 'block';
+      commitPushOut.style.color   = '#8aaabb';
+      commitPushOut.textContent   =
+        'NOTHING TO PUBLISH \u2014 level ' + (num ?? '?') + ' (' + name + ') ' +
+        'is already in sync with the committed JSON.\n\n' +
+        'Make a change and SAVE first, then publish.';
+    }
+    return;
+  }
+
+  // A8: Capture the game-terms diff NOW (before save), so we can report
+  // what was actually committed in human terms ("1 source moved", etc.).
+  const _a8Diff = (_committedLevel && state.level)
+    ? _gameDiff(_committedLevel, state.level)
+    : null;
+
   // Step 1 — a verified save. No save, no publish.
   const r = await Persistence.saveCurrentLevel();
   if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
@@ -400,6 +439,14 @@ btnCommitPush?.addEventListener('click', async () => {
     const head = document.createElement('div');
     head.textContent = 'SAVED + VERIFIED into the Git folder. Not published yet.';
     commitPushOut.appendChild(head);
+
+    // A8: state what will be published in game terms.
+    if (_a8Diff) {
+      const diffEl = document.createElement('div');
+      diffEl.style.cssText = 'color:#ffcc44;font-family:monospace;font-size:11px;margin:4px 0 6px';
+      diffEl.textContent = 'Publishing level' + (num ?? '') + ': ' + _a8Diff;
+      commitPushOut.appendChild(diffEl);
+    }
 
     // ── One-click publish via the overcharge:// protocol handler ──────────────
     // A web page cannot run git. This link hands off to a registered Windows
@@ -1252,6 +1299,20 @@ function _doSpawn(e, canvas) {
     state.pendingSpawn = { kind };
     _refreshSpawnStatus();
   });
+});
+
+// ── Asset-panel spawn intercept ────────────────────────────────────────────
+// If the user clicks a manifest asset whose entry has spawnsKind set, convert
+// it to spawn-placement mode instead of tile-painting mode. Keeps all spawn
+// logic in main.js (where pendingSpawn lives) rather than assets.js.
+subscribe(function _assetSpawnIntercept() {
+  const raw = state.selectedAsset?.raw;
+  if (!raw?.spawnsKind) return;
+  // Consume: clear selectedAsset, enter pendingSpawn mode
+  state.selectedAsset = null;
+  state.pendingSpawn = { kind: raw.spawnsKind };
+  _refreshSpawnStatus();
+  // No notify() needed — subscribe fires after notify, so state is already consistent.
 });
 
 // ── Selected-object property editor ────────────────────────────────────────
