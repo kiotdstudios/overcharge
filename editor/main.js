@@ -1205,6 +1205,18 @@ function _doSpawn(e, canvas) {
     const cw = 32, ch = 32, px = _snapGrid(wx), py = _groundAt(wx, wy, ch);
     obj = { id: 'crate_' + Date.now(), x: px, y: py, w: cw, h: ch };
     arr = L.crates || (L.crates = []); arrLabel = 'add_crate';
+  } else if (kind === 'player-start') {
+    // playerStart is a single {x,y} field on the level root, not an array entry.
+    // Placing it always moves the existing spawn — exactly one per level.
+    const PLAYER_HIT_H = 30;   // matches PLAYER_H in src_scroll/constants.js
+    const px = _snapGrid(wx);
+    const py = _groundAt(wx, wy, PLAYER_HIT_H);
+    const action = Actions.setPlayerStart(L, px, py);
+    if (action) History.apply(action);
+    if (L.playerStart) Selection.selectByKind('playerStart', L.playerStart);
+    state.pendingSpawn = null;
+    _refreshSpawnStatus();
+    return;
   }
 
   if (obj && arr !== null) {
@@ -1234,6 +1246,7 @@ function _doSpawn(e, canvas) {
   ['spawn-crate',      'crate'],
   ['spawn-wall-switch', 'wall-switch'],
   ['spawn-fence',       'fence'],
+  ['spawn-player-start', 'player-start'],
 ].forEach(([id, kind]) => {
   document.getElementById(id)?.addEventListener('click', () => {
     state.pendingSpawn = { kind };
@@ -1257,6 +1270,10 @@ function _refreshSelectedProps() {
     ['platforms','platform'],['sources','source'],['gates','gate'],['crates','crate'],
   ]) {
     if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
+  }
+  // playerStart is a boolean flag, not a Set — handle separately.
+  if (!kind && sel.playerStart && state.level?.playerStart) {
+    kind = 'playerStart'; ref = state.level.playerStart;
   }
   if (!kind || !ref) { _selSection.style.display = 'none'; _selPanel.innerHTML = ''; return; }
   _selSection.style.display = '';
@@ -1336,6 +1353,15 @@ function _refreshSelectedProps() {
       { label:'y',  key:'y',  num:true },
       { label:'w',  key:'w',  num:true, min:1 },
       { label:'h',  key:'h',  num:true, min:1 },
+    ];
+  } else if (kind === 'playerStart') {
+    // Spawn point: only x/y matter. Moving it via inspector or by dragging
+    // the sprite on canvas both land here (drag goes through moveObject;
+    // inspector edits land here). No id, no label — one per level always.
+    color = '#ffffff'; badge = 'SPAWN POINT';
+    fields = [
+      { label:'x', key:'x', num:true },
+      { label:'y', key:'y', num:true },
     ];
   }
 
