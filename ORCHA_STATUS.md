@@ -5,6 +5,253 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## ORCHA 12/14 + O9 — vision decoupled, alert tell, aimed blast
+
+- **Date:** 2026-09-18T05:05-04:00 · **Branch:** `agent/orcha-dev` · synced from `f86e6d1`
+- **Status:** COMPLETE, GREEN, pushed. Green-lit by Kiro; work order item 1 of 3 done.
+
+### Suites: 686 / 0 across six suites (floor was 672)
+
+| Suite | Result |
+|---|---|
+| `parity_regression.mjs` | 386 / 0 |
+| `fence_switch.mjs` | 74 / 0 |
+| `energy_authority.mjs` | 88 / 0 |
+| `crate_timed.mjs` | 87 / 0 |
+| `test_electricity.mjs` | 37 / 0 |
+| **`drone_sensing.mjs` (new)** | **14 / 0** |
+| `completability.mjs` | 20 / 1 — Level 3 void, content question |
+| boot smoke | `BOOT_SMOKE_OK`, `ERRORS: []` |
+
+### The fix — vision decoupled into visionX / visionY
+
+`CFG.VISION: 220` (circular) is **gone**, replaced by `visionX: 240` / `visionY: 340`.
+
+Chief reported *"drone didnt try to chase me"*. Measured cause: drone y=200, spawn
+y=482, centre-to-centre separation **280px** against a 220px radius, so the drone
+could never see him at any horizontal distance.
+
+Raising the radius to 320 was **rejected** per ORCHA 12 — that widens horizontal
+reach too and the drone aggros from off-screen. `visionY > visionX` is now asserted
+as an invariant, with the rationale in the dial: **drones fly, players walk.**
+
+### THREE bugs, not one. The second and third only surfaced because I asserted
+### against Level 3's real coordinates instead of a fixture.
+
+| # | Bug | Symptom |
+|---|---|---|
+| 1 | circular `VISION` 220 vs 280px separation | never saw the player |
+| 2 | `FIRE_ARC` 70 vs 280px separation | **saw and chased, fired nothing** |
+| 3 | muzzle offset `cx + dir*w/2` while aiming from `cx` | blast travelled x=544 past a player spanning 512..536 — **missed by 8px every time** |
+
+Bug 2 is the identical axis mismatch one layer down: `visionY=340` let it see him,
+`FIRE_ARC=70` forbade shooting him. Bug 3 I found by tracing a single blast
+frame-by-frame after the hit assertion returned `stun=0`. Both would have shipped
+invisibly — the drone would have alerted, chased, and never landed a hit.
+
+Blasts are now **aimed** (normalised velocity, constant speed at any angle) with the
+muzzle offset along the firing direction. A flying drone shooting purely horizontally
+sends every shot over a grounded player's head — the third form of the same mismatch.
+
+### O9 alert tell — aggro is now a three-phase state machine
+
+`get alertState()` → `patrol` / `alert` / `engaged` / `lost` / `dead`, exposed so tests
+assert **state, not pixels** (same reasoning as `PowerGate.visualState`).
+
+- **alert** — rising exclamation mark + expanding ring, `ALERT_TIME 0.55s`, **cannot
+  fire during it**. Measured: 33 frames, exactly the expected 33.
+- **engaged** — steady locked-on bar, so "it is still on me" stays legible.
+- **lost** — shrinking cool-blue ring, `DEAGGRO_TIME 0.7s`, then back to patrol.
+
+States differ in **shape, not just colour** — colour alone has misled twice on this
+project (`switch_destroyed` measured greenest, `fence_dead` brighter than live).
+Procedural per the ruling; a sprite drops into `drawTell()` later. The tell draws
+after `ctx.restore()` so the sprite's horizontal flip cannot mirror the exclamation
+mark. The 9 shooting frames follow `armed`, never the alert phase (ORCHA 12 §3).
+
+### Assertions pinned to SHIPPED geometry, and mutation-verified
+
+`_dev/drone_sensing.mjs` reads `levels.json`, walks every level containing a drone,
+and derives every coordinate from disk. No literals. It also asserts a drone exists
+at all, so the suite cannot silently go vacuous.
+
+| Mutation | Result |
+|---|---|
+| `visionY` → 220 (the original bug) | **8 failures** |
+| `FIRE_ARC` → 70 (the second bug) | **3 failures** — "first blast f-1" |
+| `ALERT_TIME` → 0 | **2 failures** — sequence becomes `engaged` with no alert |
+| `DEAGGRO_TIME` → 0 | **1 failure** — no `lost` tell |
+
+Each reverts a real bug and each is caught. 14/0 restored after every revert.
+
+### NOT VERIFIED — Chief's eye, not code
+
+1. Whether the alert **reads at speed** — is 0.55s enough warning to react?
+2. Whether the exclamation-mark tell is legible against Purple City tiles.
+3. Whether the drone now feels fair rather than punishing.
+4. Vision is still **not terrain-aware** — no raycast in this engine, so a drone can
+   see through a wall. Flagged three times now; Chief's call.
+
+### Scope
+
+`src_scroll/entities.js`, `_dev/drone_sensing.mjs` (new). No level content, no
+editor, no input changes — **K remains attack**.
+
+Next: **Level 3 per spec** (terrain, exit past the corridor, checkpoint, rename to
+DON'T GET HIT), then Levels 4 and 5 held out of `levels.json` until Chief plays them.
+
+---
+
+## O4 + drone AI + Level 3 drone — REPORT OWED, filed late
+
+- **Date:** 2026-09-18T04:59-04:00 · **Branch:** `agent/orcha-dev` · synced from `f86e6d1`
+- **Status:** four commits pushed and green. **This report is LATE and that is my process failure.**
+
+### PROCESS FAILURE FIRST — four deliveries with no status entry
+
+Kiro's standing rule is *"Report in `ORCHA_STATUS.md`, same commit as the work."* I put full
+detail in the **commit messages** and treated that as the report. It is not. Verified:
+
+| Commit | Subject | Status entry |
+|---|---|---|
+| `bd7b50a` | O4 completability proof | **MISSING** |
+| `782e55f` | O4 fix — elevation-blind exit check | **MISSING** |
+| `f91c0bc` | level3 drone_1 placement | **MISSING** |
+| `220ae18` | drone vision → chase → blast | **MISSING** |
+| `667552e` | O5.4 | present |
+| `aa6ba34` | O5.1–O5.3 | present |
+
+Why it matters rather than being bookkeeping: Chief reconstructs the check-in from GitHub, and
+a commit message is not where he or Kiro look. Four deliveries were effectively invisible.
+**Going forward the status entry goes in the same commit as the work, every time, and the
+report I give Chief in chat is the same text I commit.**
+
+### Suites — current, re-run after syncing to `f86e6d1`
+
+| Suite | Result |
+|---|---|
+| `parity_regression.mjs` | 386 / 0 |
+| `fence_switch.mjs` | 74 / 0 |
+| `energy_authority.mjs` | 88 / 0 |
+| `crate_timed.mjs` | 87 / 0 |
+| `test_electricity.mjs` | 37 / 0 |
+| **5-suite total** | **672 / 0** |
+| `completability.mjs` (new) | 20 / 1 — the 1 is Level 3's void, a content question |
+
+### `bd7b50a` — O4 completability proof
+
+New `_dev/completability.mjs`. Per level: completable yes/no, margin, first blocking reason
+in plain words.
+
+Not a charge sum. A closed gate blocks floor-to-ceiling (`blocksHorizontal()` ignores Y), so
+it seals a horizontal band and sources beyond it cannot pay for it. Walks a reachability
+**closure** outward from spawn, absorbing only what it can already reach. `blockOnly` excluded
+from cost — inert, its switch is the real price.
+
+```
+level1 NEON RISE       completable   8/8   margin 0
+level2 SPLIT DECISION  completable  10/10  margin 0   spends SW1 -2 then EXIT -8
+level3 LEVEL 3         62% void past the ground
+```
+
+Mutations: starving level1 fires *"needs 8, only 2 reachable charge left"*; an enemy on level2
+at margin 0 fires OVERRIDE 5. Level files restored byte-for-byte.
+
+### `782e55f` — O4 fix, my false positive, caught by Chief
+
+I asserted Level 3's exit was broken because it sits behind spawn in X. **Chief:** *"player
+cant reach gate you have to jump on platforms percisely."* He was right — exit `(32,192)` vs
+spawn `(64,482)`, so the gate is 290px **above** the player. A deliberate climb, not a
+walk-backwards exit.
+
+My check measured one axis and issued a verdict about reachability. Now requires behind-in-X
+**and** within 64px of spawn elevation. Second check reframed from "content coverage" to
+**declared-width-vs-terrain**, naming both fixes: reduce `cols` to 38, or extend terrain.
+
+### `f91c0bc` — Level 3 `drone_1`
+
+**Not a restore.** No archived drone exists: all 36 level-JSON blobs in git history, every
+`level3.json` version, `cef802a`, both archive tags, all four worktrees, and a filesystem
+sweep — zero. The legacy branch has `type:'drain'`, not a drone. Chief's asset path was
+byte-identical to my copy: the **art** was never missing, only the level entry.
+
+Placed `drone_1 x=512 y=200 patrol 400..600 speed 55` on the r8 platform (x 384..640,
+surface y=256) because **r16 is solid beneath it**, so scattered charge lands on open floor —
+the brief's explicit no-pit requirement. Rejected the longer r7 corridor for that exact
+reason: r16 is air under cols 20..27.
+
+`frame_000` verified **by hash**: all 9 frames byte-unique in both `idle` and `shooting`, so
+it is a real frame here (like the generator, unlike fence/switch/gate). Sixth pack checked;
+the convention did not hold again.
+
+Two vacuous exemptions went live on real data: parity's *"1 drone(s) exempt from grounding"*
+and the Q7 conditional margin guard, both previously proven only against synthetic fixtures.
+
+### `220ae18` — drone vision → chase → blast
+
+Two dormant pieces activated: `tryContact()` computed `_shooting` and nothing consumed it;
+`draw()` read `const frames = this._idleFrames; // shooting anim disabled until fixed` with
+all 9 shooting frames loaded and never drawn.
+
+`DroneEnemy.CFG` frozen dial. Chase is **leashed** — unleashed it would follow the player off
+authored terrain, on Level 3 out over the void. Blasts live on the drone, not the level, so an
+absent `enemies` array is still zero behavioural change. A hit calls `player.stun` +
+`player.scatter`, the same methods contact damage uses.
+
+**K remains attack.** Chief reverted SPACE=attack, so no binding changed and no level's
+completability was touched.
+
+### THE LIVE BUG I SHIPPED — drone cannot see the player
+
+`220ae18` is **merged to live**, so this is in Chief's build now. Measured against real level
+data, not a fixture:
+
+```
+drone y=200,  player spawn y=482
+centre-to-centre vertical separation = 280px
+CFG.VISION = 220px (circular)
+drone._sees(player) = false
+```
+
+Chief: *"drone didnt try to chase me."* Correct. My AI is sound; the sensing is being asked an
+impossible question. **My simulation passed because I placed the test player at the drone's own
+height** — I never tested against the geometry of the level I had just placed it in. Same
+narrow-check failure I keep flagging in others.
+
+Fix per ORCHA 12/14 is **not** to lower the drone: decouple into `CFG.visionX` / `CFG.visionY`,
+because a flying-threat/walking-target mismatch affects every drone in every level including
+Level 4's. Assertion pinned to shipped coordinates.
+
+### PixelLab — blast art generated, unreachable, not fixable here
+
+Object `8392e76d` and image job `377c6617` both generated. `get_map_object`, `get_object` and
+`get_image` all fail with *"Value is not JSON serializable: dict"*. Diagnosed: `get_image`
+**worked while PROCESSING** and failed the moment it **COMPLETED**, so the fault is serializing
+image payloads and no getter avoids it. Their server, not our config. Filed via
+`agent_feedback`. Blast is drawn procedurally; drop the PNG into `drawBlasts()` when
+retrievable and nothing else changes.
+
+### ORCHA 14 — attribution corrected in my favour
+
+Kiro credited `drone_1` to Chief; I placed it at Chief's direction with my own numbers. He
+amended: the coordinates are mine to set, keep the drone *concept*, state what I change.
+His general rule: *"do not let me attribute your proposals to Chief."*
+
+### NOT VERIFIED — Chief's eye, not code
+
+1. Gate ~30px wider (restored art the old crop hid). `GATE_DRAW_W` is the dial.
+2. Flipped-below label placement near a ceiling.
+3. `switch_off` visibly smaller (1516 opaque px vs ~1730) — deliberate, not compensated.
+4. Whether the drone reads as *seeing* him, and whether the blast is legible at speed.
+
+### Open, and mine
+
+- Level 3: 62% void past the ground; **zero checkpoints**; name still "LEVEL 3".
+- Vision decoupling + **O9 alert tell** — next, live bug.
+- Then Level 3 per spec, then Levels 4 and 5 held out of `levels.json` until Chief plays them.
+
+---
+
 ## O5.4 — shorted switch renders switch_off, content-bottom anchored
 
 - **Date:** 2026-09-17T21:10-04:00 - **Branch:** `agent/orcha-dev` - synced from `2685077`

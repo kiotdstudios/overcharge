@@ -408,14 +408,38 @@ export class DroneEnemy {
              this.y + this.h <= py || this.y >= py + ph);
   }
 
-  // ── DRONE COMBAT DIAL (Chief 2026-09-17) ────────────────────────────
-  // One place to retune. vision/leash in px, cooldown in seconds.
+  // ── DRONE COMBAT DIAL (Chief 2026-09-17, vision decoupled ORCHA 12/14) ──
+  // One place to retune. Distances in px, times in seconds.
+  //
+  // WHY visionX AND visionY, NOT ONE RADIUS:
+  // Drones fly, the player walks, so in a side-scroller the threat sits
+  // permanently ABOVE the target. A symmetric radius spends its whole budget on
+  // vertical separation before horizontal distance matters at all. Level 3
+  // measured: drone y=200, spawn y=482, centre-to-centre separation 280px against
+  // a 220px radius -> the drone could NEVER see the player, at any horizontal
+  // distance. Chief: "drone didnt try to chase me."
+  //
+  // Raising the radius to 320 was REJECTED (ORCHA 12): that also extends
+  // horizontal reach to 320 and the drone aggros from off-screen, which is worse.
+  // The axes have to be decoupled.
   static CFG = Object.freeze({
-    VISION: 220,        // "sees" the player within this radius
+    visionX: 240,       // horizontal reach — roughly one screen-third
+    visionY: 340,       // vertical tolerance — must clear a flying drone over a
+                        // grounded player; 280 is Level 3's real separation, so
+                        // 340 leaves headroom without widening horizontal aggro
     CHASE_MULT: 1.35,   // chase speed = speed * this
-    LEASH: 160,         // may chase this far PAST its patrol bounds, then no further
-    FIRE_ARC: 70,       // only fires when vertically within this of the player
+    LEASH: 160,         // may chase this far PAST its patrol bounds, then stops
+    FIRE_ARC: 300,      // vertical firing tolerance. MUST scale with visionY, not
+                        // stay at the old 70: with visionY=340 the drone could SEE
+                        // the player 280px below and never SHOOT him — it alerted,
+                        // chased, and fired nothing. Same axis mismatch as the
+                        // vision bug, one layer down, found by asserting against
+                        // Level 3's real geometry instead of a fixture.
     SHOT_CD: 1.1,       // seconds between blasts
+    ALERT_TIME: 0.55,   // O9: telegraph. Alert shows for this long BEFORE the
+                        // first shot, so being hit has a warning and reads as a
+                        // lesson rather than as unfair
+    DEAGGRO_TIME: 0.7,  // O9: how long the "lost him" tell stays visible
     B_W: 14, B_H: 6,    // blast size
     B_SPEED: 260,       // blast px/sec
     B_LIFE: 1.6,        // blast lifetime in seconds
@@ -429,18 +453,33 @@ export class DroneEnemy {
     this._hitFlash  = Math.max(0, this._hitFlash  - dt);
     this._shotCd    = Math.max(0, (this._shotCd ?? 0) - dt);
 
-    // ── VISION -> CHASE -> SHOOT ──────────────────────────────────────
-    // Was: blind patrol between patrolLeft/patrolRight forever. `_shooting` was
-    // already computed in tryContact() at radius 180 but NOTHING consumed it, and
-    // draw() pinned frames to _idleFrames with the comment "shooting anim disabled
-    // until fixed". Both dormant pieces are now live.
-    //
+    // ── VISION -> ALERT -> CHASE -> SHOOT ─────────────────────────────
     // The drone LEASHES rather than pursuing forever: it chases past its patrol
     // bounds but only up to LEASH, then stops. An unleashed chaser would follow the
     // player out of the corridor and off the authored terrain — on Level 3 that
     // means out over the 62% void.
-    const canSee = !!player && this._sees(player);
-    this._aggro  = canSee;
+    //
+    // O9 (Chief: "needs an alert animation to know it found u"): aggro is now a
+    // THREE-phase state machine, not a boolean. On first sight the drone enters
+    // ALERT and cannot fire for ALERT_TIME; only then does it start shooting. Being
+    // hit therefore always has a warning, which is what makes Level 3's lesson read
+    // as a lesson instead of as unfair. Contrast the F7 fence ruling where
+    // immediacy won — here the warning IS the mechanic.
+    const canSee   = !!player && this._sees(player);
+    const wasAggro = this._aggro === true;
+
+    if (canSee && !wasAggro) {
+      this._alertT   = C.ALERT_TIME;      // just spotted him — telegraph first
+      this._deaggroT = 0;
+    } else if (!canSee && wasAggro) {
+      this._deaggroT = C.DEAGGRO_TIME;    // lost him — distinct "gave up" tell
+      this._alertT   = 0;
+    }
+    this._aggro    = canSee;
+    this._alertT   = Math.max(0, (this._alertT   ?? 0) - dt);
+    this._deaggroT = Math.max(0, (this._deaggroT ?? 0) - dt);
+    // Armed only once the telegraph has elapsed.
+    const armed = canSee && this._alertT <= 0;
 
     if (canSee) {
       const dir    = Math.sign(player.cx - this.cx) || 1;
@@ -448,8 +487,8 @@ export class DroneEnemy {
       const leashR = this.patrolRight + C.LEASH;
       this.x  = Math.max(leashL, Math.min(leashR - this.w, this.x + dir * this.speed * C.CHASE_MULT * dt));
       this.vx = dir * this.speed;                  // keeps the sprite facing correctly
-      if (this._shotCd <= 0 && Math.abs(player.cy - this.cy) < C.FIRE_ARC) {
-        this._fire(dir);
+      if (armed && this._shotCd <= 0 && Math.abs(player.cy - this.cy) < C.FIRE_ARC) {
+        this._fire(dir, player);
         this._shotCd = C.SHOT_CD;
       }
     } else {
@@ -460,28 +499,63 @@ export class DroneEnemy {
 
     this.y = this._baseY + Math.sin(this._t * 2.5) * 8;   // hover bob
 
-    this._shooting = canSee;      // drives the shooting animation in draw()
+    // The 9 shooting frames are for FIRING, not for noticing (ORCHA 12 §3), so the
+    // shooting pose follows `armed`, never the alert phase.
+    this._shooting = armed;
     this._frame += dt * this._fps;
     if (this._frame >= 9) this._frame = 0;
 
     this._updateBlasts(dt, level, player);
   }
 
-  // Radius only. Deliberately NOT terrain-aware: this engine has no raycast and
-  // inventing one for v1 would be a new system. Stated plainly rather than implied
-  // — a drone can currently "see" through a wall. Flagged for Chief.
+  // Decoupled axes (ORCHA 12/14). NOT a radius — see the CFG comment for why a
+  // symmetric radius is structurally wrong for a flying threat over a walking
+  // target. Rectangular test: generous vertically, tight horizontally.
+  //
+  // Deliberately NOT terrain-aware: this engine has no raycast and inventing one
+  // for v1 would be a new system. Stated plainly rather than implied — a drone can
+  // currently "see" through a wall. Chief's call, flagged twice now.
   _sees(player) {
-    const dx = player.cx - this.cx, dy = player.cy - this.cy;
-    const V  = DroneEnemy.CFG.VISION;
-    return (dx * dx + dy * dy) < V * V;
+    const C = DroneEnemy.CFG;
+    return Math.abs(player.cx - this.cx) < C.visionX &&
+           Math.abs(player.cy - this.cy) < C.visionY;
   }
 
-  _fire(dir) {
+  // O9 tell state, exposed so tests assert STATE rather than pixels — the same
+  // reasoning as PowerGate.visualState (ORCHA 06).
+  get alertState() {
+    if (!this.alive)          return 'dead';
+    if ((this._alertT ?? 0) > 0)   return 'alert';      // spotted, not yet firing
+    if (this._aggro)          return 'engaged';         // armed and shooting
+    if ((this._deaggroT ?? 0) > 0) return 'lost';       // gave up, still showing it
+    return 'patrol';
+  }
+
+  // Blasts are AIMED, not purely horizontal. A flying drone shooting level would
+  // send every shot over a grounded player's head — the third form of the same
+  // flying-vs-walking mismatch. Velocity is normalised so the blast speed is
+  // constant regardless of angle.
+  _fire(dir, player) {
     const C = DroneEnemy.CFG;
+    // Muzzle: offset along the FIRING DIRECTION, not blindly along X.
+    // A blind `cx + dir*w/2` muzzle put the blast 8px right of centre while the aim
+    // vector was computed FROM cx — so a near-vertical shot at a player directly
+    // below travelled down x=544 while the player box spanned 512..536 and missed
+    // by 8px, every time. Traced frame-by-frame; the blast passed clean beside him.
+    let ax = dir, ay = 0;
+    if (player) {
+      const dx = player.cx - this.cx, dy = player.cy - this.cy;
+      const len = Math.hypot(dx, dy) || 1;
+      ax = dx / len; ay = dy / len;
+    }
+    const muzzle = this.w / 2;
     this._blasts = this._blasts || [];
     this._blasts.push({
-      x: this.cx + dir * (this.w / 2), y: this.cy - C.B_H / 2,
-      vx: dir * C.B_SPEED, life: C.B_LIFE, dir,
+      x: this.cx + ax * muzzle - C.B_W / 2,
+      y: this.cy + ay * muzzle - C.B_H / 2,
+      vx: ax * C.B_SPEED,
+      vy: ay * C.B_SPEED,
+      life: C.B_LIFE, dir,
     });
   }
 
@@ -493,6 +567,8 @@ export class DroneEnemy {
     const C = DroneEnemy.CFG;
     for (const b of this._blasts) {
       b.x += b.vx * dt;
+      b.y += (b.vy || 0) * dt;      // aimed blasts descend; `|| 0` keeps old flat
+                                    // blasts valid if any are mid-flight on reload
       b.life -= dt;
       if (b.life <= 0 || !player) continue;
       // A hit routes through the SAME player methods contact damage uses, so a
@@ -551,6 +627,49 @@ export class DroneEnemy {
     }
   }
 
+  // ── O9 ALERT TELL (Chief: "needs an alert animation to know it found u") ──
+  // Procedural, per the ruling not to block on art — same precedent as the one-way
+  // platform markers. If Chief supplies an alert sprite it drops in here.
+  //
+  // Three readable states, deliberately different in SHAPE not just colour: colour
+  // alone has already misled twice on this project (switch_destroyed measured as the
+  // greenest sprite, fence_dead brighter than the live frames).
+  //   alert    a rising exclamation mark + expanding ring, before the first shot
+  //   engaged  a steady underline bar, so "it is still on me" stays legible
+  //   lost     a shrinking, fading ring — the drone gave up
+  drawTell(ctx) {
+    const C = DroneEnemy.CFG;
+    const st = this.alertState;
+    if (st === 'patrol' || st === 'dead') return;
+    const cx = this.cx;
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (st === 'alert') {
+      const p    = 1 - (this._alertT / C.ALERT_TIME);      // 0 -> 1 over the telegraph
+      const rise = 10 * (1 - p);                            // pops up as it resolves
+      const y    = this.y - 12 - rise;
+      ctx.globalAlpha = 0.55 + 0.45 * Math.sin(this._t * 30);   // urgent flicker
+      ctx.shadowBlur  = 12; ctx.shadowColor = '#ff3344';
+      ctx.fillStyle   = '#ff4455';
+      ctx.fillRect(cx - 2, y, 4, 9);                        // exclamation stem
+      ctx.fillRect(cx - 2, y + 11, 4, 3);                   // exclamation dot
+      ctx.globalAlpha = (1 - p) * 0.8;                      // ring expands and fades
+      ctx.strokeStyle = '#ff3344'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, this.cy, 14 + p * 26, 0, Math.PI * 2); ctx.stroke();
+    } else if (st === 'engaged') {
+      ctx.globalAlpha = 0.85;
+      ctx.shadowBlur  = 8; ctx.shadowColor = '#ff5522';
+      ctx.fillStyle   = '#ff5522';
+      ctx.fillRect(cx - 10, this.y - 7, 20, 3);             // steady "locked on" bar
+    } else if (st === 'lost') {
+      const p = this._deaggroT / C.DEAGGRO_TIME;            // 1 -> 0
+      ctx.globalAlpha = p * 0.7;
+      ctx.strokeStyle = '#66ddff'; ctx.lineWidth = 2;       // cool colour = disengaged
+      ctx.beginPath(); ctx.arc(cx, this.cy, 6 + p * 12, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   draw(ctx) {
     // Blasts draw FIRST and outside the alive check, so a blast already in flight
     // still renders (and still lands) after the player kills the drone. Killing the
@@ -581,6 +700,9 @@ export class DroneEnemy {
     }
     ctx.restore();
 
+    // Tell draws AFTER ctx.restore() so the horizontal flip above cannot mirror it —
+    // a mirrored exclamation mark reads as a glitch.
+    this.drawTell(ctx);
     _drawHpBar(ctx, this.x, this.y, this.w, this.hp, this.maxHp);
   }
 }
