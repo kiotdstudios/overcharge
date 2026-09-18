@@ -177,8 +177,23 @@ export function render(ctx, canvas) {
           ctx.restore();
         }
       } else {
-        ctx.strokeStyle = '#666';
-        ctx.strokeRect(p.x, p.y, dw, dh);
+        // A14: dangling decoration — image src did not resolve. Draw a labelled
+        // placeholder so Chief can see the decoration exists (and its bounds)
+        // without mistaking it for real tile content. A plain grey box is worse
+        // than nothing because it blends with level content; a red dashed
+        // outline with text is unambiguous. Do NOT strip the entry from the
+        // level JSON — Kiro left dangling refs deliberately for archive restore.
+        const labelH = Math.max(14, dh * 0.55);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,80,80,0.7)';
+        ctx.lineWidth   = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(p.x + 0.5, p.y + 0.5, Math.max(dw, 40) - 1, Math.max(dh, 16) - 1);
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255,80,80,0.85)';
+        ctx.font      = Math.max(8, Math.min(10, labelH * 0.7)) + 'px monospace';
+        ctx.fillText('⚠ MISSING', p.x + 3, p.y + Math.min(labelH, dh - 2));
+        ctx.restore();
       }
     }
   }

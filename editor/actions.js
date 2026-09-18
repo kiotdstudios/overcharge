@@ -104,13 +104,44 @@ export function removeDecoration(dec) {
 // for: decorations, sources, gates, switches, checkpoints, enemies, and the
 // level.playerStart sub-object. Multiple objects moving together get wrapped
 // in a Composite so a single Ctrl+Z reverts the whole gesture.
+//
+// A12: enemies carry patrolLeft/patrolRight as absolute world X. A drag only
+// moved obj.x during live preview; patrol was left behind. We fix it here at
+// commit time so the undo/redo record is always consistent:
+//   - capture old patrol from obj right now (still at pre-drag value)
+//   - immediately apply translated+clamped patrol so the saved level is correct
+//   - forward() restores the translated value (for redo after an undo)
+//   - inverse() restores the original value (for undo)
 export function moveObject(obj, dx, dy) {
   if (!obj || (dx === 0 && dy === 0)) return null;
+  // Patrol fix: only enemies have these fields; dx=0 means no horizontal move.
+  const hasPatrol = dx !== 0 && obj.patrolLeft != null && obj.patrolRight != null;
+  const oldPL = hasPatrol ? obj.patrolLeft  : undefined;
+  const oldPR = hasPatrol ? obj.patrolRight : undefined;
+  let   newPL, newPR;
+  if (hasPatrol) {
+    const maxX = (state.level ? state.level.cols * 32 : Infinity);
+    newPL = Math.max(0, Math.min(maxX, oldPL + dx));
+    newPR = Math.max(0, Math.min(maxX, oldPR + dx));
+    // Apply immediately — the live drag already moved obj.x but left patrol
+    // behind. Set patrol to the correct final position so the level file is
+    // right as soon as the action is recorded.
+    obj.patrolLeft  = newPL;
+    obj.patrolRight = newPR;
+  }
   return {
     type: 'move_object',
     obj, dx, dy,
-    forward() { obj.x += dx; obj.y += dy; notify(); },
-    inverse() { obj.x -= dx; obj.y -= dy; notify(); },
+    forward() {
+      obj.x += dx; obj.y += dy;
+      if (hasPatrol) { obj.patrolLeft = newPL; obj.patrolRight = newPR; }
+      notify();
+    },
+    inverse() {
+      obj.x -= dx; obj.y -= dy;
+      if (hasPatrol) { obj.patrolLeft = oldPL; obj.patrolRight = oldPR; }
+      notify();
+    },
   };
 }
 
