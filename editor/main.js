@@ -102,6 +102,7 @@ function _gameDiff(committed, current) {
   var fields = [
     ['gates', 'gate'], ['decorations', 'decoration'],
     ['switches', 'switch'], ['enemies', 'enemy'], ['checkpoints', 'checkpoint'],
+    ['chests', 'chest'],
   ];
   var parts = [];
   for (var _fi = 0; _fi < fields.length; _fi++) {
@@ -1149,7 +1150,7 @@ document.getElementById('import-backups-input')?.addEventListener('change', asyn
 // ── Spawn mode ──────────────────────────────────────────────────────────────
 // state.pendingSpawn = null | { kind } where kind is one of:
 //   'drain-enemy', 'patrol-enemy', 'drone-enemy',
-//   'source', 'switch', 'gate', 'checkpoint', 'platform', 'crate'
+//   'source', 'switch', 'gate', 'checkpoint', 'platform', 'crate', 'chest'
 // Set by spawn buttons. Cleared after placement or Escape.
 
 state.pendingSpawn = null;
@@ -1252,6 +1253,14 @@ function _doSpawn(e, canvas) {
     const cw = 32, ch = 32, px = _snapGrid(wx), py = _groundAt(wx, wy, ch);
     obj = { id: 'crate_' + Date.now(), x: px, y: py, w: cw, h: ch };
     arr = L.crates || (L.crates = []); arrLabel = 'add_crate';
+  } else if (kind === 'chest') {
+    // Chest: content box 104x104 (canvas 128x128, botPad=12). x = grid-snapped,
+    // y = grounded so content bottom sits on the floor tile. Default cost/reward
+    // from Chief's ratification (cost 2, reward 10 — full pip).
+    const CHEST_H = 104;
+    const px = _snapGrid(wx), py = _groundAt(wx, wy, CHEST_H);
+    obj = { id: 'chest_' + Date.now(), x: px, y: py, cost: 2, reward: 10 };
+    arr = L.chests || (L.chests = []); arrLabel = 'add_chest';
   } else if (kind === 'player-start') {
     // playerStart is a single {x,y} field on the level root, not an array entry.
     // Placing it always moves the existing spawn — exactly one per level.
@@ -1274,6 +1283,7 @@ function _doSpawn(e, canvas) {
       'source': 'source', 'switch': 'switch', 'gate': 'gate',
       'wall-switch': 'switch', 'fence': 'gate',
       'checkpoint': 'checkpoint', 'platform': 'platform', 'crate': 'crate',
+      'chest': 'chest',
     };
     Selection.selectByKind(kindMap[kind], obj);
   }
@@ -1294,6 +1304,7 @@ function _doSpawn(e, canvas) {
   ['spawn-wall-switch', 'wall-switch'],
   ['spawn-fence',       'fence'],
   ['spawn-player-start', 'player-start'],
+  ['spawn-chest',        'chest'],
 ].forEach(([id, kind]) => {
   document.getElementById(id)?.addEventListener('click', () => {
     state.pendingSpawn = { kind };
@@ -1329,6 +1340,7 @@ function _refreshSelectedProps() {
   for (const [k, kname] of [
     ['enemies','enemy'],['switches','switch'],['checkpoints','checkpoint'],
     ['platforms','platform'],['sources','source'],['gates','gate'],['crates','crate'],
+    ['chests','chest'],
   ]) {
     if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
   }
@@ -1414,6 +1426,15 @@ function _refreshSelectedProps() {
       { label:'y',  key:'y',  num:true },
       { label:'w',  key:'w',  num:true, min:1 },
       { label:'h',  key:'h',  num:true, min:1 },
+    ];
+  } else if (kind === 'chest') {
+    color = '#e8aa33'; badge = 'CHEST';
+    fields = [
+      { label:'id',     key:'id',     text:true },
+      { label:'x',      key:'x',      num:true },
+      { label:'y',      key:'y',      num:true },
+      { label:'cost',   key:'cost',   num:true, min:0 },
+      { label:'reward', key:'reward', num:true, min:0 },
     ];
   } else if (kind === 'playerStart') {
     // Spawn point: only x/y matter. Moving it via inspector or by dragging

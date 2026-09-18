@@ -33,6 +33,7 @@ if (!state.selection) {
     enemies:     new Set(),
     platforms:   new Set(),
     crates:      new Set(),   // was MISSING — selectByKind('crate') threw on s.crates.add
+    chests:      new Set(),
     playerStart: false,
   };
   state.clipboard = null;
@@ -40,7 +41,7 @@ if (!state.selection) {
 
 // Kinds that live in Sets (playerStart is a boolean, handled separately).
 // 'crates' was missing here too, so clearSelection() silently left crates selected.
-const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms', 'crates'];
+const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms', 'crates', 'chests'];
 
 // ── Read helpers ─────────────────────────────────────────────────────────
 export function selectedDecorations() { return [...state.selection.decorations]; }
@@ -99,7 +100,8 @@ export function selectedRefs() {
   for (const o of s.platforms)  out.push({ kind: 'platform',    ref: o });
   // Crates were omitted here, so a selected crate was never added to the move
   // tool's drag set — it highlighted but refused to move with the group.
-  for (const o of (s.crates || [])) out.push({ kind: 'crate',   ref: o });
+  for (const o of (s.crates  || [])) out.push({ kind: 'crate',  ref: o });
+  for (const o of (s.chests || [])) out.push({ kind: 'chest',  ref: o });
   if (s.playerStart && state.level?.playerStart) out.push({ kind: 'playerStart', ref: state.level.playerStart });
   return out;
 }
@@ -116,6 +118,7 @@ export function clearSelection() {
   s.enemies.clear();
   s.platforms.clear();
   if (s.crates) s.crates.clear();   // was missing — crates stayed selected forever
+  if (s.chests) s.chests.clear();
   s.playerStart = false;
   notify();
 }
@@ -134,6 +137,7 @@ export function selectByKind(kind, ref, additive = false) {
   else if (kind === 'enemy')      s.enemies.add(ref);
   else if (kind === 'platform')   s.platforms.add(ref);
   else if (kind === 'crate')      s.crates.add(ref);
+  else if (kind === 'chest')      s.chests.add(ref);
   else if (kind === 'tile')       s.tiles.add(ref);   // ref is "col,row"
   else return;
   notify();
@@ -150,6 +154,7 @@ export function toggleByKind(kind, ref) {
   else if (kind === 'enemy')      s.enemies.has(ref)     ? s.enemies.delete(ref)     : s.enemies.add(ref);
   else if (kind === 'platform')   s.platforms.has(ref)   ? s.platforms.delete(ref)   : s.platforms.add(ref);
   else if (kind === 'crate')      s.crates.has(ref)      ? s.crates.delete(ref)      : s.crates.add(ref);
+  else if (kind === 'chest')      s.chests.has(ref)      ? s.chests.delete(ref)      : s.chests.add(ref);
   else if (kind === 'tile')       s.tiles.has(ref)       ? s.tiles.delete(ref)       : s.tiles.add(ref);
   else return;
   notify();
@@ -167,6 +172,7 @@ export function isRefSelected(kind, ref) {
   if (kind === 'enemy')      return s.enemies.has(ref);
   if (kind === 'platform')   return s.platforms.has(ref);
   if (kind === 'crate')      return s.crates.has(ref);
+  if (kind === 'chest')      return s.chests.has(ref);
   if (kind === 'tile')       return s.tiles.has(ref);
   return false;
 }
@@ -236,6 +242,8 @@ export function boundingRect(kind, ref) {
   if (kind === 'platform') return { x: ref.x, y: ref.y, w: ref.w || 96, h: ref.h || 12 };
   // Crate: x,y = top-left. w/h explicit or defaulted to 32×32.
   if (kind === 'crate')    return { x: ref.x, y: ref.y, w: ref.w || 32, h: ref.h || 32 };
+  // Chest: x,y = top-left of 104×104 content box (canvas 128×128, botPad=12 all sides).
+  if (kind === 'chest')    return { x: ref.x, y: ref.y, w: 104, h: 104 };
   // SPAWN triangle points right — 14x14 rect from (x, y).
   // playerStart: 20×30 collision box, but the idle sprite is 92×92 drawn at
   // (x-36, y-48) — see renderer.js::_drawPlayerStart. Wrap the visible player.
@@ -280,6 +288,7 @@ export function objectAt(worldX, worldY) {
     ['enemy',      L.enemies     || []],
     ['platform',   L.platforms   || []],
     ['crate',      L.crates      || []],
+    ['chest',      L.chests      || []],
   ]) {
     for (let i = arr.length - 1; i >= 0; i--) {
       const rect = hitRect(kind, arr[i]);
@@ -354,7 +363,7 @@ export function tilesInRect(x, y, w, h) {
 export function objectsInRect(x, y, w, h) {
   const L = state.level;
   if (!L) return {};
-  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], platforms: [], crates: [], playerStart: false };
+  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], platforms: [], crates: [], chests: [], playerStart: false };
   const check = (kind, ref) => {
     const r = boundingRect(kind, ref);
     return r && r.x + r.w > x && r.x < x + w && r.y + r.h > y && r.y < y + h;
@@ -366,6 +375,7 @@ export function objectsInRect(x, y, w, h) {
   for (const o of L.enemies     || []) if (check('enemy',      o)) out.enemies.push(o);
   for (const o of L.platforms   || []) if (check('platform',   o)) out.platforms.push(o);
   for (const o of L.crates      || []) if (check('crate',      o)) out.crates.push(o);
+  for (const o of L.chests      || []) if (check('chest',      o)) out.chests.push(o);
   if (L.playerStart && check('playerStart', L.playerStart)) out.playerStart = true;
   return out;
 }
