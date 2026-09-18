@@ -1808,56 +1808,7 @@
     "x": 64,
     "y": 482
   },
-  "decorations": [
-    {
-      "src": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "x": 385,
-      "y": 287,
-      "w": 45,
-      "h": 14,
-      "snap": 1
-    },
-    {
-      "src": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "x": 427,
-      "y": 287,
-      "w": 45,
-      "h": 14,
-      "snap": 1
-    },
-    {
-      "src": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "x": 469,
-      "y": 287,
-      "w": 45,
-      "h": 14,
-      "snap": 1
-    },
-    {
-      "src": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "x": 511,
-      "y": 287,
-      "w": 45,
-      "h": 14,
-      "snap": 1
-    },
-    {
-      "src": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "x": 553,
-      "y": 287,
-      "w": 45,
-      "h": 14,
-      "snap": 1
-    },
-    {
-      "src": "assets/tilesets/purple_city/platforms/platform_long_a.png",
-      "x": 595,
-      "y": 287,
-      "w": 45,
-      "h": 14,
-      "snap": 1
-    }
-  ],
+  "decorations": [],
   "sources": [
     {
       "id": "src_1",
