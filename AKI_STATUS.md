@@ -440,3 +440,67 @@ Bar rect `[o.x-4, o.y-42, 30, 5]` does not intersect sprite rect `[o.x-17, o.y-3
 
 - `AKI_STATUS.md` is append-only — never replace, only append. Understood.
 - Fence spawn default corrected by Kiro to `h:64` (1× tile, not 2×). My default in spawn handler still says `h:128` — correcting now.
+
+---
+
+## A11 — PLAYER SPAWN AS PALETTE ASSET — COMPLETE
+_2026-09-17 ET_
+
+### Branch: agent/aki-editor
+**Commits:** `f991b82` (spawn button + handler + actions.js) + `924bd0b` (manifest entry + subscribe intercept)
+
+### What was done
+- `editor/actions.js`: added `setPlayerStart(level, x, y)` — undoable action, moves single playerStart {x,y}, records old position for Ctrl+Z
+- `editor/main.js`: added player-start case to `_doSpawn` (snaps to grid, grounds to floor at PLAYER_HIT_H=30, calls setPlayerStart, selects marker, returns early — playerStart is not an array entry)
+- `editor/main.js`: added `['spawn-player-start', 'player-start']` to spawn buttons binding
+- `editor/main.js`: added playerStart inspector section (SPAWN POINT badge, x/y fields)
+- `editor.html`: added `+ Spawn` button (id=spawn-player-start) in SPAWN OBJECTS section
+- `assets/ASSET_MANIFEST.json`: added `player_spawn` entry (category=player, spawnsKind=player-start, path=idle_2.0/east/frame_000.png, 92x92)
+- `editor/main.js`: added `_assetSpawnIntercept` subscribe — when selectedAsset.raw.spawnsKind is set, consumes it and enters pendingSpawn mode instead of tile-paint mode
+
+### Suites
+| Suite | Result |
+|---|---|
+| parity_regression.mjs | 386 / 0 |
+| fence_switch.mjs | 71 / 0 |
+| energy_authority.mjs | 88 / 0 |
+| crate_timed.mjs | 87 / 0 |
+| test_electricity.mjs | 37 / 0 |
+| **TOTAL** | **669 / 0** |
+| boot_smoke | BOOT_SMOKE_OK |
+
+---
+
+## A8 — PUBLISH BUTTON HONESTY — COMPLETE
+_2026-09-17 ET_
+
+### Branch: agent/aki-editor
+**Commit:** `924bd0b`
+
+### What was done (all in `editor/main.js`, inside btnCommitPush handler)
+1. **Pre-flight 1 — no folder guard:** if `Persistence.saveFolderName()` is falsy, show red warning (NO FOLDER SET) and return before any save attempt
+2. **Pre-flight 2 — in-sync guard:** if `!state.dirty && !_isLocalOnly() && checksum matches _committedChecksum`, show blue NOTHING TO PUBLISH message and return — no empty git run
+3. **Game-terms diff:** capture `_gameDiff(_committedLevel, state.level)` before the save; display in yellow monospace after successful save (reuses existing A6 `_gameDiff`)
+
+### Status
+- All 3 handoff requirements met
+- Suites: 669 / 0 (same run as A11 above)
+- Boot smoke: BOOT_SMOKE_OK
+
+---
+
+## WATERMARK UPDATE
+_2026-09-17 ET_
+
+Live line HEAD after kiro-orders-check: `3c099b65b80fde8dde37765aaf3348e0ec913340`
+
+New docs read:
+- `CHIEF_RULING_EXIT_COST_8.md` — all exits cost 8, all shipped levels already compliant
+- `OVERCHARGE_LEVEL_BREAKDOWN.md` — verbatim spec committed, 5 overrides recorded; Level 3 published stub flagged (Chief's call to finish or cut)
+- `KIRO_ORDER_ORCHA_11.md` — Orcha order, no new Aki directives
+
+Aki queue status:
+- A11: COMPLETE
+- A8: COMPLETE
+- A9: BLOCKED (Orcha O7 ratified + merged)
+- A10: BLOCKED (Orcha O8 ratified + runtime shipped)
