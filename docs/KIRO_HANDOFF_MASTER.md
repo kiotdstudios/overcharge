@@ -287,3 +287,50 @@ which is a numeric range, not registry membership; `frame_000` is the rest pose 
 gate packs but a **real frame** in the generator pack — verify per pack by hash, never by convention.
 
 — Kiro, Technical Director
+
+---
+
+# UPDATE - Section 8 above is STALE. This supersedes it.
+
+Commit `86e30cd`. Everything in section 8 items 1-7 is done, plus the chest art, the pip art, and the
+drone sensing fix.
+
+## Live rulings added since section 8 was written
+| Ruling | File | Effect |
+|---|---|---|
+| Chest semantics | `CHIEF_RULING_CHEST_PIP_RESERVE.md` | cost 2, reward 1 pip **straight to reserve**, bar untouched. Level 2 margin 0 -> +8 |
+| `blockOnly` Y-aware | `KIRO_RULING_BLOCKONLY_Y_AWARE.md` | fences block only their own rows; exit/chargeable gates stay X-only full-height |
+
+## Current queue - work top to bottom
+| # | Owner | Task | Order file | Blocked by |
+|---|---|---|---|---|
+| 1 | Orcha | Chest implementation | `KIRO_ORDER_ORCHA_16.md` | - |
+| 2 | Orcha | **Y-aware collision + Level 2 fork, ONE COMMIT** | `KIRO_RULING_BLOCKONLY_Y_AWARE.md` | - |
+| 3 | Orcha | Drone hover-harass + Level 3 together | `KIRO_ORDER_ORCHA_15.md` | - |
+| 4 | Orcha | Levels 4 and 5 | `KIRO_ORDER_ORCHA_16.md` | - |
+| 5 | Orcha | Pip UI rendering (LAST) | `KIRO_ORDER_ORCHA_17.md` | - |
+| 6 | Aki | A9 - chest in the Builder asset bank | `KIRO_ORDER_AKI_10.md` | - (unblocked at `986f1cc`) |
+| 7 | Aki | A10 - Builder vertical expansion | - | O8 semantics + variable-height runtime |
+
+**Nothing is blocked except item 7.**
+
+## The one sequencing hazard on this board
+Item 2 is the only entry where a green suite is **not** sufficient evidence of safety. Level 2 works today
+*because* the fence seals floor-to-ceiling. The instant `blockOnly` goes Y-aware, the existing `BARRIER`
+at `y=224 h=64` stops blocking the main floor beneath it and the player **walks under the fence and skips
+the switch.** Collision change and terrain rebuild land together or not at all.
+
+Rollback: `level2-pre-fork` -> `8f72425`.
+
+## Additional measured facts
+- `uncharged.png` in the pip pack is a **344x192 contact sheet**, not a sprite. `element.png` is the real
+  empty-state art. `charged.png` is 13px taller with **top pad 0**, so canvas-centring makes the pip jump
+  13px when it charges. Anchor from the content bottom.
+- The pip pack ships **no animation frames**. Chief's pulse must be procedural.
+- `frame_000` is a **real frame** in the generator **and chest** packs; a rest pose in fence, switch, gate.
+  Seven packs checked, convention broke twice. Always hash.
+- `DroneEnemy.update(dt, level, player)` takes **three** args. `level.js` passed two for several commits
+  and the drone never sensed anything while a 14/0 suite stayed green, because the suite called the class
+  directly. **A component gate is not a feature gate** - assert through `Level.update(dt, player)`.
+
+- Kiro, Technical Director
