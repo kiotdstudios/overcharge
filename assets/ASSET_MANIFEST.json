@@ -422,7 +422,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Palette entry for the wall switch object (ONE entry per device — ORDER AKI 06). Art: switch_off.png (unpowered state — reads as not-yet-activated, correct thumbnail for a freshly placed switch). Hitbox 22\u00d722, sprite 56\u00d756 drawn centred on hitbox cx, bottom-aligned to hitbox bottom. Runtime states (switch_on, destroyed, burn_anim) are in _runtime_state_sprites[], not here.",
+      "notes": "Palette entry for the wall switch object (ONE entry per device — ORDER AKI 06). Art: switch_off.png (unpowered state — reads as not-yet-activated, correct thumbnail for a freshly placed switch). Hitbox 22×22, sprite 56×56 drawn centred on hitbox cx, bottom-aligned to hitbox bottom. Runtime states (switch_on, destroyed, burn_anim) are in _runtime_state_sprites[], not here.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
@@ -449,6 +449,55 @@
       "generation": {
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+      }
+    },
+    {
+      "id": "player_spawn",
+      "path": "assets/sprites/idle_2.0/east/frame_000.png",
+      "category": "player",
+      "tags": [
+        "player",
+        "spawn",
+        "placement"
+      ],
+      "frame_width": 92,
+      "frame_height": 92,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "player-start",
+      "notes": "Palette entry for the player spawn point. Clicking this in the asset panel enters spawn-placement mode — sets pendingSpawn:{kind:'player-start'}. Exactly one per level; placement calls Actions.setPlayerStart, never adds a second. Art: idle east frame_000 at runtime anchor (spriteX = ps.x - 36, spriteY = ps.y - 48).",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
+      }
+    },
+    {
+      "id": "drone_enemy",
+      "path": "assets/sprites/drone/idle/frame_000.png",
+      "category": "enemy",
+      "tags": [
+        "drone",
+        "enemy",
+        "spawn",
+        "placement"
+      ],
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "drone-enemy",
+      "boundingRect": {
+        "w": 40,
+        "h": 36
+      },
+      "notes": "Palette entry for the drone enemy. Clicking enters spawn mode — sets pendingSpawn:{kind:'drone-enemy'}. Art: idle/frame_000.png (64x64). Hitbox 40x36. Default patrol range is set relative to spawn position (px-64, px+64+w). State/animation frames (9 shooting frames, idle set) stay OUT of the palette — one placeable entry only.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
       }
     }
   ],
@@ -597,28 +646,6 @@
       "generation": {
         "eligible": false,
         "ineligible_reason": "Runtime animation — wired in electricity.js PowerGate._drawFence, not palette-placeable"
-      }
-    },
-    {
-      "id": "player_spawn",
-      "path": "assets/sprites/idle_2.0/east/frame_000.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "spawn",
-        "placement"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "spawnsKind": "player-start",
-      "notes": "Palette entry for the player spawn point. Clicking this in the asset panel enters spawn-placement mode — sets pendingSpawn:{kind:'player-start'}. Exactly one per level; placement calls Actions.setPlayerStart, never adds a second. Art: idle east frame_000 at runtime anchor (spriteX = ps.x - 36, spriteY = ps.y - 48).",
-      "generation": {
-        "eligible": false,
-        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
       }
     }
   ]
