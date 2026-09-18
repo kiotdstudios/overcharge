@@ -449,62 +449,60 @@ const gate = (required = 8, opts = {}) =>
     if (d) { sxSeen.add(d.sx); sySeen.add(d.sy); }
   }
   assert(g.isDormant === true, 'uncharged gate reports dormant');
-  assert(sxSeen.size === 1 && [...sxSeen][0] === 32,
-    'dormant gate emits ONE static frame over 3s', `distinct sx=${sxSeen.size} (${[...sxSeen]})`);
-  // sy=0 is the top of the standalone dead PNG — NOT "row 0 of the spritesheet".
-  // Corrected 2026-09-12: this message described the pre-dead-art behaviour and
-  // was still passing while saying something false.
-  assert(sySeen.size === 1 && [...sySeen][0] === 0,
-    '  ...from a single source row', `sy=${[...sySeen]}`);
+  // ── REPOINTED AT STATE, NOT PIXELS (ORCHA 06) ───────────────────────────
+  // These previously asserted sprite offsets (sx===32, sy===0/128/256) as proxies
+  // for gate state. That coupling is why re-cutting ART broke the ENERGY suite:
+  // the energy ledger has no legitimate opinion about spritesheet offsets. The
+  // state->art mapping is now asserted ONCE in fence_switch.mjs instead.
+  assert(g.visualState === 'dormant',
+    'uncharged gate is in DORMANT visual state', `visualState=${g.visualState}`);
   assert(g._frame === 0, '  ...frame counter never advanced', `_frame=${g._frame}`);
   assert(gateCalls.blur === 0, '  ...and it does not glow', `shadowBlur=${gateCalls.blur}`);
-  // Chief 2026-09-12: dormant must use the DEDICATED dead art, not the awake
-  // base frame. Without this the state silently regresses to a gate that merely
-  // isn't animating — which looked alive, and was the original complaint.
-  { gateCalls.length = 0; g.draw(GC);
-    const d = gateCalls.find(c => c.sy !== undefined);
-    assert(/gate_electric_dead\.png$/.test((d && d.src) || ''),
-      '  ...drawn from the dedicated TRUE DEAD art', `src=${d && d.src}`); } }
+  // A dormant gate must emit ONE unchanging image over time. Asserted on the
+  // resolved image identity rather than sx, so it survives any re-cut.
+  { const srcs = new Set();
+    for (let i = 0; i < 180; i++) { g.update(1/60); srcs.add(String(g.frameFor(g.visualState) && g.frameFor(g.visualState).src)); }
+    assert(srcs.size === 1, '  ...emits ONE static image over 3s', `distinct images=${srcs.size}`); }
+  // Chief 2026-09-12: dormant must use the DEDICATED dead art, not the awake base
+  // frame. Full-path identity (ORCHA 05 §2) — never a basename.
+  { const img = g.frameFor(g.visualState);
+    assert(/assets\/objects\/gate\/dead\.png$/.test(String(img && img.src)),
+      '  ...drawn from the dedicated TRUE DEAD art', `src=${img && img.src}`); } }
 
 // Wakes on energy and animates — never showing an empty row-0 frame.
 { const g = gate();
   g.receive(1);
   assert(g.isDormant === false, 'receiving energy wakes the gate', `charged=${g.charged}`);
-  const sxSeen = new Set(), sySeen = new Set(), srcSeen = new Set();
-  for (let i = 0; i < 180; i++) {
-    g.update(1 / 60); gateCalls.length = 0; g.draw(GC);
-    const d = gateCalls.find(c => c.sy !== undefined);
-    if (d) { sxSeen.add(d.sx); sySeen.add(d.sy); srcSeen.add(d.src); }
-  }
-  assert(sxSeen.size > 1, '  ...and then animates', `distinct sx=${sxSeen.size}`);
-  // Orcha's QA note (2026-09-12): an sx/sy-only assertion would pass even if the
-  // WRONG image were drawn at those coordinates. Key on the image itself: an
-  // awake gate must come from the animated sheet, never from the dead art.
-  assert([...srcSeen].every(s => /gate_electric_spritesheet\.png$/.test(s || '')),
-    '  ...from the ANIMATED SHEET, never the dead art', `srcs=${[...srcSeen].map(s => (s||'').split('/').pop())}`);
-  // ROW 0 HAZARD: row 0 has art ONLY at frame 0; frames 1-8 are empty. If the
-  // frame counter ever ran while on row 0 the gate would vanish.
-  assert(!sySeen.has(0), '  ...never renders an EMPTY row-0 frame (gate cannot vanish)',
-    `rows used=${[...sySeen]}`);
+  assert(g.visualState !== 'dormant',
+    '  ...and leaves the DORMANT visual state', `visualState=${g.visualState}`);
+  // Animation asserted via distinct resolved frames, not distinct sx offsets.
+  { const srcs = new Set();
+    for (let i = 0; i < 180; i++) { g.update(1/60); const im = g.frameFor(g.visualState); srcs.add(String(im && im.src)); }
+    assert(srcs.size > 1, '  ...and then animates', `distinct frames=${srcs.size}`); }
+  // An awake gate must never resolve to the dead art. This is the assertion that
+  // replaces the old "from the ANIMATED SHEET, never the dead art" check.
+  { const im = g.frameFor(g.visualState);
+    assert(!/dead\.png$/.test(String(im && im.src)),
+      '  ...never the dead art while awake', `src=${im && im.src}`); }
   assert(g.isDormant === false, '  ...stays awake while it holds charge'); }
 
-// Row selection: charging vs idle.
+// State selection: charging vs idle. Was row 2 / row 1 sprite offsets.
 { const g = gate(); g.receive(1);
-  gateCalls.length = 0; g.draw(GC);
-  const a = gateCalls.find(c => c.sy !== undefined);
-  assert(a && a.sy === 256, 'actively receiving -> row 2 (charging)', `sy=${a && a.sy}`);
+  assert(g.visualState === 'charging',
+    'actively receiving -> CHARGING state', `visualState=${g.visualState}`);
   for (let i = 0; i < 20; i++) g.update(1 / 60);      // let _reactT lapse
-  gateCalls.length = 0; g.draw(GC);
-  const b = gateCalls.find(c => c.sy !== undefined);
-  assert(b && b.sy === 128, 'reaction over, still charged -> row 1 (idle)', `sy=${b && b.sy}`); }
+  assert(g.visualState === 'idle',
+    'reaction over, still charged -> IDLE state', `visualState=${g.visualState}`); }
 
 // blockOnly barriers are exempt — switch-controlled, must not freeze.
 { const b = gate(0, { blockOnly: true });
   assert(b.isDormant === false, 'blockOnly barrier is never dormant');
-  const sxSeen = new Set();
-  for (let i = 0; i < 120; i++) { b.update(1 / 60); gateCalls.length = 0; b.draw(GC);
-    const d = gateCalls.find(c => c.sy !== undefined); if (d) sxSeen.add(d.sx); }
-  assert(sxSeen.size > 1, '  ...and keeps animating', `distinct sx=${sxSeen.size}`); }
+  // ORCHA 06: animation is now observable in WHICH IMAGE resolves, not in sx.
+  // The content crop is a fixed rect (sx is always GATE_SRC_X=17 by design), so a
+  // distinct-sx assertion would report "not animating" for a gate that is.
+  const srcs = new Set();
+  for (let i = 0; i < 120; i++) { b.update(1/60); const im = b.frameFor(b.visualState); srcs.add(String(im && im.src)); }
+  assert(srcs.size > 1, '  ...and keeps animating', `distinct frames=${srcs.size}`); }
 
 // An opened gate is unaffected by dormancy.
 { const g = gate(2); g.receive(2);

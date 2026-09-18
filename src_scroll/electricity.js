@@ -46,6 +46,33 @@ export class ElectricalSource {
 
   inRange(px, py) { return dist(px, py, this.cx, this.cy) < ABSORB_RADIUS; }
 
+  // ── DRAWN BOUNDS + STABLE PROMPT ANCHOR (O5.2, ORCHA 08) ─────────────
+  // The source draws a 64x64 sprite over a 28x28 hitbox, so "just above the
+  // hitbox" lands inside the art — the same mismatch the gate had, and why
+  // Chief saw the prompt printed across the generator.
+  //
+  // ORCHA 08 Finding A: botPad is 1px on all 9 frames, and dY = (y+h)-62 makes
+  // the last content row land exactly on (y+h). That -62 is deliberate and
+  // CORRECT. Do not "fix" it.
+  //
+  // ORCHA 08 Finding B: content TOP varies 6px across the pack
+  // (topPad 7,7,6,3,2,1,4,5,7) because the arcs reach upward. That is real
+  // animation, consistent and directional. Anchoring a label to the live
+  // per-frame top would make the prompt BOUNCE 6px at 8fps — new jitter caused
+  // by fixing the overlap. So anchor to the CANVAS top, a stable reference.
+  // This is standing ruling §6.2 in its original form.
+  spriteBox() {
+    return { dX: this.cx - 32, dY: this.y + this.h - 62, dW: 64, dH: 64 };
+  }
+
+  // Where a world-space label may sit without touching the art. Stable across
+  // every frame by construction.
+  promptAnchor() {
+    const sb = this.spriteBox();
+    const barTop = sb.dY - 8;            // the drain bar already sits here
+    return { aboveY: barTop - 6, belowY: sb.dY + sb.dH + 12, box: sb };
+  }
+
   drain(amount) {
     if (this.drained) return 0;
     const actual = Math.min(this.charge, amount);
@@ -132,6 +159,29 @@ const FENCE = {
   live: Array.from({ length: 8 }, (_, k) => _fenceImg(`frame_00${k + 1}.png`)),
 };
 // ──────────────────────────────────────────────
+// ── gate/ pack geometry — from assets/objects/gate/GEOMETRY.md (MEASURED) ──
+// Do not re-derive these. Uniform across all 18 frames + rest + dead.
+const GATE_CANVAS = 128;   // source PNG is 128x128
+const GATE_SRC_X  = 17;    // content columns 17..110
+const GATE_SRC_Y  = 10;    // content rows    10..114
+const GATE_SRC_W  = 94;    // 110 - 17 + 1
+const GATE_SRC_H  = 105;   // 114 - 10 + 1
+// 8 frames, NOT 9: frame_000 was byte-identical to the rest pose and is
+// deliberately absent from the installed pack.
+const GATE_FRAMES = 8;
+
+// ── ON-SCREEN DRAW SIZE — Chief's dial (ORCHA 05 §1) ────────────────────
+// The gate reads ~47% wider than Chief is used to because the old crop hid
+// 15px off each side. This is FAITHFUL RESTORATION, not enlargement: content
+// was always 94x105 at cols 17..110 (see GEOMETRY.md); nobody has seen the
+// full gate since the spritesheet was introduced.
+//
+// On-screen proportion is Chief's call. Change these TWO numbers and nothing
+// else — the draw path, spriteBox(), every label and the tests all derive from
+// them. Set equal to GATE_SRC_* for 1:1 (no scaling, current setting).
+const GATE_DRAW_W = 94;    // = GATE_SRC_W -> 1:1, full width restored
+const GATE_DRAW_H = 105;   // = GATE_SRC_H -> 1:1, unchanged from before
+
 export class PowerGate {
   constructor({ id, x, y, w, h, required, isExit = false, blockOnly = false, label = '',
                 timed = false, duration = 3, style = null }) {
@@ -191,24 +241,67 @@ export class PowerGate {
     // hitbox — animation clearly visible; hitbox untouched).
     this._imgClosed = new Image();
     this._imgClosed.src = 'assets/objects/gate_closed.png';
-    this._sheet     = new Image();
-    this._sheet.addEventListener('load',  () => console.info('[gate] spritesheet loaded:',  this._sheet.naturalWidth + 'x' + this._sheet.naturalHeight));
-    this._sheet.addEventListener('error', () => console.warn('[gate] spritesheet FAILED to load — falling back to static gate_closed.png'));
-    this._sheet.src = 'assets/objects/gate_electric_spritesheet.png';
     this._openImg   = new Image();
     this._openImg.src = 'assets/objects/gate_electric_open.png';
-    // TRUE DEAD art (Chief-supplied 2026-09-12): a dedicated unlit gate with no
-    // plasma in the centre gap, for the DORMANT state. Registered on the same
-    // 128×128 grid as the spritesheet cells, so the same centred 64-wide crop
-    // lines it up exactly with the awake states.
+
+    // ── Chief's re-cut gate pack (ORCHA 03 addendum + ORCHA 04) ─────────
+    // assets/objects/gate/ replaces the old 1152x384 spritesheet. Individual
+    // 128x128 PNGs with UNIFORM padding on all 18 frames, measured in
+    // assets/objects/gate/GEOMETRY.md, which is the CONTRACT — not re-derived
+    // here. Kiro: re-deriving is how three frame_000 errors got in.
+    //
+    // frame_000 is ABSENT ON PURPOSE in both animations: it was byte-identical
+    // to the rest pose. Only 001..008 exist, so the loop is 8 frames, NOT 9.
+    // Its absence is the guard against animating from a still frame.
+    this._rest = new Image();  this._rest.src = 'assets/objects/gate/rest.png';
+    this._dead = new Image();  this._dead.src = 'assets/objects/gate/dead.png';
+    this._idle = [];
+    this._chg  = [];
+    for (let i = 1; i <= GATE_FRAMES; i++) {
+      const n = String(i).padStart(3, '0');
+      const a = new Image(); a.src = `assets/objects/gate/idle/frame_${n}.png`;      this._idle.push(a);
+      const b = new Image(); b.src = `assets/objects/gate/charging/frame_${n}.png`;  this._chg.push(b);
+    }
+    // Legacy sheet kept ONLY as a fallback if the new pack fails to load, so a
+    // missing asset degrades to the previous art instead of an invisible gate.
+    this._sheet = new Image();
+    this._sheet.addEventListener('error', () => console.warn('[gate] legacy sheet failed (fallback only)'));
+    this._sheet.src = 'assets/objects/gate_electric_spritesheet.png';
     this._deadImg   = new Image();
     this._deadImg.src = 'assets/objects/gate_electric_dead.png';
     this._frame     = 0;
     this._fps       = 8;
-    this._reactT    = 0;   // >0 → play 'charging' row instead of 'idle'
+    this._reactT    = 0;
   }
 
   get cx() { return this.x + this.w / 2; }
+
+  // ── DRAWN BOUNDS (ORCHA 03 O5.1/O5.2, ORCHA 04) ─────────────────────
+  // Constants come from assets/objects/gate/GEOMETRY.md and are applied
+  // UNIFORMLY to every frame. This is NOT per-frame bbox anchoring, so
+  // standing ruling §6.2 is intact and the withdrawn exception stays withdrawn.
+  //
+  // The old path cropped a centred 64-wide slice (sx = col*128 + 32 → cols
+  // 32..95) while content spans cols 17..110, so it CLIPPED 15px off each side.
+  // Cropping the documented content box shows the whole gate AND excludes the
+  // 13px bottom padding, grounding the art exactly on (y + h) — no float, no
+  // per-frame compensation.
+  //
+  // Scale is 1:1, so content height stays 105px, the same on-screen height as
+  // before. Only the previously-clipped 30px of width is recovered.
+  //
+  // Every world-space label MUST anchor to this box, never to the hitbox: the
+  // hitbox is 32×64 while the art is 94×105, which is why [SPACE] CHARGE
+  // printed across the middle of the gate (O5.2).
+  spriteBox() {
+    const dW = GATE_DRAW_W;  // Chief's dial (ORCHA 05 §1), not the source width
+    const dH = GATE_DRAW_H;
+    return {
+      dX: Math.round(this.cx - dW / 2),
+      dY: (this.y + this.h) - dH,
+      dW, dH,
+    };
+  }
   get cy() { return this.y + this.h / 2; }
 
   // ── DORMANT (un-energized) state ──────────────────────────────────
@@ -224,6 +317,95 @@ export class PowerGate {
   // them as dormant would freeze them permanently.
   get isDormant() {
     return !this.open && !this.blockOnly && this.charged <= 1e-9 && this._reactT <= 0;
+  }
+
+  // ── RENDERING STATE — the single definition (ORCHA 06) ───────────────
+  // Exposed so tests assert STATE, never sprite offsets. Previously the energy
+  // suite asserted `sy === 256` as a proxy for "charging" and `sy === 128` for
+  // "idle", which is why re-cutting ART broke the ENERGY suite: the coupling was
+  // incidental, not meaningful. The energy ledger has no legitimate opinion about
+  // spritesheet offsets.
+  //
+  // The draw path MUST branch on this getter so state and art cannot disagree.
+  // Same reasoning as spriteBox(): one definition, used everywhere.
+  get visualState() {
+    if (this.open)        return 'open';
+    if (this.isDormant)   return 'dormant';
+    if (this._reactT > 0) return 'charging';
+    return 'idle';
+  }
+
+  // The pack/path each visualState resolves to. Declared here, next to the state
+  // definition, so the state->art mapping is assertable in ONE place and any
+  // future art change touches exactly this method.
+  frameFor(state) {
+    if (state === 'dormant') return this._dead;
+    if (state === 'charging') return this._chg[Math.floor(this._frame) % GATE_FRAMES];
+    if (state === 'idle')     return this._idle[Math.floor(this._frame) % GATE_FRAMES];
+    return this._rest;
+  }
+
+  // ── LABEL STACK GEOMETRY (O5.2 / O5.3, corrected by ORCHA 07) ────────
+  // Returns where the charge bar and each label go, so the renderer AND the
+  // tests share one definition. Rects are returned so a test can assert
+  // non-intersection with spriteBox() directly.
+  //
+  // ORCHA 07 defect: clamping only for "on-canvas" (Math.max(0, barY)) pushes the
+  // bar to y=0, which is INSIDE the sprite whenever spriteTop is negative. At
+  // h=64 the sprite is 105 tall, so y=0 and y=32 both put labels over the art —
+  // and both are single-click grid positions Chief can reach while authoring.
+  //
+  // RULING: when there is no room above, flip the whole stack BELOW the sprite,
+  // preserving order and gaps. Overlapping the art is the defect Chief reported;
+  // being lower on screen is not. NEVER clamp a label into the sprite's box.
+  labelStack() {
+    const GAP = 4, ROW = 3, BAR_W = 48, BAR_H = 6, TEXT_H = 10;
+    const sb = this.spriteBox();
+    const barX = Math.round(this.cx - BAR_W / 2);
+
+    // Preferred: stack upward from the sprite top. Topmost ink is the EXIT
+    // label's ascent, so that is what decides whether the stack fits.
+    let barY  = sb.dY - GAP - BAR_H;
+    let exitY = barY - ROW;                 // text BASELINE
+    const topMostInk = exitY - TEXT_H;
+
+    const below = topMostInk < 0;
+    if (below) {
+      // Flip under the sprite, same order and gaps.
+      barY  = sb.dY + sb.dH + GAP;
+      exitY = barY + BAR_H + ROW + TEXT_H;
+    }
+    return {
+      below, barX, barY, barW: BAR_W, barH: BAR_H, exitY,
+      // Rects for assertions: the bar, and the EXIT text box.
+      barRect:  { x: barX, y: barY, w: BAR_W, h: BAR_H },
+      exitRect: { x: this.cx - 20, y: exitY - TEXT_H, w: 40, h: TEXT_H },
+      // LOCKED sits where the bar would (blockOnly draws no bar).
+      lockY:    below ? barY + TEXT_H : sb.dY - GAP,
+      lockRect: { x: this.cx - 24, y: (below ? barY + TEXT_H : sb.dY - GAP) - TEXT_H, w: 48, h: TEXT_H },
+    };
+  }
+
+  // Where the [SPACE] CHARGE / CHARGING... prompt may sit. ui.js previously used
+  // `dev.y - 20`, i.e. the HITBOX top — inside a 105-tall sprite whose top is at
+  // (y+h)-105. That is why Chief saw [SPACE] CHARGE printed across the gate.
+  //
+  // Must clear the UNION of the sprite AND the bar/EXIT/LOCKED group. A first
+  // version placed it "above the group", which my own sweep caught as still
+  // overlapping in 3 cases: when the group has flipped BELOW the sprite, "above
+  // the group" is inside the artwork. Union, not group.
+  promptAnchor() {
+    const ls = this.labelStack(), sb = this.spriteBox(), TEXT_H = 10, GAP = 3;
+    const unionTop = Math.min(sb.dY, ls.barRect.y, ls.exitRect.y, ls.lockRect.y);
+    const unionBot = Math.max(sb.dY + sb.dH,
+                              ls.barRect.y + ls.barRect.h,
+                              ls.exitRect.y + ls.exitRect.h,
+                              ls.lockRect.y + ls.lockRect.h);
+    const above = unionTop - GAP;                    // text baseline
+    const below = unionBot + GAP + TEXT_H;
+    // Prefer above; flip below if the ascent would leave the canvas.
+    const y = (above - TEXT_H) < 0 ? below : above;
+    return { y, aboveY: above, belowY: below, box: sb, flipped: y === below };
   }
 
   update(dt) {
@@ -360,10 +542,13 @@ export class PowerGate {
     //   vertically bottom-aligned to hitbox bottom
     // Sprite size = 64x128 (matches gate_electric_open.png native +
     // matches the centered 64-wide crop of each 128x128 sheet cell).
-    const spriteW = 64;
-    const spriteH = 128;
-    const dX      = Math.round(this.cx - spriteW / 2);
-    const dY      = (this.y + this.h) - spriteH;   // bottom-aligned
+    // Drawn bounds come from spriteBox() so the sprite, the labels, the charge
+    // bar and the tests all agree on ONE definition of "where the gate is".
+    const _sb     = this.spriteBox();
+    const spriteW = _sb.dW;      // 94 (was a clipping 64)
+    const spriteH = _sb.dH;      // 105
+    const dX      = _sb.dX;
+    const dY      = _sb.dY;      // content bottom lands on (y + h)
 
     // ── OPEN state: bright flash → fade to invisible over ~1.0s ──
     if (this.open) {
@@ -412,30 +597,44 @@ export class PowerGate {
     // letting the frame counter run on row 0 would make the gate DISAPPEAR.
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    const sheet   = this._sheet;
-    const dormant = this.isDormant;
-    const dead    = this._deadImg;
-    if (dormant && dead && dead.complete && dead.naturalWidth > 0) {
-      // TRUE DEAD state. Verified against the sheet by decoding both: the dead
-      // art's opaque bbox is x17..110 starting at y10 — the SAME registration as
-      // row 0 frame 0 — so the identical centred 64-wide crop (sx=32) keeps the
-      // dead gate pixel-aligned with its awake states. Mean luminance 23.7 vs
-      // the old dormant frame's 59.8: 2.5× darker, which is the whole point.
-      // Dead must READ as dead, not merely as "not currently animating".
-      ctx.shadowBlur = 0;      // an un-energized gate never glows
-      ctx.drawImage(dead, 32, 0, 64, 128, dX, dY, spriteW, spriteH);
-    } else if (sheet && sheet.complete && sheet.naturalWidth > 0) {
-      const CELL = 128;
-      const row  = dormant ? 0 : (this._reactT > 0 ? 2 : 1);
-      const fi   = dormant ? 0 : Math.floor(this._frame) % 9;   // pinned — see hazard note
-      const sx   = fi * CELL + 32;   // centered 64-wide crop within 128-wide cell
-      const sy   = row * CELL;
-      // No glow while dormant: an un-energized gate should not look powered.
+    // Branch on the SINGLE state definition (ORCHA 06), not on _reactT/isDormant
+    // re-tested independently. State and art therefore cannot disagree, and the
+    // energy suite can assert state without ever looking at a sprite offset.
+    const vs      = this.visualState;
+    const dormant = vs === 'dormant';
+    // Crop the documented content box out of the 128x128 canvas. Same rect for
+    // every frame, so the gate cannot jitter and §6.2 is not reopened.
+    const SX = GATE_SRC_X, SY = GATE_SRC_Y, SW = GATE_SRC_W, SH = GATE_SRC_H;
+    const ok = img => img && img.complete && img.naturalWidth > 0;
+
+    // frameFor() owns the state->art mapping; the mapping is asserted centrally.
+    // GATE_FRAMES is 8 — a 9 here would index past the array and draw nothing.
+    const packImg = this.frameFor(vs);
+
+    if (ok(packImg)) {
+      // No glow while dormant: an un-energized gate must not look powered.
       ctx.shadowBlur  = dormant ? 0 : (this._reactT > 0 ? 18 : 8);
       ctx.shadowColor = '#cc44ff';
-      ctx.drawImage(sheet, sx, sy, 64, CELL, dX, dY, spriteW, spriteH);
-    } else if (this._imgClosed.complete && this._imgClosed.naturalWidth > 0) {
-      // Sheet not loaded yet — legacy static gate (64×128, same dest size).
+      ctx.drawImage(packImg, SX, SY, SW, SH, dX, dY, spriteW, spriteH);
+    } else if (ok(this._rest)) {
+      // Pack present but this frame not decoded yet — hold the rest pose rather
+      // than flashing an empty gate.
+      ctx.shadowBlur = dormant ? 0 : 8;
+      ctx.shadowColor = '#cc44ff';
+      ctx.drawImage(this._rest, SX, SY, SW, SH, dX, dY, spriteW, spriteH);
+    } else if (ok(this._deadImg) && dormant) {
+      // ── LEGACY FALLBACK ONLY (old 128x128 registration, centred 64 crop) ──
+      ctx.shadowBlur = 0;
+      ctx.drawImage(this._deadImg, 32, 0, 64, 128, dX, dY, spriteW, spriteH);
+    } else if (ok(this._sheet)) {
+      const CELL = 128;
+      const row  = dormant ? 0 : (this._reactT > 0 ? 2 : 1);
+      // Legacy sheet really does have 9 columns — keep %9 on this path only.
+      const fi   = dormant ? 0 : Math.floor(this._frame) % 9;
+      ctx.shadowBlur  = dormant ? 0 : (this._reactT > 0 ? 18 : 8);
+      ctx.shadowColor = '#cc44ff';
+      ctx.drawImage(this._sheet, fi * CELL + 32, row * CELL, 64, CELL, dX, dY, spriteW, spriteH);
+    } else if (ok(this._imgClosed)) {
       ctx.drawImage(this._imgClosed, dX, dY, spriteW, spriteH);
     }
     ctx.restore();
@@ -446,6 +645,21 @@ export class PowerGate {
     // double-reported the same state on top of the art — removed 2026-09-12
     // on Chief's call ("old logic of the gate vertically being charged").
 
+    // ── O5.2 / O5.3 LABEL + BAR STACK, anchored ABOVE the DRAWN SPRITE ──
+    // Chief's playtest: the bar drew at y+h+4 — 4px BELOW the ground surface,
+    // i.e. painted onto the floor (L1 surface y=320, bar y=324..330, EXIT y=341).
+    // Everything now stacks upward from the sprite top with fixed spacing, so a
+    // label can never overlap the art and labels cannot collide with each other.
+    //
+    // Anchoring to spriteBox() and NOT the hitbox is the whole fix: the hitbox is
+    // 32×64 while the art is 94×105, so "just above the hitbox" landed mid-art.
+    // labelStack() owns ALL of this geometry, including the flip-below rule for a
+    // gate too high to stack above (ORCHA 07). Renderer and tests share it, so a
+    // label can never be clamped onto the art.
+    const _ls  = this.labelStack();
+    const barW = _ls.barW, barH = _ls.barH;
+    const barX = _ls.barX, barY = _ls.barY;
+
     // blockOnly barriers just show a lock — no charge bar, no player interaction
     if (this.blockOnly) {
       ctx.fillStyle = '#9922cc';
@@ -453,17 +667,16 @@ export class PowerGate {
       ctx.textAlign = 'center';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#cc44ff';
-      const labelY = Math.min(this.y + this.h + 14, 435);
-      ctx.fillText('LOCKED', this.cx, labelY);
+      // NOT clamped into the sprite — labelStack() flips below when there is no
+      // room above. Off-canvas and on-art are both failures; on-art is the one
+      // Chief reported.
+      ctx.fillText('LOCKED', this.cx, _ls.lockY);
       ctx.shadowBlur = 0;
       return;
     }
-    // Charge progress bar — only draw when the gate is actively being charged.
-    // Drawing the dark background unconditionally produced a permanent purple
-    // strip below the gate that read as a stray tile/artefact (P4 fix).
-    const barW = 48, barH = 6;
-    const barX = this.cx - barW / 2;
-    const barY = this.y + this.h + 4;
+    // Charge progress bar — only draw when actively charging. An unconditional
+    // dark background read as a stray purple tile (P4 fix); Aki reached the same
+    // conclusion in the Builder at 0% fill, and the runtime keeps matching her.
     if (fill > 0 || this._reactT > 0) {
       ctx.fillStyle = '#0e0018';
       ctx.fillRect(barX, barY, barW, barH);
@@ -476,15 +689,15 @@ export class PowerGate {
       }
     }
 
-    // EXIT label — sits below the progress bar, also gate-relative.
+    // EXIT label — stacked with the bar by labelStack(). Was barY + barH + 11,
+    // which put it at y=341 on Level 1: 21px into the floor.
     if (this.isExit) {
-      const labelY = barY + barH + 11;
       ctx.fillStyle = '#aa44ff';
       ctx.font      = 'bold 10px monospace';
       ctx.textAlign = 'center';
       ctx.shadowBlur  = 6;
       ctx.shadowColor = '#cc44ff';
-      ctx.fillText('EXIT', this.cx, labelY);
+      ctx.fillText('EXIT', this.cx, _ls.exitY);
       ctx.shadowBlur = 0;
     }
 

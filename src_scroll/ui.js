@@ -237,7 +237,14 @@ function _drawContextPrompts(ctx, player, t) {
   if (player.nearSource && !player.nearSource.drained) {
     const src = player.nearSource;
     const cx  = src.cx;
-    const cy  = src.y - 22;
+    // O5.2 (ORCHA 08): was `src.y - 22` — the 28x28 HITBOX top, while the sprite
+    // is 64x64 anchored at (y+h)-62, so the prompt landed on the artwork. Chief:
+    // "same for generator".
+    // promptAnchor() uses the CANVAS top, a STABLE reference. Finding B: content
+    // top varies 6px across the pack (7,7,6,3,2,1,4,5,7) because the arcs reach
+    // upward — real animation. Anchoring to the live per-frame top would make
+    // this prompt bounce 6px at 8fps, i.e. new jitter caused by fixing overlap.
+    const cy  = typeof src.promptAnchor === 'function' ? src.promptAnchor().aboveY : src.y - 22;
     ctx.save();
     ctx.globalAlpha = pulse;
     ctx.fillStyle   = '#ffe040';
@@ -276,7 +283,15 @@ function _drawContextPrompts(ctx, player, t) {
   if (!player.nearEnemy && player.nearDevice && !player.nearDevice.open && !player.nearDevice.on) {
     const dev       = player.nearDevice;
     const cx        = dev.cx;
-    const cy        = dev.y - 20;
+    // O5.2 (ORCHA 03/08): was `dev.y - 20` — the HITBOX top. The gate hitbox is
+    // 32x64 while its art is 94x105 starting at (y+h)-105, so this printed
+    // [SPACE] CHARGE straight across the sprite. Chief: "text in general need to
+    // change its sitting on top of the art asset".
+    // promptAnchor() places it clear of the DRAWN bounds and of the bar/EXIT
+    // group, and flips below when there is no room above (ORCHA 07).
+    const cy        = typeof dev.promptAnchor === 'function'
+      ? dev.promptAnchor().y
+      : dev.y - 20;                     // legacy devices without the accessor
     const needed    = dev.required - dev.charged;
     // SINGLE AUTHORITY: player.usableEnergy is the same getter the gameplay
     // interaction uses. UI can never disagree with what holding SPACE will

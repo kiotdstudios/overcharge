@@ -1,7 +1,141 @@
-﻿# ORCHA Status History
+# ORCHA Status History
 
 Gameplay / runtime systems. Branch: `agent/orcha-dev`.
 Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†’ Pages. No direct work on `agent/orcha-gameplay`, no merges to `main`.
+
+---
+
+## ORCHA 03-10 — gate geometry, label anchors, visualState (O5.1-O5.3)
+
+- **Date:** 2026-09-17T20:20-04:00 - **Branch:** `agent/orcha-dev` - synced from `737b4e5`
+- **Status:** COMPLETE and GREEN. Pushed per ORCHA 10 ("push when green, not when finished").
+- **O5.4 deliberately NOT in this commit** - independent art swap, lands next.
+
+### Suites: 669 / 0 (floor 669)
+
+| Suite | Result |
+|---|---|
+| `parity_regression.mjs` | **386 / 0** |
+| `fence_switch.mjs` | **71 / 0** (was 62; +9 new assertions) |
+| `energy_authority.mjs` | **88 / 0** |
+| `crate_timed.mjs` | **87 / 0** |
+| `test_electricity.mjs` | **37 / 0** |
+
+Re-verified AFTER fast-forwarding to `737b4e5`, not only against my own tree.
+
+### O5.1 - gate geometry (new pack wired, crop corrected)
+
+Content box from `GEOMETRY.md` (17,10,94,105) cropped uniformly from each 128x128 PNG.
+Excludes the 13px bottom padding, so content grounds exactly on `(y+h)`.
+
+The old crop `sx = col*128 + 32` covered cols 32..95 while content spans 17..110, so it
+had been **clipping 15px off each side since the spritesheet shipped**. Restoring it is
+faithful, not enlargement: same content bounds as the old art.
+
+`GATE_DRAW_W = 94` / `GATE_DRAW_H = 105` are Chief's dial (ORCHA 05 §1). One place to change.
+
+8 frames, not 9 - `frame_000` is absent on purpose. A `% 9` would index past the array
+and draw nothing. Legacy sheet keeps `% 9` on its own fallback path, which is retained so
+a missing new-pack image degrades rather than drawing an invisible gate.
+
+§6.2 intact. Uniform constants, no per-frame bbox. The withdrawn exception stays withdrawn.
+
+### O5.2 - labels clear the DRAWN sprite, not the hitbox
+
+| Prompt | Was | Now |
+|---|---|---|
+| `[SPACE] CHARGE` | `dev.y - 20` (hitbox top; hitbox 32x64 vs art 94x105) | `promptAnchor()` |
+| `[E] ABSORB` | `src.y - 22` (hitbox 28x28 vs art 64x64) | `promptAnchor()` |
+
+Source anchors to the **canvas top**, a stable reference. ORCHA 08 Finding B: content top
+varies 6px (7,7,6,3,2,1,4,5,7) as the arcs reach upward - real animation. Anchoring to the
+live per-frame top would bounce the prompt 6px at 8fps.
+**Verified: promptY resolves to a single value (208) across all 8 frames.**
+
+Generator `-62` left alone per Finding A - botPad is 1px uniform and the last content row
+already lands on `(y+h)`.
+
+### O5.3 - bar and EXIT above the gate
+
+Computed: `barY = spriteTop - 4 - 6`, `EXIT baseline = barY - 3`.
+Was `y+h+4` (bar) and `barY+barH+11` (EXIT) - on Level 1 that put the bar at y=324 and EXIT
+at y=341 with the surface at y=320, i.e. painted into the floor.
+
+`labelStack()` owns all of it, including the ORCHA 07 flip-below rule.
+
+### visualState - the design change from ORCHA 06
+
+`get visualState()` is the single definition (`open`/`dormant`/`charging`/`idle`) and the draw
+path branches on it. `frameFor(state)` owns the state->art mapping.
+
+9 brittle art couplings became 9 durable state assertions + 1 central mapping assertion:
+
+| Was | Now |
+|---|---|
+| `sy === 256` (sheet row) | `visualState === 'charging'` |
+| `sy === 128` (sheet row) | `visualState === 'idle'` |
+| `sy === 0` / `sx === 32` | `visualState === 'dormant'` + one resolved image over 3s |
+| `/gate_electric_dead\.png$/` | full path `assets/objects/gate/dead.png` |
+| `/gate_electric_spritesheet\.png$/` | not dead-art while awake |
+| `distinct sx > 1` | distinct resolved frames > 1 |
+| `a[0] === g._sheet` | full-path pack match (legacy kept as fallback) |
+
+That is a strengthening: an art change no longer breaks the energy suite, and a wrong
+state->art wiring still fails via the central mapping assertion.
+
+### Mutations run (each proved to fire before being trusted)
+
+| Mutation | Result |
+|---|---|
+| Reinstate naive `Math.max(0, barY)` clamp | **9 violations at y=0/32, h=64** - zero after revert |
+| Flip fence assertion to `'gate'` | **fires**, names `packs drawn: gate/idle` |
+| Break `TILE_PATHS` entry (earlier work) | 2 failures, both named |
+
+### Defects I found and fixed that were not ordered
+
+1. **`distinct sx > 1` was going vacuous.** A fixed content crop makes `sx` always 17, so the
+   animation check would have reported "not animating" for a gate that is.
+2. **`promptAnchor()` reference-frame bug, mine.** First version placed the prompt above the
+   *label group*; my own sweep found 3 violations, because once the group flips below the
+   sprite, "above the group" is inside the artwork. Fixed to clear the **union**.
+3. **Basename guard false positive, mine.** A source-text scan for `/^frame_/` flagged the
+   fence/switch frame-INDEX checks, which are legitimate (single known pack = frame number,
+   not pack identity). Rejected and replaced with a runtime proof scoped to `PowerGate`, the
+   only object that can draw from two packs. Rejected approach left documented with its reason.
+
+### SCHEDULED TASK - created then REMOVED at Chief's direction
+
+Kiro asked twice that I declare this. Declaring it accurately: **there is no scheduled task.**
+
+- Created `\OVERCHARGE-Orcha-CheckIn` (15-min, read-only git poll, own watermark floored to
+  `now` per the RELAY replay lesson). Verified running, exit 0.
+- It caught ORCHA 03 and ORCHA 04 unprompted, and I fixed a real gap in it: it detected new
+  `docs/` files but missed `ORDER SHIP_3DAY`, which arrived as a **commit subject**.
+- **Chief cancelled it** because the desktop notification never appeared. I deleted the task
+  and the notifier, and left `_dev/agent_bus/orcha_checkin.mjs` as a manual tool only.
+- **My error, on record:** I reported the notifier as verified when I had only proven the
+  process exited without throwing. Delivery to screen was never tested. NotifyIcon balloons
+  are legacy on Win10/11 and get swallowed. Same "narrow check, broad conclusion" shape that
+  produced the vacuous animation assertion.
+- `_dev/agent_bus/` is gitignored; polling state must never be committed.
+
+Kiro's `\OVERCHARGE-AgentBoard` was never touched.
+
+### NOT VERIFIED - needs Chief's eye, not code
+
+1. Whether the gate now **looks** grounded.
+2. Whether the restored **~30px of width** reads well at play scale. `GATE_DRAW_W` is the dial.
+3. Whether the **flipped-below** label placement reads acceptably near the ceiling.
+
+Geometry is asserted. Appearance is not testable and I am not claiming it.
+
+### Scope
+
+`src_scroll/electricity.js`, `src_scroll/ui.js`, `_dev/fence_switch.mjs`,
+`_dev/energy_authority.mjs`, `_dev/crate_timed.mjs`, `.gitignore`, `_dev/agent_bus/`.
+No editor changes, no art, no level content. Old spritesheet retained as fallback per ORCHA 05 §4.
+
+Next: **O5.4** (settled switch, content-bottom anchor), then **O4** completability. O2 deferred.
 
 ---
 

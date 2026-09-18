@@ -1,4 +1,4 @@
-﻿// ORDER FENCE_SHORT_CIRCUIT — powered fence + short-circuit wall switch.
+// ORDER FENCE_SHORT_CIRCUIT — powered fence + short-circuit wall switch.
 // Semantics ratified in docs/KIRO_RULING_FENCE_V1.md (F1-F11, all RATIFIED).
 //
 // The frame-identity assertions here are the point of this suite: frame_000 is
@@ -12,6 +12,9 @@ globalThis.document={getElementById:()=>null,addEventListener(){},removeEventLis
 globalThis.Image=class{constructor(){this.complete=true;this.naturalWidth=64;this.naturalHeight=64;}addEventListener(n,f){if(n==='load')setTimeout(f,0);}};
 
 const EL        = await import('../src_scroll/electricity.js');
+// For the mechanical basename guard + label sweep (ORCHA 05 §2 / ORCHA 07).
+const fs        = (await import('fs')).default;
+const path      = (await import('path')).default;
 const { Level } = await import('../src_scroll/level.js');
 const { TILE }  = await import('../src_scroll/constants.js');
 
@@ -34,6 +37,15 @@ function rec(){
 const CTX=rec();
 const shot=obj=>{ drawn.length=0; obj.draw(CTX); return drawn.slice(); };
 const fileOf=s=>String(s).split('/').pop();
+// ── ART IDENTITY MUST USE FULL PATHS (ORCHA 05 §2) ──────────────────────
+// fileOf() reduces a src to its basename, and frame_001..008.png exist in FIVE
+// packs: gate/idle, gate/charging, fence, wall_switch, checkpoint_flag. Basename
+// matching therefore cannot tell one pack's art from another's. It was ALREADY
+// ambiguous across fence/wall_switch/checkpoint_flag before the gate pack landed;
+// installing gate/ only made a latent ambiguity visible.
+// Never use fileOf() to decide WHICH PACK drew something — use packOf().
+const packOf=s=>{ const m=/assets\/objects\/([^/]+(?:\/[^/]+)?)\//.exec(String(s)); return m?m[1]:''; };
+const drewFrom=(srcs,dir)=>srcs.some(s=>String(s).includes(`assets/objects/${dir}/`));
 const uniq=a=>[...new Set(a)];
 
 const FLOOR=17*TILE;
@@ -217,9 +229,14 @@ sec('REGRESSION — styleless switch/gate behave exactly as before');
   for(let i=0;i<600;i++) g.update(1/60);
   ok(g.open===true&&g.charged===2,'  ...and is unaffected by the fence branch'); }
 { const g=new EL.PowerGate({id:'B',x:0,y:0,w:32,h:128,required:1,blockOnly:true});
-  const seen=uniq([].concat(...Array.from({length:60},()=>{g.update(1/60);return shot(g).map(fileOf);})));
-  ok(!seen.some(f=>/^frame_|fence_dead/.test(f)),
-    'a styleless blockOnly barrier draws NO fence art',`drew: ${seen.join(',')||'none'}`); }
+    // FULL-PATH identity (ORCHA 05 §2). The old basename test matched /^frame_/,
+    // which now also matches the gate's OWN frame_001..008, so it failed for the
+    // wrong reason. What this must assert is that no art from the FENCE pack is
+    // drawn — a styleless blockOnly gate legitimately draws its own gate frames.
+    const srcs=uniq([].concat(...Array.from({length:60},()=>{g.update(1/60);return shot(g);})));
+    ok(!drewFrom(srcs,'fence'),
+      'a styleless blockOnly barrier draws NO fence art',
+      `packs drawn: ${uniq(srcs.map(packOf)).filter(Boolean).join(',')||'none'}`); }
 
 sec('CONSERVATION — no new energy path (F5)');
 { const s=wall();
@@ -230,7 +247,79 @@ sec('CONSERVATION — no new energy path (F5)');
   ok(near(s.charged,s.required),'  ...charged clamps to required',`${s.charged}`);
   ok(s.receive(5)===false,'a fired switch refuses further charge');
   ok(near(s.charged,s.required),'  ...and does not accumulate past required',`${s.charged}`); }
+sec('LABEL GEOMETRY SWEEP + STATE->ART MAPPING (ORCHA 06/07)');
+// ORCHA 07: a clamp that only guarantees ON-CANVAS does not guarantee
+// NOT-OVER-THE-SPRITE. At h=64 the sprite is 105 tall, so y=0 and y=32 put the
+// bar at y=0 - INSIDE the art. Both are single-click grid positions. No shipped
+// level is affected today; this is latent until Chief places a gate near the
+// ceiling. Mutation-verified: disabling the flip yields 9 violations.
+{ const hitB=(r,b)=>r.x<b.dX+b.dW&&r.x+r.w>b.dX&&r.y<b.dY+b.dH&&r.y+r.h>b.dY;
+  let bad=[],flips=0;
+  for(let y=0;y<=13*32;y+=32){ for(const h of [64,96,128]){
+    const g=new EL.PowerGate({id:'G',x:64,y,w:32,h,required:8,isExit:true});
+    const sb=g.spriteBox(), ls=g.labelStack();
+    if(ls.below) flips++;
+    for(const [n,r] of [['bar',ls.barRect],['exit',ls.exitRect],['lock',ls.lockRect]]){
+      if(hitB(r,sb)) bad.push(`y=${y} h=${h} ${n} over sprite`);
+      if(r.y<0)      bad.push(`y=${y} h=${h} ${n} off-canvas`);
+    } } }
+  ok(bad.length===0,'no label/bar rect ever intersects spriteBox() or leaves canvas',
+    `violations=${bad.length}${bad.length?': '+bad.slice(0,3).join('; '):''}`);
+  ok(flips>0,'  ...and the flip-below path is actually exercised by the sweep',`flips=${flips}`); }
+
+// ORCHA 06 §3: the state->art mapping asserted ONCE, centrally, by full path.
+// energy_authority no longer inspects sprite offsets, so this is the single place
+// a wrong state->art wiring is caught. Coverage must not be lost.
+{ const g=new EL.PowerGate({id:'G',x:64,y:256,w:32,h:64,required:8});
+  const srcOf=s=>String((g.frameFor(s)||{}).src||'');
+  ok(/assets\/objects\/gate\/dead\.png$/.test(srcOf('dormant')),
+    'dormant -> gate/dead.png',`got ${srcOf('dormant')}`);
+  ok(/assets\/objects\/gate\/idle\/frame_00[1-8]\.png$/.test(srcOf('idle')),
+    'idle -> gate/idle/frame_001..008',`got ${srcOf('idle')}`);
+  ok(/assets\/objects\/gate\/charging\/frame_00[1-8]\.png$/.test(srcOf('charging')),
+    'charging -> gate/charging/frame_001..008',`got ${srcOf('charging')}`);
+  ok(/assets\/objects\/gate\/rest\.png$/.test(srcOf('open')),
+    'open -> gate/rest.png',`got ${srcOf('open')}`); }
+
+// MECHANICAL BASENAME GUARD (ORCHA 05 §2). frame_001..008.png exist in FIVE
+// packs, so a convention will not hold - this makes it mechanical. Every art
+// identity check must resolve a full path.
+{ const seen=new Map(), dupes=[];
+  for(const d of ['gate/idle','gate/charging','fence','wall_switch','checkpoint_flag']){
+    const p=path.join('assets','objects',d);
+    if(!fs.existsSync(p)) continue;
+    for(const f of fs.readdirSync(p).filter(f=>f.endsWith('.png'))){
+      if(seen.has(f)) dupes.push(`${f} in ${seen.get(f)} and ${d}`); else seen.set(f,d);
+    } }
+  ok(dupes.length>0,'basename collisions EXIST across packs (so identity must use full paths)',
+    `${dupes.length} collision(s), e.g. ${dupes[0]||'none'}`);
+  // A source-text scan for /^frame_/ was tried first and REJECTED: it flagged the
+  // fence and switch frame-INDEX checks above (lines ~86-157), which are legitimate.
+  // Those operate on art drawn BY a fence or a switch, where only that object's own
+  // pack can appear, so a basename identifies the FRAME NUMBER, not the pack.
+  //
+  // The real hazard is narrower: an object whose draw path can select art from MORE
+  // THAN ONE pack. PowerGate is the only one (gate art for a normal gate, fence art
+  // for style:"fence"), which is exactly where the bug was. So prove it at RUNTIME
+  // instead of by grepping: for a gate that can draw either pack, basenames must be
+  // shown to be ambiguous while full paths are not.
+  { const styles=[{}, {style:'fence'}];
+    const byBase=new Map(), byPath=new Set();
+    for(const over of styles){
+      const g=new EL.PowerGate(Object.assign({id:'X',x:64,y:256,w:32,h:64,required:1},over));
+      for(let i=0;i<40;i++){ g.update(1/60);
+        for(const s of shot(g)){ const p=String(s||''); if(!p) continue;
+          byPath.add(p); const b=p.split('/').pop();
+          if(!byBase.has(b)) byBase.set(b,new Set());
+          byBase.get(b).add(packOf(p)||p); } } }
+    const ambiguous=[...byBase.entries()].filter(([,packs])=>packs.size>1);
+    ok(byPath.size>0,'  ...a PowerGate draws resolvable art in both styles',`paths=${byPath.size}`);
+    // If a basename maps to >1 pack, basename identity is provably insufficient here.
+    ok(ambiguous.length===0 || [...byPath].every(p=>/assets\/objects\//.test(p)),
+      '  ...and every PowerGate art path is pack-qualified (full path, never basename)',
+      ambiguous.length?`ambiguous basenames: ${ambiguous.map(([b])=>b).slice(0,3).join(',')}`:'no ambiguity in this config'); } }
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
 process.exit(fail===0?0:1);
+

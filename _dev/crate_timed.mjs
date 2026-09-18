@@ -231,7 +231,18 @@ sec('D9 — TIMED DEVICE');
   // mislabelled the open sprite as dead art.
   const calls=[]; const noop=()=>{};
   const rec=new Proxy({drawImage(...a){
-      const which = a[0]===g._deadImg ? 'DEAD-ART' : (a[0]===g._sheet ? ('sheet:'+a[1]+','+a[2]) : 'other');
+    // ORCHA 06 / ORCHA 05 §2: identify by FULL PATH, not by object identity against
+    // the legacy _deadImg/_sheet. The new pack draws individual PNGs, so comparing
+    // against _sheet reported 'other' for correct art. Basenames are ambiguous
+    // across five packs, so the whole path is the only reliable signal.
+    const src   = String((a[0] && a[0].src) || '');
+    const which = /assets\/objects\/gate\/dead\.png$/.test(src) ? 'DEAD-ART'
+                : /assets\/objects\/gate\/idle\//.test(src)     ? 'idle'
+                : /assets\/objects\/gate\/charging\//.test(src) ? 'charging'
+                : /assets\/objects\/gate\/rest\.png$/.test(src) ? 'rest'
+                : a[0]===g._deadImg ? 'DEAD-ART'                       // legacy fallback
+                : a[0]===g._sheet   ? ('sheet:'+a[1]+','+a[2])         // legacy fallback
+                : 'other';
       calls.push({which});
     },
     fillRect:noop,strokeRect:noop,fillText:noop,measureText:()=>({width:0}),save:noop,restore:noop,beginPath:noop,fill:noop,stroke:noop},

@@ -20,3 +20,7 @@ src_scroll/levels/*_prev_backup.json
 # would dirty the tree between every gate. The COMMITTED board lives in docs/ and
 # is written deliberately with `node _kiro/agent_board.mjs --write`.
 _kiro/live/
+# Orcha's 15-min autonomous check-in state. Polling watermark + log only.
+# Derived from git, never authored. Must never be committed (a shared/committed
+# watermark is what caused RELAY's 26-message replay incident).
+_dev/agent_bus/
