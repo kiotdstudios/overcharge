@@ -109,14 +109,36 @@ Environmental puzzle solving (position as solution, not just movement).
 
 ## RECORDED OVERRIDES (Kiro)
 
-Transcribed VERBATIM from Chief's Desktop copy. Overrides below, not edited inline.
+Everything above this line is **transcribed verbatim** from Chief's Desktop copy and must not be
+edited. Where a later ruling changed the design, it is recorded here rather than silently corrected —
+a verbatim spec plus a recorded override stays traceable; a quietly edited spec does not.
 
-**1. All exit gates cost 8.** Chief's ruling, see docs/CHIEF_RULING_EXIT_COST_8.md. Levels 2, 3 and 4 above read 6 � superseded. Levels 1, 2, 3 as shipped are all at 8 already.
+**1. ALL EXIT GATES COST 8.** Chief's ruling — see `docs/CHIEF_RULING_EXIT_COST_8.md`. Levels 2, 3 and
+4 above say the exit needs **6**; that is **superseded**. Levels 1, 2 and 3 as shipped are already at 8.
+Any new exit gate is created with `required: 8`. `blockOnly` barriers are not exits and never count
+toward it.
 
-**2. Level 2 needs a real fork + chest.** Chief: change the route, add a chest behind the fence. Economy FROZEN (A1=4, E1=6, SW1=2, EXIT=8, margin 0). See docs/KIRO_HANDOFF_MASTER.md section 3.
+**2. LEVEL 2 NEEDS A REAL FORK, PLUS A CHEST.** Chief: *"i need to change the route; and have a chest
+that you can open behind the fence to actually teach the lesson."* As built there is **no fork** — it is
+a corridor with a fence, so the switch is a toll, not a choice. **Economy is FROZEN:** `A1=4`, `E1=6`,
+`SW1=2`, `EXIT=8`, margin 0. At margin 0 a chest that *costs* charge makes the level unsolvable, so the
+chest must be free to open and reward charge. Full spec in `docs/KIRO_HANDOFF_MASTER.md` §3. Orcha files
+`ORCHA_CHEST_V1_SEMANTICS.md` and **holds for Chief**.
 
-**3. Level 3 is a published stub**, not 'not built yet' � terrain stops at x=1184, exit behind the spawn, no enemies, no checkpoints.
+**3. LEVEL 3 IS A PUBLISHED STUB**, not "not built yet". It is in `levels.json`, so players reach it.
+Terrain stops at x=1184 with 62% of the level empty, the exit gate sits at x=32 *behind* the spawn at
+x=64, and it has **zero enemies and zero checkpoints** — so it cannot currently teach the lesson above.
+Chief's call: finish it or cut it from the manifest.
 
-**4. Level 5's crate system is BUILT and merged** (CRATE_TIMED), not pending. Checkpoint requirement above still stands.
+**4. LEVEL 5'S CRATE SYSTEM IS BUILT AND MERGED** (`CRATE_TIMED`), not pending. The checkpoint
+requirement in the Level 5 spec still stands and is important — a wrongly-pushed crate is otherwise
+unrecoverable.
 
-**5. Margin 0 is acceptable EXCEPT where enemies.length > 0.** Levels 3 and 4 have enemies, so both require positive margin � Level 4's note about surplus is therefore law, and Orcha's conditional guard enforces it.
+**5. MARGIN 0 IS ACCEPTABLE, EXCEPT WHERE `enemies.length > 0`.** Levels 3 and 4 both have enemies, so
+both **require positive margin** — one hit on an exact-solution level is a softlock. Level 4's note that
+generator charge must exceed the exit cost is therefore law, not a preference, and Orcha's conditional
+margin guard already enforces it automatically.
+
+### Build order implied by the arc
+Levels 1–2 tutorial (charge, then spending it) · Levels 3–4 pressure (learn loss, then apply it) ·
+Level 5 first true spatial puzzle. **No level has both enemies AND crates** — keep it that way for v1.
