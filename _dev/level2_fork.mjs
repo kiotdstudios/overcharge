@@ -4,7 +4,7 @@
 globalThis.Image=class{constructor(){this.complete=true;this.naturalWidth=64;this.naturalHeight=64;this.src='';}addEventListener(){}};
 import fs from 'fs';
 const EL = await import('../src_scroll/electricity.js');
-const { PLAYER_H, PLAYER_W, MAX_CHARGE } = await import('../src_scroll/constants.js');
+const { PLAYER_H, PLAYER_W, MAX_CHARGE, JUMP_FORCE, GRAVITY } = await import('../src_scroll/constants.js');
 
 let pass=0, fail=0;
 const ok=(c,m,d='')=>{ if(c){pass++;console.log(`  \u2713 ${m}${d?' — '+d:''}`);} else {fail++;console.log(`  \u2717 ${m}${d?' — '+d:''}`);} };
@@ -97,6 +97,48 @@ sec('Frozen economy: BOTH routes complete, and no number moved');
     `A leaves ${routeA-exitDef.required} vs B leaves ${A1.charge+E1.charge-exitDef.required}`);
 }
 
+sec('RULING A2 — a blockOnly gate must FILL A BOUNDED OPENING (every level, not just this one)');
+{
+  // Applied to EVERY level that ships a blockOnly gate, so Levels 3/4/5 inherit it.
+  const manifest = JSON.parse(fs.readFileSync('src_scroll/levels/levels.json','utf8'));
+  const apex = (JUMP_FORCE * JUMP_FORCE) / (2 * GRAVITY);
+  let checked = 0;
+  for (const e of (manifest.order || [])) {
+    const file = e.file || e;
+    const L = JSON.parse(fs.readFileSync('src_scroll/levels/' + file, 'utf8'));
+    const cols = L.cols, sol = v => v===1 || v>=10;
+    for (const g of (L.gates || []).filter(x => x.blockOnly)) {
+      checked++;
+      const col = Math.floor(g.x / 32);
+      const topRow = Math.floor(g.y / 32);
+      // (1) the opening is CAPPED — solid immediately above the gate
+      ok(sol(L.tiles[(topRow-1)*cols + col]),
+        `${file} ${g.id}: the opening is CAPPED by solid terrain above it`,
+        `r${topRow-1} at col ${col} — without this the gate is decoration`);
+      // (2) it IS an opening — the gate's own rows are not already walled
+      let ownRowsClear = true;
+      for (let r = topRow; r < Math.floor((g.y + g.h) / 32); r++) if (sol(L.tiles[r*cols + col])) ownRowsClear = false;
+      ok(ownRowsClear, `${file} ${g.id}: its own rows ARE an opening, not solid rock`);
+      // (3) THE ASSERTION THAT WOULD HAVE CAUGHT THE JUMP.
+      // A JUMPING body at apex, not a standing one. The ceiling clamps the head, so
+      // the real apex is whichever is lower: free-flight apex, or the ceiling underside.
+      const surface = (() => { for (let r = Math.floor((g.y+g.h)/32); r < 18; r++) if (sol(L.tiles[r*cols+col])) return r*32; return null; })();
+      if (surface !== null) {
+        let ceil = 0;
+        for (let r = topRow - 1; r >= 0; r--) if (sol(L.tiles[r*cols + col])) { ceil = (r+1)*32; break; }
+        const freeApexTop = surface - PLAYER_H - apex;
+        const bodyTop = Math.max(freeApexTop, ceil);   // ceiling wins
+        const overlaps = !((bodyTop + PLAYER_H) <= g.y || bodyTop >= g.y + g.h);
+        ok(overlaps,
+          `${file} ${g.id}: a JUMPING player at apex still overlaps the gate`,
+          `apex body ${bodyTop.toFixed(0)}..${(bodyTop+PLAYER_H).toFixed(0)} vs gate ${g.y}..${g.y+g.h} (free apex would be ${freeApexTop.toFixed(0)}, ceiling clamps to ${ceil})`);
+      }
+      // (4) and the opening is still big enough to walk through once it opens
+      ok(g.h >= PLAYER_H, `${file} ${g.id}: the opening fits the player once opened`, `${g.h}px gap vs ${PLAYER_H}px player`);
+    }
+  }
+  ok(checked > 0, 'at least one blockOnly gate was checked (else this section is vacuous)', `${checked} found`);
+}
 sec('The twin file stays in sync');
 {
   const twin = JSON.parse(fs.readFileSync('src_scroll/levels/2_SPLIT_DECISION.json','utf8'));

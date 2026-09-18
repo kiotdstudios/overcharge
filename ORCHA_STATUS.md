@@ -5,6 +5,103 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## RULING A2 — fence opening capped, and everything MERGED TO LIVE
+
+- **Date:** 2026-09-18T12:28-04:00 · **Branch:** `agent/orcha-dev` -> merged to `agent/orcha-gameplay`
+- **Status:** COMPLETE, GREEN, **on the live line.** Playtestable.
+
+### Suites: 752 / 0 across eight suites (was 747)
+
+`level2_fork` grew 34 -> 39. `completability 20/1` (Level 3 void, content question).
+Boot smoke `BOOT_SMOKE_OK`, `ERRORS: []`.
+
+### Defect 1 — the fence was jumpable. Confirmed independently, then fixed.
+
+I re-derived Kiro's arithmetic from the engine's own constants rather than accepting it:
+
+```
+PLAYER_H 30, JUMP_FORCE -430, GRAVITY 900  ->  apex = v^2/2g = 102.7px
+Route A standing body   194..224
+at jump apex            91.3..121.3
+fence                   160..224
+-> body ENTIRELY above the fence, clears by 38.7px
+```
+
+Rows r0..r4 above the fence were open sky, so Route A never needed SW1 and the fork had no
+decision in it. **Fixed** by making r0..r4 solid at col 69, so the fence fills a doorway:
+
+```
+ceiling underside y=160  ->  jump apex CLAMPED from 91.3 to 160
+clamped body 160..190  vs fence 160..224  ->  STILL OVERLAPS -> BLOCKED
+opening stays r5..r6 = 64px for a 30px player -> passable once SW1 opens it
+```
+
+Filled r0..r4 rather than r4 alone, per the ruling: a floating block reads as a bug, a wall
+running down to a doorway reads as architecture.
+
+### Why my assertion passed a broken level — third time, same shape
+
+My Route A assertion modelled a **walker**. True, and not the whole question. A jumping player
+is a different body box at a different Y and nothing asserted it.
+
+That is now three for three: the drone suite tested vision at the drone's own elevation; the
+14/0 drone suite called `DroneEnemy.update()` directly; this one asserted a standing pose. **The
+failure is always the same — I assert the case I had in mind rather than the player's full range
+of motion.** The fix is always the same too, so it is now written as a rule, not a patch.
+
+### The invariant, applied to EVERY level
+
+`_dev/level2_fork.mjs` now walks `levels.json`, finds every `blockOnly` gate in every level, and
+asserts four things — so Levels 3, 4 and 5 inherit it before I author them:
+
+1. the opening is **capped** by solid terrain above the gate
+2. the gate's own rows **are** an opening, not solid rock
+3. **a JUMPING player at apex still overlaps the gate** — the assertion that would have caught this
+4. the opening still fits the player once it opens
+
+Plus a guard that at least one `blockOnly` gate was checked, so the section cannot go vacuous.
+
+### Mutation — the ruling's named test
+
+Deleting the cap reproduces the shipped defect exactly:
+
+```
+2 failures
+  "the opening is CAPPED by solid terrain above it"
+  "a JUMPING player at apex still overlaps the gate"
+   apex body 91..121 vs gate 160..224 (free apex would be 91, ceiling clamps to 0)
+```
+
+### Defect 2 — nothing was on the branch Chief plays. My error.
+
+`agent/orcha-dev` was 4 commits ahead of live, so **the chest and the fork were both absent from
+the line Chief loads.** I told him a playtest was worth doing. He would have loaded the old
+corridor with no chest and correctly reported that nothing changed. Merged and pushed now.
+
+**Also, plainly:** `level2-pre-fork` -> `8f72425` is the **chest** commit, so that tag does not
+restore a pre-chest state. It restores Level 2's corridor with the chest code present but no
+chest placed. I called it "your working Level 2" earlier, which was imprecise.
+
+### Economy unchanged, both routes still verified
+
+```
+ROUTE B  4 + 6 = 10, EXIT -8  -> finishes with 2
+ROUTE A  4 -2 -2 +10pip +6 = 16, EXIT -8  -> finishes with 8
+```
+
+Route B still clear beneath the fence: walker 290..320 vs fence 160..224. No number moved.
+
+### NOT VERIFIED — Chief's eye
+
+1. Whether the capped column reads as architecture or as an odd pillar.
+2. Whether the fork is legible at speed.
+3. Whether Route A's reward is worth the climb plus 4 charge.
+4. Whether the 64px doorway feels comfortable to walk through once opened.
+
+Next: **drone hover-harass + Level 3 together** (ORCHA 15), then Levels 4-5, pip UI last.
+
+---
+
 ## ORCHA 16 + Y-AWARE blockOnly — Level 2 is a real fork
 
 - **Date:** 2026-09-18T11:52-04:00 · **Branch:** `agent/orcha-dev` · synced from `67fe46e`
