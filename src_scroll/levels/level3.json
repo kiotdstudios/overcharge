@@ -1896,7 +1896,18 @@
   "switches": [],
   "checkpoints": [],
   "platforms": [],
-  "enemies": [],
+  "enemies": [
+    {
+      "id": "drone_1",
+      "type": "drone",
+      "x": 512,
+      "y": 200,
+      "patrolLeft": 400,
+      "patrolRight": 600,
+      "speed": 55,
+      "label": "DRONE"
+    }
+  ],
   "tileRotations": [
     0,
     0,
