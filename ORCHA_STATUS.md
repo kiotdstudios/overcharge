@@ -5,6 +5,115 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## O5.4 — shorted switch renders switch_off, content-bottom anchored
+
+- **Date:** 2026-09-17T21:10-04:00 - **Branch:** `agent/orcha-dev` - synced from `2685077`
+- **Status:** COMPLETE, GREEN, pushed. `aa6ba34` (O5.1-O5.3) confirmed MERGED to live.
+
+### Suites: 672 / 0  (floor was 669; +3 net)
+
+| Suite | Result |
+|---|---|
+| `parity_regression.mjs` | 386 / 0 |
+| `fence_switch.mjs` | **74 / 0** (was 71) |
+| `energy_authority.mjs` | 88 / 0 |
+| `crate_timed.mjs` | 87 / 0 |
+| `test_electricity.mjs` | 37 / 0 |
+| boot smoke (port 5318) | `BOOT_SMOKE_OK`, `ERRORS: []` |
+
+### What changed
+
+Settled wall switch now renders `switch_off.png` instead of `switch_destroyed.png`.
+**Render-only.** `_destroyT`, the `burnDone` latch and the single switch authority are
+untouched. `switch_destroyed.png` is KEPT in the repo per ORCHA 05 - still the asset to
+reach for if Chief wants a scorched end state.
+
+Cause was measured, not guessed: `switch_destroyed` is the **greenest** sprite in the set
+(mean RGB `[90,108,87]` vs `switch_off` `[101,108,113]`), so a dead switch read as
+energised. Same trap as `fence_dead` measuring brighter than the live frames - colour is
+not a reliable state signal.
+
+### Content-bottom anchoring (ORCHA 09 ruling)
+
+`switch_off` is the ONLY file in the pack with `botPad = 4`; burn frames, `switch_on` and
+`switch_destroyed` are all 3. Naive canvas anchoring therefore moves the switch 1px on the
+exact frame the player watches it settle.
+
+Fixed with a per-FILE correction from the measured table: `switch_off` draws at `dY = 255`
+where the burn frames draw at `254`, so content bottom stays at **306** throughout.
+
+**Not per-frame bbox anchoring - §6.2 is not reopened.** The burn frames all share one
+value, so the 2px HORIZONTAL vibration is preserved untouched.
+
+Verified across the whole lifecycle:
+
+```
+frame_001..008   dY=254   contentBottom=306
+switch_off.png   dY=255   contentBottom=306
+distinct content bottoms: [306]  -> BASE STABLE
+```
+
+### Mutation
+
+| Mutation | Result |
+|---|---|
+| Remove the content-bottom correction (naive canvas anchor) | content bottoms `[306,305]` - **1px twitch**, exactly as ORCHA 09 predicted. `[306]` after revert. |
+
+### Three assertions INVERTED, not relaxed
+
+O5.4 supersedes ratified **F8** ("switch_off.png is never drawn in v1"). Rather than delete
+that section I inverted it and recorded the supersession in the file, so the decision
+history survives:
+
+| Was | Now |
+|---|---|
+| ENDS settled on `switch_destroyed.png` | ENDS settled on `switch_off.png` |
+| holds `switch_destroyed.png` permanently | holds `switch_off.png` permanently |
+| `switch_off` never rendered in the lifecycle | NOT drawn while live, IS drawn once settled, and `switch_destroyed` is no longer the resting sprite |
+
+Each endpoint is still pinned exactly - to a different file, not to a looser condition.
+Plus one new assertion: the switch base does not move across the entire burn+settle.
+
+### CHIEF'S RULINGS RECORDED (2026-09-17 21:03)
+
+1. **Level 2 exit gate = 8, always, period.** This resolves the discrepancy Kiro flagged:
+   the PDF breakdown says 6, the live economy is 8. **8 is authoritative**; the PDF is
+   superseded on this point. Economy stays `A1=4, E1=6, SW1=2, EXIT=8, margin=0`.
+2. **Level 3 stays in the manifest** (not cut) **but is missing its enemy** per the level
+   breakdown. See the flag below - I have NOT authored it.
+
+### FLAG - Level 3's missing enemy is content, and it interacts with my Q7 guard
+
+Level 3's teaching goal is *getting hit scatters your charge, reclaim it*, and with zero
+enemies there is nothing to be hit by. Chief has confirmed the enemy is missing.
+
+**I have not added it. Content is Chief's lane** (handoff §3, §7).
+
+The technical point he needs before placing it: my Q7 conditional margin guard fires when
+`enemies.length > 0` AND margin is 0. **Level 3's margin is 7, so adding an enemy passes.**
+That guard exists for exactly this case - one hit must not make the level unsolvable.
+Level 1 and Level 2 both sit at margin 0, so an enemy could not be added to either without
+changing the economy, which ruling 1 freezes.
+
+### NOT VERIFIED - Chief's eye, not code
+
+`switch_off` is a genuinely smaller drawing: **1516 opaque px vs ~1730**, roughly 12% less
+coverage, and ~4px shorter with wider side padding. So the settled switch will look slightly
+smaller. **Per ORCHA 09 that is Chief's art, deliberately plainer for a powered-off read, and
+I have NOT compensated for it in code.** Scaling it would distort pixel art and defeat the
+purpose. If it reads badly the fix is a redrawn sprite, never a runtime scale.
+
+Still awaiting his eye from the previous commit: gate ~30px wider, flipped-below label
+placement.
+
+### Scope
+
+`src_scroll/electricity.js`, `_dev/fence_switch.mjs`. No editor changes, no art, no level
+content. Next: **O6** (blocked on Chief pasting the level breakdown), then **O4**
+completability. O2 deferred.
+
+---
+
 ## ORCHA 03-10 — gate geometry, label anchors, visualState (O5.1-O5.3)
 
 - **Date:** 2026-09-17T20:20-04:00 - **Branch:** `agent/orcha-dev` - synced from `737b4e5`

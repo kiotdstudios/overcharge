@@ -757,14 +757,35 @@ const WALL_SW_DESTROY_FPS = 12;   // 8 frames -> ~0.67s burn
 const _wallSwImg = (name) => { const i = new Image(); i.src = `assets/objects/wall_switch/${name}`; return i; };
 const WALL_SW = {
   on:        _wallSwImg('switch_on.png'),         // powered, feeding the fence
-  destroyed: _wallSwImg('switch_destroyed.png'),  // settled end state
+  destroyed: _wallSwImg('switch_destroyed.png'),  // burn's final frame (see below)
   // frames 001..008 = the vibrate/arc/burn motion (frame_000 deliberately absent)
   burn: Array.from({ length: 8 }, (_, k) => _wallSwImg(`frame_00${k + 1}.png`)),
-  // F8: switch_off.png is installed but UNUSED in v1 and deliberately not loaded.
-  // It is genuinely unpowered art (greenBias 0.5) and this puzzle has no
-  // "intact but unpowered" state. Reserved, not dropped — ratified.
+  // O5.4 (Chief's playtest): "once switch is completely shorted it should look like
+  // the powered off sprite." This SUPERSEDES ratified F8, which reserved
+  // switch_off.png as unused in v1. Measured cause: switch_destroyed is the
+  // GREENEST sprite in the set (mean RGB [90,108,87] vs switch_off [101,108,113]),
+  // so the settled dead state read as energised. Same trap as fence_dead measuring
+  // brighter than the live frames: colour is not a reliable state signal.
+  off:       _wallSwImg('switch_off.png'),        // settled end state (O5.4)
 };
 const WALL_SW_CANVAS = 56;        // uniform export canvas; anchor from THIS (F4)
+
+// ── CONTENT-BOTTOM ANCHORING (O5.4, measured in ORCHA 09) ──────────────────
+// Bottom padding is a constant 3px across every burn frame AND switch_destroyed,
+// so canvas anchoring keeps the switch planted for the whole animation. But
+// switch_off is the ONLY file with botPad = 4, so canvas-anchoring it would move
+// the switch 1px on the exact frame the player is watching it settle.
+//
+// The switch is wall-mounted: its base staying put is what reads as "the same
+// object changed state" rather than "a different object appeared".
+//
+// This is NOT per-frame bbox anchoring and does not reopen §6.2 — it is a fixed
+// per-FILE correction from a measured table, and the burn frames all share one
+// value so the vibration (a 2px HORIZONTAL spread) is preserved untouched.
+const WALL_SW_BOT_PAD = 3;                 // burn frames + switch_on + destroyed
+const WALL_SW_BOT_PAD_OFF = 4;             // switch_off, the only outlier
+const _wallSwDY = (baseY, img) =>
+  baseY - WALL_SW_CANVAS + ((img === WALL_SW.off) ? (WALL_SW_BOT_PAD_OFF - WALL_SW_BOT_PAD) : 0);
 
 export class Switch {
   constructor({ id, x, y, required, linkedId, label = '', style = null }) {
@@ -834,7 +855,6 @@ export class Switch {
   // the same convention PowerGate already uses. The hitbox is never changed.
   _drawWall(ctx) {
     const dX = Math.round(this.cx - WALL_SW_CANVAS / 2);
-    const dY = (this.y + this.h) - WALL_SW_CANVAS;
     let img;
     if (!this.on) {
       img = WALL_SW.on;                       // F5: NOT lit — powered, feeding the fence
@@ -843,8 +863,17 @@ export class Switch {
         Math.floor(this._destroyT * WALL_SW_DESTROY_FPS));
       img = WALL_SW.burn[k];                  // frames 001..008, once, in order
     } else {
-      img = WALL_SW.destroyed;                // settles here permanently
+      // O5.4: settles to the genuinely-unpowered sprite. RENDER-ONLY swap — the
+      // state machine (_destroyT, the burnDone latch, the single switch authority)
+      // is untouched, same discipline as the original style:"wall" work.
+      // switch_destroyed.png is KEPT in the repo per ORCHA 05: it is still the
+      // asset to reach for if Chief later wants a scorched end state.
+      img = (WALL_SW.off && WALL_SW.off.complete && WALL_SW.off.naturalWidth > 0)
+        ? WALL_SW.off
+        : WALL_SW.destroyed;                  // fallback: never draw nothing
     }
+    // Anchored by CONTENT BOTTOM, so the base does not move as it settles.
+    const dY = _wallSwDY(this.y + this.h, img);
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     if (this.on && !this.burnDone) { ctx.shadowBlur = 20; ctx.shadowColor = '#ffee66'; }

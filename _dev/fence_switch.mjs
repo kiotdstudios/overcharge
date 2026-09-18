@@ -144,9 +144,14 @@ sec('F6 — burn plays 001..008 ONCE then settles, never loops, never reverts');
 { const s=wall(); s.receive(2);
   // Walk the whole burn and record the frame order actually shown.
   const order=[];
-  for(let i=0;i<40;i++){ s.update(1/60); const f=shot(s).map(fileOf).find(x=>/^frame_|switch_destroyed/.test(x)); if(f&&order[order.length-1]!==f) order.push(f); }
+  for(let i=0;i<40;i++){ s.update(1/60); const f=shot(s).map(fileOf).find(x=>/^frame_|switch_destroyed|switch_off/.test(x)); if(f&&order[order.length-1]!==f) order.push(f); }
   ok(order[0]==='frame_001.png','burn STARTS on frame_001.png',`order: ${order.slice(0,3).join(' -> ')}`);
-  ok(order[order.length-1]==='switch_destroyed.png','  ...and ENDS settled on switch_destroyed.png',
+  // O5.4 SUPERSEDES F8. Chief: "once switch is completely shorted it should look
+  // like the powered off sprite." Was: ENDS on switch_destroyed.png. This is an
+  // INVERSION of a previously-ratified assertion, not a relaxation — the endpoint
+  // is still pinned exactly, just to a different file, because switch_destroyed
+  // measured as the GREENEST sprite in the set and read as still energised.
+  ok(order[order.length-1]==='switch_off.png','  ...and ENDS settled on switch_off.png (O5.4)',
      `... -> ${order.slice(-2).join(' -> ')}`);
   const idx=order.filter(f=>/^frame_/.test(f)).map(f=>parseInt(f.match(/(\d+)/)[1],10));
   ok(idx.every((v,i,a)=>i===0||v>a[i-1]),'  ...frames play in ASCENDING order, no repeats',`${idx.join(',')}`); }
@@ -156,7 +161,7 @@ sec('F6 — burn plays 001..008 ONCE then settles, never loops, never reverts');
   const set=uniq([].concat(...Array.from({length:120},()=>{s.update(1/60);return shot(s).map(fileOf);})));
   ok(set.filter(f=>/^frame_/.test(f)).length===0,
     'it does NOT loop the destruction',`still drawing: ${set.join(',')}`);
-  ok(set.includes('switch_destroyed.png'),'  ...it holds switch_destroyed.png permanently');
+  ok(set.includes('switch_off.png'),'  ...it holds switch_off.png permanently (O5.4, was switch_destroyed)');
   ok(s.on===true,'  ...and never reverts');
   // The `!this.burnDone` latch in update() exists so _destroyT stops accruing
   // once the burn completes. Without it, rendering is IDENTICAL (burnDone stays
@@ -168,13 +173,36 @@ sec('F6 — burn plays 001..008 ONCE then settles, never loops, never reverts');
     '  ...and _destroyT is LATCHED, not growing without bound',
     `_destroyT=${s._destroyT.toFixed(3)} after ~12s, burn is ${burnLen.toFixed(3)}s`); }
 
-sec('F8 — switch_off.png is never drawn in v1 (reserved, not used)');
+sec('O5.4 — switch_off.png IS the settled state (SUPERSEDES F8)');
+// F8 originally asserted switch_off.png is NEVER drawn: reserved, not used. Chief's
+// playtest overrode that. Recording the supersession here rather than deleting the
+// section, so the history of the decision survives.
 { const s=wall();
-  const seen=uniq([].concat(...Array.from({length:60},()=>{s.update(1/60);return shot(s).map(fileOf);})));
+  const before=uniq([].concat(...Array.from({length:60},()=>{s.update(1/60);return shot(s).map(fileOf);})));
+  ok(!before.includes('switch_off.png'),
+    'switch_off is NOT drawn while the switch is still live',`drew: ${before.join(',')}`);
   s.receive(2);
-  const seen2=uniq([].concat(...Array.from({length:120},()=>{s.update(1/60);return shot(s).map(fileOf);})));
-  ok(![...seen,...seen2].includes('switch_off.png'),
-    'switch_off.png is never rendered across the whole lifecycle'); }
+  const after=uniq([].concat(...Array.from({length:200},()=>{s.update(1/60);return shot(s).map(fileOf);})));
+  ok(after.includes('switch_off.png'),
+    '  ...and IS drawn once the burn has settled',`drew: ${after.join(',')}`);
+  ok(!after.includes('switch_destroyed.png'),
+    '  ...and switch_destroyed is no longer the resting sprite',`drew: ${after.join(',')}`); }
+
+// O5.4 content-bottom anchoring. switch_off is the ONLY file in the pack with
+// botPad=4 (everything else is 3), so naive canvas anchoring moves the switch 1px
+// on the exact frame the player watches it settle. Mutation-verified: removing the
+// correction yields content bottoms [306,305] instead of [306].
+{ const BOT={'switch_off.png':4};          // measured, ORCHA 09
+  const s=wall(); const rec=[];
+  const spy=new Proxy({drawImage(img,dX,dY){ const n=String(img&&img.src||'').split('/').pop();
+      if(/^frame_|switch_off|switch_destroyed/.test(n)) rec.push(dY+56-1-(BOT[n]||3)); }},
+    {get:(o,k)=>k in o?o[k]:()=>{},set:()=>true});
+  s.on=true;
+  for(let i=0;i<200;i++){ s.update(1/60); s.draw(spy); }
+  const bottoms=[...new Set(rec)];
+  ok(bottoms.length===1,
+    'the switch BASE does not move across the entire burn+settle',
+    `distinct content bottoms: [${bottoms.join(',')}]`); }
 
 sec('F7 — the fence dies IMMEDIATELY, concurrently with the burn (RULED)');
 { // Full mechanism: switch fires -> linked gate opens -> fence passable at once,
