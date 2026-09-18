@@ -1932,3 +1932,54 @@ GIT** before authoring again. This is exactly the scenario Aki's A6 banner exist
 - Then **O4** completability. **O2 deferred.**
 - Three things queued for Chief's eye, none of them code: the restored 30px of gate width, the
   flipped-below label placement, and `switch_off` being ~12% smaller by design.
+
+---
+
+## 2026-09-18 — `720320e` — THE DRONE NEVER SENSED. My fix, my gate failure, my report owed.
+
+Chief asked whether Orcha had reported this. He cannot — **I made the commit, so the report is mine**,
+and I had not filed it. Same lapse I called both agents out for hours earlier. Filing late.
+
+### The bug
+```js
+// src_scroll/level.js — before
+e.update(dt, this);          // but DroneEnemy.update(dt, level, PLAYER)
+```
+Two arguments passed, three expected. **`player` was `undefined` on every frame**, so the drone had
+nothing to measure against: no aggro, no alert, no chase, no fire. One missing argument.
+
+### Why every test missed it, and why that is on me
+Orcha's `drone_sensing.mjs` passed **14/0** the whole time because it calls `DroneEnemy.update()`
+directly and hands it a player. Nothing asserted that the **level** wires one through. 686 passing
+assertions across six suites, and the single connection that mattered was not among them.
+
+**I gated that work and approved it.** I verified his numbers, re-ran his suites, and mutation-tested
+his vision constants by reverting them — 6/8 and 11/3, both caught. What I never asked was whether the
+game calls his code at all. I checked the component exhaustively and never checked the seam.
+
+That is the third integration-vs-unit miss this weekend, and the sharpest, because Chief burned **two
+playtest cycles** reporting "nothing changed" while being repeatedly told the fix was live. It was live.
+It could not run.
+
+### Standing correction for my own gating
+> **A component gate is not a feature gate.** Before accepting any runtime behaviour, assert it through
+> the path the game actually executes — `Level.update(dt, player)`, not the class — and check that the
+> caller supplies what the callee requires.
+
+Written into ORCHA 15 as a hard requirement for all three items, plus a guard that `level.js` passes a
+player to enemy `update()` at all. That one line protects the seam that had nothing protecting it.
+
+### Verified after the fix, through `Level.update()`
+```
+aggro observed : YES      alert observed : YES
+drone x        : 512 -> 492.2  (chasing)
+player stunned : 3        scattered : 3
+```
+Before the change: none of it. Suites green (parity 386/0, drone_sensing 14/0, crate_timed 87/0),
+boot smoke `ERRORS: []`.
+
+### Note on Orcha's conduct here
+He took the bug as his own without being asked — *"that's my bug and a bad one, my own suite passed while
+the game was dead"* — and correctly identified it as the same shape as testing vision at the drone's own
+height. He also **reordered his own queue to file the chest semantics first**, ahead of his own work,
+because it is the only thing unblocking Aki. That is the right call and he made it unprompted.
