@@ -127,7 +127,19 @@ export function analyse(d) {
   // BACKWARDS out of the level. Level 3 ships this way: exit x=32, spawn x=64.
   // The reachability closure alone reports it completable — which it literally is,
   // instantly, and that is precisely the defect.
-  const behindSpawn = exits.filter(e => e.x + (e.w || 32) <= spawn.x);
+  // CHIEF CORRECTION 2026-09-17 21:19: "player cant reach gate you have to jump on
+  // platforms precisely to reach the gate". My first version compared X ONLY and
+  // called Level 3 broken. Wrong — its exit sits at (32,192) while spawn is at
+  // (64,482), so the gate is 290px ABOVE the player. Being behind in X while high
+  // above is a legitimate precise-platforming climb, not a walk-backwards exit.
+  //
+  // This was my own "narrow check, broad conclusion" failure: an assertion that
+  // measured one axis and reported a verdict about reachability. It now fires only
+  // when the exit is behind AND at essentially the same elevation, i.e. genuinely
+  // walkable without any climb. ELEV_TOL is 2 tiles — a step, not a platform route.
+  const ELEV_TOL = 64;
+  const behindSpawn = exits.filter(e =>
+    e.x + (e.w || 32) <= spawn.x && Math.abs((e.y || 0) - spawn.y) <= ELEV_TOL);
   for (const e of behindSpawn)
     reasons.push(`exit gate ${e.id} is BEHIND the player spawn (exit x=${e.x}, spawn x=${spawn.x}) — the level is completed by walking backwards`);
 
@@ -196,13 +208,18 @@ for (const a of results)
   ok(a.behindSpawn.length === 0, `${a.file}: exit is ahead of spawn`,
      a.behindSpawn.length ? a.behindSpawn.map(e => `exit ${e.id} at x=${e.x} vs spawn x=${JSON.parse(fs.readFileSync(path.join(LV, a.file),'utf8')).playerStart.x}`).join(', ') : 'ok');
 
-sec('Content coverage (CALIBRATED HEURISTIC, not a proof of finishedness)');
+sec('Declared width should match authored terrain (void beyond the ground)');
 // Threshold 40%. Level 1 sits at 62% and is Chief-approved, so this cannot fire on
 // a level he has already accepted. A stub declaring 3200px while authoring 21% of
 // it is what this catches. "Unfinished" is not assertable; this is a smell test.
+// Reframed after Chief's correction. The actionable defect is not "too little
+// content" — Level 3 is a deliberately compact precise-platforming level — it is
+// that `cols` DECLARES more level than the terrain covers, so the camera can scroll
+// into open void past the last solid tile. Two valid fixes, both Chief's call:
+// reduce `cols`, or extend the terrain. Reported as void fraction, not coverage.
 for (const a of results)
-  ok(a.coverage >= 0.40, `${a.file}: content spans a meaningful share of the declared width`,
-     `content reaches x=${a.maxContentX} of ${a.widthPx} (${(a.coverage*100).toFixed(0)}%)`);
+  ok(a.voidFrac <= 0.40, `${a.file}: declared width is backed by terrain`,
+     `terrain ends x=${a.terrainEndX} of ${a.widthPx} declared (${(a.voidFrac*100).toFixed(0)}% void past the ground) — fix by reducing cols to ${Math.ceil(a.terrainEndX/32)} or extending terrain`);
 
 sec('Level 5 dependency (OVERRIDE 4) — crates require a checkpoint');
 for (const a of results) {
