@@ -5,6 +5,103 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## ORCHA 12/14 + O9 — vision decoupled, alert tell, aimed blast
+
+- **Date:** 2026-09-18T05:05-04:00 · **Branch:** `agent/orcha-dev` · synced from `f86e6d1`
+- **Status:** COMPLETE, GREEN, pushed. Green-lit by Kiro; work order item 1 of 3 done.
+
+### Suites: 686 / 0 across six suites (floor was 672)
+
+| Suite | Result |
+|---|---|
+| `parity_regression.mjs` | 386 / 0 |
+| `fence_switch.mjs` | 74 / 0 |
+| `energy_authority.mjs` | 88 / 0 |
+| `crate_timed.mjs` | 87 / 0 |
+| `test_electricity.mjs` | 37 / 0 |
+| **`drone_sensing.mjs` (new)** | **14 / 0** |
+| `completability.mjs` | 20 / 1 — Level 3 void, content question |
+| boot smoke | `BOOT_SMOKE_OK`, `ERRORS: []` |
+
+### The fix — vision decoupled into visionX / visionY
+
+`CFG.VISION: 220` (circular) is **gone**, replaced by `visionX: 240` / `visionY: 340`.
+
+Chief reported *"drone didnt try to chase me"*. Measured cause: drone y=200, spawn
+y=482, centre-to-centre separation **280px** against a 220px radius, so the drone
+could never see him at any horizontal distance.
+
+Raising the radius to 320 was **rejected** per ORCHA 12 — that widens horizontal
+reach too and the drone aggros from off-screen. `visionY > visionX` is now asserted
+as an invariant, with the rationale in the dial: **drones fly, players walk.**
+
+### THREE bugs, not one. The second and third only surfaced because I asserted
+### against Level 3's real coordinates instead of a fixture.
+
+| # | Bug | Symptom |
+|---|---|---|
+| 1 | circular `VISION` 220 vs 280px separation | never saw the player |
+| 2 | `FIRE_ARC` 70 vs 280px separation | **saw and chased, fired nothing** |
+| 3 | muzzle offset `cx + dir*w/2` while aiming from `cx` | blast travelled x=544 past a player spanning 512..536 — **missed by 8px every time** |
+
+Bug 2 is the identical axis mismatch one layer down: `visionY=340` let it see him,
+`FIRE_ARC=70` forbade shooting him. Bug 3 I found by tracing a single blast
+frame-by-frame after the hit assertion returned `stun=0`. Both would have shipped
+invisibly — the drone would have alerted, chased, and never landed a hit.
+
+Blasts are now **aimed** (normalised velocity, constant speed at any angle) with the
+muzzle offset along the firing direction. A flying drone shooting purely horizontally
+sends every shot over a grounded player's head — the third form of the same mismatch.
+
+### O9 alert tell — aggro is now a three-phase state machine
+
+`get alertState()` → `patrol` / `alert` / `engaged` / `lost` / `dead`, exposed so tests
+assert **state, not pixels** (same reasoning as `PowerGate.visualState`).
+
+- **alert** — rising exclamation mark + expanding ring, `ALERT_TIME 0.55s`, **cannot
+  fire during it**. Measured: 33 frames, exactly the expected 33.
+- **engaged** — steady locked-on bar, so "it is still on me" stays legible.
+- **lost** — shrinking cool-blue ring, `DEAGGRO_TIME 0.7s`, then back to patrol.
+
+States differ in **shape, not just colour** — colour alone has misled twice on this
+project (`switch_destroyed` measured greenest, `fence_dead` brighter than live).
+Procedural per the ruling; a sprite drops into `drawTell()` later. The tell draws
+after `ctx.restore()` so the sprite's horizontal flip cannot mirror the exclamation
+mark. The 9 shooting frames follow `armed`, never the alert phase (ORCHA 12 §3).
+
+### Assertions pinned to SHIPPED geometry, and mutation-verified
+
+`_dev/drone_sensing.mjs` reads `levels.json`, walks every level containing a drone,
+and derives every coordinate from disk. No literals. It also asserts a drone exists
+at all, so the suite cannot silently go vacuous.
+
+| Mutation | Result |
+|---|---|
+| `visionY` → 220 (the original bug) | **8 failures** |
+| `FIRE_ARC` → 70 (the second bug) | **3 failures** — "first blast f-1" |
+| `ALERT_TIME` → 0 | **2 failures** — sequence becomes `engaged` with no alert |
+| `DEAGGRO_TIME` → 0 | **1 failure** — no `lost` tell |
+
+Each reverts a real bug and each is caught. 14/0 restored after every revert.
+
+### NOT VERIFIED — Chief's eye, not code
+
+1. Whether the alert **reads at speed** — is 0.55s enough warning to react?
+2. Whether the exclamation-mark tell is legible against Purple City tiles.
+3. Whether the drone now feels fair rather than punishing.
+4. Vision is still **not terrain-aware** — no raycast in this engine, so a drone can
+   see through a wall. Flagged three times now; Chief's call.
+
+### Scope
+
+`src_scroll/entities.js`, `_dev/drone_sensing.mjs` (new). No level content, no
+editor, no input changes — **K remains attack**.
+
+Next: **Level 3 per spec** (terrain, exit past the corridor, checkpoint, rename to
+DON'T GET HIT), then Levels 4 and 5 held out of `levels.json` until Chief plays them.
+
+---
+
 ## O4 + drone AI + Level 3 drone — REPORT OWED, filed late
 
 - **Date:** 2026-09-18T04:59-04:00 · **Branch:** `agent/orcha-dev` · synced from `f86e6d1`
