@@ -2,7 +2,7 @@
 import { TILE, COLS, ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
-import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy, Crate } from './entities.js';
+import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy, Crate, Chest } from './entities.js';
 
 export class Level {
   constructor(def) {
@@ -29,6 +29,9 @@ export class Level {
     // ORDER CRATE_TIMED: an absent or empty `crates` array means ZERO behavioral
     // change to every level authored before this order.
     this.crates      = (def.crates      || []).map(d => new Crate(d));
+    // ORCHA_CHEST_V1_SEMANTICS (ratified): an absent or empty chests array means
+    // ZERO behavioural change for every existing level - same discipline as crates.
+    this.chests      = (def.chests      || []).map(d => new Chest(d));
     this.pickups  = [];
 
     // Background decoration sprites (buildings, props) drawn behind tiles
@@ -89,6 +92,7 @@ export class Level {
     // BEFORE gates/switches, so a crate that just slid into contact conducts on
     // the same frame the player sees it touch.
     for (const cr   of this.crates)   cr.update(dt, this);
+    for (const ch   of this.chests)   ch.update(dt);
     for (const gate of this.gates)    gate.update(dt);
     for (const sw   of this.switches) sw.update(dt);
     for (const p    of this.pickups)  p.update(dt, this);
@@ -169,6 +173,12 @@ export class Level {
       // mis-pushed crate, which is why the parity guard also requires any level
       // containing crates to contain at least one checkpoint.
       crates:      this.crates.map(c => ({ x: c.x, y: c.y, vy: c.vy })),
+      // D5, and it delivers Chief's rule exactly: "if chest is open and player dies
+      // before checkpoint its able to be open again; if player opens hits checkpoint
+      // and dies u cant open it again". Snapshotting `opened` gives both halves with
+      // no special-casing. `charged` is included so a partial open is not banked
+      // across a death either.
+      chests:      this.chests.map(c => ({ opened: c.opened, charged: c.charged, _openT: c._openT })),
       complete:    this.complete,
     };
   }
@@ -198,6 +208,13 @@ export class Level {
     if (snap.crates) {
       for (let i = 0; i < this.crates.length && i < snap.crates.length; i++) {
         Object.assign(this.crates[i], snap.crates[i]);
+      }
+    }
+    // Guarded the same way as crates (D8): a snapshot taken by an older build, or a
+    // level with no chests, restores without throwing.
+    if (snap.chests) {
+      for (let i = 0; i < this.chests.length && i < snap.chests.length; i++) {
+        Object.assign(this.chests[i], snap.chests[i]);
       }
     }
     this.pickups  = [];   // transient — any post-checkpoint drops vanish on rewind
@@ -245,6 +262,7 @@ export class Level {
     // Crates draw after platforms and before the player, so a crate reads as a
     // world solid the player stands in front of / on top of.
     for (const cr of this.crates) cr.draw(ctx);
+    for (const ch of this.chests) ch.draw(ctx);
 
     // 4. Entities
     for (const src  of this.sources)  src.draw(ctx);

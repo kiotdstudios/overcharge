@@ -2,7 +2,7 @@
 // All enemies: contact stuns + scatters charge. Can be killed with the K attack.
 // Drops are defined as an array — { type: 'charge', value: N } for now;
 // new drop types (keys, upgrades, etc.) get added here later.
-import { TILE, STUN_DURATION, STUN_COOLDOWN, GRAVITY, CRATE_CONTACT_PAD, CRATE_SIZE } from './constants.js';
+import { TILE, STUN_DURATION, STUN_COOLDOWN, GRAVITY, CRATE_CONTACT_PAD, CRATE_SIZE, INTERACT_RADIUS } from './constants.js';
 import { ChargePickup } from './electricity.js';
 import { drawGlowRect } from './render.js';
 
@@ -893,5 +893,162 @@ export class Crate {
       ctx.fillRect(x, y, this.w, this.h);
     }
     ctx.restore();
+  }
+}
+
+// ── Chest ──────────────────────────────────────────────────────────────
+// ORCHA_CHEST_V1_SEMANTICS.md, fully ratified by Chief 2026-09-18, plus
+// CHIEF_RULING_CHEST_PIP_RESERVE.md which amended decision 7.
+//
+// D1 costs 2 charge to open (his override of my free-to-open proposal — and his
+//    version is better: the player spends twice and is well rewarded, so
+//    "spend to gain" is unmistakable. Level 2 margin goes 0 -> +8.)
+// D3 rewards ONE BANKED PIP placed directly in the reserve. Reward 10 == MAX_CHARGE
+//    == one pip, so no conversion arithmetic exists to get wrong.
+// D4 opens ONCE and latches.
+// D5 the `opened` flag is snapshotted, which gives exactly Chief's rule: die
+//    before a checkpoint and it reopens; cross a checkpoint first and it stays open.
+// D6 hold SPACE within INTERACT_RADIUS, like every other device.
+// D7 reward routes through player.bankPip() — a new AUTHORITY ENTRY POINT, not a
+//    bypass. The bar is never touched. That invariant IS the ruling.
+//
+// Art: assets/objects/chest/, geometry measured in its GEOMETRY.md. Sequence is
+// closed -> opening/frame_000..008 -> open_empty, and it never loops back.
+// frame_000 IS a real frame in this pack (hash-verified, unlike fence/switch/gate).
+const CHEST_CANVAS  = 128;
+const CHEST_SRC_X   = 12;   // content box, uniform on all 11 files
+const CHEST_SRC_Y   = 12;
+const CHEST_SRC_W   = 104;
+const CHEST_SRC_H   = 104;
+const CHEST_FRAMES  = 9;    // 000..008 — a real 9-frame animation here
+const CHEST_FPS     = 12;
+// On-screen draw size. Chief's dial, same pattern as GATE_DRAW_W/H.
+const CHEST_DRAW_W  = 52;
+const CHEST_DRAW_H  = 52;
+const _chestImg = (p) => { const i = new Image(); i.src = `assets/objects/chest/${p}`; return i; };
+const CHEST_ART = {
+  closed: _chestImg('closed.png'),
+  empty:  _chestImg('open_empty.png'),
+  opening: Array.from({ length: CHEST_FRAMES }, (_, k) => _chestImg(`opening/frame_${String(k).padStart(3,'0')}.png`)),
+};
+
+export class Chest {
+  constructor({ id, x, y, cost = 2, reward = 10, opened = false }) {
+    this.id     = id;
+    this.x      = x;
+    this.y      = y;
+    this.w      = 32;          // hitbox; the sprite draws larger, like every device
+    this.h      = 32;
+    this.cost   = cost;
+    this.reward = reward;
+    this.opened = opened;      // latched, and snapshotted (D4 + D5)
+    this.charged = 0;          // accumulated toward `cost` while holding SPACE
+    this._openT  = 0;          // animation clock, only runs after opening
+    this._refusedFx = 0;       // brief tell when a full reserve refuses the open
+  }
+
+  get cx() { return this.x + this.w / 2; }
+  get cy() { return this.y + this.h / 2; }
+
+  // `required` aliases `cost` so a chest flows through the EXISTING SPACE-charge
+  // path in player._updateDischarge with no second transfer implementation. That
+  // path already reads `target.required - target.charged` and calls
+  // `target.receive(n)`, and its own comment states there is deliberately no second
+  // transfer path for crates — the same reasoning applies here.
+  get required() { return this.cost; }
+
+  // Same content-box crop the gate uses: excludes the uniform 12px bottom pad so
+  // the artwork grounds exactly on (y + h). Uniform across every frame, so this is
+  // NOT per-frame bbox anchoring and §6.2 stays intact.
+  spriteBox() {
+    return {
+      dX: Math.round(this.cx - CHEST_DRAW_W / 2),
+      dY: (this.y + this.h) - CHEST_DRAW_H,
+      dW: CHEST_DRAW_W, dH: CHEST_DRAW_H,
+    };
+  }
+
+  // Exposed so tests assert STATE, not pixels (the PowerGate.visualState pattern).
+  get visualState() {
+    if (this.opened && this._openT >= CHEST_FRAMES / CHEST_FPS) return 'empty';
+    if (this.opened) return 'opening';
+    return 'closed';
+  }
+
+  frameFor(state) {
+    if (state === 'empty')   return CHEST_ART.empty;
+    if (state === 'opening') return CHEST_ART.opening[Math.min(CHEST_FRAMES - 1, Math.floor(this._openT * CHEST_FPS))];
+    return CHEST_ART.closed;
+  }
+
+  // Local hypot rather than importing electricity.js's private dist() — a second
+  // cross-module dependency for one line of arithmetic is not worth it.
+  inRange(px, py) { return Math.hypot(px - this.cx, py - this.cy) < INTERACT_RADIUS; }
+
+  // Accept charge toward the cost. Returns the amount actually consumed so the
+  // caller (player._updateDischarge) can spend exactly that through spendEnergy —
+  // the chest never touches player energy itself.
+  receive(amount) {
+    if (this.opened) return 0;
+    const take = Math.min(amount, this.cost - this.charged);
+    if (take <= 0) return 0;
+    this.charged += take;
+    return take;
+  }
+
+  // Called when `charged` reaches `cost`. Returns true if the chest opened.
+  //
+  // CAP BEHAVIOUR (Chief's ruling): at MAX_BANKED_PIPS the pip is REFUSED and the
+  // chest DOES NOT OPEN, so the reward is not destroyed and the player can return
+  // after spending a pip. The accumulated `charged` is also rolled back, so he is
+  // not billed 2 for nothing.
+  tryOpen(player) {
+    if (this.opened || this.charged < this.cost - 1e-9) return false;
+    if (!player.bankPip()) {
+      this.charged   = 0;        // refund the accumulation, do not bill him
+      this._refusedFx = 0.6;     // visible "reserve full" tell
+      return false;
+    }
+    this.opened = true;
+    this._openT = 0;
+    return true;
+  }
+
+  update(dt) {
+    this._refusedFx = Math.max(0, this._refusedFx - dt);
+    if (this.opened) this._openT += dt;
+  }
+
+  draw(ctx) {
+    const sb = this.spriteBox();
+    const img = this.frameFor(this.visualState);
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (this._refusedFx > 0) {
+      // Reserve-full refusal: red pulse, distinct in SHAPE from the charge bar so
+      // it cannot be misread as progress.
+      ctx.globalAlpha = Math.min(1, this._refusedFx * 2);
+      ctx.fillStyle = '#ff4455';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('RESERVE FULL', this.cx, sb.dY - 6);
+      ctx.globalAlpha = 1;
+    }
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, CHEST_SRC_X, CHEST_SRC_Y, CHEST_SRC_W, CHEST_SRC_H, sb.dX, sb.dY, sb.dW, sb.dH);
+    } else {
+      drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#2a1a00', '#ffaa22', 10);
+    }
+    ctx.restore();
+    // Charge progress toward the cost, above the sprite — never over the art, and
+    // only while actually accumulating (the P4 lesson: an unconditional background
+    // reads as a stray tile).
+    if (!this.opened && this.charged > 0) {
+      const bw = 40, bh = 5, bx = this.cx - bw / 2, by = sb.dY - 8;
+      ctx.fillStyle = '#0e0018';
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.fillStyle = '#ffcc00';
+      ctx.fillRect(bx, by, Math.round(bw * (this.charged / this.cost)), bh);
+    }
   }
 }

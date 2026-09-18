@@ -5,6 +5,120 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## CHEST v1 — implemented, ratified rulings + Chief's pip-reserve amendment
+
+- **Date:** 2026-09-18T10:40-04:00 · **Branch:** `agent/orcha-dev` · synced from `d8b0943`
+- **Status:** COMPLETE, GREEN, pushed. Aki was already unblocked at `986f1cc`; the schema is unchanged.
+
+### Suites: 713 / 0 across seven suites (was 686)
+
+| Suite | Result |
+|---|---|
+| `parity_regression.mjs` | 386 / 0 |
+| `fence_switch.mjs` | 74 / 0 |
+| `energy_authority.mjs` | 88 / 0 |
+| `crate_timed.mjs` | 87 / 0 |
+| `test_electricity.mjs` | 37 / 0 |
+| `drone_sensing.mjs` | 14 / 0 |
+| **`chest.mjs` (new)** | **27 / 0** |
+| `completability.mjs` | 20 / 1 — Level 3 void, content question |
+| boot smoke | `BOOT_SMOKE_OK`, `ERRORS: []` |
+
+### D7 as amended — `bankPip()`, a FIFTH authority entry point
+
+Chief: *"id rather the pip drop straight into the reserve without touching the bar."*
+
+`player.bankPip()` added inside the energy-authority block, documented alongside the other
+four. **Not a bypass** — nothing outside that block assigns to `charge` or `bankedPips`, and
+that rule is not relaxed. Returns `false` at `MAX_BANKED_PIPS` so the caller can refuse.
+
+**The bar-untouched invariant is asserted directly**, as ruled:
+
+```
+bar 6 -> 4, cost 2, reward 10 never entered the bar
+```
+
+The bar moves by the **cost only**. Reward 10 == `MAX_CHARGE` == one pip, so there is no
+conversion arithmetic to get wrong.
+
+### Cap behaviour — the chest does not open
+
+At `MAX_BANKED_PIPS` the pip is refused, the chest stays closed, **and the accumulated
+`charged` is refunded** so the player is not billed 2 for nothing. A `RESERVE FULL` tell
+shows. I did not argue against Chief's ruling here: refusing is better than opening-and-
+wasting because the reward survives and the player can return after spending a pip.
+
+### Reused the existing transfer path rather than writing a second one
+
+`Chest.required` aliases `cost`, so a chest flows through `player._updateDischarge`
+untouched — the same path gates and switches use, whose own comment states there is
+deliberately no second transfer path for crates. The open is a duck-typed
+`if (target.tryOpen)`, so gates and switches are unaffected. Chests resolve **last** in
+`nearDevice`, so a gate in the same spot always wins the SPACE hold, and an opened chest is
+skipped so a looted chest offers no prompt.
+
+### D5 — Chief's exact rule, verified both halves
+
+```
+open, die BEFORE a checkpoint  -> chest closed again, reopenable
+open, cross a checkpoint, die  -> chest STAYS open
+```
+
+Snapshotting `opened` (plus `charged`, so a partial open is not banked across a death)
+delivers both with no special-casing. Guarded with `if (snap.chests)` so an older snapshot
+restores without throwing, same as crates.
+
+### Level 2 economy re-verified, as the ruling required
+
+```
+A1 +4 -> usable 4
+SW1 -2, chest -2, +1 pip -> usable 10
+E1 +6 -> usable 16
+EXIT 8 affordable: yes, spent 8, 8 left
+```
+
+A pip-backed reserve opens the exit exactly as bar charge does, because affordability goes
+through `usableEnergy`. Margin 0 -> +8.
+
+### Mutations — three load-bearing guards, each seen to fail
+
+| Mutation | Result |
+|---|---|
+| Route the reward through `giveEnergy` (Chief's named mutation) | **3 failures** |
+| Remove the `MAX_BANKED_PIPS` cap in `bankPip()` | **4 failures** — `pips=6/5` |
+| Remove the `opened` latch from `tryOpen()` | **1 failure** |
+
+### Two flaws in MY OWN SUITE, found and fixed before trusting green
+
+1. **`setEnergyState(charge, bankedPips)` takes positional args.** I passed an object, got
+   `NaN`, and the authority silently clamped to 0 — so four assertions ran against a player
+   with no energy and "failed" against correct code. The authority's clamp-and-warn saved me.
+2. **A duration assertion that never waited.** I ticked 40 frames for a 0.75s (45-frame)
+   animation and reported "still opening" as a failure.
+3. **A mutation that proved nothing.** Removing `if (this.opened) return 0;` from `receive()`
+   changed nothing, because `cost - charged == 0` already blocks it. The latch is actually
+   guarded in `tryOpen`, so I re-ran the mutation against the real guard. **A mutation that
+   fails to fail is as misleading as an assertion that cannot fail.**
+
+### NOT VERIFIED — Chief's eye, not code
+
+1. Whether the `low top-down` art reads correctly in a side-scroller. **Chief closed this**
+   (`CHIEF_RULING_CHEST_PIP_RESERVE.md` §2): keep as-is, no runtime transform, no regenerate.
+2. Whether the 52x52 draw size sits right beside the gate and generator. `CHEST_DRAW_W/H`
+   is the dial.
+3. Whether a pip appearing with no bar movement reads as a reward at play speed.
+
+### Scope
+
+`src_scroll/entities.js` (Chest class), `src_scroll/player.js` (`bankPip`, chest in
+`nearDevice`, open hook), `src_scroll/level.js` (array, update, draw, snapshot/restore),
+`_dev/chest.mjs` (new). No level content — **no chest is placed in any level yet**; that is
+Chief's route decision for Level 2.
+
+Next: **drone hover-harass + Level 3 together** per ORCHA 15 §5.
+
+---
+
 ## ORCHA 12/14 + O9 — vision decoupled, alert tell, aimed blast
 
 - **Date:** 2026-09-18T05:05-04:00 · **Branch:** `agent/orcha-dev` · synced from `f86e6d1`

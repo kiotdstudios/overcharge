@@ -109,17 +109,19 @@ export class Player {
   }
 
   // ══ CANONICAL ENERGY MODEL (Order 004 authority) ══════════════════
-  // A banked pip IS one stored full battery. Four entry points, and only four:
+  // A banked pip IS one stored full battery. Five entry points, and only five:
   //
   //   INGEST   giveEnergy(n)      bar fills → hits MAX → +1 pip, bar resets
   //                               to 0 → keeps filling. Returns accepted.
+  //   BANK     bankPip()          +1 pip DIRECTLY, bar untouched. Returns bool.
+  //                               Added for the chest (CHIEF_RULING_CHEST_PIP_RESERVE).
   //   SPEND    spendEnergy(n)     bar drains → hits 0 → pulls 1 pip → keeps
   //                               draining. Returns actually-spent.
   //   RESERVE  _pullReserve()     internal, DEMAND-DRIVEN only (see ruling 2).
   //   RESTORE  setEnergyState()   validated save/load write. Clamps + warns.
   //
   // NOTHING outside this block may assign to `charge` or `bankedPips`.
-  // Every energy-gain path routes through giveEnergy().
+  // Every energy-gain path routes through giveEnergy() OR bankPip().
   // Every energy-loss path routes through spendEnergy().
   // Every affordability question routes through `usableEnergy` / canAfford().
 
@@ -172,6 +174,29 @@ export class Player {
       }
     }
     return accepted;
+  }
+  // ── BANK (chest reward) ───────────────────────────────────────────
+  // CHIEF RULING 2026-09-18: "id rather the pip drop straight into the reserve
+  // without touching the bar." A chest's reward 10 becomes ONE banked pip placed
+  // directly in the reserve.
+  //
+  // Why this is a new AUTHORITY ENTRY POINT and not a bypass: routing 10 through
+  // giveEnergy() reaches the same numbers, but visibly fills the bar, crosses
+  // MAX_CHARGE, banks, and flushes the bar to 0 — which the player reads as
+  // "I gained charge and then lost it." A pip appearing in the reserve reads as
+  // "I gained a battery", which is what a chest is. Same block, same rules:
+  // nothing outside this authority assigns to `charge` or `bankedPips`.
+  //
+  // Returns false at MAX_BANKED_PIPS so the CALLER can refuse the interaction
+  // rather than destroying the reward. Per Chief's ruling the chest then does not
+  // open at all, so the player keeps it and can come back after spending a pip.
+  // THE BAR IS NEVER TOUCHED HERE — that invariant is the whole ruling and it is
+  // asserted directly in _dev/chest.mjs.
+  bankPip() {
+    if (this.bankedPips >= MAX_BANKED_PIPS) return false;
+    this.bankedPips++;
+    this._pipBankFx = 0.5;        // same rack flash as a bar-overflow bank
+    return true;
   }
 
   // ── SPEND-SIDE RESERVE ────────────────────────────────────────────
@@ -637,6 +662,11 @@ export class Player {
       this.chargeViaCrate   = viaCrate;
       this._dischargeFx     = 0.15;
       target.receive(frameSpend);
+      // A chest latches open the moment its cost is met (D4). Duck-typed: only Chest
+      // defines tryOpen, so gates and switches are untouched. tryOpen() returns false
+      // at MAX_BANKED_PIPS and refunds its own accumulation, so a full-reserve player
+      // is never billed for a chest that did not open (Chief's cap ruling).
+      if (target.tryOpen) target.tryOpen(this);
       if (viaCrate) viaCrate._bridgeFx = 0.15;   // visual only
     } else {
       this.discharging     = false;
@@ -697,6 +727,16 @@ export class Player {
       for (const sw of level.switches) {
         if (!sw.on && sw.inRange(this.cx, this.cy)) {
           this.nearDevice = sw; break;
+        }
+      }
+    }
+    // Chests are resolved LAST, so a gate or switch in the same spot always wins the
+    // SPACE hold. An already-opened chest is skipped, which is what makes the latch
+    // read correctly: walking back past a looted chest offers no prompt (D4).
+    if (!this.nearDevice && level.chests) {
+      for (const ch of level.chests) {
+        if (!ch.opened && ch.inRange(this.cx, this.cy)) {
+          this.nearDevice = ch; break;
         }
       }
     }
