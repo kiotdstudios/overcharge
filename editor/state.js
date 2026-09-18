@@ -413,7 +413,10 @@ export function filteredManifestItems() {
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     if (category !== 'all' && it.category !== category) return false;
-    if (purpleCityOnly && !/\/purple_city\//.test(it.path || '')) return false;
+    // Spawn-type and player-category assets are meta-objects, not tileset art —
+    // always show them regardless of the Purple City quick-filter.
+    const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
+    if (purpleCityOnly && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });

@@ -259,3 +259,18 @@ export function rotateTiles(cells, delta = 90) {
     },
   };
 }
+
+// ── SetPlayerStartAction ─────────────────────────────────────────────────
+// Moves (or creates) the player spawn point. playerStart is a unique {x,y}
+// field on the level root, not an array entry. Records the old position so
+// Ctrl+Z restores exactly where the spawn was before the click.
+export function setPlayerStart(level, x, y) {
+  if (!level) return null;
+  const old = level.playerStart ? { ...level.playerStart } : { x: 0, y: 0 };
+  if (old.x === x && old.y === y) return null;
+  return {
+    type: 'set_player_start',
+    forward() { level.playerStart = { x, y }; notify(); },
+    inverse() { level.playerStart = old; notify(); },
+  };
+}

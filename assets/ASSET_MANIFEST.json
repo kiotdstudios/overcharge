@@ -598,6 +598,28 @@
         "eligible": false,
         "ineligible_reason": "Runtime animation — wired in electricity.js PowerGate._drawFence, not palette-placeable"
       }
+    },
+    {
+      "id": "player_spawn",
+      "path": "assets/sprites/idle_2.0/east/frame_000.png",
+      "category": "player",
+      "tags": [
+        "player",
+        "spawn",
+        "placement"
+      ],
+      "frame_width": 92,
+      "frame_height": 92,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "player-start",
+      "notes": "Palette entry for the player spawn point. Clicking this in the asset panel enters spawn-placement mode — sets pendingSpawn:{kind:'player-start'}. Exactly one per level; placement calls Actions.setPlayerStart, never adds a second. Art: idle east frame_000 at runtime anchor (spriteX = ps.x - 36, spriteY = ps.y - 48).",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
+      }
     }
   ]
 }
