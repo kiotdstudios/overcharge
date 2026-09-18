@@ -94,7 +94,14 @@ export class Level {
     for (const p    of this.pickups)  p.update(dt, this);
     for (const cp   of this.checkpoints) cp.update(dt);
     for (const e    of this.enemies)  {
-      e.update(dt, this);
+      // DroneEnemy.update(dt, level, PLAYER) needs the player to sense at all — the
+      // other enemy types take (dt) or (dt, level) and ignore the extra arg. This
+      // call previously passed only (dt, this), so `player` was undefined on every
+      // frame and the drone could never aggro, alert, chase or fire. Its unit suite
+      // passed the whole time because it calls update() directly with a player;
+      // nothing asserted that the LEVEL wires one through. Pass it to all of them —
+      // extra arguments are harmless in JS and one call site cannot drift again.
+      e.update(dt, this, player);
       if (e.tryContact) e.tryContact(player, this);
     }
 
