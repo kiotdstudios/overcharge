@@ -408,23 +408,125 @@ export class DroneEnemy {
              this.y + this.h <= py || this.y >= py + ph);
   }
 
+  // ── DRONE COMBAT DIAL (Chief 2026-09-17) ────────────────────────────
+  // One place to retune. vision/leash in px, cooldown in seconds.
+  static CFG = Object.freeze({
+    VISION: 220,        // "sees" the player within this radius
+    CHASE_MULT: 1.35,   // chase speed = speed * this
+    LEASH: 160,         // may chase this far PAST its patrol bounds, then no further
+    FIRE_ARC: 70,       // only fires when vertically within this of the player
+    SHOT_CD: 1.1,       // seconds between blasts
+    B_W: 14, B_H: 6,    // blast size
+    B_SPEED: 260,       // blast px/sec
+    B_LIFE: 1.6,        // blast lifetime in seconds
+  });
+
   update(dt, level, player) {
-    if (!this.alive) return;
+    const C = DroneEnemy.CFG;
+    if (!this.alive) { this._updateBlasts(dt, level, player); return; }
     this._t        += dt;
     this._cooldown  = Math.max(0, this._cooldown - dt);
     this._hitFlash  = Math.max(0, this._hitFlash  - dt);
+    this._shotCd    = Math.max(0, (this._shotCd ?? 0) - dt);
 
-    // Patrol
-    this.x += this.vx * dt;
-    if (this.x < this.patrolLeft)             { this.x = this.patrolLeft;             this.vx =  this.speed; }
-    if (this.x + this.w > this.patrolRight)   { this.x = this.patrolRight - this.w;   this.vx = -this.speed; }
+    // ── VISION -> CHASE -> SHOOT ──────────────────────────────────────
+    // Was: blind patrol between patrolLeft/patrolRight forever. `_shooting` was
+    // already computed in tryContact() at radius 180 but NOTHING consumed it, and
+    // draw() pinned frames to _idleFrames with the comment "shooting anim disabled
+    // until fixed". Both dormant pieces are now live.
+    //
+    // The drone LEASHES rather than pursuing forever: it chases past its patrol
+    // bounds but only up to LEASH, then stops. An unleashed chaser would follow the
+    // player out of the corridor and off the authored terrain — on Level 3 that
+    // means out over the 62% void.
+    const canSee = !!player && this._sees(player);
+    this._aggro  = canSee;
 
-    // Hover bob
-    this.y = this._baseY + Math.sin(this._t * 2.5) * 8;
+    if (canSee) {
+      const dir    = Math.sign(player.cx - this.cx) || 1;
+      const leashL = this.patrolLeft  - C.LEASH;
+      const leashR = this.patrolRight + C.LEASH;
+      this.x  = Math.max(leashL, Math.min(leashR - this.w, this.x + dir * this.speed * C.CHASE_MULT * dt));
+      this.vx = dir * this.speed;                  // keeps the sprite facing correctly
+      if (this._shotCd <= 0 && Math.abs(player.cy - this.cy) < C.FIRE_ARC) {
+        this._fire(dir);
+        this._shotCd = C.SHOT_CD;
+      }
+    } else {
+      this.x += this.vx * dt;
+      if (this.x < this.patrolLeft)            { this.x = this.patrolLeft;            this.vx =  this.speed; }
+      if (this.x + this.w > this.patrolRight)  { this.x = this.patrolRight - this.w;  this.vx = -this.speed; }
+    }
 
-    // Animate
+    this.y = this._baseY + Math.sin(this._t * 2.5) * 8;   // hover bob
+
+    this._shooting = canSee;      // drives the shooting animation in draw()
     this._frame += dt * this._fps;
     if (this._frame >= 9) this._frame = 0;
+
+    this._updateBlasts(dt, level, player);
+  }
+
+  // Radius only. Deliberately NOT terrain-aware: this engine has no raycast and
+  // inventing one for v1 would be a new system. Stated plainly rather than implied
+  // — a drone can currently "see" through a wall. Flagged for Chief.
+  _sees(player) {
+    const dx = player.cx - this.cx, dy = player.cy - this.cy;
+    const V  = DroneEnemy.CFG.VISION;
+    return (dx * dx + dy * dy) < V * V;
+  }
+
+  _fire(dir) {
+    const C = DroneEnemy.CFG;
+    this._blasts = this._blasts || [];
+    this._blasts.push({
+      x: this.cx + dir * (this.w / 2), y: this.cy - C.B_H / 2,
+      vx: dir * C.B_SPEED, life: C.B_LIFE, dir,
+    });
+  }
+
+  // Blasts live ON THE DRONE, not on the level. Self-contained: no level-schema
+  // field and no level.js wiring, so an absent `enemies` array still means exactly
+  // zero behavioural change for every existing level.
+  _updateBlasts(dt, level, player) {
+    if (!this._blasts || !this._blasts.length) return;
+    const C = DroneEnemy.CFG;
+    for (const b of this._blasts) {
+      b.x += b.vx * dt;
+      b.life -= dt;
+      if (b.life <= 0 || !player) continue;
+      // A hit routes through the SAME player methods contact damage uses, so a
+      // blast cannot invent its own energy path (single-authority rule).
+      const hit = !(b.x + C.B_W <= player.x || b.x >= player.x + player.w ||
+                    b.y + C.B_H <= player.y || b.y >= player.y + player.h);
+      if (hit && this._cooldown <= 0) {
+        player.stun(STUN_DURATION, b.dir * 260);
+        player.scatter(level);
+        this._cooldown = STUN_COOLDOWN;
+        b.life = 0;
+      }
+    }
+    this._blasts = this._blasts.filter(b => b.life > 0);
+  }
+
+  drawBlasts(ctx) {
+    if (!this._blasts || !this._blasts.length) return;
+    const C = DroneEnemy.CFG;
+    // Procedural blast. The PixelLab sprite (job 377c6617) GENERATED fine but their
+    // MCP cannot return a COMPLETED image — every response carrying one fails with
+    // "Value is not JSON serializable: dict". This matches the vector-fallback
+    // pattern used throughout this codebase; drop the PNG in here when retrievable
+    // and nothing else needs to change.
+    ctx.save();
+    for (const b of this._blasts) {
+      ctx.globalAlpha = Math.min(1, b.life * 4);      // fade as it expires
+      ctx.shadowBlur  = 14; ctx.shadowColor = '#ff5522';
+      ctx.fillStyle   = '#ff7733';
+      ctx.fillRect(b.x, b.y, C.B_W, C.B_H);
+      ctx.fillStyle   = '#ffffff';
+      ctx.fillRect(b.x + C.B_W * 0.25, b.y + 2, C.B_W * 0.5, C.B_H - 4);
+    }
+    ctx.restore();
   }
 
   hit(level) {
@@ -450,8 +552,15 @@ export class DroneEnemy {
   }
 
   draw(ctx) {
+    // Blasts draw FIRST and outside the alive check, so a blast already in flight
+    // still renders (and still lands) after the player kills the drone. Killing the
+    // shooter mid-shot should not make an incoming blast silently vanish.
+    this.drawBlasts(ctx);
     if (!this.alive) return;
-    const frames = this._idleFrames;  // shooting anim disabled until fixed
+    // Shooting pose while aggroed (Chief 2026-09-17). This line previously read
+    //   const frames = this._idleFrames;  // shooting anim disabled until fixed
+    // so all 9 shooting frames were loaded on every drone and never once drawn.
+    const frames = (this._shooting && this._shootFrames) ? this._shootFrames : this._idleFrames;
     const fi     = Math.floor(this._frame) % 9;
     const img    = frames[fi];
     const flash  = this._hitFlash > 0;
