@@ -394,11 +394,42 @@ btnCommitPush?.addEventListener('click', async () => {
   if (commitPushOut) {
     commitPushOut.style.display = 'block';
     commitPushOut.style.color   = '#8fb';
-    commitPushOut.textContent   =
-      `SAVED + VERIFIED into the Git folder. Not published yet — run this:\n\n${cmd}\n\n` +
-      (copied ? '(copied to your clipboard — paste into a terminal)'
-              : '(clipboard blocked — select the text above and copy it)') +
-      '\n\nOr just double-click push_overcharge.bat on your Desktop.';
+    // Rebuilt as nodes rather than textContent so the PUBLISH link is clickable.
+    commitPushOut.textContent = '';
+
+    const head = document.createElement('div');
+    head.textContent = 'SAVED + VERIFIED into the Git folder. Not published yet.';
+    commitPushOut.appendChild(head);
+
+    // ── One-click publish via the overcharge:// protocol handler ──────────────
+    // A web page cannot run git. This link hands off to a registered Windows
+    // protocol handler, which validates the action against a strict allow-list
+    // and then runs push_overcharge.bat. That bat still asks Y/N, so nothing is
+    // committed without confirmation. Registered per-user via
+    // _kiro/install_protocol.ps1; if it is not installed the link simply does
+    // nothing and the command below remains the fallback.
+    const pub = document.createElement('a');
+    pub.href = 'overcharge://push';
+    pub.textContent = '\u25B6 PUBLISH TO GITHUB';
+    pub.title = 'Runs push_overcharge.bat via the overcharge:// handler. It will ask you to confirm.';
+    pub.style.cssText =
+      'display:inline-block;margin:8px 0;padding:6px 12px;border:1px solid #8fb;border-radius:4px;' +
+      'color:#8fb;text-decoration:none;font-weight:600;letter-spacing:0.5px;background:rgba(136,255,187,0.08)';
+    commitPushOut.appendChild(pub);
+
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:11px;opacity:0.75;margin-bottom:6px';
+    note.textContent =
+      'Your browser will ask permission the first time. If nothing happens, the handler '
+      + 'is not installed — double-click push_overcharge.bat on your Desktop instead.';
+    commitPushOut.appendChild(note);
+
+    const fallback = document.createElement('div');
+    fallback.style.cssText = 'font-size:11px;opacity:0.7;white-space:pre-wrap';
+    fallback.textContent =
+      `Manual fallback:\n${cmd}\n` +
+      (copied ? '(copied to your clipboard)' : '(clipboard blocked — select and copy the text above)');
+    commitPushOut.appendChild(fallback);
   }
 });
 
