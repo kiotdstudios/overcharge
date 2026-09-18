@@ -470,13 +470,34 @@ export class PowerGate {
              ry + rh <= this.y || ry >= this.y + this.h);
   }
 
-  // Returns true if the player's X range overlaps the gate column, regardless
-  // of Y. Used for horizontal movement collision so the player cannot jump
-  // over a closed gate — the gate is treated as a floor-to-ceiling barrier.
-  // The regular blocks() AABB is still used for _resolveY (landing on top).
-  blocksHorizontal(rx, rw) {
+  // Horizontal movement collision.
+  //
+  // KIRO_RULING_BLOCKONLY_Y_AWARE (2026-09-18): `blockOnly` gates block ONLY the
+  // rows their hitbox actually occupies. Exit and chargeable gates keep X-only,
+  // full-height blocking, unchanged.
+  //
+  // These are two different fictions and always were. A chargeable/exit gate is an
+  // energy barrier filling a doorway — it MUST stay unjumpable, or the exit cost
+  // becomes optional and every level's economy collapses. A fence is a physical
+  // object with a height: BARRIER is h:64, one tile of art, deliberately so after
+  // Chief reported the two-stacked-fences defect. A 64px fence that blocked 578px
+  // of world was the inconsistency.
+  //
+  // This is also what makes a FORK possible at all. In a side-scroller both branches
+  // must traverse the same X range, so a column-blocking fence seals every branch —
+  // which is why ORCHA 16's "gate the upper route only" was impossible until now.
+  //
+  // `ry`/`rh` are OPTIONAL so every existing caller keeps working: with no Y passed,
+  // behaviour is exactly as before. Narrow by design — one flag, one code path, and
+  // deliberately NOT generalised into per-object Y-aware collision.
+  blocksHorizontal(rx, rw, ry, rh) {
     if (this.open) return false;
-    return !(rx + rw <= this.x || rx >= this.x + this.w);
+    if (rx + rw <= this.x || rx >= this.x + this.w) return false;
+    if (this.blockOnly && ry !== undefined && rh !== undefined) {
+      // Y-aware: only the rows the fence physically occupies.
+      return !(ry + rh <= this.y || ry >= this.y + this.h);
+    }
+    return true;
   }
 
   // ── Fence render (F1/F2/F3/F4) ──────────────────────────────────────

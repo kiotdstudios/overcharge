@@ -396,12 +396,15 @@ export class Player {
         }
       }
     }
-    // Gate horizontal collision: use blocksHorizontal (X-only) so the player
-    // cannot jump over a closed gate — it acts as a full-height wall for
-    // horizontal movement. The AABB-based blocks() is still used for
-    // vertical landing (see _resolveY) so Chief can still stand on top.
+    // Gate horizontal collision. Exit and chargeable gates stay X-only so the
+    // player cannot jump over them — that is the single property protecting every
+    // level's exit economy. `blockOnly` fences are Y-aware per
+    // KIRO_RULING_BLOCKONLY_Y_AWARE, so a fence blocks only the rows it occupies
+    // and a route below it stays open. Passing the player's Y box is what enables
+    // that; the gate decides what to do with it, so the policy lives in ONE place.
+    // The AABB blocks() is still used for vertical landing (standing on top).
     for (const gate of level.gates) {
-      if (gate.blocksHorizontal(this.x, this.w)) {
+      if (gate.blocksHorizontal(this.x, this.w, this.y, this.h)) {
         if (this.vx > 0) this.x = gate.x - this.w;
         else if (this.vx < 0) this.x = gate.x + gate.w;
         this.vx = 0;

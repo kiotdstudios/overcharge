@@ -5,6 +5,84 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## ORCHA 16 + Y-AWARE blockOnly — Level 2 is a real fork
+
+- **Date:** 2026-09-18T11:52-04:00 · **Branch:** `agent/orcha-dev` · synced from `67fe46e`
+- **Status:** COMPLETE, GREEN, pushed. Rollback tag `level2-pre-fork` -> `8f72425` on the remote.
+
+### Suites: 747 / 0 across eight suites (was 713)
+
+`parity 386/0` · `fence_switch 74/0` · `energy 88/0` · `crate_timed 87/0` ·
+`electricity 37/0` · `drone_sensing 14/0` · `chest 27/0` · **`level2_fork 34/0` (new)**
+`completability 20/1` (Level 3 void, content question) · boot smoke `BOOT_SMOKE_OK`, `ERRORS: []`
+
+### ONE COMMIT, as the ruling required — and here is the proof it mattered
+
+The ruling: the collision change and the terrain rebuild must land together or the level is
+trivially skippable in between. I tested that claim rather than trusting it. With the terrain
+stashed and only the collision change live:
+
+```
+ROUTE B has real headroom  ->  head y=290, ceiling bottom y=320, clear by -30px
+exactly one chest placed   ->  undefined
+```
+
+Negative headroom, so the old raised block becomes impassable while the fence stops sealing.
+That is exactly the window the ruling warned about, and it is why both are in this commit.
+
+### The fork — minimal edit, both routes proven
+
+The geometry was already 90% there; the fence just gated the wrong rows.
+
+- Fence `BARRIER` moved `y=224 -> y=160`, so it occupies **160..224**
+- New platform at r7, cols 65-72 -> **Route A**, surface y=224
+- Carved r9, cols 65-72 -> headroom for **Route B**, surface y=320
+- Step at r8, cols 63-64 -> the climb up to Route A
+- Chest `CH1` at x=2272 (col 71), grounded at 224, **behind the fence**
+
+```
+ROUTE A walker  y 194..224  vs fence 160..224  -> BLOCKED  (gated, must pay SW1)
+ROUTE B walker  y 290..320  vs fence 160..224  -> CLEAR    (open, skips the switch)
+ROUTE B headroom: head 290, ceiling bottom 256 -> clear by 34px
+```
+
+### Economy frozen, both routes complete
+
+```
+ROUTE B  4 + 6 = 10, EXIT -8  -> finishes with 2, never sees the chest
+ROUTE A  4 -2 SW1 -2 chest +10 pip +6 E1 = 16, EXIT -8  -> finishes with 8
+```
+
+Not one number moved: A1 4, E1 6, SW1 2, EXIT 8, chest 2/10. Route A finishes **4x richer**,
+so the detour is worth choosing rather than merely mandatory.
+
+### Mutations — including the one the ruling named
+
+| Mutation | Result |
+|---|---|
+| Y-awareness leaks to **exit** gates (the ruling's named test) | **2 failures** — "player FAR ABOVE the exit still blocked" |
+| Fence blocks all heights again (pre-ruling behaviour) | **3 failures** |
+
+The exit assertion is the single property protecting every level's economy. It is now pinned.
+
+### Scope and discipline
+
+`ry`/`rh` are **optional** parameters, so every existing caller is unchanged — back-compat is
+asserted. Gated on `blockOnly === true`; **not** generalised into per-object Y-aware collision,
+per the ruling. F-series fence semantics untouched: death, burn, and switch-only opening are
+unchanged, and `fence_switch` stayed 74/0. Twin `2_SPLIT_DECISION.json` kept in sync and asserted.
+
+### NOT VERIFIED — Chief's eye
+
+1. Whether the fork is **legible at speed** — does the lower route read as a route, or as a hole?
+2. Whether Route A's reward feels worth the climb and the 4 charge.
+3. Whether the 2-tile climb to Route A is comfortable or fiddly.
+4. Whether the chest is visible enough from the upper platform to be a draw.
+
+Next: **drone hover-harass + Level 3 together** (ORCHA 15), then Levels 4-5, pip UI last.
+
+---
+
 ## CHEST v1 — implemented, ratified rulings + Chief's pip-reserve amendment
 
 - **Date:** 2026-09-18T10:40-04:00 · **Branch:** `agent/orcha-dev` · synced from `d8b0943`
