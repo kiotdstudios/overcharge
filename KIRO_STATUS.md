@@ -1842,3 +1842,93 @@ failure that has been corrupting my branch-state reads all weekend. Same fix as 
   rendering `switch_off`. **These are the visible defects in the GAME**; Aki's work covered the
   Builder side only.
 - **Level 3** is next for Chief and is still the unfinished stub.
+
+---
+
+## 2026-09-17 — QA GATE: ORCHA O5.1–O5.3 **PASS, MERGED** (`aa6ba34`) — the playtest fixes are finally live
+
+**Suites: 669 / 0** re-run by me · boot smoke `ERRORS: []` · no conflicts.
+`fence_switch` 62 → **71** (+9 from his new state→art mapping assertions).
+
+### The important failure this round was MINE: I told him not to push
+I ordered *"one commit, nothing red. Do not split this to land sooner."* Chief then sent a screenshot
+of `[SPACE] CHARGE` printed across the gate and asked whether it was fixed. It was not — **nothing had
+shipped.** Verified at the time:
+
+```
+origin/agent/orcha-dev = 4408a44   52 behind live, ZERO unmerged
+src_scroll/ui.js:279   = const cy = dev.y - 20     <- the bug, still live
+runtime gate art       = gate_electric_spritesheet.png, new pack unread
+```
+
+So Chief spent a playtest cycle on a build with every defect intact, **re-reporting bugs that were
+already fixed on a worktree he could not see.** I optimised for tidy history and spent the scarcest
+resource on the project to do it. Nine orders of work also existed on one machine only — unpushed work
+is not work.
+
+**Standing rule, corrected:** *push when green, not when finished.* Hold only when the suite is red or
+the change is incoherent without the next piece. O5.4 was always an independent art swap; there was
+never a coherence reason to bundle it. Told Aki the same applies to her.
+
+### What landed
+- **New gate pack wired** — `electricity.js:256-263` loads `assets/objects/gate/{rest,dead,idle,charging}`.
+  `GATE_DRAW_W=94`, `GATE_DRAW_H=105` from `GEOMETRY.md` as the contract, not re-derived.
+- **Both prompts anchored to the sprite, not the hitbox.** Root cause was identical for gate and
+  generator: the hitbox is far smaller than the art (32×64 under 94×105; 28×28 under 64×64), so
+  "just above the hitbox" landed mid-artwork.
+- **Bar and `EXIT` above the gate** instead of painted into the floor.
+- `visualState` + `frameFor()` — state and art can no longer disagree.
+- `labelStack()` with the flip-below rule, and a **126-rect sweep** across every gate Y and height.
+
+### Verified by me, independently
+| Check | Result |
+|---|---|
+| new pack actually wired | YES — 8 references, paths resolved |
+| old hitbox anchors removed from live paths | YES |
+| shipped gates, sprite tops | 215 / 183 / 215 / 151 — all positive, flip path not hit today |
+| suites on the combined tree | 669 / 0 |
+| boot smoke | `BOOT_SMOKE_OK` |
+
+**Could not verify: the in-game pixel result.** I wrote a probe to walk the player to Level 1's gate
+and analyse the frame; the prompt never triggered under scripted input, so **I am not claiming visual
+confirmation.** Geometry is asserted; appearance is Chief's.
+
+### My fifth false positive this weekend
+My gate check reported `dev.y - 20` and `src.y - 22` still present in `ui.js`. Both hits were a
+**comment documenting the old value** and a **defensive fallback** for objects without the accessor.
+No defect. Fifth time a text match produced a confident wrong conclusion — after the palette probe
+returning 0 items, the 6px "56px sprite", the checkpoint grounding flagged twice, and the generator
+off-by-one. **Every one was a narrow check reporting a broad conclusion**, which is exactly what I keep
+catching in the agents. My ad-hoc checks lose to the suite.
+
+### Orcha's work this round, on the record
+Three things he did that were not ordered:
+1. **Caught his own reference-frame bug** before committing — his first `promptAnchor()` placed the
+   prompt above the *label group*, which is inside the artwork once the group flips below. His own
+   check found 3 violations. He wrote the check before trusting the code.
+2. **Rejected his own basename guard** when it false-positived on his suite, correctly separating frame
+   *index* from pack *identity*, and narrowed it to `PowerGate` — the only object that can draw from
+   two packs. Better than the guard I ordered; mine is superseded. He documented the rejected approach
+   with its reason so nobody reinstates it.
+3. **Found a check going vacuous**: a fixed content crop makes `sx` permanently 17, so the old
+   `distinct sx > 1` animation assertion would have reported "not animating" for a gate that is.
+4. Added a **second assertion proving the flip path is exercised** (`flips=3`), guarding the sweep
+   against silently testing nothing.
+
+He also noticed my numbering jumped 08 → 10 and went looking for `ORCHA_09`, which nobody had flagged —
+his scheduled poller is gone, so he found it by listing `docs/`. That is a real gap now the polling is
+off, and the board is the mitigation.
+
+### Chief's Builder save reverted two fixes — divergence, live
+While checking the tree I found `level2.json` modified with `h: 64 → 128` and `label: FENCE → BARRIER`
+— both fixes he had asked for, undone. His object moves looked deliberate; the height and label
+reversion did not. A stale Builder session wrote pre-fix state over the repo. Kept his moves,
+re-applied the two fixes, held the bottom edge at 288 (`d164c7b`), and told him to hit **RELOAD FROM
+GIT** before authoring again. This is exactly the scenario Aki's A6 banner exists for.
+
+### Outstanding
+- **O5.4** shorted switch → `switch_off.png`, anchored from content bottom (only file in the pack with
+  `botPad = 4`).
+- Then **O4** completability. **O2 deferred.**
+- Three things queued for Chief's eye, none of them code: the restored 30px of gate width, the
+  flipped-below label placement, and `switch_off` being ~12% smaller by design.
