@@ -128,7 +128,8 @@ export class ElectricalSource {
 //   Row 0: static base (unused — we play idle instead when closed)
 //   Row 1: 9-frame idle       → CLOSED, no active discharge
 //   Row 2: 9-frame charging   → CLOSED, currently receiving charge (POWERED-REACTION)
-//   `gate_electric_open.png` single 64x128 frame → OPEN state (fades out over 1s)
+//   OPEN state → `gate/rest.png` from Chief's re-cut pack, faded out over 1s.
+//   (Was `gate_electric_open.png`; Chief cut that asset, it is a different gate.)
 //
 // Idle/charging switch is triggered by `receive()` bumping `_reactT`;
 // while _reactT > 0 the gate plays the 'charging' animation, otherwise 'idle'.
@@ -241,8 +242,11 @@ export class PowerGate {
     // hitbox — animation clearly visible; hitbox untouched).
     this._imgClosed = new Image();
     this._imgClosed.src = 'assets/objects/gate_closed.png';
-    this._openImg   = new Image();
-    this._openImg.src = 'assets/objects/gate_electric_open.png';
+
+    // `gate_electric_open.png` is GONE — Chief cut it deliberately, it is a
+    // different gate asset entirely. The open-state draw moved to `_rest`
+    // (see the open-flash fix below), which left this load dead: fetched every
+    // boot, read by nothing. Removed with the file, so no 404 on load.
 
     // ── Chief's re-cut gate pack (ORCHA 03 addendum + ORCHA 04) ─────────
     // assets/objects/gate/ replaces the old 1152x384 spritesheet. Individual

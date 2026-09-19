@@ -231,12 +231,6 @@
       "size": 4680
     },
     {
-      "path": "assets/objects/gate_electric_open.png",
-      "name": "gate_electric_open",
-      "category": "other",
-      "size": 2340
-    },
-    {
       "path": "assets/objects/gate_electric_spritesheet.png",
       "name": "gate_electric_spritesheet",
       "category": "other",
