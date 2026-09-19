@@ -49,11 +49,14 @@ function _drawPlayerAvatar(ctx) {
   ctx.strokeStyle = 'rgba(68,221,255,0.35)';
   ctx.lineWidth = 1;
   ctx.strokeRect(ax + 0.5, ay + 0.5, aw - 1, ah - 1);
-  // sprite: 92×92 native → scale to 44px, centered in box
+  // Head crop: source region x=35,y=14,w=21,h=26 (measured from idle east frame).
+  // Scale to fill box height, preserve aspect ratio, nearest-neighbor for pixel crispness.
   if (_avatarImg?.complete && _avatarImg.naturalWidth > 0) {
-    const scale = 58 / 92;
-    const dw = 92 * scale, dh = 92 * scale;
-    ctx.drawImage(_avatarImg, ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh);
+    ctx.imageSmoothingEnabled = false;
+    const sx = 35, sy = 14, sw = 21, sh = 26;   // head bounds in source sprite
+    const dh = ah - 8;                            // fill most of box height
+    const dw = Math.round(dh * sw / sh);          // preserve aspect ratio (~52px wide)
+    ctx.drawImage(_avatarImg, sx, sy, sw, sh, ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh);
   }
   ctx.restore();
 }
