@@ -48,15 +48,15 @@ const _PIP_GEO = {
   charged:   { cw: 83, ch: 83, cBot: 69 },
   uncharged: { cw: 65, ch: 65, cBot: 60 },
 };
-const _PIP_SCALE = 0.38;
+const _PIP_SCALE = 0.55;  // increased from 0.38 — Chief: hard to notice detail
 
 function _drawBankedPips(ctx, player, t) {
   _initPipImgs();
-  const pipW    = 22;
-  const pipH    = 17;
-  const gap     = 5;
+  const pipW    = 36;   // was 22 — wider slot for larger sprites
+  const pipH    = 30;   // was 17 — taller to match scale 0.55
+  const gap     = 4;    // was 5
   const startX  = safeInsetX() + 16;
-  const startY  = 35;
+  const startY  = 10;   // was 35 — moved up since pip panel is taller now
   const count   = player.bankedPips;
   const maxed   = count >= MAX_BANKED_PIPS;
   const bankFx  = player._pipBankFx  > 0;
@@ -187,7 +187,7 @@ function _drawBankedPips(ctx, player, t) {
 // ── Charge meter (top-left) — smooth bar, no numbers ─────────────
 function _drawChargeMeter(ctx, player, t) {
   const barX  = safeInsetX() + 16;     // HUD safe area (cover-crop aware)
-  const barY  = 56;
+  const barY  = 50;   // was 56 — raised to sit below pip panel (panel bottom ≈ 48)
   const barW  = 244;
   const barH  = 14;
   const fill  = player.charge / MAX_CHARGE;
