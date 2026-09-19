@@ -423,18 +423,19 @@ export class DroneEnemy {
   // horizontal reach to 320 and the drone aggros from off-screen, which is worse.
   // The axes have to be decoupled.
   static CFG = Object.freeze({
-    visionX: 240,       // horizontal reach — roughly one screen-third
-    visionY: 340,       // vertical tolerance — must clear a flying drone over a
-                        // grounded player; 280 is Level 3's real separation, so
-                        // 340 leaves headroom without widening horizontal aggro
-    CHASE_MULT: 1.35,   // chase speed = speed * this
-    LEASH: 160,         // may chase this far PAST its patrol bounds, then stops
-    FIRE_ARC: 300,      // vertical firing tolerance. MUST scale with visionY, not
-                        // stay at the old 70: with visionY=340 the drone could SEE
-                        // the player 280px below and never SHOOT him — it alerted,
-                        // chased, and fired nothing. Same axis mismatch as the
-                        // vision bug, one layer down, found by asserting against
-                        // Level 3's real geometry instead of a fixture.
+    // O10 — CHIEF'S DIAL. He said outright "will test and see how that feels", so
+    // these three are expected to move. Keep them together and keep the relationship.
+    visionX: 64,        // Chief: "same horizontal axis as me and x tiles away ...
+                        // lets say 2 tiles". 2 tiles = 64px. Deliberately tight.
+    visionY: 96,        // 3 tiles. Was 340, which is what let it see through the
+                        // floor from y=200 down to y=482. Now that the drone patrols
+                        // AT player elevation this only needs to cover the hover
+                        // offset plus a crouch/jump, not a whole screen.
+    FIRE_ARC: 120,      // vertical firing tolerance. MUST be >= visionY or the drone
+                        // can see a player it refuses to shoot — that exact mismatch
+                        // shipped once (visionY 340 vs FIRE_ARC 70: it alerted,
+                        // chased, and fired nothing). The relationship is ASSERTED in
+                        // _dev/drone_sensing.mjs, not left to matching constants.
     SHOT_CD: 1.1,       // seconds between blasts
     ALERT_TIME: 0.55,   // O9: telegraph. Alert shows for this long BEFORE the
                         // first shot, so being hit has a warning and reads as a
@@ -465,7 +466,7 @@ export class DroneEnemy {
     // hit therefore always has a warning, which is what makes Level 3's lesson read
     // as a lesson instead of as unfair. Contrast the F7 fence ruling where
     // immediacy won — here the warning IS the mechanic.
-    const canSee   = !!player && this._sees(player);
+    const canSee   = !!player && this._sees(player, level);
     const wasAggro = this._aggro === true;
 
     if (canSee && !wasAggro) {
@@ -512,13 +513,44 @@ export class DroneEnemy {
   // symmetric radius is structurally wrong for a flying threat over a walking
   // target. Rectangular test: generous vertically, tight horizontally.
   //
-  // Deliberately NOT terrain-aware: this engine has no raycast and inventing one
-  // for v1 would be a new system. Stated plainly rather than implied — a drone can
-  // currently "see" through a wall. Chief's call, flagged twice now.
-  _sees(player) {
+  // O10 / ORCHA 18 — TERRAIN-BLOCKED and NARROW, per Chief: "notices me through the
+  // floor - big no no; it should only notice me if im on the same horizontal axis as
+  // me and x tiles away". Kiro's earlier "leave terrain-awareness alone" ruling is
+  // REVERSED — he saw it matter in play.
+  //
+  // This is ONE loop scoped to drone sensing, not a general raycast engine. Do not
+  // generalise it.
+  _sees(player, level) {
     const C = DroneEnemy.CFG;
-    return Math.abs(player.cx - this.cx) < C.visionX &&
-           Math.abs(player.cy - this.cy) < C.visionY;
+    if (Math.abs(player.cx - this.cx) >= C.visionX) return false;
+    if (Math.abs(player.cy - this.cy) >= C.visionY) return false;
+    return this._hasLineOfSight(player, level);
+  }
+
+  // Walks the line from drone centre to player centre sampling level.tileAt(). Any
+  // solid sample between them breaks sight. Solidity uses the SAME rule as
+  // Level.solidAt (v === 1 || v >= 10) so tile 2 one-way platforms stay see-through,
+  // which is correct: you can see someone through a platform you can jump up into.
+  //
+  // Endpoints are deliberately skipped — the drone's own tile and the player's own
+  // tile must never block, or a drone hugging a ceiling would blind itself.
+  //
+  // Fails OPEN when no level is supplied, so any caller without terrain data behaves
+  // exactly as before rather than going silently blind. The suite always drives this
+  // through Level.update, which does supply it.
+  _hasLineOfSight(player, level) {
+    if (!level || typeof level.tileAt !== 'function') return true;
+    const x0 = this.cx, y0 = this.cy;
+    const dx = player.cx - x0, dy = player.cy - y0;
+    const dist = Math.hypot(dx, dy);
+    if (dist < 1) return true;
+    const steps = Math.ceil(dist / 8);          // ~8px sampling, <= ~40 samples here
+    for (let i = 1; i < steps; i++) {
+      const t  = i / steps;
+      const v  = level.tileAt(Math.floor((x0 + dx * t) / TILE), Math.floor((y0 + dy * t) / TILE));
+      if (v === 1 || v >= 10) return false;
+    }
+    return true;
   }
 
   // O9 tell state, exposed so tests assert STATE rather than pixels — the same
