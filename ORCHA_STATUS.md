@@ -5,6 +5,75 @@ Flow: `agent/orcha-dev` â†’ Kiro QA â†’ `agent/orcha-gameplay` â†�
 
 ---
 
+## RULING A3 — chest pocket sealed, proven by walking the level
+
+- **Date:** 2026-09-19T00:12-04:00 · `agent/orcha-dev` -> merged to `agent/orcha-gameplay`
+- **Status:** COMPLETE, GREEN, on the live line. Suites **757/0** across eight; `completability 20/1`
+  (Level 3 void). Boot smoke `BOOT_SMOKE_OK`, `ERRORS: []`.
+
+### Chief was right, and I reproduced his bypass before fixing it
+
+> *"it created the fork but i can just jump backwards and get the chest."*
+
+```
+FENCE CLOSED -> chest reachable: TRUE via jumpRunL at x=2299
+```
+
+The pocket had a floor, a left wall and a ceiling, and **no right wall.** Route B along the lower
+floor, right across the pit, onto the r9 ledge, then a running jump back up-left onto the r7
+platform whose right edge was open. SW1 never paid.
+
+### Sealed: right wall col 72 r5-r6, plus a ceiling over cols 70-71 at r4
+
+```
+FENCE CLOSED -> chest reachable: false   (383 states explored, no route in)
+FENCE OPEN   -> chest reachable: TRUE    via jumpRunR at x=2231
+FENCE CLOSED -> EXIT reachable : TRUE    via jumpRunR at x=3000   (Route B intact)
+```
+
+Pocket interior is 64px for a 30px player, so it is a room, not a sealed box.
+
+**Honest measurement:** deleting the r4 ceiling alone does **not** break the seal — the right wall
+is the only load-bearing tile. I kept the ceiling because an open-topped pocket reads as unfinished
+geometry rather than a room, but I am not claiming it was required. Deleting the **right wall**
+reproduces Chief's bypass exactly: `BYPASS via jumpRunL at x=2299`.
+
+### The prover: real physics, and it lied to me twice first
+
+Kiro's warning was well earned. `_dev/reach.mjs` drives the **real** `Player`, the **real** `Level`
+and the **real** `Input` module, BFS over grounded states, nine action types including running
+jumps. No movement model of my own. Two harness defects found before I trusted a single result:
+
+1. **Frame order is load-bearing.** `input.js update()` does `Object.assign(prev, cur)`, so calling
+   it *before* the player reads `pressed()` destroys the edge and **no jump ever fires**. Measured:
+   Input-first = 0px rise, player-first = 99.2px against a 102.7px theoretical apex. My first run
+   reported the chest unreachable in *both* gate states — the same false answer Kiro's flood-fill
+   gave, arrived at by a different route.
+2. **`PowerGate`'s constructor hard-sets `this.open = false`** and ignores any `open` in the level
+   def. So my "fence open" run was silently a second *closed* run. The symmetry of the two results
+   is what gave it away. Opening is now done on the constructed object via `opts.open`.
+
+A prover that cannot jump reports everything unreachable; a prover that cannot open a gate reports
+both states identically. Neither failure looks like an error in the output — they look like answers.
+
+### What the walk also revealed
+
+Route A's intended entrance **does** work: the r8 step at cols 63-64 and the r7 platform at cols
+65-68 are both reachable from spawn. Before the seal, the pocket was reachable *only* via the
+bypass, so Chief's route through the fence and the bypass produced the same reward — which is
+precisely why it read as a working fork.
+
+### NOT VERIFIED — Chief's eye
+
+1. Whether the sealed pocket still reads as inviting, or now looks like a closed box.
+2. Whether the chest is visible from the r7 approach before you commit 2 charge to the switch.
+3. Whether the capped column plus the new right wall reads as architecture.
+
+Next, per ORCHA 18 §4: **drone O10 + O11 + O12 as one coherent piece** (blocks both Level 3 and
+Level 4), then Level 3 finished, then Level 4. Level 5 is cut. Pip meter last.
+
+---
+
 ## RULING A2 — fence opening capped, and everything MERGED TO LIVE
 
 - **Date:** 2026-09-18T12:28-04:00 · **Branch:** `agent/orcha-dev` -> merged to `agent/orcha-gameplay`

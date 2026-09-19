@@ -139,6 +139,38 @@ sec('RULING A2 — a blockOnly gate must FILL A BOUNDED OPENING (every level, no
   }
   ok(checked > 0, 'at least one blockOnly gate was checked (else this section is vacuous)', `${checked} found`);
 }
+sec('RULING A3 — REACHABILITY, proven by walking the level with real physics');
+{
+  const R = await import('./reach.mjs');
+  const openFence = L => { for(const g of L.gates) if(g.blockOnly) g.open=true; };
+  // Chief: "it created the fork but i can just jump backwards and get the chest."
+  // A local geometry check cannot answer this. These three walk the level.
+  const closed = R.reachable(L2, R.chestTarget(L2));
+  ok(!closed.reached,
+    'gate CLOSED -> the chest is NOT reachable from spawn',
+    closed.reached ? `BYPASS via ${closed.hit.via} at x=${closed.hit.x.toFixed(0)}` : `${closed.explored} states explored, no route in`);
+  const opened = R.reachable(L2, R.chestTarget(L2), { open: openFence });
+  ok(opened.reached,
+    'gate OPEN -> the chest IS reachable from spawn',
+    opened.reached ? `via ${opened.hit.via} at x=${opened.hit.x.toFixed(0)}` : 'the fence is not a usable door — over-sealed');
+  const ex = L2.gates.find(g=>g.isExit);
+  const exitTarget = p => Math.abs(p.cx-(ex.x+ex.w/2))<60 && Math.abs(p.cy-(ex.y+ex.h/2))<80;
+  const routeB = R.reachable(L2, exitTarget);
+  ok(routeB.reached,
+    'ROUTE B still completes end to end with the gate CLOSED',
+    routeB.reached ? `reaches the exit via ${routeB.hit.via} at x=${routeB.hit.x.toFixed(0)}` : 'the lower route is broken');
+  ok(!closed.reached && opened.reached,
+    'so the FENCE IS THE ONLY DOOR to the reward');
+  // The pocket must be usable, not a sealed box: standing room and sight of the chest.
+  const ch = L2.chests[0];
+  const chCol = Math.floor(ch.x/32), chRow = Math.floor(ch.y/32);
+  let ceilBottom = 0;
+  for (let r=chRow; r>=0; r--) if (solid(L2.tiles[r*C+chCol])) { ceilBottom=(r+1)*32; break; }
+  const floorTop = (() => { for(let r=chRow+1;r<18;r++) if(solid(L2.tiles[r*C+chCol])) return r*32; })();
+  ok(floorTop - ceilBottom >= PLAYER_H,
+    'the pocket has standing room (not a sealed box)',
+    `${floorTop-ceilBottom}px between ceiling ${ceilBottom} and floor ${floorTop}, player ${PLAYER_H}px`);
+}
 sec('The twin file stays in sync');
 {
   const twin = JSON.parse(fs.readFileSync('src_scroll/levels/2_SPLIT_DECISION.json','utf8'));
