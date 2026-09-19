@@ -26,17 +26,43 @@ export function drawWorldPrompts(ctx, player, t) {
 }
 
 // ── Banked pip rack — power-up display, top-left above charge bar ──
+// Sprites: assets/objects/pip/element.png (empty), charged.png (banked).
+// Geometry from assets/objects/pip/GEOMETRY.md — MEASURED, do not re-derive.
+//
+//   element.png  65x65  content bottom px 60  (uncharged slot)
+//   charged.png  83x83  content bottom px 69  (banked pip — pulses)
+//
+// Anchor from content bottom: base stays fixed, charge glow grows upward.
+// Scale 0.38 keeps sprites within the pip panel height above the charge bar.
+
+let _pipImgs = null;
+function _initPipImgs() {
+  if (_pipImgs || typeof Image === 'undefined') return;
+  const mk = src => Object.assign(new Image(), { src });
+  _pipImgs = {
+    charged:   mk('assets/objects/pip/charged.png'),
+    uncharged: mk('assets/objects/pip/element.png'),
+  };
+}
+const _PIP_GEO = {
+  charged:   { cw: 83, ch: 83, cBot: 69 },
+  uncharged: { cw: 65, ch: 65, cBot: 60 },
+};
+const _PIP_SCALE = 0.38;
+
 function _drawBankedPips(ctx, player, t) {
+  _initPipImgs();
   const pipW    = 22;
   const pipH    = 17;
   const gap     = 5;
-  const startX  = safeInsetX() + 16;   // HUD safe area (cover-crop aware)
+  const startX  = safeInsetX() + 16;
   const startY  = 35;
   const count   = player.bankedPips;
   const maxed   = count >= MAX_BANKED_PIPS;
   const bankFx  = player._pipBankFx  > 0;
   const spendFx = player._pipSpendFx > 0;
   const totalW  = MAX_BANKED_PIPS * (pipW + gap) - gap;
+  const baseY   = startY + pipH;   // content-bottom anchor — stays fixed
 
   ctx.save();
 
@@ -47,7 +73,6 @@ function _drawBankedPips(ctx, player, t) {
   const panelH = pipH + 8;
   ctx.fillStyle = 'rgba(3,5,12,0.92)';
   ctx.fillRect(panelX, panelY, panelW, panelH);
-  // Border glows gold when maxed
   const borderAlpha = maxed ? 0.5 + 0.5 * Math.abs(Math.sin(t * 9)) : 0.18;
   ctx.strokeStyle = `rgba(255,210,30,${borderAlpha})`;
   ctx.lineWidth   = maxed ? 1.5 : 1;
@@ -55,53 +80,66 @@ function _drawBankedPips(ctx, player, t) {
 
   // ── Pips ──
   for (let i = 0; i < MAX_BANKED_PIPS; i++) {
-    const x      = startX + i * (pipW + gap);
-    const filled = i < count;
+    const filled  = i < count;
+    const key     = filled ? 'charged' : 'uncharged';
+    const geo     = _PIP_GEO[key];
+    const img     = _pipImgs?.[key];
+    const centerX = startX + i * (pipW + gap) + pipW / 2;
+    const dw      = geo.cw * _PIP_SCALE;
+    const dh      = geo.ch * _PIP_SCALE;
+    const dx      = centerX - dw / 2;
+    const dy      = baseY - geo.cBot * _PIP_SCALE;  // anchor content bottom to baseY
 
     if (filled) {
       const isNewest = bankFx && i === count - 1;
-      // Pulse rate: fast on freshly banked, sync-fast when maxed, slow idle
       const pulse = isNewest
         ? 0.5 + 0.5 * Math.abs(Math.sin(t * 26))
         : maxed
           ? 0.55 + 0.45 * Math.abs(Math.sin(t * 9 + i * 0.3))
           : 0.7  + 0.3  * Math.sin(t * 5 + i * 1.1);
 
-      // Outer glow — strongest on newest + when maxed
       ctx.shadowBlur  = isNewest ? 32 * pulse : (maxed ? 22 * pulse : 14 * pulse);
       ctx.shadowColor = maxed ? '#ffee44' : '#ffcc00';
 
-      // Fill: warm gold, shifts orange-white with pulse
-      const g = Math.round(165 + 75 * pulse);
-      ctx.fillStyle = `rgb(255,${g},15)`;
-      ctx.fillRect(x, startY, pipW, pipH);
-
-      // Bright inner highlight stripe
+      if (img?.complete && img.naturalWidth > 0) {
+        ctx.globalAlpha = 0.7 + 0.3 * pulse;
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.globalAlpha = 1;
+      } else {
+        // Fallback rectangle until image loads
+        const g = Math.round(165 + 75 * pulse);
+        ctx.fillStyle = `rgb(255,${g},15)`;
+        ctx.fillRect(dx, dy, dw, dh);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle  = `rgba(255,255,190,${0.45 * pulse})`;
+        ctx.fillRect(dx + 3, dy + 2, dw - 6, 5);
+        ctx.shadowBlur  = 6 * pulse;
+        ctx.shadowColor = '#fff8a0';
+        ctx.fillStyle   = `rgba(255,255,130,${0.85 + 0.15 * pulse})`;
+        ctx.font        = `bold ${Math.round(9 + 2 * pulse)}px monospace`;
+        ctx.textAlign   = 'center';
+        ctx.fillText('⚡', centerX, baseY - 3);
+      }
       ctx.shadowBlur = 0;
-      ctx.fillStyle  = `rgba(255,255,190,${0.45 * pulse})`;
-      ctx.fillRect(x + 3, startY + 2, pipW - 6, 5);
-
-      // ⚡ glyph centred in pip
-      ctx.shadowBlur  = 6 * pulse;
-      ctx.shadowColor = '#fff8a0';
-      ctx.fillStyle   = `rgba(255,255,130,${0.85 + 0.15 * pulse})`;
-      ctx.font        = `bold ${Math.round(9 + 2 * pulse)}px monospace`;
-      ctx.textAlign   = 'center';
-      ctx.fillText('⚡', x + pipW / 2, startY + pipH - 3);
 
     } else {
       // Empty slot
-      ctx.shadowBlur  = 0;
-      ctx.fillStyle   = 'rgba(8,12,22,0.9)';
-      ctx.fillRect(x, startY, pipW, pipH);
-      ctx.strokeStyle = '#1a2d3d';
-      ctx.lineWidth   = 1;
-      ctx.strokeRect(x + 0.5, startY + 0.5, pipW - 1, pipH - 1);
-      // Dim ⚡ placeholder
-      ctx.fillStyle  = 'rgba(30,50,70,0.6)';
-      ctx.font       = '9px monospace';
-      ctx.textAlign  = 'center';
-      ctx.fillText('⚡', x + pipW / 2, startY + pipH - 3);
+      if (img?.complete && img.naturalWidth > 0) {
+        ctx.globalAlpha = 0.5;
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.shadowBlur  = 0;
+        ctx.fillStyle   = 'rgba(8,12,22,0.9)';
+        ctx.fillRect(dx, dy, dw, dh);
+        ctx.strokeStyle = '#1a2d3d';
+        ctx.lineWidth   = 1;
+        ctx.strokeRect(dx + 0.5, dy + 0.5, dw - 1, dh - 1);
+        ctx.fillStyle  = 'rgba(30,50,70,0.6)';
+        ctx.font       = '9px monospace';
+        ctx.textAlign  = 'center';
+        ctx.fillText('⚡', centerX, baseY - 3);
+      }
     }
   }
 
@@ -110,7 +148,6 @@ function _drawBankedPips(ctx, player, t) {
   const labelY = startY + pipH - 3;
   ctx.shadowBlur = 0;
   if (maxed) {
-    // "MAX!" blinks bold when all pips full
     const mPulse = 0.5 + 0.5 * Math.abs(Math.sin(t * 10));
     ctx.shadowBlur  = 10 * mPulse;
     ctx.shadowColor = '#ffee44';
@@ -145,6 +182,7 @@ function _drawBankedPips(ctx, player, t) {
 
   ctx.restore();
 }
+
 
 // ── Charge meter (top-left) — smooth bar, no numbers ─────────────
 function _drawChargeMeter(ctx, player, t) {
