@@ -1852,7 +1852,7 @@
       "id": "drone_1",
       "type": "drone",
       "x": 512,
-      "y": 456,
+      "y": 200,
       "patrolLeft": 400,
       "patrolRight": 600,
       "speed": 55,
