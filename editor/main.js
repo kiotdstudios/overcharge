@@ -446,39 +446,53 @@ btnCommitPush?.addEventListener('click', async () => {
   if (commitPushOut) {
     commitPushOut.style.display = 'block';
     commitPushOut.style.color   = '#8fb';
-    // Rebuilt as nodes rather than textContent so the PUBLISH link is clickable.
-    commitPushOut.textContent = '';
-
-    const head = document.createElement('div');
-    head.textContent = 'SAVED + VERIFIED into the Git folder. Not published yet.';
-    commitPushOut.appendChild(head);
+    commitPushOut.textContent   = '';
 
     // A8: state what will be published in game terms.
     if (_a8Diff) {
       const diffEl = document.createElement('div');
-      diffEl.style.cssText = 'color:#ffcc44;font-family:monospace;font-size:11px;margin:4px 0 6px';
-      diffEl.textContent = 'Publishing level' + (num ?? '') + ': ' + _a8Diff;
+      diffEl.style.cssText = 'color:#ffcc44;font-family:monospace;font-size:11px;margin:0 0 6px';
+      diffEl.textContent   = 'level' + (num ?? '') + ': ' + _a8Diff;
       commitPushOut.appendChild(diffEl);
     }
 
-    // ── One-click publish via the overcharge:// protocol handler ──────────────
-    // A web page cannot run git. This link hands off to a registered Windows
-    // protocol handler, which validates the action against a strict allow-list
-    // and then runs push_overcharge.bat. That bat still asks Y/N, so nothing is
-    // committed without confirmation. Registered per-user via
-    // _kiro/install_protocol.ps1; if it is not installed the link simply does
-    // nothing and the command below remains the fallback.
-    const pub = document.createElement('a');
-    pub.href = 'overcharge://push';
-    pub.textContent = '\u25B6 PUBLISH TO GITHUB';
-    pub.title = 'Runs push_overcharge.bat via the overcharge:// handler. It will ask you to confirm.';
-    pub.style.cssText =
-      'display:inline-block;margin:8px 0;padding:6px 12px;border:1px solid #8fb;border-radius:4px;' +
-      'color:#8fb;text-decoration:none;font-weight:600;letter-spacing:0.5px;background:rgba(136,255,187,0.08)';
-    commitPushOut.appendChild(pub);
+    const statusEl = document.createElement('div');
+    statusEl.textContent = 'SAVED + VERIFIED — publishing…';
+    commitPushOut.appendChild(statusEl);
 
-    // A13.1: auto-invoke the protocol on every verified save. The handler
-    // still asks Y/N before pushing. The visible button above stays for re-clicks.
+    // A14.1: Recovery fallback — shown only when the auto-push did not land.
+    // A web page cannot run git. This hands off to the registered Windows
+    // protocol handler (overcharge://push → push_overcharge.bat).
+    // Do NOT render this alongside the primary button — it looks like a second
+    // required step. Appears only in FAILED / SAVED states.
+    const _buildFallback = () => {
+      const a = document.createElement('a');
+      a.href        = 'overcharge://push';
+      a.textContent = "didn't publish? click here";
+      a.title       = 'Runs push_overcharge.bat via the overcharge:// protocol handler.';
+      a.style.cssText = 'display:inline-block;margin:6px 0 2px;font-size:11px;color:#8fb;opacity:0.8;';
+      commitPushOut.appendChild(a);
+      const fb = document.createElement('div');
+      fb.style.cssText = 'font-size:11px;opacity:0.65;white-space:pre-wrap;margin-top:3px';
+      fb.textContent   = `Manual fallback:\n${cmd}\n` +
+        (copied ? '(copied to your clipboard)' : '(clipboard blocked — select and copy the text above)');
+      commitPushOut.appendChild(fb);
+    };
+
+    // Capture remote HEAD before the push so we can detect when the push lands.
+    // Uses the public GitHub API — no auth needed for this repo.
+    let _prePushSha = null;
+    try {
+      const _pr = await fetch(
+        'https://api.github.com/repos/kiotdstudios/overcharge/branches/agent/orcha-gameplay',
+        { headers: { Accept: 'application/vnd.github.v3+json' } }
+      );
+      if (_pr.ok) { _prePushSha = (await _pr.json()).commit.sha; }
+    } catch { /* offline or rate-limited — proceed without polling */ }
+
+    // Silently fire the protocol. The rewritten bat does pull --rebase + push
+    // with no Y/N prompt (Kiro rewrote it). Fire-and-forget from the browser.
+    let _protocolFired = false;
     try {
       const _autoLink = document.createElement('a');
       _autoLink.href = 'overcharge://push';
@@ -486,21 +500,68 @@ btnCommitPush?.addEventListener('click', async () => {
       document.body.appendChild(_autoLink);
       _autoLink.click();
       _autoLink.remove();
-    } catch (_e) { /* handler not installed — fallback below */ }
+      _protocolFired = true;
+    } catch { /* handler not installed */ }
 
-    const note = document.createElement('div');
-    note.style.cssText = 'font-size:11px;opacity:0.75;margin-bottom:6px';
-    note.textContent =
-      'Your browser will ask permission the first time. If nothing happens, the handler '
-      + 'is not installed — double-click push_overcharge.bat on your Desktop instead.';
-    commitPushOut.appendChild(note);
+    if (!_protocolFired) {
+      // A14.2: SAVED — not published (protocol not installed / threw)
+      commitPushOut.style.color = '#ffcc44';
+      statusEl.textContent      = 'SAVED — not published';
+      _buildFallback();
+      return;
+    }
 
-    const fallback = document.createElement('div');
-    fallback.style.cssText = 'font-size:11px;opacity:0.7;white-space:pre-wrap';
-    fallback.textContent =
-      `Manual fallback:\n${cmd}\n` +
-      (copied ? '(copied to your clipboard)' : '(clipboard blocked — select and copy the text above)');
-    commitPushOut.appendChild(fallback);
+    // A14.2: Poll GitHub API for up to 45 s to confirm the push landed.
+    // When the SHA changes we have a real git commit hash — not an assumption.
+    let _published = false;
+    let _newSha    = null;
+    if (_prePushSha) {
+      for (let _i = 0; _i < 15; _i++) {
+        await new Promise(_res => setTimeout(_res, 3000));
+        try {
+          const _pr = await fetch(
+            'https://api.github.com/repos/kiotdstudios/overcharge/branches/agent/orcha-gameplay',
+            { headers: { Accept: 'application/vnd.github.v3+json' } }
+          );
+          if (_pr.ok) {
+            const _j = await _pr.json();
+            if (_j.commit.sha && _j.commit.sha !== _prePushSha) {
+              _published = true; _newSha = _j.commit.sha.slice(0, 7); break;
+            }
+          }
+        } catch { /* transient — keep polling */ }
+      }
+    }
+
+    // A14.2: Report final state — one of three, never assumed.
+    commitPushOut.textContent = '';
+    if (_a8Diff) {
+      const diffEl = document.createElement('div');
+      diffEl.style.cssText = 'color:#ffcc44;font-family:monospace;font-size:11px;margin:0 0 6px';
+      diffEl.textContent   = 'level' + (num ?? '') + ': ' + _a8Diff;
+      commitPushOut.appendChild(diffEl);
+    }
+    if (_published) {
+      // A14.1: Fallback link is ABSENT on success.
+      commitPushOut.style.color = '#8fb';
+      const s = document.createElement('div');
+      s.textContent = 'PUBLISHED ' + _newSha;
+      commitPushOut.appendChild(s);
+    } else if (_prePushSha) {
+      // Protocol fired, polled 45 s, SHA never changed.
+      commitPushOut.style.color = '#ff8888';
+      const s = document.createElement('div');
+      s.textContent = 'PUBLISH FAILED — remote SHA unchanged after 45s';
+      commitPushOut.appendChild(s);
+      _buildFallback();
+    } else {
+      // Protocol fired but GitHub API was unreachable — cannot confirm.
+      commitPushOut.style.color = '#ffcc44';
+      const s = document.createElement('div');
+      s.textContent = 'SAVED — push fired (GitHub API unreachable, outcome unknown)';
+      commitPushOut.appendChild(s);
+      _buildFallback();
+    }
   }
 });
 

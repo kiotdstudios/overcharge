@@ -138,8 +138,8 @@ sec('ensureInLevelOrder — absent level does NOT append to manifest');
   ok(numbers.length === 2, 'manifest order length unchanged', String(numbers.length));
 }
 
-// ── 3+4. main.js structural assertions ───────────────────────────────────
-sec('main.js — structural: click path and handler-unavailable guard');
+// ── 3+4. main.js structural assertions (A13 + A14) ─────────────────────
+sec('main.js — structural: click path, handler guard, A14 honest reporting');
 {
   const mainSrc = readFileSync('editor/main.js', 'utf-8');
 
@@ -153,15 +153,38 @@ sec('main.js — structural: click path and handler-unavailable guard');
   ok(mainSrc.includes('_autoLink.remove()'),
     'auto-link is removed after click');
 
-  // 4. The try/catch guard means a thrown exception does NOT reach the panel
+  // 4. The try/catch guard: exception does NOT claim success
   const autoClickBlock = mainSrc.match(/try \{[^}]*_autoLink\.click\(\)[^}]*\}[^}]*catch[^}]*\}/s);
   ok(!!autoClickBlock, 'auto-click is wrapped in try/catch');
-  // The panel "SAVED + VERIFIED" message must be set BEFORE the auto-click attempt
-  const savedMsgIdx = mainSrc.indexOf('SAVED + VERIFIED into the Git folder');
+  // Status element set BEFORE the auto-click attempt
+  const savedMsgIdx = mainSrc.indexOf('SAVED + VERIFIED');
   const autoClickIdx = mainSrc.indexOf('_autoLink.click()');
   ok(savedMsgIdx > 0 && savedMsgIdx < autoClickIdx,
-    '"SAVED + VERIFIED" message appears before auto-click attempt',
+    '"SAVED + VERIFIED" status appears before auto-click attempt',
     `msg@${savedMsgIdx} click@${autoClickIdx}`);
+
+  // A14.1: No primary-styled peer publish button.
+  ok(!mainSrc.includes('PUBLISH TO GITHUB'),
+    'A14.1 — ▶ PUBLISH TO GITHUB peer button is absent from success path');
+
+  // A14.2: All three required report states must be present.
+  ok(mainSrc.includes("'PUBLISHED ' + _newSha"),
+    'A14.2 — PUBLISHED <sha> state is present');
+  ok(mainSrc.includes('PUBLISH FAILED'),
+    'A14.2 — PUBLISH FAILED state is present');
+  ok(mainSrc.includes("'SAVED \u2014 not published'"),
+    'A14.2 — SAVED — not published state is present');
+
+  // A14.2 mutation: PUBLISHED is only reachable when _published === true.
+  const publishedBranch = mainSrc.match(/if \(_published\) \{([\s\S]*?)\} else if/);
+  ok(!!publishedBranch, 'A14.2 — PUBLISHED state is inside if (_published) guard');
+  ok(!!(publishedBranch && publishedBranch[1].includes("'PUBLISHED '")),
+    'A14.2 — PUBLISHED string is inside the _published guard');
+
+  // A14.1 mutation: fallback link absent on success path.
+  const pubBranchStr = publishedBranch ? publishedBranch[1] : '';
+  ok(!pubBranchStr.includes('_buildFallback'),
+    'A14.1 — _buildFallback() absent from PUBLISHED branch');
 }
 
 console.log('\nRESULTS: ' + pass + ' passed, ' + fail + ' failed');
