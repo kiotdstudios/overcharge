@@ -2,7 +2,36 @@
 
 **Owner:** Orcha (runtime)
 **Ordered by:** Kiro, KIRO_HANDOFF_MASTER.md L182, held pending Chief's ruling
-**Status:** AWAITING CHIEF RULING on 6 numbered decisions
+**Status:** RATIFIED BY CHIEF 2026-09-19 18:30. Runtime half SHIPPED. Camera NOT started.
+
+## CHIEF'S RULINGS AS GIVEN
+
+1. **Per-level.** Plus new scope in his own words: *"i want to be able to add 'sections'
+   either up (so player can traverse down) and right so player can traverse horizontal."*
+2. **My recommendation accepted** (atomic shift of objects + tiles + tileRotations), with
+   *"fix if i have to later."*
+3. **Continuous follow.** *"yes follow the player continuosly."*
+4. **Clamp.**
+5. **No migration.** *"they stay as is and i will edit via editor to add verticallity later."*
+6. **No hard cap of his own; took the suggested 54**, to be raised later if he wants it.
+
+## WHAT SHIPPED AGAINST THIS RULING
+
+Runtime per-level height is live, 43/0 in `_dev/level_height.mjs`:
+- `level.rows` derived as `tiles.length / cols`, capped at `MAX_ROWS = 54`, falling back
+  to global `ROWS` for a malformed def. Symmetric with how `cols` has always worked.
+- `pxH`, collision (`tileAt`) and the tile render loop all read `this.rows`.
+- Dead `ROWS` import dropped from `player.js`.
+- All five shipped levels still derive to exactly 18. No migration, per decision 5.
+
+**Finding on his "add sections right":** horizontal ALREADY worked.
+`level.js:15` has always been `this.cols = def.cols || COLS`, so width has always been
+per-level. Adding sections to the right needs no runtime change at all. Only UP was
+pinned, and now it is not.
+
+**Still blocking A10:** the vertical camera (decision 3). Ruled but not built. Levels
+taller than the 578px viewport will load and collide correctly but the view will not
+follow the player down yet.
 **Blocks:** AKI A10 (Builder vertical expansion)
 
 Sequencing is non-negotiable per Kiro: the runtime must accept variable height BEFORE the

@@ -11,6 +11,12 @@ export const TILE = 32;
 export const COLS = 25;   // W / TILE
 export const ROWS = 18;   // H / TILE (floor) — was 14, +4 per Chief 2026-09-12
 
+// MAX_ROWS — CHIEF RULING 2026-09-19 18:30 decision 6. He took the suggested 54
+// (3 screens at 32px) and said he will raise it later if he wants, so it lives in ONE
+// named constant. Guards against authoring a level taller than anyone can navigate.
+// ROWS above stays the DEFAULT/fallback height; level.rows is the per-level truth.
+export const MAX_ROWS = 54;
+
 // Physics
 export const GRAVITY      = 900;
 export const PLAYER_SPEED = 75;

@@ -1,5 +1,5 @@
 // Level: tilemap + entity manager + update/draw
-import { TILE, COLS, ROWS, C, MAX_CHARGE } from './constants.js';
+import { TILE, COLS, ROWS, MAX_ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy, Crate, Chest } from './entities.js';
@@ -13,8 +13,31 @@ export class Level {
     // missing / short array renders as all-zero rotation (backward-compatible).
     this.tileRotations  = Array.isArray(def.tileRotations) ? def.tileRotations : null;
     this.cols    = def.cols || COLS;
+    // ── PER-LEVEL HEIGHT — CHIEF RULING 2026-09-19 18:30, decisions 1/5/6 ──────
+    // Rows are now derived exactly the way COLS already worked and exactly the way the
+    // Builder already derives them (editor/state.js levelRows()), so runtime and editor
+    // agree by construction rather than by convention.
+    //
+    // Decision 1: per-level, DERIVED, no new JSON field. A level's height is
+    //   tiles.length / cols. `def.rows` is honoured if a future Builder writes it, but
+    //   nothing has to.
+    // Decision 5: no migration. All five shipped levels are 1800/100 = 18, so they
+    //   derive to exactly what they had. The global ROWS stays as the fallback for a
+    //   malformed def, which is why nothing breaks.
+    // Decision 6: capped at MAX_ROWS. Chief took the suggested 54 (3 screens) and will
+    //   raise it on request, so the cap lives in ONE named constant, not inline.
+    //
+    // Chief's framing: add sections UP so the player traverses DOWN, and RIGHT so the
+    // player traverses horizontally. RIGHT already worked — cols has always been
+    // per-level. This makes UP work the same way. The y-shift that adding rows at the
+    // TOP requires is the Builder's job per decision 2, not the runtime's: the runtime
+    // just loads whatever height it is handed.
+    const derivedRows = (this.cols > 0 && Array.isArray(this.tiles))
+      ? Math.floor(this.tiles.length / this.cols)
+      : 0;
+    this.rows    = Math.max(1, Math.min(MAX_ROWS, def.rows || derivedRows || ROWS));
     this.pxW     = this.cols * TILE;
-    this.pxH     = ROWS * TILE;
+    this.pxH     = this.rows * TILE;
 
     this.sources  = (def.sources  || []).map(d => new ElectricalSource(d));
     this.gates    = (def.gates    || []).map(d => new PowerGate(d));
@@ -50,7 +73,7 @@ export class Level {
 
   tileAt(tx, ty) {
     if (tx < 0 || tx >= this.cols || ty < 0) return 1; // wall/ceiling
-    if (ty >= ROWS) return 0;                      // below map = void
+    if (ty >= this.rows) return 0;                      // below map = void
     return this.tiles[ty * this.cols + tx] || 0;
   }
 
@@ -255,7 +278,7 @@ export class Level {
     }
 
     // 2. Tiles — pass topOpen so exposed surfaces get neon edge
-    for (let ty = 0; ty < ROWS; ty++) {
+    for (let ty = 0; ty < this.rows; ty++) {
       for (let tx = 0; tx < this.cols; tx++) {
         const tile = this.tileAt(tx, ty);
         if (tile !== 0) {
