@@ -387,13 +387,32 @@ export function objectsInRect(x, y, w, h) {
 // selection produces ONE handle at the union bbox. Constant screen size
 // across zoom because computed in screen space at render time.
 
-// World-space bounding box of every currently-selected movable ref. Excludes
-// tiles (they'd need column/row math and aren't drag-movable today). Returns
+// World-space bounding box of every currently-selected movable ref. Returns
 // { x, y, w, h } in world coords or null when there's nothing movable selected.
+//
+// CHIEF BUG 2026-09-19: tiles used to be excluded here, with the comment "tiles
+// aren't currently movable". That is no longer true — tile drag landed with
+// captureTileDrag/commitTileDrag in tools.js — and the exclusion meant a TILE-ONLY
+// selection produced NO move handle, so there was literally no dot to grab. Two drag
+// mutations passed a 19-assertion suite because nothing ever clicked the handle;
+// adding a handle test is what surfaced this. Tiles are included now, so terrain gets
+// the same handle affordance as every other selectable thing.
 export function selectedBoundingBox() {
   const refs = selectedRefs();
-  if (refs.length === 0) return null;
+  const tiles = selectedTiles();
+  // NOT `refs.length === 0` — selectedRefs() deliberately omits tiles (they are a
+  // Set of "col,row" keys, not object refs), so bailing on refs alone returned null
+  // for a tile-only selection and killed the handle before the tile loop ran.
+  if (refs.length === 0 && tiles.length === 0) return null;
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  // Terrain cells: "col,row" keys, so the rect comes from grid math, not ref.x/y.
+  for (const { col, row } of tiles) {
+    const x = col * TILE_SIZE, y = row * TILE_SIZE;
+    if (x             < minX) minX = x;
+    if (y             < minY) minY = y;
+    if (x + TILE_SIZE > maxX) maxX = x + TILE_SIZE;
+    if (y + TILE_SIZE > maxY) maxY = y + TILE_SIZE;
+  }
   for (const { kind, ref } of refs) {
     const r = boundingRect(kind, ref);
     if (!r) continue;

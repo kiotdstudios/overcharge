@@ -208,6 +208,94 @@ function _applyDragMagnetic(origPositions) {
   state.snapIndicator = indicator;
   return leader;
 }
+// ── TILE DRAG (Chief bug 2026-09-19: "i have tiles selected and cant click hold
+// and drag them to a new location") ─────────────────────────────────────────────
+//
+// ROOT CAUSE: terrain tiles are selectable but were never movable. Selection.objectAt
+// returns { kind:'tile', ref:"col,row" } — a STRING key into the flat tiles array, not
+// an object with numeric x/y. The move path assumed objects:
+//     _origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]])
+// so for a tile that stored {x:undefined, y:undefined}, and onMouseMove then did
+// `ref.x = orig.x + dx` on a string primitive — which in an ES module (always strict
+// mode) THROWS TypeError. The handle path was worse: it filtered on
+// `typeof ref.x === 'number'`, so tiles were silently dropped and the group drag moved
+// nothing at all. That is exactly the reported symptom.
+//
+// Terrain is grid-authored, so a tile drag is always quantized to TILE_SIZE — the
+// AUTO/1/16/32 snap override deliberately does NOT apply to terrain.
+//
+// Overlap safety: source values are ALL read before ANY write. Clearing sources first
+// and writing after means a drag that overlaps its own origin (the common case — one
+// tile to the right) cannot eat its own cells.
+function captureTileDrag() {
+  const L = state.level;
+  if (!L || !Array.isArray(L.tiles)) return null;
+  const cells = Selection.selectedTiles()
+    .map(({ col, row }) => ({ col, row, val: L.tiles[row * L.cols + col] }))
+    .filter(c => c.val !== undefined);
+  if (cells.length === 0) return null;
+  // Full snapshot of the terrain array: the live preview restores from this every
+  // mousemove, so a moving drag never compounds its own edits.
+  return { cells, base: Array.from(L.tiles) };
+}
+
+// Quantize a world-space drag delta into whole tile steps.
+function tileDelta(dxRaw, dyRaw) {
+  return { dCol: Math.round(dxRaw / TILE_SIZE), dRow: Math.round(dyRaw / TILE_SIZE) };
+}
+
+// Live preview — mutates the terrain array directly so the existing renderer shows it
+// with no renderer change. Always rebuilt from `base`, never incrementally.
+function previewTileDrag(td, dCol, dRow) {
+  const L = state.level;
+  if (!L || !td) return;
+  const rows = levelRows();
+  for (let i = 0; i < td.base.length; i++) L.tiles[i] = td.base[i];
+  for (const c of td.cells) L.tiles[c.row * L.cols + c.col] = 0;          // lift
+  for (const c of td.cells) {                                            // place
+    const nc = c.col + dCol, nr = c.row + dRow;
+    if (nc < 0 || nc >= L.cols || nr < 0 || nr >= rows) continue;        // off-grid: drop
+    L.tiles[nr * L.cols + nc] = c.val;
+  }
+}
+
+// Commit as ONE undoable composite. Restores the pristine array first so every
+// setTile action records a truthful oldVal — otherwise undo would restore the
+// preview state rather than the state before the drag.
+function commitTileDrag(td, dCol, dRow) {
+  const L = state.level;
+  if (!L || !td) return false;
+  if (dCol === 0 && dRow === 0) { previewTileDrag(td, 0, 0); return false; }
+  const rows = levelRows();
+  const inBounds = (c, r) => c >= 0 && c < L.cols && r >= 0 && r < rows;
+  // Refuse a drag that would push any selected tile off the grid, rather than
+  // silently deleting part of the player's selection.
+  const offGrid = td.cells.some(c => !inBounds(c.col + dCol, c.row + dRow));
+  if (offGrid) {
+    previewTileDrag(td, 0, 0);
+    if (typeof flashPlacementReject === 'function') flashPlacementReject();
+    return false;
+  }
+  for (let i = 0; i < td.base.length; i++) L.tiles[i] = td.base[i];       // pristine
+  const dest = new Set(td.cells.map(c => (c.row + dRow) + ',' + (c.col + dCol)));
+  const actions = [];
+  for (const c of td.cells) {                                            // lift
+    if (dest.has(c.row + ',' + c.col)) continue;    // stays covered by the move
+    const a = Actions.setTile(c.col, c.row, 0);
+    if (a) actions.push(a);
+  }
+  for (const c of td.cells) {                                            // place
+    const a = Actions.setTile(c.col + dCol, c.row + dRow, c.val);
+    if (a) actions.push(a);
+  }
+  if (actions.length === 0) return false;
+  for (const a of actions) a.forward();
+  History.record(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'move_tiles'));
+  // Selection follows the tiles, so the highlight and a second drag both track.
+  Selection.clearSelection();
+  for (const c of td.cells) Selection.selectTile(c.col + dCol, c.row + dRow, true);
+  return true;
+}
 // ── POINTER TOOL ────────────────────────────────────────────────────────
 // Default everyday editing tool. Simpler than Select — no marquee, no shift-
 // additive. Its whole job is: pick one thing, move it, done.
@@ -228,6 +316,7 @@ export const pointerTool = {
   _mode:  null,           // null | 'move' | 'idle'
   _startWorld: null,
   _origPositions: null,   // Map<ref, {x, y}> for move undo (single object)
+  _tileDrag: null,        // terrain cells being dragged (see captureTileDrag)
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
 
@@ -236,7 +325,11 @@ export const pointerTool = {
     const { sx, sy } = canvasCoords(evt, canvas);
     if (Selection.moveHandleContains(sx, sy)) {
       const refs = Selection.selectedRefs();
-      if (refs.length > 0) {
+      // Tile-only selections have refs.length === 0 (selectedRefs omits tiles), so
+      // gating on refs alone made the handle inert for terrain — the dot appeared and
+      // did nothing, then fell through to objectAt() and CLEARED the selection.
+      const tileCells = Selection.selectedTiles().length;
+      if (refs.length > 0 || tileCells > 0) {
         const w = worldUnderMouse(evt, canvas);
         this._startWorld = w;
         this._mode = 'move';
@@ -246,6 +339,11 @@ export const pointerTool = {
             this._origPositions.set(ref, { x: ref.x, y: ref.y });
           }
         }
+        // Terrain in the selection is carried by captureTileDrag, NOT by
+        // _origPositions — tiles are "col,row" strings and have no x/y. Before this
+        // they were silently filtered out by the typeof guard above, so a handle drag
+        // on a tile selection moved nothing.
+        this._tileDrag = captureTileDrag();
         this._snap = groupSnap(refs);
         state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
         return;
@@ -270,6 +368,19 @@ export const pointerTool = {
       Selection.selectByKind(hit.kind, hit.ref, false);
     }
 
+    // TERRAIN: dragged as a cell set, because a tile has no x/y to offset. If the
+    // clicked tile is part of an existing multi-tile selection the WHOLE selection
+    // moves — dragging a 20-tile block one cell right should not silently reduce it
+    // to the single tile under the cursor. A bare click on an unselected tile
+    // selected it just above, so the set is never empty here.
+    if (hit.kind === 'tile') {
+      this._mode = 'move';
+      this._origPositions = null;
+      this._tileDrag = captureTileDrag();
+      state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
+      return;
+    }
+
     // Direct-click drag still moves only the clicked object (Pointer's
     // "just this one" behavior). Users wanting group drag should marquee
     // with Select then use the handle for the group.
@@ -287,37 +398,61 @@ export const pointerTool = {
     // whichever kind was hit (decoration.snap, or 16 for gameplay markers).
     const dxRaw = w.x - this._startWorld.x;
     const dyRaw = w.y - this._startWorld.y;
-    const s = effectiveSnap(this._snap ?? SNAP_DECORATION_DEFAULT);
-    const { dx, dy } = snapDelta(dxRaw, dyRaw, s);
-    for (const [ref, orig] of this._origPositions.entries()) {
-      ref.x = orig.x + dx;
-      ref.y = orig.y + dy;
+
+    // Terrain preview. Quantized to TILE_SIZE regardless of the AUTO/1/16/32 snap
+    // override, because terrain is grid-authored — a tile at x=17 is not a thing.
+    if (this._tileDrag) {
+      const { dCol, dRow } = tileDelta(dxRaw, dyRaw);
+      previewTileDrag(this._tileDrag, dCol, dRow);
     }
-    // Modular-family magnetic snap while dragging a single family piece.
-    _applyDragMagnetic(this._origPositions);
+
+    // Objects (decorations / gameplay markers). Null when the drag is terrain-only.
+    if (this._origPositions) {
+      const s = effectiveSnap(this._snap ?? SNAP_DECORATION_DEFAULT);
+      const { dx, dy } = snapDelta(dxRaw, dyRaw, s);
+      for (const [ref, orig] of this._origPositions.entries()) {
+        ref.x = orig.x + dx;
+        ref.y = orig.y + dy;
+      }
+      // Modular-family magnetic snap while dragging a single family piece.
+      _applyDragMagnetic(this._origPositions);
+    }
     state.dragMove.curWX = w.x;
     state.dragMove.curWY = w.y;
     import('./state.js').then(m => m.notify());
   },
 
-  onMouseUp(_evt, _canvas) {
-    if (this._mode === 'move' && this._origPositions) {
-      // Commit as a single moveObject action (or empty if user just clicked
-      // without dragging — makeComposite of [] is a no-op via History guard).
-      const actions = [];
-      for (const [ref, orig] of this._origPositions.entries()) {
-        const dx = ref.x - orig.x;
-        const dy = ref.y - orig.y;
-        if (dx !== 0 || dy !== 0) actions.push(Actions.moveObject(ref, dx, dy));
+  onMouseUp(evt, canvas) {
+    if (this._mode === 'move') {
+      // Terrain commit FIRST, while _startWorld is still valid. Uses the same
+      // quantized delta the preview used, so what you released is what you get.
+      if (this._tileDrag && this._startWorld && evt && canvas) {
+        const w = worldUnderMouse(evt, canvas);
+        const { dCol, dRow } = tileDelta(w.x - this._startWorld.x, w.y - this._startWorld.y);
+        commitTileDrag(this._tileDrag, dCol, dRow);
+      } else if (this._tileDrag) {
+        previewTileDrag(this._tileDrag, 0, 0);       // no coords: put terrain back
       }
-      if (actions.length > 0) {
-        History.record(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'move'));
+
+      if (this._origPositions) {
+        // Commit as a single moveObject action (or empty if user just clicked
+        // without dragging — makeComposite of [] is a no-op via History guard).
+        const actions = [];
+        for (const [ref, orig] of this._origPositions.entries()) {
+          const dx = ref.x - orig.x;
+          const dy = ref.y - orig.y;
+          if (dx !== 0 || dy !== 0) actions.push(Actions.moveObject(ref, dx, dy));
+        }
+        if (actions.length > 0) {
+          History.record(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'move'));
+        }
       }
       state.dragMove = null;
       state.snapIndicator = null;   // clear magnetic overlay on drag end
     }
     this._mode = null;
     this._origPositions = null;
+    this._tileDrag = null;
     this._startWorld = null;
     this._snap = null;
     import('./state.js').then(m => m.notify());
@@ -340,6 +475,7 @@ export const selectTool = {
   _shift: false,
   _startWorld: null,
   _origPositions: null,   // Map<ref, {x, y}> snapshot across ALL kinds for move undo
+  _tileDrag: null,        // terrain cells in the drag (see captureTileDrag)
 
   onMouseDown(evt, canvas) {
     if (evt.button !== 0) return;
@@ -350,7 +486,11 @@ export const selectTool = {
     const cc = canvasCoords(evt, canvas);
     if (Selection.moveHandleContains(cc.sx, cc.sy)) {
       const refs = Selection.selectedRefs();
-      if (refs.length > 0) {
+      // Tile-only selections have refs.length === 0 (selectedRefs omits tiles), so
+      // gating on refs alone made the handle inert for terrain — the dot appeared and
+      // did nothing, then fell through to objectAt() and CLEARED the selection.
+      const tileCells = Selection.selectedTiles().length;
+      if (refs.length > 0 || tileCells > 0) {
         const w0 = worldUnderMouse(evt, canvas);
         this._startWorld = w0;
         this._mode = 'move';
@@ -360,6 +500,7 @@ export const selectTool = {
             this._origPositions.set(ref, { x: ref.x, y: ref.y });
           }
         }
+        this._tileDrag = captureTileDrag();   // terrain rides along (see pointerTool)
         this._groupSnap = groupSnap(refs);
         state.dragMove = { active: true, startWX: w0.x, startWY: w0.y, curWX: w0.x, curWY: w0.y };
         return;
@@ -385,13 +526,16 @@ export const selectTool = {
             this._origPositions.set(ref, { x: ref.x, y: ref.y });
           }
         }
+        this._tileDrag = captureTileDrag();   // terrain rides along
         this._groupSnap = groupSnap(refs);
         state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
       } else {
         // Select just this one, prep for potential drag
         Selection.selectByKind(hit.kind, hit.ref, false);
         this._mode = 'move';
-        this._origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]]);
+        // A bare tile click drags the CELL SET, not a phantom object (tiles have no x/y).
+        if (hit.kind === 'tile') { this._origPositions = null; this._tileDrag = captureTileDrag(); }
+        else this._origPositions = new Map([[hit.ref, { x: hit.ref.x, y: hit.ref.y }]]);
         this._groupSnap = snapForRef(hit.kind, hit.ref);
         state.dragMove = { active: true, startWX: w.x, startWY: w.y, curWX: w.x, curWY: w.y };
       }
@@ -416,18 +560,27 @@ export const selectTool = {
       // ref. 32 is a multiple of 16 so mixed groups still land on valid grids.
       const dxRaw = w.x - this._startWorld.x;
       const dyRaw = w.y - this._startWorld.y;
-      const { dx, dy } = snapDelta(dxRaw, dyRaw, effectiveSnap(this._groupSnap ?? SNAP_DECORATION_DEFAULT));
-      for (const [ref, orig] of this._origPositions.entries()) {
-        ref.x = orig.x + dx;
-        ref.y = orig.y + dy;
+
+      // Terrain rides the same drag, quantized to whole tiles.
+      if (this._tileDrag) {
+        const { dCol, dRow } = tileDelta(dxRaw, dyRaw);
+        previewTileDrag(this._tileDrag, dCol, dRow);
       }
-      // Modular-family magnetic snap while dragging a single family piece.
-      _applyDragMagnetic(this._origPositions);
-      // Gameplay objects snap to the grid and sit on ground tiles (Chief
-      // 2026-09-12). Runs AFTER the delta and magnetic passes so it has the final
-      // say, and runs during the drag so the preview equals the committed result —
-      // onMouseUp derives its delta from these same refs.
-      _reanchorGameplay(this._origPositions);
+
+      if (this._origPositions) {
+        const { dx, dy } = snapDelta(dxRaw, dyRaw, effectiveSnap(this._groupSnap ?? SNAP_DECORATION_DEFAULT));
+        for (const [ref, orig] of this._origPositions.entries()) {
+          ref.x = orig.x + dx;
+          ref.y = orig.y + dy;
+        }
+        // Modular-family magnetic snap while dragging a single family piece.
+        _applyDragMagnetic(this._origPositions);
+        // Gameplay objects snap to the grid and sit on ground tiles (Chief
+        // 2026-09-12). Runs AFTER the delta and magnetic passes so it has the final
+        // say, and runs during the drag so the preview equals the committed result —
+        // onMouseUp derives its delta from these same refs.
+        _reanchorGameplay(this._origPositions);
+      }
       state.dragMove.curWX = w.x;
       state.dragMove.curWY = w.y;
       import('./state.js').then(m => m.notify());
@@ -460,22 +613,33 @@ export const selectTool = {
         if (gp.playerStart) Selection.selectByKind('playerStart', null, true);
       }
       state.marquee = null;
-    } else if (this._mode === 'move' && this._origPositions) {
-      // Commit the move as a composite of moveObject actions (works for any kind).
-      const actions = [];
-      for (const [ref, orig] of this._origPositions.entries()) {
-        const dx = ref.x - orig.x;
-        const dy = ref.y - orig.y;
-        if (dx !== 0 || dy !== 0) {
-          actions.push(Actions.moveObject(ref, dx, dy));
-        }
+    } else if (this._mode === 'move') {
+      // Terrain first, while _startWorld is still live.
+      if (this._tileDrag && this._startWorld && evt && canvas) {
+        const wUp = worldUnderMouse(evt, canvas);
+        const { dCol, dRow } = tileDelta(wUp.x - this._startWorld.x, wUp.y - this._startWorld.y);
+        commitTileDrag(this._tileDrag, dCol, dRow);
+      } else if (this._tileDrag) {
+        previewTileDrag(this._tileDrag, 0, 0);
       }
-      if (actions.length > 0) History.record(History.makeComposite(actions, 'move'));
+      if (this._origPositions) {
+        // Commit the move as a composite of moveObject actions (works for any kind).
+        const actions = [];
+        for (const [ref, orig] of this._origPositions.entries()) {
+          const dx = ref.x - orig.x;
+          const dy = ref.y - orig.y;
+          if (dx !== 0 || dy !== 0) {
+            actions.push(Actions.moveObject(ref, dx, dy));
+          }
+        }
+        if (actions.length > 0) History.record(History.makeComposite(actions, 'move'));
+      }
       state.dragMove = null;
       state.snapIndicator = null;   // clear magnetic overlay on drag end
     }
     this._mode = null;
     this._origPositions = null;
+    this._tileDrag = null;
     this._startWorld = null;
     this._groupSnap = null;
     import('./state.js').then(m => m.notify());
