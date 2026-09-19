@@ -3,7 +3,38 @@
 **For:** Aki (fixing now), and to correct the record for Chief
 **Chief:** *"drone now teleports and disappears completely but still in the game somehow but doesnt shoot
 anymore and lost aggro state"*
-**Verdict:** three symptoms, two causes. **Neither cause is a mistake in Orcha's O10.**
+**Verdict:** three symptoms, three causes — and the headline one **is** Orcha's.
+
+---
+
+## CORRECTION (issued minutes after the first version of this document)
+
+The first version of this file said *"neither cause is a mistake in Orcha's O10"* and *"on this defect:
+nothing."* **That was wrong, and it was wrong on the symptom Chief cared most about.** I had the diff in
+front of me and read the vision numbers while missing two deleted lines directly above them.
+
+O10's CFG rewrite **removed `CHASE_MULT: 1.35` and `LEASH: 160` and never replaced them:**
+
+```
+-    CHASE_MULT: 1.35,   // chase speed = speed * this
+-    LEASH: 160,         // may chase this far PAST its patrol bounds, then stops
++    visionX: 64,
++    visionY: 96,
++    FIRE_ARC: 120,
+```
+
+Both are dereferenced on the chase path:
+```js
+const leashL = this.patrolLeft - C.LEASH;                                  // NaN
+this.x = Math.max(leashL, Math.min(leashR - this.w,
+                  this.x + dir * this.speed * C.CHASE_MULT * dt));         // NaN
+```
+
+So **the moment the drone aggroed, its x became `NaN`** — not drawn, not hittable, still in
+`level.enemies`, still updating. That is precisely *"disappears completely but still in the game somehow."*
+
+Aki found it and fixed it in `d67508b`. Chief's irritation was **correctly aimed**; my first pass defended
+work that had a real defect in it. The rest of this document stands, with §5 rewritten.
 
 ---
 
@@ -98,13 +129,98 @@ like a fresh bug in whichever half you kept. If a coupled change looks wrong, **
 `level_guard.mjs` stays as it is. It is doing its job: it flags level-file changes so they are *deliberate*.
 The failure here was not the guard firing, it was the rule giving the wrong answer once it fired.
 
-## 5. What Orcha actually got wrong tonight, for the record
-On this defect: **nothing.** O10 was coherent, it moved the drone because his own analysis said it had to,
-and he said so before writing it. He is owed that correction.
+## 5. What went wrong, attributed accurately
 
-Separately, `visionX: 64` is a genuinely tight dial — 2 tiles means the drone must be nearly touching the
-player to react. Chief said *"will test and see how that feels"*, so it is his to tune, and with terrain-
-blocked line of sight now in place a wider box is **safe** in a way it was not before: the floor blocks it.
-That is a tuning conversation, not a bug.
+**Orcha's, and it is the serious one.** Rewriting the CFG block dropped `CHASE_MULT` and `LEASH`, two
+constants the chase path multiplies and clamps with. The result was a `NaN` position on first aggro — an
+entity that exists and cannot be seen. A suite at **769/0** did not catch it, because nothing asserted that
+the drone's position stays finite after aggro. That is the real lesson here, and it is the same shape as
+`e.update(dt, this)` passing two arguments to a three-argument function: **the failure was in the wiring
+between a config block and the code that reads it, and no assertion crossed that boundary.**
+
+New required assertion, for any entity with a CFG block:
+```
+after aggro, and after de-aggro, assert Number.isFinite(e.x) && Number.isFinite(e.y)
+```
+Mutation-test it by deleting one CFG key and confirming it fires. A dropped constant must never again be
+discoverable only by a human noticing an enemy vanished.
+
+**Reverting half the coupled change**, which produced the blind drone at a 285px gap. Well-intentioned,
+caused by my rule, amended in §4.
+
+**Mine.** I cleared Orcha in the first version of this document while the deleted constants were visible in a
+diff I had already read. Chief was told the wrong thing about who broke what, which is worse than saying
+nothing.
+
+## 6. Where live stands now, and the end state I recommend
+
+`d67508b` restored the CFG and got the drone working — but it restored **all** of O10's constants, which
+means **`_hasLineOfSight` is gone from live.** Verified: `_hasLineOfSight` is undefined and `_sees` no longer
+receives `level`. So Chief's *"notices me through the floor - big no no"* is **back**.
+
+The fix restored function by discarding the feature.
+
+**Recommended end state — and it needs no level-file change at all:**
+- **Keep `visionX 240 / visionY 340 / FIRE_ARC 300`.** Restored and working.
+- **Put `_hasLineOfSight` back.** This is the part Chief actually asked for.
+- **Keep `CHASE_MULT 1.35` and `LEASH 160`.** Obviously.
+- **Leave the Level 3 drone at `y=200`.** 285px gap against `visionY 340` is in range.
+- Build **O12**: replace the instant patrol clamp with a return capped at `speed * dt`.
+
+The insight that dissolves the whole placement argument: **a wide sight box is safe once terrain blocks it.**
+`visionY 340` was only ever a problem because it saw *through the floor*. With line of sight doing that job,
+the drone does not need to be moved to player elevation, `visionX` does not need to shrink to 2 tiles, and
+nobody needs to touch Chief's level file. The two halves were only coupled because the sight box was being
+used to do a job that line of sight does properly.
+
+— Kiro, Technical Director
+
+---
+
+## 7. `drone_sensing` is now 40/10 and it is RIGHT — the code regressed, not the suite
+
+The suite still asserts O10's design. Live reverted that design. Every failure is the guard working:
+
+```
+x FIRE_ARC >= visionY, so anything it can SEE it can SHOOT — FIRE_ARC 300 >= visionY 340
+x visionX is narrow, per Chief's "2 tiles" — 240px = 7.5 tiles
+x level4: a drone at the OLD y=200 cannot see the grounded player — separation 119px,
+      and terrain is between them                                    (x3, one per drone)
+x level4: the drone body never overlaps terrain along its patrol      (x2)
+x level3: LEVEL.update wires a player through and the drone ALERTS — sequence: patrol
+x level3: no blast before the telegraph elapsed
+x level3: and a blast actually connects with the grounded player — 0 stun(s) landed
+```
+
+Two of these are **live defects Chief will feel**, not bookkeeping:
+
+**`FIRE_ARC 300 < visionY 340`.** The drone can see 340px but only shoot 300px, so in a 40px band it
+alerts, chases and fires nothing. Orcha's own comment warns about exactly this — *"the reverse shipped once
+and the drone fired nothing"* — and restoring the old numbers restored the old bug with it.
+
+**The three Level 4 failures prove the floor is see-through again.** That assertion says a drone at y=200
+*must not* see a player 119px below when terrain sits between them. It passes only when line of sight
+exists. It is failing, which is the suite reporting Chief's *"notices me through the floor - big no no"* in
+assertion form.
+
+## 8. The fix list, in order
+
+1. **Restore `_hasLineOfSight`** and pass `level` into `_sees`. This is the piece Chief actually asked for
+   and the only one that makes a wide sight box legitimate.
+2. **`FIRE_ARC` must be `>= visionY`.** With `visionY 340`, set `FIRE_ARC 340`. Keep the assertion that
+   pins the relationship — do not just match the numbers by hand.
+3. **Keep `CHASE_MULT 1.35` and `LEASH 160`.** Add the finite-position assertion from §5 so a dropped
+   constant can never again present as a vanishing enemy.
+4. **Leave the Level 3 drone at `y=200`.** 285px against `visionY 340` is in range, and with line of sight
+   the floor does the blocking. No level file needs touching, which retires the conflict in §4 entirely.
+5. **`visionX` is Chief's dial.** He said 2 tiles; 64px means the drone must nearly touch him to react.
+   240px is 7.5 tiles. With line of sight restored, anything in between is safe. **Ask him for a number
+   rather than picking one** — he said *"will test and see how that feels"*, and that is a feel question.
+6. **Fix the Level 4 patrol overlap.** Two assertions say a drone body crosses terrain along its patrol.
+   That is placement, so it is Chief's to approve — report the columns and let him adjust.
+7. **O12 — the teleport.** Replace the instant patrol clamp with a return capped at `speed * dt`, and
+   assert no frame moves the drone further than that.
+
+Items 1-3 and 7 are code and yours. Items 4-6 touch placement or feel and are Chief's.
 
 — Kiro, Technical Director
