@@ -450,10 +450,26 @@ export class DroneEnemy {
     this._shotCd    = Math.max(0, (this._shotCd ?? 0) - dt);
 
     // ── VISION -> ALERT -> CHASE -> SHOOT ─────────────────────────────
-    // The drone LEASHES rather than pursuing forever: it chases past its patrol
-    // bounds but only up to LEASH, then stops. An unleashed chaser would follow the
-    // player out of the corridor and off the authored terrain — on Level 3 that
-    // means out over the 62% void.
+    // CHIEF 2026-09-19 10:38: "the drone does only chase a bit and stays locked to
+    // the edge of the next platform ... it should follow the player until the player
+    // gets out of its vision for more than x amount ... the drone stops and doesnt
+    // move past a certain point".
+    //
+    // The LEASH clamp is GONE. It pinned the chase to patrolLeft-160 .. patrolRight+160
+    // — on Level 3 that is x 240..720, which is the invisible wall he hit. The leash
+    // existed for one reason: terrain used to stop at x=1216 with 62% void beyond, so
+    // an unleashed drone would fly out over nothing. The 03:28 L3 finish extended
+    // terrain to the full declared width (col 99 / x=3200), so that reason is gone and
+    // the clamp is now pure obstruction.
+    //
+    // Replaced by a LEVEL-BOUNDS clamp, which protects the original concern (never
+    // leave authored space) without capping pursuit anywhere inside the level.
+    //
+    // Pursuit also PERSISTS through DEAGGRO_TIME rather than ending the instant sight
+    // breaks. Chief: the current timing "is perfect", so DEAGGRO_TIME is untouched at
+    // 0.7s — it is now what governs how long he must stay out of sight, instead of
+    // only how long the "lost him" tell renders. Without this the drone froze whenever
+    // he passed behind any pillar for a single frame.
     //
     // O9 (Chief: "needs an alert animation to know it found u"): aggro is now a
     // THREE-phase state machine, not a boolean. On first sight the drone enters
@@ -477,11 +493,24 @@ export class DroneEnemy {
     // Armed only once the telegraph has elapsed.
     const armed = canSee && this._alertT <= 0;
 
-    if (canSee) {
-      const dir    = Math.sign(player.cx - this.cx) || 1;
-      const leashL = this.patrolLeft  - C.LEASH;
-      const leashR = this.patrolRight + C.LEASH;
-      this.x  = Math.max(leashL, Math.min(leashR - this.w, this.x + dir * this.speed * C.CHASE_MULT * dt));
+    // `pursuing` is the chase gate: in sight, OR within the de-aggro grace window.
+    // Firing stays gated on `armed` (which requires canSee), so the drone follows
+    // through a brief break in sight but never shoots at where it guesses he is.
+    //
+    // `!!player` is LOAD-BEARING, not defensive noise. Without it the grace window
+    // could enter this branch on a frame where the caller passed no player at all and
+    // `player.cx` threw a TypeError mid-chase. My own suite caught that before it
+    // shipped — the level-complete and death frames legitimately tick with no player.
+    const pursuing = !!player && (canSee || this._deaggroT > 0);
+
+    if (pursuing) {
+      const dir = Math.sign(player.cx - this.cx) || 1;
+      // Level bounds, not patrol bounds. `level.pxW` is the authored width; the
+      // fallback keeps the old behaviour if a caller ever omits the level, rather
+      // than letting the drone run to infinity.
+      const minX = 0;
+      const maxX = (level && level.pxW ? level.pxW : this.patrolRight + C.LEASH) - this.w;
+      this.x  = Math.max(minX, Math.min(maxX, this.x + dir * this.speed * C.CHASE_MULT * dt));
       this.vx = dir * this.speed;                  // keeps the sprite facing correctly
       if (armed && this._shotCd <= 0 && Math.abs(player.cy - this.cy) < C.FIRE_ARC) {
         this._fire(dir, player);
@@ -654,7 +683,12 @@ export class DroneEnemy {
   }
 
   tryContact(player, level) {
-    if (!this.alive || this._cooldown > 0) return;
+    // `!player` guard: PRE-EXISTING latent crash, not introduced by the chase change.
+    // Level.update calls e.tryContact(player, this) unconditionally, so any frame that
+    // ticks the level without a player (level-complete, death, menu) dereferenced null
+    // here. Found by a chase test that passes null for one frame to simulate a sight
+    // break. Same class as the one in update(); both are guarded now.
+    if (!this.alive || this._cooldown > 0 || !player) return;
     const dx = player.cx - this.cx, dy = player.cy - this.cy;
     this._shooting = Math.sqrt(dx*dx + dy*dy) < 180;
     if (this.overlaps(player.x, player.y, player.w, player.h)) {
