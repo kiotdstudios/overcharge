@@ -1823,13 +1823,6 @@
       "y": 388,
       "charge": 4,
       "label": "GEN"
-    },
-    {
-      "id": "src_3",
-      "x": 704,
-      "y": 516,
-      "charge": 5,
-      "label": "GEN"
     }
   ],
   "gates": [
