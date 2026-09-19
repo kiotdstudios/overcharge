@@ -19,7 +19,6 @@ import {
   decoDimensions, getCachedImage,
   tileValueForAssetId, tileIsSolid, getTile, levelRows,
   flashPlacementReject,
-  GRAMMAR_FILL, GRAMMAR_EDGE, grammarEdgeFor, grammarFillFor,
 } from './state.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
@@ -1080,48 +1079,13 @@ export function startAssetDrag(asset, initialEvt) {
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup',   onUp);
 }
-// ── AKI 12: auto-promote grammar correction ───────────────────────────────────────
-// Called after every tile write. Adjusts the painted cell and the cell
-// directly above so the Purple City grammar is maintained automatically:
-//   • Painted cell is now a top tile AND is fill → promote to edge.
-//   • Cell above the painted cell is now buried AND was edge → demote to fill.
-// Each correction is a separate Actions.setTile included in the same composite
-// drag action so the whole gesture — paint + grammar — undoes as one.
-function _applyGrammarAt(col, row, dragActions) {
-  // CHIEF BUG 2026-09-19: gated on state.autoGrammar, DEFAULT OFF. Placing
-  // env_tile_dark_a used to yield 12,13,12,13... because the promote below rewrote
-  // every fill tile on a column top into a hash-chosen edge tile. Deterministic, but
-  // it reads as random and it throws away an explicit choice. Guarded here — the one
-  // chokepoint all three paint paths already funnel through — rather than at the four
-  // call sites, so the rule cannot be reintroduced by adding a fifth.
-  //
-  // The grammar rule itself is untouched: countGrammarViolations() still reports it
-  // and Actions.fixAllGrammar() still applies it from the FIX ALL button.
-  if (!state.autoGrammar) return;
-  const L = state.level;
-  if (!L || !L.tiles) return;
-  const COLS = L.cols;
-  const ROWS_N = levelRows(L);
-  const at = (c, r) => (c < 0 || c >= COLS || r < 0 || r >= ROWS_N) ? 0 : (L.tiles[r * COLS + c] || 0);
-
-  // Painted cell: fill tile now on top → promote to edge
-  const cur = at(col, row);
-  if (GRAMMAR_FILL.has(cur) && !tileIsSolid(at(col, row - 1))) {
-    const edge = grammarEdgeFor(cur, col, row);
-    const a = Actions.setTile(col, row, edge);
-    if (a) { a.forward(); dragActions.push(a); }
-  }
-
-  // Cell above: edge tile now buried → demote to fill
-  if (row > 0) {
-    const above = at(col, row - 1);
-    if (GRAMMAR_EDGE.has(above) && tileIsSolid(at(col, row - 2))) {
-      const fill = grammarFillFor(above);
-      const a = Actions.setTile(col, row - 1, fill);
-      if (a) { a.forward(); dragActions.push(a); }
-    }
-  }
-}
+// ── TILE GRAMMAR AUTO-PROMOTE: DELETED — CHIEF RULING 2026-09-19 04:37 ───────
+// _applyGrammarAt() used to run after every tile write and rewrite the painted cell
+// (fill-on-top -> hash-chosen edge) plus demote the cell above it. Chief: "rule of
+// top must cary purple wasnt interpreted correctly remove that rule". The hash made
+// a painted row come out 12,13,12,13; his own level1 is 87x purple_a to 8x purple_b
+// placed by hand. Gone entirely, not gated — nothing rewrites a placed tile now.
+// The three call sites (place / erase / rect) are removed with it.
 
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
 // Behavior:
@@ -1187,8 +1151,6 @@ export const placeTool = {
     }
     const a = Actions.setTile(col, row, val);
     if (a) { a.forward(); this._dragActions.push(a); }   // apply live, batch record
-    // AKI 12: auto-promote fill→edge and auto-demote buried edge→fill.
-    _applyGrammarAt(col, row, this._dragActions);
   },
 };
 
@@ -1251,9 +1213,6 @@ export const eraseTool = {
     this._erasedThisDrag.add(key);
     const a = Actions.setTile(col, row, 0);
     if (a) { a.forward(); this._dragActions.push(a); }
-    // AKI 12: erasing may expose the tile below as a new top tile — promote if fill.
-    // Pass row+1 as the "painted" cell; grammar checks row+1 (now top) and row (now empty/0).
-    _applyGrammarAt(col, row + 1, this._dragActions);
   },
 };
 
@@ -1328,12 +1287,7 @@ export const rectTool = {
         if (a) { a.forward(); actions.push(a); }
       }
     }
-    // AKI 12: apply grammar to every cell in the rectangle.
-    for (let r = r0; r <= r1; r++) {
-      for (let c = c0; c <= c1; c++) {
-        _applyGrammarAt(c, r, actions);
-      }
-    }
+    // (the grammar pass that used to run over the rectangle here is deleted)
     if (actions.length > 0) {
       History.record(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'rect-paint'));
     }

@@ -111,44 +111,29 @@ export function tileVariantForAssetId(id) {
   const v = tileValueForAssetId(id);
   return v < 0 ? -1 : v - TILE_VARIANT_BASE;   // return the OFFSET, caller adds BASE
 }
-// ── AKI 12: Tile Grammar helpers ─────────────────────────────────────────
-// Purple City fill tiles (10/11) must not be the topmost solid in a column.
-// The top tile must carry a purple edge (12/13). Rooftop: 16/17/18=fill, 19/20/21=edge.
-// Id 1 (legacy solid) has no edge variant — grammar cannot hold for id 1 tiles.
-
-// Fill-only IDs that must NOT sit at the top of a column.
-export const GRAMMAR_FILL = new Set([10, 11, 16, 17, 18]);
-// Edge IDs that must sit at the top of a column.
-export const GRAMMAR_EDGE = new Set([12, 13, 19, 20, 21]);
-
-// Given a fill tile at (col, row), return the correct edge tile ID using the
-// same deterministic hash render.js:52 uses so the result is stable.
-export function grammarEdgeFor(fillId, col, row) {
-  const h = (((col * 2654435761) ^ (row * 2246822519)) >>> 0) % 2;
-  if (fillId >= 16 && fillId <= 18) return h === 0 ? 19 : 20;  // Rooftop
-  return h === 0 ? 12 : 13;                                      // Purple City
-}
-// Given an edge tile, return the canonical fill tile for it.
-export function grammarFillFor(edgeId) {
-  if (edgeId === 19 || edgeId === 20 || edgeId === 21) return 16; // Rooftop → mid_a
-  return 10;  // Purple City → dark_a
-}
-// Returns the number of grammar violations in the level (fill tiles on column tops).
-export function countGrammarViolations(L) {
-  if (!L || !L.tiles) return 0;
-  const COLS = L.cols || 0;
-  const ROWS_N = Math.ceil(L.tiles.length / COLS) || 18;
-  let count = 0;
-  for (let r = 0; r < ROWS_N; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const v = L.tiles[r * COLS + c] || 0;
-      if (!GRAMMAR_FILL.has(v)) continue;
-      const above = r > 0 ? (L.tiles[(r - 1) * COLS + c] || 0) : 0;
-      if (!tileIsSolid(above)) count++;
-    }
-  }
-  return count;
-}
+// ── TILE GRAMMAR: REMOVED — CHIEF RULING 2026-09-19 04:37 ────────────────
+// "rule of top must cary purple wasnt interpreted correctly remove that rule
+//  and hopefully it goes back to being able to click the tiles down correctly"
+//
+// AKI 12 encoded the rule as: fill tiles (10/11/16/17/18) may never be the topmost
+// solid in a column, and any that was got rewritten to an edge tile (12/13/19/20)
+// chosen by a POSITION HASH. That made placing env_tile_dark_a along a row yield
+// 12,13,12,13,12,13 — Chief's "it randomizes placed tiles".
+//
+// The interpretation was wrong, not just the implementation. Measured against
+// level1.json, the hand-authored reference: 95 top tiles = 87x purple_a, 8x
+// purple_b, with only 8 variant changes across 94 adjacent columns. Chief places a
+// dominant edge with occasional variation BY HAND. The hash alternated every
+// column, which is not a pattern he ever authored.
+//
+// So the whole mechanism is gone: GRAMMAR_FILL, GRAMMAR_EDGE, grammarEdgeFor,
+// grammarFillFor, countGrammarViolations, the auto-promote hook, the FIX ALL
+// action and its UI. Nothing rewrites a placed tile now. What is clicked is what
+// is stored.
+//
+// Do NOT reintroduce an automatic tile-rewrite rule without an explicit ruling.
+// _dev/tile_grammar.mjs (Kiro's suite asserting the old rule) is kept for history
+// and marked RETIRED; it is not part of the gate.
 export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
 // Chief 2026-09-12: gameplay objects must land on WHOLE tiles. This was 16 (half
 // a tile), which is exactly why a dragged gate came to rest at x=1200 — a legal
@@ -322,21 +307,8 @@ export const state = {
                         // Chief can freely place decorations anywhere. Toggle
                         // ON to reject floating placements + wall overlaps
                         // (runtime collision is always unaffected).
-  autoGrammar: false,   // CHIEF BUG 2026-09-19: "pasting env tile dark a doesnt work
-                        // it randomizes placed tiles". AKI 12's auto-promote rewrote
-                        // every fill tile (10/11) landing on a column top into an edge
-                        // tile (12/13), chosen by a position hash — so asking for
-                        // dark_a eight times produced 12,13,12,13,12,13,12,13. It is
-                        // deterministic, but it is indistinguishable from random to
-                        // the person placing tiles, and it silently discarded an
-                        // explicit choice.
-                        //
-                        // DEFAULT OFF, same reasoning as guardsOn: an explicit
-                        // selection is an instruction, not a suggestion. The grammar
-                        // rule is NOT lost — the violation counter still reports it
-                        // and the FIX ALL button still applies it in one undoable
-                        // action, which is how a hand-authoring director should meet
-                        // it: on request, visible, reversible.
+  // (no autoGrammar flag — the tile grammar rule was REMOVED per Chief's ruling,
+  //  not made optional. See the TILE GRAMMAR: REMOVED note above.)
   snapOverride: 'auto', // 'auto' | 1 | 16 | 32. Chief-controlled override for
                         // placement snap and drag delta. 'auto' preserves the
                         // per-ref default behavior (terrain=32, gameplay=16,
@@ -485,7 +457,6 @@ export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
 export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
-export function setAutoGrammar(v)        { state.autoGrammar = !!v; notify(); }
 export function setMagneticSnap(v)       { state.magneticSnap = !!v; notify(); }
 export function setSnapOverride(v) {
   // Accept 'auto' | 1 | 16 | 32. Anything else falls back to 'auto'.
