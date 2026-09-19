@@ -6,7 +6,7 @@
 // server origin. Those are two different places and nothing bridged them, so
 // every save silently vanished the moment the editor was reopened:
 //
-//   SAVE  → C:\Users\...\some_folder\1_NEON_RISE.json   (local disk)
+//   SAVE  → C:\Users\...\some_folder\level1.json        (local disk)
 //   BOOT  → GET /src_scroll/levels/level1.json          (committed in git)
 //
 // This module mirrors every successful save into IndexedDB and persists the

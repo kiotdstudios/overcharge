@@ -162,6 +162,42 @@ for (const { file, def, drone } of droneLevels) {
     `separation ${Math.abs(p.cy - d.cy).toFixed(0)}px, and terrain is between them`);
 }
 
+
+sec('O12 -- smooth de-aggro return: no instant teleport, position stays finite');
+// Mutation test: revert the smooth-return block to the old instant clamp and
+// maxDelta would jump up to LEASH px in a single frame, failing the last assertion.
+const DT = 1/60;
+for (const { file, def, drone } of droneLevels) {
+  const lv2 = new Level(def);
+  const d2  = lv2.enemies.find(e => e instanceof ENT.DroneEnemy);
+  const p2  = groundedPlayerAt(def, d2.cx);
+  if (!p2) { ok(false, file + ': could not place grounded player for O12 test'); continue; }
+
+  // Aggro: run near drone for 3s
+  for (let i = 0; i < 180; i++) lv2.update(DT, p2);
+  ok(Number.isFinite(d2.x) && Number.isFinite(d2.y),
+    file + ': position is finite after aggro',
+    'x=' + d2.x.toFixed(1) + ' y=' + d2.y.toFixed(1));
+
+  // De-aggro: move player clearly outside visionX
+  p2.x = d2.cx + C.visionX * 4;
+  let maxDelta = 0;
+  let prevX2 = d2.x;
+  for (let i = 0; i < 180; i++) {
+    lv2.update(DT, p2);
+    const delta = Math.abs(d2.x - prevX2);
+    if (delta > maxDelta) maxDelta = delta;
+    prevX2 = d2.x;
+  }
+  ok(Number.isFinite(d2.x) && Number.isFinite(d2.y),
+    file + ': position is finite after de-aggro',
+    'x=' + d2.x.toFixed(1));
+  const maxAllowed = d2.speed * DT + 0.5;
+  ok(maxDelta <= maxAllowed,
+    file + ': no frame moved drone more than speed*dt (O12 smooth return)',
+    'max=' + maxDelta.toFixed(2) + 'px allowed=' + maxAllowed.toFixed(2) + 'px');
+}
+
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
 process.exit(fail===0?0:1);

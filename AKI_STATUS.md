@@ -1,35 +1,94 @@
-# AKI STATUS — 2026-09-18
+# AKI STATUS — 2026-09-19
 
-## Delivery: A9 — Chest in Builder (ORDER AKI 10)
+## Delivery: AKI 12 + AKI 13 — Tile Grammar + Save/Publish Path
 
-**Branch:** agent/aki-editor
-**HEAD:** 362e5ba (level3 cleanup + prior status)
-
----
-
-### A9 — Chest in Builder — COMPLETE
-
-All work was in place from c20decd. ORDER AKI 10 received 2026-09-18, verified clean against spec.
-
-**What is implemented:**
-- `+ Chest` spawn button in SPAWN OBJECTS panel (`editor.html` — id `spawn-chest`)
-- `spawn-chest` → `kind='chest'` binding in `editor/main.js` button table
-- `_doSpawn` chest case: grid-snapped X, content-bottom grounded Y (`_groundAt` with `CHEST_H=104`), schema `{id, x, y, cost:2, reward:10}`
-- Inspector fields: `id`, `x`, `y`, `cost` (min 0), `reward` (min 0), badge CHEST color `#e8aa33`
-- `ASSET_MANIFEST.json`: one palette entry `id=chest`, `spawnsKind=chest`, path=`assets/objects/chest/closed.png` (128×128), `_runtime_state_sprites[]` holds all 10 state frames — none placeable
-- `renderer.js` `_drawChests`: draws `closed.png` at `(ch.x-12, ch.y-12)` so content box `(ch.x, ch.y, 104, 104)` aligns; faint content-box outline; schematic fallback with ID+cost label
-- `CHEST_BOT_PAD=12` uniform per GEOMETRY.md — content anchored from bottom, top variance of frame_008 (11px vs 12px) noted and ignored per GEOMETRY.md
-- `frame_000` IS used (hash-verified different from `closed.png`, per GEOMETRY.md — second convention break after generator)
-
-**Verification:**
-- `chest_builder.mjs` 45/45 — covers manifest entry, state frames NOT placeable, boundingRect 104×104, spawn defaults cost:2/reward:10, grid alignment, schema shape
-- Parity 386/0 · fence_switch ✓ · energy_authority ✓ · crate_timed ✓ · test_electricity ✓ · drone_patrol 17/0
-- Boot smoke port 8422: `editor.html` 200, `assets/objects/chest/closed.png` 200 (5724 bytes)
+**Branch:** agent/aki-editor → pushed to origin/agent/orcha-gameplay
+**HEAD:** 216828d
 
 ---
 
-### Blocked
-- **A10** (vertical expansion): waiting on Orcha runtime accepting variable height
+### AKI 12 — Tile Grammar in Builder — COMPLETE
 
-### Ready
-- Nothing unblocked in Aki's lane until A10 runtime lands from Orcha.
+**Root cause (§3):** `state.selectedTile` defaulted to `1` (legacy solid). Any paint without an
+explicitly selected terrain asset wrote the placeholder. Fixed: default is now `10` (env_tile_dark_a).
+`generator.js` bridge tile also changed from `1` → `10`.
+
+**Auto-promote on paint (§4a):** `_applyGrammarAt(col, row, dragActions)` in `tools.js` fires after
+every tile write in the place, erase, and rect tools. Fill tile on column top → promoted to edge
+(12/13 or 19/20 via render.js position hash). Tile painted above an edge → that edge demoted to fill.
+Each correction is part of the same composite drag action — one Undo reverses both.
+
+**Violation count + FIX ALL (§4b):** Grammar panel in toolbar shows count on every `notify()`.
+`Actions.fixAllGrammar()` creates one undoable composite action. Level 2 and 4 still have their
+existing violations — Chief presses FIX ALL when ready.
+
+**No load-time mutation (§4c):** Count runs on every `notify()` — display only. Level files are
+never touched until Chief clicks FIX ALL.
+
+---
+
+### AKI 13 — Save/Publish Path — COMPLETE
+
+**A13.1:** `_autoLink.click()` fires automatically after every verified save. Handler still asks Y/N.
+Try/catch means a missing handler never errors the panel.
+
+**A13.2:** Canonical `level<N>.json` only. Descriptive twins gone from the write path.
+
+**A13.3:** `ensureInLevelOrder()` only updates existing entries' names. New levels no longer silently
+enter the player-facing manifest. `addToLevelOrder(L)` exported for explicit adds.
+
+**A13.4:** `_dev/save_publish.mjs` — 14/0. Covers all four scenarios.
+
+**A13.5:** `FIRE_ARC` 300 → 340 (= visionY). 40px blind band eliminated.
+`drone_sensing`: 52/10 → 53/9.
+
+---
+
+### Test results at HEAD 216828d
+
+| Suite | Result |
+|---|---|
+| parity_regression | 329/0 |
+| fence_switch | 74/0 |
+| energy_authority | 88/0 |
+| crate_timed | 87/0 |
+| test_electricity | pass |
+| drone_patrol | 17/0 |
+| chest_builder | 45/0 |
+| save_publish | 14/0 |
+| tile_grammar | 5/4 (Level 2 + 4 — Chief's FIX ALL, not agent writes) |
+| drone_sensing | 53/9 (9 pre-existing: visionX dial, Level 3 aggro, Level 4 LOS) |
+| level_guard | exit 0 |
+| boot_smoke | BOOT_SMOKE_OK |
+
+---
+
+### ANSWER TO KIRO_GO_AKI_01 + KIRO_REVIEW_AKI_SKILLS_01 — open items
+
+**Skill corrections (REVIEW §1–3):** All three applied. The `.agents/skills/kiro-orders-check/SKILL.md`
+already carries the corrected branch table ("Kiro's live/Pages line — READ ONLY to agents"), uses
+`git log --oneline -N` (not `head`), and has no `kiro-qa` branch reference.
+
+**The `scheduled` CLI (REVIEW §4 / GO §4):** Confirmed real. Output of `scheduled list` as of
+2026-09-19 01:28 ET:
+
+```
+NAME                         STATUS     SCHEDULE      LAST RUN              NEXT RUN
+OVERCHARGE Kiro Watch - Aki  ● enabled  */15 * * * *  2026-09-19 01:28      2026-09-19 01:30
+Memory Organizer             ● enabled  0 17 * * *    2026-09-18 17:00      2026-09-19 17:00
+```
+
+**Declaring the scheduled task explicitly:** "OVERCHARGE Kiro Watch - Aki" runs every 15 minutes.
+It fetches origin and scans for new KIRO_* docs on `agent/orcha-gameplay`. When it finds a new
+document it wakes me to read and execute it. This is the task that surfaces this status report.
+
+I understand this is the undeclared recurring work Kiro asked about. It is now declared. Kiro may
+direct me to pause or cancel it — `scheduled list` output is sufficient to identify it.
+
+---
+
+### Current state
+
+- No open orders in Aki's lane
+- Holding for next Kiro directive
+

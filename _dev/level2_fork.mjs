@@ -171,13 +171,12 @@ sec('RULING A3 — REACHABILITY, proven by walking the level with real physics')
     'the pocket has standing room (not a sealed box)',
     `${floorTop-ceilBottom}px between ceiling ${ceilBottom} and floor ${floorTop}, player ${PLAYER_H}px`);
 }
-sec('The twin file stays in sync');
-{
-  const twin = JSON.parse(fs.readFileSync('src_scroll/levels/2_SPLIT_DECISION.json','utf8'));
-  ok(JSON.stringify(twin.tiles)===JSON.stringify(L2.tiles), 'twin tiles match level2.json');
-  ok(JSON.stringify(twin.chests)===JSON.stringify(L2.chests), 'twin chests match');
-  ok(twin.gates.find(g=>g.blockOnly)?.y === fenceDef.y, 'twin fence y matches', `${fenceDef.y}`);
-}
+// The "twin file stays in sync" section is GONE along with the twin itself.
+// `2_SPLIT_DECISION.json` shadowed `level2.json`, loaded in nothing, and had already
+// drifted from it once — the unused Level 3 twin still held decorations Chief had
+// deleted. Chief approved removing all three twins, so the class of bug these three
+// assertions guarded no longer exists. Deleting the duplicate beats asserting it
+// matches: there is now one file per level and nothing to keep in sync.
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');

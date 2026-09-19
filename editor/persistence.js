@@ -267,15 +267,23 @@ export async function writeLevelOrder(manifest) {
 // Only writes when something changed AND a folder is set; returns quietly
 // otherwise so plain saves never hard-fail on manifest bookkeeping.
 export async function ensureInLevelOrder(L) {
+  // A13.3: update name of an EXISTING entry only. New levels are NOT silently
+  // appended — Chief adds them via an explicit action (addToLevelOrder).
   if (!L || L.number == null || !_saveDirHandle) return null;
   const manifest = await loadLevelOrder();
   const hit = manifest.order.find(e => e.number === L.number);
-  if (hit) {
-    if (hit.name === (L.name || hit.name)) return null;
-    hit.name = L.name || hit.name;
-  } else {
-    manifest.order.push({ number: L.number, name: L.name || `LEVEL ${L.number}`, file: `level${L.number}.json` });
-  }
+  if (!hit) return null;           // not registered yet — no silent append
+  if (hit.name === (L.name || hit.name)) return null;
+  hit.name = L.name || hit.name;
+  return writeLevelOrder(manifest);
+}
+
+// Explicitly register a new level in the manifest. Called only on Chief action.
+export async function addToLevelOrder(L) {
+  if (!L || L.number == null || !_saveDirHandle) return null;
+  const manifest = await loadLevelOrder();
+  if (manifest.order.find(e => e.number === L.number)) return null; // already there
+  manifest.order.push({ number: L.number, name: L.name || `LEVEL ${L.number}`, file: `level${L.number}.json` });
   return writeLevelOrder(manifest);
 }
 
@@ -368,46 +376,32 @@ export async function saveCurrentLevel() {
           _sessionConfirmedOverwrites.add(sessionKey);
         }
       }
-      // ─────────────────────────────────────────────────────────────────
-      const fh = await dir.getFileHandle(filename, { create: true });
+      // ── A13.2: write canonical levelN.json ONLY ────────────────────────────────────
+      // The runtime only loads level<N>.json. Descriptive-name twins diverge
+      // silently when the level name changes and are never read by the game.
+      const canonical = L.number != null ? `level${L.number}.json` : filename;
+      const fh = await dir.getFileHandle(canonical, { create: true });
       const w  = await fh.createWritable();
       await w.write(json);
       await w.close();
-      // Also write the CANONICAL name the game loads (level<N>.json). The
-      // descriptive filename is good for keeping variants around, but the
-      // runtime only ever fetches src_scroll/levels/level<N>.json — so if the
-      // save folder IS that folder, this one extra write is what makes the
-      // save real: commit and push it and the live game plays it.
-      let canonical = null;
-      if (L.number != null) {
-        canonical = `level${L.number}.json`;
-        if (canonical !== filename) {
-          const ch = await dir.getFileHandle(canonical, { create: true });
-          const cw = await ch.createWritable();
-          await cw.write(json);
-          await cw.close();
-        }
-      }
       // ── ORDER 005: VERIFY the canonical file actually landed ─────────
       // Read the just-written file back and byte-compare. A save that did
       // not produce the exact canonical levelN.json is a FAILED save —
       // never report a fake "saved" state.
-      const verifyName = canonical || filename;
-      const back = await (await (await dir.getFileHandle(verifyName)).getFile()).text();
+      const back = await (await (await dir.getFileHandle(canonical)).getFile()).text();
       if (back !== json) {
         return { ok: false, method: 'fsa-dir',
-          message: `SAVE FAILED verification — ${verifyName} on disk does not match the editor. Nothing marked saved.` };
+          message: `SAVE FAILED verification — ${canonical} on disk does not match the editor. Nothing marked saved.` };
       }
       state.dirty = false;
       state.lastSavedAt = Date.now();
-      state.levelPath = 'dir:' + verifyName;
-      // Keep the Git-tracked order manifest in sync (append-if-missing).
+      state.levelPath = 'dir:' + canonical;
+      // Sync the manifest name if this level is already registered.
+      // New levels are NOT auto-appended — Chief adds them explicitly (A13.3).
       try { await ensureInLevelOrder(L); } catch (err) { console.warn('[editor] manifest sync:', err.message); }
       notify();
-      const wrote = canonical && canonical !== filename
-        ? `${filename} + ${canonical}` : filename;
       return { ok: true, method: 'fsa-dir',
-        message: `Saved + verified: ${dir.name}/${wrote} — commit & push to publish.` };
+        message: `Saved + verified: ${dir.name}/${canonical} — commit & push to publish.` };
     } catch (err) {
       // Permission revoked / disk full / whatever — clear the dir and try
       // the per-file picker below as a last-ditch effort.

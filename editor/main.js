@@ -5,7 +5,7 @@ import {
   loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
-  screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
+  screenToWorld, levelRows, TILE_SIZE, tileIsSolid, countGrammarViolations,
 } from './state.js';
 import { render } from './renderer.js';
 import { mountAssetBrowser } from './assets.js';
@@ -55,6 +55,9 @@ const btnLayerForward  = document.getElementById('btn-layer-forward');
 const btnLayerBackward = document.getElementById('btn-layer-backward');
 const btnLayerBack     = document.getElementById('btn-layer-back');
 const btnRotate        = document.getElementById('btn-rotate');
+const grammarPanel     = document.getElementById('grammar-panel');
+const grammarCount     = document.getElementById('grammar-count');
+const btnFixAll        = document.getElementById('btn-fix-all');
 
 // ── Inspector collapse ────────────────────────────────────────────────────
 // UI-only layout toggle. Selection/state is untouched — CSS just hides the
@@ -213,6 +216,15 @@ btnRotate?.addEventListener('click', () => _applyRotate(90));
 // ── Level workflow wiring ─────────────────────────────────────────────────
 btnUndo?.addEventListener('click', () => History.undo());
 btnRedo?.addEventListener('click', () => History.redo());
+
+// AKI 12: FIX ALL grammar violations in one undoable action.
+btnFixAll?.addEventListener('click', () => {
+  const a = Actions.fixAllGrammar();
+  if (!a) return;
+  a.forward();
+  History.record(a);
+  notify();
+});
 btnNew?.addEventListener('click', async () => {
   await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_NEW);
   await Persistence.newLevel();
@@ -418,7 +430,7 @@ btnCommitPush?.addEventListener('click', async () => {
   try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
 
   // Step 2 — hand over the command. Stages the whole levels folder so the
-  // canonical file, the descriptive twin AND levels.json all go together;
+  // canonical level<N>.json AND levels.json all go together;
   // committing only one of them is how the manifest drifts from the files.
   const msg = `level${num ?? ''}: ${name} from Builder`;
   const cmd = [
@@ -464,6 +476,17 @@ btnCommitPush?.addEventListener('click', async () => {
       'display:inline-block;margin:8px 0;padding:6px 12px;border:1px solid #8fb;border-radius:4px;' +
       'color:#8fb;text-decoration:none;font-weight:600;letter-spacing:0.5px;background:rgba(136,255,187,0.08)';
     commitPushOut.appendChild(pub);
+
+    // A13.1: auto-invoke the protocol on every verified save. The handler
+    // still asks Y/N before pushing. The visible button above stays for re-clicks.
+    try {
+      const _autoLink = document.createElement('a');
+      _autoLink.href = 'overcharge://push';
+      _autoLink.style.display = 'none';
+      document.body.appendChild(_autoLink);
+      _autoLink.click();
+      _autoLink.remove();
+    } catch (_e) { /* handler not installed — fallback below */ }
 
     const note = document.createElement('div');
     note.style.cssText = 'font-size:11px;opacity:0.75;margin-bottom:6px';
@@ -726,6 +749,18 @@ function refreshUI() {
 
   // Level info bar
   refreshLevelInfo();
+
+  // AKI 12: Grammar violation count panel
+  if (grammarPanel && grammarCount) {
+    const violations = state.level ? countGrammarViolations(state.level) : 0;
+    if (violations > 0) {
+      grammarCount.textContent = violations + ' grammar violation' + (violations === 1 ? '' : 's');
+      grammarPanel.style.display = '';
+      if (btnFixAll) btnFixAll.disabled = false;
+    } else {
+      grammarPanel.style.display = 'none';
+    }
+  }
 }
 
 function refreshLevelSelect() {

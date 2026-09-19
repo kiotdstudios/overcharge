@@ -16,6 +16,11 @@
       "number": 3,
       "name": "DON'T GET HIT",
       "file": "level3.json"
+    },
+    {
+      "number": 4,
+      "name": "CARRY CURRENT",
+      "file": "level4.json"
     }
   ]
 }

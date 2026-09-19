@@ -19,6 +19,7 @@ import {
   decoDimensions, getCachedImage,
   tileValueForAssetId, tileIsSolid, getTile, levelRows,
   flashPlacementReject,
+  GRAMMAR_FILL, GRAMMAR_EDGE, grammarEdgeFor, grammarFillFor,
 } from './state.js';
 import * as Actions from './actions.js';
 import * as History from './history.js';
@@ -1079,6 +1080,39 @@ export function startAssetDrag(asset, initialEvt) {
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup',   onUp);
 }
+// ── AKI 12: auto-promote grammar correction ───────────────────────────────────────
+// Called after every tile write. Adjusts the painted cell and the cell
+// directly above so the Purple City grammar is maintained automatically:
+//   • Painted cell is now a top tile AND is fill → promote to edge.
+//   • Cell above the painted cell is now buried AND was edge → demote to fill.
+// Each correction is a separate Actions.setTile included in the same composite
+// drag action so the whole gesture — paint + grammar — undoes as one.
+function _applyGrammarAt(col, row, dragActions) {
+  const L = state.level;
+  if (!L || !L.tiles) return;
+  const COLS = L.cols;
+  const ROWS_N = levelRows(L);
+  const at = (c, r) => (c < 0 || c >= COLS || r < 0 || r >= ROWS_N) ? 0 : (L.tiles[r * COLS + c] || 0);
+
+  // Painted cell: fill tile now on top → promote to edge
+  const cur = at(col, row);
+  if (GRAMMAR_FILL.has(cur) && !tileIsSolid(at(col, row - 1))) {
+    const edge = grammarEdgeFor(cur, col, row);
+    const a = Actions.setTile(col, row, edge);
+    if (a) { a.forward(); dragActions.push(a); }
+  }
+
+  // Cell above: edge tile now buried → demote to fill
+  if (row > 0) {
+    const above = at(col, row - 1);
+    if (GRAMMAR_EDGE.has(above) && tileIsSolid(at(col, row - 2))) {
+      const fill = grammarFillFor(above);
+      const a = Actions.setTile(col, row - 1, fill);
+      if (a) { a.forward(); dragActions.push(a); }
+    }
+  }
+}
+
 // ── PLACE TOOL ───────────────────────────────────────────────────────────
 // Behavior:
 //   • Terrain-category asset (or none): paint tile-1 into grid (drag OK)
@@ -1134,7 +1168,7 @@ export const placeTool = {
     // a specific tile art is selected (env_tile_purple_a etc.) we look it up
     // in the permanent registry so the painted cell stores exactly that
     // variant. Empty selection or non-terrain selection falls back to
-    // state.selectedTile (currently 1) which renders as art[0].
+    // state.selectedTile (10=env_tile_dark_a, never the legacy placeholder 1).
     const asset = state.selectedAsset;
     let val = state.selectedTile;
     if (asset && isTerrainCategory(asset.category)) {
@@ -1143,6 +1177,8 @@ export const placeTool = {
     }
     const a = Actions.setTile(col, row, val);
     if (a) { a.forward(); this._dragActions.push(a); }   // apply live, batch record
+    // AKI 12: auto-promote fill→edge and auto-demote buried edge→fill.
+    _applyGrammarAt(col, row, this._dragActions);
   },
 };
 
@@ -1205,6 +1241,9 @@ export const eraseTool = {
     this._erasedThisDrag.add(key);
     const a = Actions.setTile(col, row, 0);
     if (a) { a.forward(); this._dragActions.push(a); }
+    // AKI 12: erasing may expose the tile below as a new top tile — promote if fill.
+    // Pass row+1 as the "painted" cell; grammar checks row+1 (now top) and row (now empty/0).
+    _applyGrammarAt(col, row + 1, this._dragActions);
   },
 };
 
@@ -1259,7 +1298,7 @@ export const rectTool = {
     if (!L) { this._reset(); return; }
     // Resolve the tile value from the selected asset (same rule as _paintCell).
     const asset = state.selectedAsset;
-    let val = 1;
+    let val = state.selectedTile;  // defaults to 10 (env_tile_dark_a)
     if (asset && isTerrainCategory(asset.category)) {
       const registered = tileValueForAssetId(asset.id);
       if (registered >= 0) val = registered;
@@ -1277,6 +1316,12 @@ export const rectTool = {
       for (let c = c0; c <= c1; c++) {
         const a = Actions.setTile(c, r, val);
         if (a) { a.forward(); actions.push(a); }
+      }
+    }
+    // AKI 12: apply grammar to every cell in the rectangle.
+    for (let r = r0; r <= r1; r++) {
+      for (let c = c0; c <= c1; c++) {
+        _applyGrammarAt(c, r, actions);
       }
     }
     if (actions.length > 0) {

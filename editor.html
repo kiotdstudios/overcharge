@@ -208,6 +208,8 @@
 
   /* Section 6: Test status block */
   #parity-status { font-family:monospace; font-size:10px; letter-spacing:0.3px; line-height:1.6; margin-bottom:6px; }
+
+  #grammar-panel button:hover { background:#554400; }
 </style>
 </head>
 <body>
@@ -219,6 +221,7 @@
     <button id="btn-choose-folder" class="tp-btn" title="REQUIRED before saving — pick the git levels folder (src_scroll/levels) so SAVE writes directly into your Git clone">📁 FOLDER</button>
     <span id="save-folder-name"></span>
     <span id="save-flash"></span>
+    <span id="grammar-panel" style="display:none;margin-left:8px;font-family:monospace;font-size:11px;vertical-align:middle"><span id="grammar-count" style="color:#ffcc44"></span><button id="btn-fix-all" style="margin-left:6px;padding:1px 6px;font-size:11px;background:#332200;border:1px solid #ffcc44;color:#ffcc44;cursor:pointer;border-radius:2px" title="Fix all tile grammar violations in this level (one undoable action)">FIX ALL</button></span>
     <input id="upload-input" type="file" accept=".json,application/json" style="display:none">
     <div class="divider"></div>
     <div id="level-info">loading...</div>

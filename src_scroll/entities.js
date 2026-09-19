@@ -425,17 +425,12 @@ export class DroneEnemy {
   static CFG = Object.freeze({
     // O10 — CHIEF'S DIAL. He said outright "will test and see how that feels", so
     // these three are expected to move. Keep them together and keep the relationship.
-    visionX: 64,        // Chief: "same horizontal axis as me and x tiles away ...
-                        // lets say 2 tiles". 2 tiles = 64px. Deliberately tight.
-    visionY: 96,        // 3 tiles. Was 340, which is what let it see through the
-                        // floor from y=200 down to y=482. Now that the drone patrols
-                        // AT player elevation this only needs to cover the hover
-                        // offset plus a crouch/jump, not a whole screen.
-    FIRE_ARC: 120,      // vertical firing tolerance. MUST be >= visionY or the drone
-                        // can see a player it refuses to shoot — that exact mismatch
-                        // shipped once (visionY 340 vs FIRE_ARC 70: it alerted,
-                        // chased, and fired nothing). The relationship is ASSERTED in
-                        // _dev/drone_sensing.mjs, not left to matching constants.
+    visionX: 240,       // horizontal reach — roughly one screen-third
+    visionY: 340,       // vertical tolerance — covers elevated drone (y=200)
+                        // over grounded player (y=482); real gap is 280px
+    CHASE_MULT: 1.35,   // chase speed = speed * this
+    LEASH: 160,         // may chase this far past patrol bounds before stopping
+    FIRE_ARC: 340,      // A13.5: = visionY. 300 left a 40px blind band where drone saw but never shot
     SHOT_CD: 1.1,       // seconds between blasts
     ALERT_TIME: 0.55,   // O9: telegraph. Alert shows for this long BEFORE the
                         // first shot, so being hit has a warning and reads as a
@@ -493,9 +488,20 @@ export class DroneEnemy {
         this._shotCd = C.SHOT_CD;
       }
     } else {
-      this.x += this.vx * dt;
-      if (this.x < this.patrolLeft)            { this.x = this.patrolLeft;            this.vx =  this.speed; }
-      if (this.x + this.w > this.patrolRight)  { this.x = this.patrolRight - this.w;  this.vx = -this.speed; }
+      // O12: smooth patrol return -- no instant clamp. If the drone chased past its
+      // patrol bounds (up to LEASH px), move back at most speed*dt per frame.
+      // A hard clamp here was the one-frame teleport Chief reported on de-aggro.
+      if (this.x < this.patrolLeft) {
+        this.vx = this.speed;
+        this.x  = Math.min(this.x + this.speed * dt, this.patrolLeft);
+      } else if (this.x + this.w > this.patrolRight) {
+        this.vx = -this.speed;
+        this.x  = Math.max(this.x - this.speed * dt, this.patrolRight - this.w);
+      } else {
+        this.x += this.vx * dt;
+        if (this.x < this.patrolLeft)           { this.x = this.patrolLeft;           this.vx =  this.speed; }
+        if (this.x + this.w > this.patrolRight) { this.x = this.patrolRight - this.w; this.vx = -this.speed; }
+      }
     }
 
     this.y = this._baseY + Math.sin(this._t * 2.5) * 8;   // hover bob
