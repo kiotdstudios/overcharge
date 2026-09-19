@@ -430,7 +430,7 @@ export class DroneEnemy {
                         // over grounded player (y=482); real gap is 280px
     CHASE_MULT: 1.35,   // chase speed = speed * this
     LEASH: 160,         // may chase this far past patrol bounds before stopping
-    FIRE_ARC: 300,      // vertical firing tolerance — must be >= visionY
+    FIRE_ARC: 340,      // A13.5: = visionY. 300 left a 40px blind band where drone saw but never shot
     SHOT_CD: 1.1,       // seconds between blasts
     ALERT_TIME: 0.55,   // O9: telegraph. Alert shows for this long BEFORE the
                         // first shot, so being hit has a warning and reads as a

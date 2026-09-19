@@ -38,7 +38,8 @@ export const TILE_ID_REGISTRY = Object.freeze({
   12: 'env_tile_purple_a',
   13: 'env_tile_purple_b',
   // Purple Rooftop tileset (IDs 14-23). env_rt_ prefix = rooftop namespace.
-  // basename(manifest path) for each must equal the rt_ key in render.js.  16: 'env_rt_tile_mid_a',
+  // basename(manifest path) for each must equal the rt_ key in render.js.
+  16: 'env_rt_tile_mid_a',
   17: 'env_rt_tile_mid_b',
   18: 'env_rt_tile_mid_c',
   19: 'env_rt_tile_purple_a',
@@ -109,6 +110,44 @@ export function terrainArtOrder() {
 export function tileVariantForAssetId(id) {
   const v = tileValueForAssetId(id);
   return v < 0 ? -1 : v - TILE_VARIANT_BASE;   // return the OFFSET, caller adds BASE
+}
+// ── AKI 12: Tile Grammar helpers ─────────────────────────────────────────
+// Purple City fill tiles (10/11) must not be the topmost solid in a column.
+// The top tile must carry a purple edge (12/13). Rooftop: 16/17/18=fill, 19/20/21=edge.
+// Id 1 (legacy solid) has no edge variant — grammar cannot hold for id 1 tiles.
+
+// Fill-only IDs that must NOT sit at the top of a column.
+export const GRAMMAR_FILL = new Set([10, 11, 16, 17, 18]);
+// Edge IDs that must sit at the top of a column.
+export const GRAMMAR_EDGE = new Set([12, 13, 19, 20, 21]);
+
+// Given a fill tile at (col, row), return the correct edge tile ID using the
+// same deterministic hash render.js:52 uses so the result is stable.
+export function grammarEdgeFor(fillId, col, row) {
+  const h = (((col * 2654435761) ^ (row * 2246822519)) >>> 0) % 2;
+  if (fillId >= 16 && fillId <= 18) return h === 0 ? 19 : 20;  // Rooftop
+  return h === 0 ? 12 : 13;                                      // Purple City
+}
+// Given an edge tile, return the canonical fill tile for it.
+export function grammarFillFor(edgeId) {
+  if (edgeId === 19 || edgeId === 20 || edgeId === 21) return 16; // Rooftop → mid_a
+  return 10;  // Purple City → dark_a
+}
+// Returns the number of grammar violations in the level (fill tiles on column tops).
+export function countGrammarViolations(L) {
+  if (!L || !L.tiles) return 0;
+  const COLS = L.cols || 0;
+  const ROWS_N = Math.ceil(L.tiles.length / COLS) || 18;
+  let count = 0;
+  for (let r = 0; r < ROWS_N; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const v = L.tiles[r * COLS + c] || 0;
+      if (!GRAMMAR_FILL.has(v)) continue;
+      const above = r > 0 ? (L.tiles[(r - 1) * COLS + c] || 0) : 0;
+      if (!tileIsSolid(above)) count++;
+    }
+  }
+  return count;
 }
 export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
 // Chief 2026-09-12: gameplay objects must land on WHOLE tiles. This was 16 (half
@@ -268,7 +307,7 @@ export const state = {
 
   // Selection / current tool
   selectedAsset: null,  // manifest item currently chosen for placement
-  selectedTile:  1,     // integer tile-type to place with terrain brush (1=solid)
+  selectedTile:  10,    // integer tile-type to place with terrain brush (10=env_tile_dark_a; not legacy 1)
   tool:          'place', // 'place' | 'erase' | 'pan'
 
   // Viewport

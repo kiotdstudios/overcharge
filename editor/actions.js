@@ -9,7 +9,7 @@
 // wherever the mutation originates. Layers/inspector/collision/links will
 // add their own action types without touching history.js.
 
-import { state, notify, levelRows, TILE_VARIANT_BASE } from './state.js';
+import { state, notify, levelRows, TILE_VARIANT_BASE, GRAMMAR_FILL, GRAMMAR_EDGE, grammarEdgeFor, grammarFillFor, tileIsSolid } from './state.js';
 
 // ── SetTileAction ────────────────────────────────────────────────────────
 // Sets a single tile (col,row) to `newVal`, remembers `oldVal` for undo.
@@ -303,5 +303,46 @@ export function setPlayerStart(level, x, y) {
     type: 'set_player_start',
     forward() { level.playerStart = { x, y }; notify(); },
     inverse() { level.playerStart = old; notify(); },
+  };
+}
+
+// ── AKI 12: FIX ALL grammar violations ──────────────────────────────────
+// Scans every tile in the level. Promotes fill-on-top to edge, demotes
+// buried-edge to fill. Returns one composite action (or null if nothing to fix).
+// This is the action Chief triggers via the FIX ALL button; it does NOT run
+// automatically on load so opening a legacy level never marks it dirty.
+export function fixAllGrammar() {
+  const L = state.level;
+  if (!L || !L.tiles) return null;
+  const COLS = L.cols;
+  const ROWS_N = levelRows();
+  const at = (c, r) => (c < 0 || c >= COLS || r < 0 || r >= ROWS_N) ? 0 : (L.tiles[r * COLS + c] || 0);
+  const changes = [];
+  for (let r = 0; r < ROWS_N; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const v = at(c, r);
+      const above = at(c, r - 1);
+      if (GRAMMAR_FILL.has(v) && !tileIsSolid(above)) {
+        // Fill tile on top — promote to edge
+        changes.push({ col: c, row: r, newVal: grammarEdgeFor(v, c, r) });
+      } else if (GRAMMAR_EDGE.has(v) && tileIsSolid(above)) {
+        // Edge tile now buried — demote to fill
+        changes.push({ col: c, row: r, newVal: grammarFillFor(v) });
+      }
+    }
+  }
+  if (changes.length === 0) return null;
+  const oldVals = changes.map(ch => L.tiles[ch.row * COLS + ch.col]);
+  return {
+    type: 'fix_all_grammar',
+    count: changes.length,
+    forward() {
+      for (const ch of changes) L.tiles[ch.row * COLS + ch.col] = ch.newVal;
+      notify();
+    },
+    inverse() {
+      for (let i = 0; i < changes.length; i++) L.tiles[changes[i].row * COLS + changes[i].col] = oldVals[i];
+      notify();
+    },
   };
 }

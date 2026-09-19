@@ -322,7 +322,7 @@ function _buildLevel(rng, ctx) {
     const midUp = Math.min(a.up, b.up) + 1;
     const bridgeRow = toRow(midUp);
     if (bridgeRow >= 0 && bridgeRow < ROWS && bridgeCol > 0 && bridgeCol < cols - 1) {
-      tiles[bridgeRow * cols + bridgeCol] = 1;
+      tiles[bridgeRow * cols + bridgeCol] = 10;  // AKI 12: use fill tile, not legacy solid
     }
   }
 
