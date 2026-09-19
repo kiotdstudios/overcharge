@@ -499,6 +499,29 @@
         "eligible": false,
         "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
       }
+    },
+    {
+      "id": "chest",
+      "path": "assets/objects/chest/closed.png",
+      "category": "object",
+      "tags": [
+        "chest",
+        "reward",
+        "spawn",
+        "placement"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "chest",
+      "notes": "Palette entry for the chest object. Clicking enters spawn mode — sets pendingSpawn:{kind:'chest'}. Art: closed.png (128x128 canvas, 104x104 content, botPad=12). Hitbox is content box 104x104. Default cost:2, reward:10 (Chief-ratified full pip). State frames (open_empty.png, opening/frame_000..008) are in _runtime_state_sprites[], NOT here — Chief must never be able to place an already-opened chest.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical reward object — requires designer placement"
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -647,6 +670,57 @@
         "eligible": false,
         "ineligible_reason": "Runtime animation — wired in electricity.js PowerGate._drawFence, not palette-placeable"
       }
+    },
+    {
+      "id": "chest_open_empty",
+      "src": "assets/objects/chest/open_empty.png",
+      "notes": "Final resting state after chest reward is taken. Runtime-only — not placeable."
+    },
+    {
+      "id": "chest_opening_frame_000",
+      "src": "assets/objects/chest/opening/frame_000.png",
+      "notes": "Chest opening animation frame 0 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_001",
+      "src": "assets/objects/chest/opening/frame_001.png",
+      "notes": "Chest opening animation frame 1 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_002",
+      "src": "assets/objects/chest/opening/frame_002.png",
+      "notes": "Chest opening animation frame 2 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_003",
+      "src": "assets/objects/chest/opening/frame_003.png",
+      "notes": "Chest opening animation frame 3 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_004",
+      "src": "assets/objects/chest/opening/frame_004.png",
+      "notes": "Chest opening animation frame 4 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_005",
+      "src": "assets/objects/chest/opening/frame_005.png",
+      "notes": "Chest opening animation frame 5 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_006",
+      "src": "assets/objects/chest/opening/frame_006.png",
+      "notes": "Chest opening animation frame 6 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_007",
+      "src": "assets/objects/chest/opening/frame_007.png",
+      "notes": "Chest opening animation frame 7 (000..008, plays once). Runtime-only."
+    },
+    {
+      "id": "chest_opening_frame_008",
+      "src": "assets/objects/chest/opening/frame_008.png",
+      "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
-  ]
+  ],
+  "count": 20
 }

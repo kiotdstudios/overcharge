@@ -36,6 +36,7 @@ const MARKER = {
   checkpoint: '#44ff88',
   platform:   '#44aadd',
   crate:      '#aa55ff',
+  chest:      '#e8aa33',
   playerStart:'#ffffff',
   selection:  '#ffee00',
 };
@@ -228,6 +229,7 @@ export function render(ctx, canvas) {
   _drawEnemies(ctx, L.enemies);
   _drawPlatforms(ctx, L.platforms);
   _drawCrates(ctx, L.crates);
+  _drawChests(ctx, L.chests);
   _drawPlayerStart(ctx, L.playerStart);
 
   // Selection highlights — decorations, gameplay markers, tiles, playerStart.
@@ -265,6 +267,7 @@ export function render(ctx, canvas) {
     for (const o of state.selection.enemies)            outlineByKind('enemy', o);
     for (const o of (state.selection.platforms || []))  outlineByKind('platform', o);
     for (const o of (state.selection.crates     || [])) outlineByKind('crate', o);
+    for (const o of (state.selection.chests     || [])) outlineByKind('chest', o);
     for (const o of state.selection.gates)              outlineByKind('gate', o);
 
     if (state.selection.playerStart && L.playerStart) {
@@ -953,6 +956,67 @@ function _drawCrates(ctx, arr) {
       ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'top';
       ctx.fillText(cr.id, p.x + cw / 2, p.y + ch + 2);
+    }
+  }
+}
+
+
+// Chest: real closed.png art (128x128 canvas, 104x104 content, botPad=12 on all sides).
+// x,y = top-left of the content box. Art is drawn at (x-12, y-12) to align content.
+// GEOMETRY.md is the contract — do not re-derive. frame_000 IS a real frame in this pack
+// (hash-verified different from closed.png); only closed.png is placeable.
+const CHEST_CANVAS  = 128;
+const CHEST_CONTENT = 104;
+const CHEST_BOT_PAD = 12;  // botPad = 12 uniform across all 11 files (GEOMETRY.md)
+
+function _drawChests(ctx, arr) {
+  if (!Array.isArray(arr)) return;
+  const z = state.camera.zoom;
+  const COLOR = MARKER.chest;
+  const IMG_PATH = 'assets/objects/chest/closed.png';
+  for (const ch of arr) {
+    // Art top-left is 12px left/above the content top-left
+    const artWorldX = ch.x - CHEST_BOT_PAD;
+    const artWorldY = ch.y - CHEST_BOT_PAD;
+    const p  = worldToScreen(artWorldX, artWorldY);
+    const artW = CHEST_CANVAS * z, artH = CHEST_CANVAS * z;
+    const img = getImage(IMG_PATH);
+    ctx.imageSmoothingEnabled = false;
+    if (img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, p.x, p.y, artW, artH);
+      // Faint outline over content box so the hitbox is legible
+      const cp = worldToScreen(ch.x, ch.y);
+      const cw = CHEST_CONTENT * z, cch = CHEST_CONTENT * z;
+      ctx.save();
+      ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1, 1.5 * z); ctx.globalAlpha = 0.35;
+      ctx.strokeRect(cp.x, cp.y, cw, cch);
+      ctx.restore();
+    } else {
+      // Schematic fallback while loading
+      const cp = worldToScreen(ch.x, ch.y);
+      const cw = CHEST_CONTENT * z, cch = CHEST_CONTENT * z;
+      ctx.fillStyle = 'rgba(80,50,10,0.75)';
+      ctx.fillRect(cp.x, cp.y, cw, cch);
+      ctx.save();
+      ctx.shadowBlur = Math.max(5, 7 * z); ctx.shadowColor = COLOR;
+      ctx.strokeStyle = COLOR; ctx.lineWidth = Math.max(1.5, 2 * z);
+      ctx.strokeRect(cp.x, cp.y, cw, cch);
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      ctx.fillStyle = COLOR;
+      ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('CH', cp.x + cw / 2, cp.y + cch / 2);
+    }
+    // ID + cost/reward label below
+    if (ch.id) {
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = COLOR;
+      ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      const lx = worldToScreen(ch.x + CHEST_CONTENT / 2, ch.y + CHEST_CONTENT).x;
+      const ly = worldToScreen(ch.x, ch.y + CHEST_CONTENT).y;
+      ctx.fillText(ch.id + (ch.cost != null ? ' ⚡' + ch.cost : ''), lx, ly + 2);
     }
   }
 }
