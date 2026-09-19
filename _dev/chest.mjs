@@ -150,6 +150,41 @@ sec('Level 2 economy re-verified with the chest as a RESERVE pip');
   ok(Math.abs(spent-8)<1e-9, 'and the exit actually takes 8', `spent=${spent}, left=${p.usableEnergy}`);
 }
 
+sec('CHIEF BUG — buying a chest must never trigger the DISCHARGED fail state');
+{
+  // "on lvl 2 i have 2 pips and when spending the 2 to get the chest i die"
+  // isFailState() listed sources, pickups and enemy drops as future income but did
+  // NOT know chests exist, so paying the cost lowered `available` while the reward
+  // stayed invisible and the level was declared unwinnable mid-purchase.
+  const L2 = JSON.parse(fs.readFileSync('src_scroll/levels/level2.json','utf8'));
+  const lv = new Level(L2);
+  const ch = lv.chests[0];
+  const p  = new Player(L2.playerStart.x, L2.playerStart.y);
+  p.setEnergyState(0, 2);                       // Chief's exact state: 2 pips
+  ok(!lv.isFailState(p), 'not a fail state before buying', `usable=${p.usableEnergy}`);
+  const paid = p.spendEnergy(ch.receive(ch.cost));
+  ok(Math.abs(paid - ch.cost) < 1e-9, 'the cost is actually paid', `paid ${paid}`);
+  ok(!lv.isFailState(p),
+    'STILL not a fail state immediately after paying the cost',
+    `usable=${p.usableEnergy} — this assertion is the bug Chief hit`);
+  ch.tryOpen(p);
+  ok(!lv.isFailState(p), 'and not after the chest opens', `usable=${p.usableEnergy}, pips=${p.bankedPips}`);
+  // The worst honest case: no energy at all, chest still shut.
+  const lv2 = new Level(L2);
+  const p2  = new Player(L2.playerStart.x, L2.playerStart.y);
+  p2.setEnergyState(0, 0);
+  ok(!lv2.isFailState(p2),
+    'zero energy with the chest unopened is survivable (chest + sources cover the exit)');
+  // An opened chest must NOT keep counting as future income.
+  const lv3 = new Level(L2);
+  const p3  = new Player(L2.playerStart.x, L2.playerStart.y);
+  p3.setEnergyState(0, 0);
+  lv3.chests[0].opened = true;
+  for (const s of lv3.sources) { s.drained = true; s.charge = 0; }
+  ok(lv3.isFailState(p3),
+    'an OPENED chest stops counting, so a genuine dead end is still detected',
+    'no sources, chest looted, no energy -> correctly a fail state');
+}
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
 process.exit(fail===0?0:1);

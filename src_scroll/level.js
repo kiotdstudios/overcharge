@@ -79,9 +79,20 @@ export class Level {
       .reduce((sum, e) => sum + (e.drops || [])
         .filter(d => d.type === 'charge')
         .reduce((s, d) => s + d.value, 0), 0);
+    // CHIEF BUG 2026-09-18: "when spending the 2 to get the chest i die."
+    // This check listed sources, pickups and enemy drops as future income and did
+    // NOT know chests exist. So paying a chest's cost lowered `available` while its
+    // reward stayed invisible, and the game declared the level unwinnable mid-purchase.
+    // An unopened chest is future income exactly like an undrained source: its NET
+    // contribution is the reward minus whatever cost is still outstanding (`charged`
+    // is already banked in the chest, so it is not owed twice). Clamped at 0 so a
+    // hypothetical cost-heavy chest can never count against the player.
+    const chestNet = this.chests
+      .filter(c => !c.opened)
+      .reduce((sum, c) => sum + Math.max(0, (c.reward || 0) - Math.max(0, (c.cost || 0) - (c.charged || 0))), 0);
 
     const pipCharge = player.bankedPips * MAX_CHARGE;
-    const available = player.charge + pipCharge + sourcesLeft + pickupsLeft + enemyDrops;
+    const available = player.charge + pipCharge + sourcesLeft + pickupsLeft + enemyDrops + chestNet;
     return available < needed - 0.01;
   }
 
