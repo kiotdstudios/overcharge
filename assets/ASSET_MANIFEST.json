@@ -47,142 +47,6 @@
       }
     },
     {
-      "id": "env_tile_dark_a",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "dark"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18). Mix with other tile variants.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
-      "id": "env_tile_dark_b",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "dark"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18).",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
-      "id": "env_tile_purple_a",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "purple"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18). Prefer upper / decorated zones.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
-      "id": "env_tile_purple_b",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_city",
-        "purple"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Cropped to 16×16 (was 18×18). Prefer upper / decorated zones.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
-      "id": "env_waste_platform_long",
-      "category": "modular_construction",
-      "family": "waste_platform",
-      "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "frame_width": 21,
-      "frame_height": 5,
-      "tags": [
-        "waste",
-        "platform",
-        "slime",
-        "green",
-        "modular",
-        "tileable",
-        "purple_city"
-      ],
-      "generation": {
-        "eligible": false,
-        "roles": [
-          "modular_construction"
-        ],
-        "notes": "Modular waste platform segment — place via construction system, not random generation."
-      }
-    },
-    {
       "id": "env_rt_tile_mid_a",
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",
       "category": "tile",
@@ -295,90 +159,6 @@
       }
     },
     {
-      "id": "env_rt_tile_purple_b",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_b.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_rooftop",
-        "rooftop"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Purple Rooftop tileset. purple_b — blue-purple tone, avg RGB (36,38,113). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
-      "id": "env_rt_tile_purple_c",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_c.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_rooftop",
-        "rooftop"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Purple Rooftop tileset. purple_c — purple accent, partial (206/256). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
-      "id": "env_rt_tile_light_a",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_light_a.png",
-      "category": "tile",
-      "tags": [
-        "tile",
-        "purple_rooftop",
-        "rooftop"
-      ],
-      "frame_width": 16,
-      "frame_height": 16,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "notes": "Purple Rooftop tileset. light_a — lightest rooftop tile, avg RGB (67,46,131), partial (228/256). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
-      "generation": {
-        "eligible": true,
-        "roles": [
-          "structural",
-          "walkable"
-        ],
-        "surface": "grid",
-        "layer": "midground",
-        "density": "dense",
-        "stackable": true
-      }
-    },
-    {
       "id": "env_rt_tile_accent_a",
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_accent_a.png",
       "category": "tile",
@@ -422,7 +202,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r2 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -451,7 +231,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r2 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -480,7 +260,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r2 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -509,7 +289,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r3 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -538,7 +318,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r3 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -567,7 +347,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r3 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -596,7 +376,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c4. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r3 c4. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -625,7 +405,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c5. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r3 c5. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -654,7 +434,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c6. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r3 c6. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -683,7 +463,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -712,7 +492,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -741,7 +521,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -770,7 +550,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c4. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c4. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -799,7 +579,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c5. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c5. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -828,7 +608,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c6. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c6. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -857,7 +637,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c11. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c11. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -886,7 +666,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c12. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c12. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -915,7 +695,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c13. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset — rooftop building section r4 c13. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
