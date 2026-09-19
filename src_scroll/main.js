@@ -390,7 +390,8 @@ function _showLevelSourceBadge(kind, detail) {
     el.style.color  = colors[kind] || '#c8d8f0';
     el.style.border = '1px solid ' + (colors[kind] || '#556');
     el.textContent  = detail;
-    document.body.appendChild(el);
+    // badge removed: was overlapping HUD pip panel (Chief request)
+    void el;
   } catch { /* badge is informational — never block boot */ }
 }
 

@@ -6,6 +6,7 @@ import { viewW, safeInsetX } from './viewport.js';
 // SCREEN-SPACE HUD only. Called after the camera transform has been restored,
 // so everything in here is positioned in viewport pixels.
 export function drawHUD(ctx, player, level, t) {
+  _drawPlayerAvatar(ctx);
   _drawBankedPips(ctx, player, t);
   _drawChargeMeter(ctx, player, t);
   _drawLevelBanner(ctx, level, t);
@@ -23,6 +24,38 @@ export function drawHUD(ctx, player, level, t) {
 // hit it as "POWER REQUIRED / ABSORB ENERGY text is waaay to the right".
 export function drawWorldPrompts(ctx, player, t) {
   _drawContextPrompts(ctx, player, t);
+}
+
+// ── Player avatar box — top-left corner ──────────────────────────
+// Shows a 52×52 panel with the player idle sprite (frame_001).
+// Sits at x=safeInsetX()+4, y=4 — pip rack starts at +64 to clear it.
+
+let _avatarImg = null;
+function _initAvatarImg() {
+  if (_avatarImg || typeof Image === 'undefined') return;
+  _avatarImg = Object.assign(new Image(), { src: 'assets/sprites/idle_2.0/east/frame_001.png' });
+}
+
+function _drawPlayerAvatar(ctx) {
+  _initAvatarImg();
+  const ax = safeInsetX() + 4;
+  const ay = 4;
+  const aw = 52, ah = 52;
+  ctx.save();
+  // dark background panel
+  ctx.fillStyle = 'rgba(3,5,12,0.92)';
+  ctx.fillRect(ax, ay, aw, ah);
+  // cyan border (matches HUD palette)
+  ctx.strokeStyle = 'rgba(68,221,255,0.35)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(ax + 0.5, ay + 0.5, aw - 1, ah - 1);
+  // sprite: 92×92 native → scale to 44px, centered in box
+  if (_avatarImg?.complete && _avatarImg.naturalWidth > 0) {
+    const scale = 44 / 92;
+    const dw = 92 * scale, dh = 92 * scale;
+    ctx.drawImage(_avatarImg, ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh);
+  }
+  ctx.restore();
 }
 
 // ── Banked pip rack — power-up display, top-left above charge bar ──
@@ -55,7 +88,7 @@ function _drawBankedPips(ctx, player, t) {
   const pipW    = 36;   // was 22 — wider slot for larger sprites
   const pipH    = 30;   // was 17 — taller to match scale 0.55
   const gap     = 4;    // was 5
-  const startX  = safeInsetX() + 16;
+  const startX  = safeInsetX() + 64;  // shifted right to clear avatar box
   const startY  = 10;   // was 35 — moved up since pip panel is taller now
   const count   = player.bankedPips;
   const maxed   = count >= MAX_BANKED_PIPS;
@@ -186,7 +219,7 @@ function _drawBankedPips(ctx, player, t) {
 
 // ── Charge meter (top-left) — smooth bar, no numbers ─────────────
 function _drawChargeMeter(ctx, player, t) {
-  const barX  = safeInsetX() + 16;     // HUD safe area (cover-crop aware)
+  const barX  = safeInsetX() + 64;     // shifted right to clear avatar box
   const barY  = 50;   // was 56 — raised to sit below pip panel (panel bottom ≈ 48)
   const barW  = 244;
   const barH  = 14;
