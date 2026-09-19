@@ -407,6 +407,528 @@
       }
     },
     {
+      "id": "env_rt_bldg_r02_c01",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r02_c01.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c1. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r02_c02",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r02_c02.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c2. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r02_c03",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r02_c03.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c3. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r03_c01",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c01.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c1. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r03_c02",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c02.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c2. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r03_c03",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c03.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c3. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r03_c04",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c04.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c4. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r03_c05",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c05.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c5. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r03_c06",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c06.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c6. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c01",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c01.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c1. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c02",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c02.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c2. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c03",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c03.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c3. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c04",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c04.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c4. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c05",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c05.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c5. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c06",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c06.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c6. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c11",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c11.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c11. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c12",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c12.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c12. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_bldg_r04_c13",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c13.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c13. 16x16, rendered at 32x32 by drawTile().",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "structural",
+          "decorative"
+        ],
+        "surface": "grid",
+        "layer": "midground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
       "id": "wall_switch",
       "path": "assets/objects/wall_switch/switch_off.png",
       "category": "electrical",
