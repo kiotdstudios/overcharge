@@ -322,6 +322,21 @@ export const state = {
                         // Chief can freely place decorations anywhere. Toggle
                         // ON to reject floating placements + wall overlaps
                         // (runtime collision is always unaffected).
+  autoGrammar: false,   // CHIEF BUG 2026-09-19: "pasting env tile dark a doesnt work
+                        // it randomizes placed tiles". AKI 12's auto-promote rewrote
+                        // every fill tile (10/11) landing on a column top into an edge
+                        // tile (12/13), chosen by a position hash — so asking for
+                        // dark_a eight times produced 12,13,12,13,12,13,12,13. It is
+                        // deterministic, but it is indistinguishable from random to
+                        // the person placing tiles, and it silently discarded an
+                        // explicit choice.
+                        //
+                        // DEFAULT OFF, same reasoning as guardsOn: an explicit
+                        // selection is an instruction, not a suggestion. The grammar
+                        // rule is NOT lost — the violation counter still reports it
+                        // and the FIX ALL button still applies it in one undoable
+                        // action, which is how a hand-authoring director should meet
+                        // it: on request, visible, reversible.
   snapOverride: 'auto', // 'auto' | 1 | 16 | 32. Chief-controlled override for
                         // placement snap and drag delta. 'auto' preserves the
                         // per-ref default behavior (terrain=32, gameplay=16,
@@ -470,6 +485,7 @@ export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
 export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
+export function setAutoGrammar(v)        { state.autoGrammar = !!v; notify(); }
 export function setMagneticSnap(v)       { state.magneticSnap = !!v; notify(); }
 export function setSnapOverride(v) {
   // Accept 'auto' | 1 | 16 | 32. Anything else falls back to 'auto'.

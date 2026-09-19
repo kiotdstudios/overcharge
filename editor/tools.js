@@ -1088,6 +1088,16 @@ export function startAssetDrag(asset, initialEvt) {
 // Each correction is a separate Actions.setTile included in the same composite
 // drag action so the whole gesture — paint + grammar — undoes as one.
 function _applyGrammarAt(col, row, dragActions) {
+  // CHIEF BUG 2026-09-19: gated on state.autoGrammar, DEFAULT OFF. Placing
+  // env_tile_dark_a used to yield 12,13,12,13... because the promote below rewrote
+  // every fill tile on a column top into a hash-chosen edge tile. Deterministic, but
+  // it reads as random and it throws away an explicit choice. Guarded here — the one
+  // chokepoint all three paint paths already funnel through — rather than at the four
+  // call sites, so the rule cannot be reintroduced by adding a fifth.
+  //
+  // The grammar rule itself is untouched: countGrammarViolations() still reports it
+  // and Actions.fixAllGrammar() still applies it from the FIX ALL button.
+  if (!state.autoGrammar) return;
   const L = state.level;
   if (!L || !L.tiles) return;
   const COLS = L.cols;
