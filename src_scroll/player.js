@@ -56,6 +56,12 @@ export class Player {
     this._attackCooldown = 0;
     this._attackFx      = 0;  // brief arc-flash timer on swing
 
+    // Sprint feel — smooth ramp, squash kick, ghost trail
+    this._sprintRamp      = 0;     // 0..1 — current sprint fraction (accelerates/decelerates)
+    this._sprintSquash    = 0;     // >0: squash-and-stretch timer on sprint kick-in
+    this._afterImages     = [];    // [{sx, sy, alpha}] ghost copies drawn behind player
+    this._afterImageTimer = 0;     // time since last ghost was captured
+
     // Discharge state
     this.discharging       = false;
     this.dischargeTarget   = null;
@@ -83,6 +89,10 @@ export class Player {
     this._attackFx       = Math.max(0, this._attackFx       - dt);
     this._pipBankFx      = Math.max(0, this._pipBankFx      - dt);
     this._pipSpendFx     = Math.max(0, this._pipSpendFx     - dt);
+    this._sprintSquash   = Math.max(0, this._sprintSquash   - dt);
+    // Decay after-image alphas; fully-faded ghosts are dropped
+    for (const img of this._afterImages) img.alpha -= dt * 4;
+    this._afterImages = this._afterImages.filter(img => img.alpha > 0);
 
     this._updateContext(level);       // context first — nearDevice/Enemy known before input
     this._handleMovement(dt);
@@ -102,6 +112,22 @@ export class Player {
     // the reserve would immediately undo it (bar=MAX, pips-1) in the same
     // frame — so pips could never accumulate. The reserve is now pulled
     // only at points of DEMAND (see _pullReserve callers).
+
+    // Sprint after-image capture: drop a ghost every 50ms while at sprint speed
+    if (this._sprintRamp > 0.7) {
+      this._afterImageTimer += dt;
+      if (this._afterImageTimer >= 0.05) {
+        this._afterImages.unshift({
+          sx: Math.round(this.cx - SPRITE_W / 2),
+          sy: Math.round(this.y + this.h - SPRITE_FEET_Y),
+          alpha: 0.3
+        });
+        if (this._afterImages.length > 3) this._afterImages.pop();
+        this._afterImageTimer = 0;
+      }
+    } else {
+      this._afterImageTimer = 0;
+    }
 
     // Tick sprite animator — threshold at 20 avoids idle/walk flicker during decel
     const isMoving = Math.abs(this.vx) > 20;
@@ -308,9 +334,22 @@ export class Player {
     // Jump: Up / W only. SPACE is the charge button, K is attack.
     const jump = Input.pressedAny('ArrowUp', 'KeyW');
 
-    const shift = Input.heldAny('ShiftLeft', 'ShiftRight');
-    this.running = shift && (left || right);
-    const speed  = this.running ? PLAYER_SPEED * RUN_MULTIPLIER : PLAYER_SPEED;
+    const shift      = Input.heldAny('ShiftLeft', 'ShiftRight');
+    const wasRampedUp = this._sprintRamp > 0.6;
+    this.running      = shift && (left || right);
+
+    // Smooth acceleration: reaches full sprint in ~0.14s, slides out in ~0.25s
+    const rampTarget = this.running ? 1 : 0;
+    const rampRate   = this.running ? 7 : 4;
+    this._sprintRamp += (rampTarget - this._sprintRamp) * rampRate * dt;
+    this._sprintRamp  = Math.max(0, Math.min(1, this._sprintRamp));
+
+    // Squash kick at the moment sprint engages (grounded only — no squash mid-air)
+    if (!wasRampedUp && this._sprintRamp > 0.6 && this.grounded) {
+      this._sprintSquash = 0.14;
+    }
+
+    const speed = PLAYER_SPEED * (1 + (RUN_MULTIPLIER - 1) * this._sprintRamp);
 
     if (left)  { this.vx = -speed; this._facingRight = false; }
     else if (right) { this.vx =  speed; this._facingRight = true; }
@@ -904,11 +943,32 @@ export class Player {
     const sx    = Math.round(this.cx - SPRITE_W / 2);
     const sy    = Math.round(this.y + this.h - SPRITE_FEET_Y);
 
+    // Sprint after-images — ghost trail, drawn BEFORE the main sprite
+    if (this._afterImages.length > 0 && frame && frame.complete && frame.naturalWidth > 0) {
+      for (const img of this._afterImages) {
+        ctx.save();
+        ctx.globalAlpha = img.alpha;
+        ctx.drawImage(frame, img.sx, img.sy, SPRITE_W, SPRITE_H);
+        ctx.restore();
+      }
+    }
+
     ctx.save();
 
     // Hurt flash: tint red with rapid flicker
     if (hurt) {
       ctx.globalAlpha = 0.6 + 0.4 * Math.sin(t * 30);
+    }
+
+    // Sprint squash/stretch — x-stretch, y-squash on kick-in, returns to rest
+    if (this._sprintSquash > 0) {
+      const progress = this._sprintSquash / 0.14;             // 1→0 over the timer
+      const stretch  = Math.sin(progress * Math.PI) * 0.15;  // peaks in the middle
+      const footX    = Math.round(this.cx);
+      const footY    = Math.round(this.y + this.h);
+      ctx.translate(footX, footY);
+      ctx.scale(1 + stretch, 1 - stretch * 0.6);             // wider + shorter = lean in
+      ctx.translate(-footX, -footY);
     }
 
     if (frame && frame.complete && frame.naturalWidth > 0) {
