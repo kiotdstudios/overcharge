@@ -498,36 +498,180 @@ export function drawLevelComplete(ctx, level, timer, t) {
 }
 
 // ── Title screen ──────────────────────────────
-export function drawTitleScreen(ctx, t) {
-  ctx.fillStyle = '#07090f';
-  ctx.fillRect(0, 0, viewW(), 450);
+// CHIEF 2026-09-19 17:17: "on this screen add lighting flashing; lets make this
+// more dynamic".
+//
+// WHY THIS IS DRAWN ON THE CANVAS AND NOT REUSED FROM background.js:
+// background.js already has a lightning system (tickLightning), but it drives a DOM
+// element sitting BEHIND the canvas, and it is data-driven off the level's
+// `background` field — Level 1 does not request one. The title screen also paints an
+// OPAQUE `#07090f` over the full frame, so even if that layer were running it would
+// be invisible here. So the storm is canvas-native. What IS reused is its RHYTHM:
+// the double-flash shape and the multi-second irregular gap are taken from
+// tickLightning so the title reads as the same weather as the game, not a second
+// unrelated effect.
+//
+// EVERYTHING IS DERIVED FROM `t`, WITH NO MUTABLE STATE AND NO Math.random().
+// drawTitleScreen only receives accumulated time, so a seeded hash keyed on the
+// strike index gives bolts that look random but are reproducible — which is the only
+// reason this is testable at all. A Math.random() bolt could not be asserted.
+const STORM_H = 450;      // matches the existing title backdrop exactly, so no seam
+// ── CHIEF'S DIAL. Say "more" or "less" and these three are what move. ──
+// Tuned by sweeping, not guessed. At these values, measured over 5 minutes of idling:
+//   128 bolts, gaps 1.0s min / 2.3s avg / 5.5s max, longest fully-dark stretch 2.3s,
+//   and only 2.6% of frames above half brightness — dramatic, never a strobe.
+// The first pass used 2.6 / 1.7 and left a 14.5s dead stretch, which is too static for
+// a title Chief asked to make "more dynamic".
+const STRIKE_PERIOD = 1.8;   // one strike opportunity per this many seconds
+const STRIKE_JITTER = 0.95;  // how far into the window a strike can land
+const NEAR_THRESHOLD = 0.20; // below this a cycle is distant rumble, no visible bolt
+// LOAD-BEARING INVARIANT: STRIKE_JITTER + FLASH_DUR must stay under STRIKE_PERIOD, or a
+// late strike is cut off mid-flash when the cycle rolls over. Current margin is 0.30s.
+// Asserted in _dev/title_storm.mjs — do not tune the period down without re-running it.
+const FLASH_DUR = 0.55;
 
-  // Logo glitch / chromatic aberration effect
-  const offsets = [[-2, 0, 'rgba(255,40,80,0.7)'], [2, 0, 'rgba(40,220,255,0.7)'], [0, 0, '#ffffff']];
+// Deterministic 0..1 hash. Same integer-mix style as the tile variant hash.
+function _h(n) {
+  let x = (n | 0) * 2654435761;
+  x = (x ^ (x >>> 15)) * 2246822519;
+  x = (x ^ (x >>> 13)) * 3266489917;
+  return ((x ^ (x >>> 16)) >>> 0) / 4294967296;
+}
+
+// The storm's whole state at time t. Exported for the suite — asserting a number is
+// worth more than eyeballing a canvas.
+// Dial exposed so the suite can assert the truncation invariant against the REAL
+// numbers instead of hard-coding a copy of them that can drift.
+export const STORM_DIAL = Object.freeze({ STRIKE_PERIOD, STRIKE_JITTER, NEAR_THRESHOLD, FLASH_DUR });
+
+export function titleStormState(t) {
+  const cycle = Math.floor(t / STRIKE_PERIOD);
+  // Strike lands at an irregular offset inside its cycle, so gaps vary rather than
+  // ticking like a metronome. A fixed offset would read as mechanical.
+  const at    = cycle * STRIKE_PERIOD + _h(cycle) * STRIKE_JITTER;
+  const age   = t - at;
+  let flash = 0;
+  if (age >= 0) {
+    // Double-flash, shaped after tickLightning's 55/80/140ms steps but continuous:
+    // hard strike, brief dark gap, weaker second hit, then a soft afterglow.
+    if      (age < 0.06) flash = 1;
+    else if (age < 0.10) flash = 0.08;
+    else if (age < 0.17) flash = 0.5;
+    else if (age < FLASH_DUR) flash = 0.5 * Math.pow(1 - (age - 0.17) / (FLASH_DUR - 0.17), 2);
+  }
+  // Some cycles are distant rumble only — no bolt, just a dim sky lift. Keeps it from
+  // feeling like a loop.
+  const near = _h(cycle * 7 + 11) > NEAR_THRESHOLD;
+  return { cycle, age, flash: near ? flash : flash * 0.22, near, seed: cycle };
+}
+
+// One jagged bolt, fully determined by `seed`.
+function _drawBolt(ctx, seed, w, alpha) {
+  const segs = 9;
+  const x0   = 60 + _h(seed * 31 + 3) * (w - 120);
+  const endY = 150 + _h(seed * 17 + 5) * 120;
+  const pts  = [];
+  for (let i = 0; i <= segs; i++) {
+    const f = i / segs;
+    const spread = 70 * (1 - f) + 14;
+    pts.push({
+      x: x0 + (_h(seed * 101 + i * 13) - 0.5) * spread + f * (_h(seed * 7 + 1) - 0.5) * 90,
+      y: f * endY,
+    });
+  }
+  const stroke = (lw, col, a) => {
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+    ctx.lineWidth = lw; ctx.strokeStyle = col; ctx.globalAlpha = a;
+    ctx.stroke();
+  };
+  // Wide soft halo under a tight white core reads as light rather than as a drawn line.
+  ctx.shadowBlur = 24; ctx.shadowColor = '#7fd4ff';
+  stroke(7, 'rgba(90,190,255,0.30)', alpha * 0.8);
+  stroke(2.4, '#eaf8ff', alpha);
+  // A branch or two, forking off a mid-point.
+  const forks = _h(seed * 53 + 9) > 0.45 ? 2 : 1;
+  for (let b = 0; b < forks; b++) {
+    const i0 = 3 + Math.floor(_h(seed * 71 + b * 19) * 4);
+    const p  = pts[Math.min(i0, pts.length - 2)];
+    const dir = _h(seed * 91 + b) > 0.5 ? 1 : -1;
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    let bx = p.x, by = p.y;
+    for (let k = 0; k < 4; k++) {
+      bx += dir * (12 + _h(seed * 37 + b * 7 + k) * 26);
+      by += 16 + _h(seed * 43 + k) * 22;
+      ctx.lineTo(bx, by);
+    }
+    ctx.lineWidth = 1.4; ctx.strokeStyle = '#cfefff'; ctx.globalAlpha = alpha * 0.7;
+    ctx.stroke();
+  }
+  ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+}
+
+export function drawTitleScreen(ctx, t) {
+  const w = viewW();
+  const S = titleStormState(t);
+
+  ctx.fillStyle = '#07090f';
+  ctx.fillRect(0, 0, w, STORM_H);
+
+  // Sky lift: the flash washes the whole backdrop, brightest at the top where the
+  // bolt is, so the light appears to come from somewhere.
+  if (S.flash > 0.01) {
+    const g = ctx.createLinearGradient(0, 0, 0, STORM_H);
+    g.addColorStop(0,    `rgba(120,180,255,${0.30 * S.flash})`);
+    g.addColorStop(0.45, `rgba(70,130,210,${0.12 * S.flash})`);
+    g.addColorStop(1,    'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, STORM_H);
+  }
+
+  // Rain. Deterministic per-streak so it never re-randomises between frames.
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 90; i++) {
+    const sp = 120 + _h(i * 3 + 1) * 90;
+    const x  = (_h(i) * (w + 200) - 60 + t * 22) % (w + 200) - 60;
+    const y  = (_h(i * 5 + 2) * STORM_H + t * sp) % STORM_H;
+    const len = 9 + _h(i * 9) * 13;
+    ctx.strokeStyle = `rgba(150,190,240,${0.05 + 0.10 * _h(i * 11) + 0.22 * S.flash})`;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 2, y + len); ctx.stroke();
+  }
+
+  // The bolt itself, only while the strike is actually bright.
+  if (S.near && S.age >= 0 && S.age < 0.20) {
+    _drawBolt(ctx, S.seed, w, S.age < 0.06 ? 1 : (S.age < 0.10 ? 0.12 : 0.55));
+  }
+
+  // Logo. The chromatic split WIDENS on the flash — the glitch reacts to the storm
+  // instead of running at a constant amplitude, which is what sells it as one effect.
+  const split = 2 + S.flash * 4.5;
+  const offsets = [[-split, 0, 'rgba(255,40,80,0.7)'], [split, 0, 'rgba(40,220,255,0.7)'], [0, 0, '#ffffff']];
   ctx.font = 'bold 72px monospace';
   ctx.textAlign = 'center';
   for (const [dx, dy, color] of offsets) {
     ctx.fillStyle   = color;
-    ctx.shadowBlur  = dx === 0 ? 30 : 0;
+    ctx.shadowBlur  = dx === 0 ? 30 + S.flash * 45 : 0;
     ctx.shadowColor = '#44ddff';
-    ctx.fillText('OVERCHARGE', viewW() / 2 + dx, 200 + dy);
+    ctx.fillText('OVERCHARGE', w / 2 + dx, 200 + dy);
   }
   ctx.shadowBlur = 0;
 
   ctx.fillStyle = '#3a5570';
   ctx.font      = '14px monospace';
-  ctx.fillText('Explore. Steal the current. Solve the circuit.', viewW() / 2, 245);
+  ctx.fillText('Explore. Steal the current. Solve the circuit.', w / 2, 245);
 
   const pulse = 0.6 + 0.4 * Math.sin(t * 3);
   ctx.globalAlpha = pulse;
   ctx.fillStyle   = '#44ddff';
   ctx.font        = '16px monospace';
-  ctx.fillText('[SPACE] to start', viewW() / 2, 310);
+  ctx.fillText('[SPACE] to start', w / 2, 310);
   ctx.globalAlpha = 1;
 
   ctx.fillStyle = '#1e2e3e';
   ctx.font      = '11px monospace';
-  ctx.fillText('KIOTD STUDIOS', viewW() / 2, 430);
+  ctx.fillText('KIOTD STUDIOS', w / 2, 430);
 }
 
 // ── Game over screen ──────────────────────────
