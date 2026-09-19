@@ -545,7 +545,20 @@ async function _bootAsync() {
       return; // do NOT start the loop with nothing to play.
     }
     LEVEL_DEFS = ordered.map(e => e.def);
-    const first = ordered[0];
+
+    // Honor ?level=N on the published (Pages) build so sharing a deep link
+    // actually starts on the requested level instead of always NEON RISE.
+    // Rotate LEVEL_DEFS so loadLevel(0) starts at the right place and
+    // [ ] / advanceLevel progression continues from there.
+    const _lvlParam = parseInt(new URLSearchParams(window.location.search).get('level') || '0', 10);
+    if (_lvlParam >= 1) {
+      const _lvlIdx = ordered.findIndex(e => e.num === _lvlParam);
+      if (_lvlIdx > 0) {
+        LEVEL_DEFS = [...ordered.slice(_lvlIdx), ...ordered.slice(0, _lvlIdx)].map(e => e.def);
+      }
+    }
+
+    const first = (_lvlParam >= 1 && ordered.find(e => e.num === _lvlParam)) || ordered[0];
     logLevelSource('[game] NORMAL GAME',
       'src_scroll/levels (committed JSON \u00b7 manifest order \u00b7 ' + ordered.length + ' level(s))', first.def);
     _showLevelSourceBadge('committed',
