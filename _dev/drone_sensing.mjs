@@ -53,7 +53,11 @@ ok(C.VISION === undefined, 'the old symmetric radius is gone');
 ok(C.FIRE_ARC >= C.visionY,
   'FIRE_ARC >= visionY, so anything it can SEE it can SHOOT',
   `FIRE_ARC ${C.FIRE_ARC} >= visionY ${C.visionY} — the reverse shipped once and the drone fired nothing`);
-ok(C.visionX <= 128, 'visionX is narrow, per Chief\u2019s "2 tiles"', `${C.visionX}px = ${C.visionX/TILE} tiles`);
+// My old assertion here was `C.visionX <= 128` on the basis of Chief's "2 tiles".
+// Aki deliberately set 240 for the ELEVATED drone and Chief confirms the drone works,
+// so her tuning is authoritative and my assertion was the stale half. Replaced with a
+// sanity check rather than a number I invented.
+ok(C.visionX > 0 && C.visionY > 0, 'visionX / visionY are both live dials', `vision ${C.visionX}x${C.visionY}`);
 
 sec('O10 — LINE OF SIGHT: terrain between them breaks sight');
 ok(typeof ENT.DroneEnemy.prototype._hasLineOfSight === 'function', 'a line-of-sight check exists at all');
@@ -127,16 +131,23 @@ for (const { file, def, drone } of droneLevels) {
 }
 
 sec('Driven through Level.update: aggro, telegraph, then a hit');
+// CORRECTED 2026-09-19 10:38. This block used to stand the player on the MAIN FLOOR
+// under the drone, then assert the drone alerts. On Level 3 the drone is elevated with
+// terrain between, so line-of-sight correctly refuses — and I read that green-to-red
+// flip as "the drone is inert" and reported it to Chief. He replied "lvl 3 drone does
+// work idk what u mean". He was right: the player MEETS the drone by climbing to its
+// level, which this test never did. Fourth time I have asserted the pose I had in mind
+// instead of the one the player actually occupies.
+//
+// Now tested at the drone's OWN elevation, which is where the encounter happens. The
+// main-floor case is a separate, correct behaviour and is asserted below as such.
 for (const { file, def, drone } of droneLevels) {
   const lv = new Level(def);
   const d  = lv.enemies.find(e => e instanceof ENT.DroneEnemy);
-  const p  = groundedPlayerAt(def, d.cx);          // stand him under the drone
-  ok(!!p, `${file}: a grounded player position exists at the drone column`);
-  if (!p) continue;
+  const p  = { x:d.cx, y:d.cy-8, w:24, h:30, cx:d.cx+12, cy:d.cy-8+15,
+               stun(){}, scatter(){} };
+  let stunned=0; p.stun = () => { stunned++; };
   const seq=[]; let engagedAt=-1, firstShot=-1;
-  let stunned=0;
-  const origStun = p.stun.bind(p);
-  p.stun = (...a) => { stunned++; return origStun(...a); };
   for (let i=0;i<420;i++) {
     lv.update(1/60, p);
     const st = d.alertState;
@@ -144,22 +155,28 @@ for (const { file, def, drone } of droneLevels) {
     if (st==='engaged' && engagedAt<0) engagedAt=i;
     if ((d._blasts||[]).length && firstShot<0) firstShot=i;
   }
-  ok(seq.includes('alert'), `${file}: LEVEL.update wires a player through and the drone ALERTS`, `sequence: ${seq.join(' -> ')}`);
+  ok(seq.includes('alert'), `${file}: at the drone's elevation it ALERTS`, `sequence: ${seq.join(' -> ')}`);
   ok(engagedAt>0 && firstShot>=engagedAt, `${file}: no blast before the telegraph elapsed`, `engaged f${engagedAt}, first blast f${firstShot}`);
-  ok(stunned>0, `${file}: and a blast actually connects with the grounded player`, `${stunned} stun(s) landed`);
+  ok(stunned>0, `${file}: and a blast connects`, `${stunned} stun(s) landed`);
 }
 
-sec('Level 3\u2019s ORIGINAL bug must stay dead: no sight through the floor from above');
-for (const { file, def, drone } of droneLevels) {
+sec('Terrain still blocks sight DOWNWARD through a floor (the original Chief bug)');
+// Scoped to levels that actually have solid terrain between the drone and the floor
+// below it. Asserting this on every level was wrong: level4/level5 drones sit in open
+// space, so forcing y=200 there tested a geometry that does not exist in those levels.
+for (const { file, def } of droneLevels) {
   const lv = new Level(def);
   const d  = lv.enemies.find(e => e instanceof ENT.DroneEnemy);
-  // Put the drone back where it used to be and confirm it can no longer see down.
-  d.y = 200; d._baseY = 200;
-  const p = groundedPlayerAt(def, d.cx);
+  const p  = groundedPlayerAt(def, d.cx);
   if (!p) continue;
+  const cols = def.cols, sol = v => v===1 || v>=10;
+  const col  = Math.floor(d.cx / TILE);
+  let between = 0;
+  for (let r = Math.floor(d.cy/TILE)+1; r < Math.floor(p.cy/TILE); r++) if (sol(def.tiles[r*cols+col])) between++;
+  if (between === 0) { ok(true, `${file}: no floor between drone and player — nothing to block (skipped)`, `open sight line by design`); continue; }
   ok(!d._sees(p, lv),
-    `${file}: a drone at the OLD y=200 cannot see the grounded player`,
-    `separation ${Math.abs(p.cy - d.cy).toFixed(0)}px, and terrain is between them`);
+    `${file}: ${between} solid row(s) between them blocks sight downward`,
+    `separation ${Math.abs(p.cy - d.cy).toFixed(0)}px — this is Chief's "notices me through the floor" staying fixed`);
 }
 
 
@@ -198,6 +215,72 @@ for (const { file, def, drone } of droneLevels) {
     'max=' + maxDelta.toFixed(2) + 'px allowed=' + maxAllowed.toFixed(2) + 'px');
 }
 
+sec('CHIEF 10:38 — pursuit is NOT capped at a leash boundary');
+{
+  // "the drone does only chase a bit and stays locked to the edge of the next
+  //  platform ... the drone stops and doesnt move past a certain point"
+  //
+  // The old clamp was patrolLeft-LEASH .. patrolRight+LEASH. On Level 3 that is
+  // x 240..720 — an invisible wall mid-level. These assert the wall is gone, that the
+  // drone still cannot leave authored space, and that it still gives up on its own.
+  const P=(x,y)=>({x,y,w:24,h:30,cx:x+12,cy:y+15,stun(){this._s=(this._s||0)+1;},scatter(){this._c=(this._c||0)+1;}});
+  for (const { file, def } of droneLevels) {
+    const lv = new Level(def);
+    const d  = lv.enemies.find(e => e instanceof ENT.DroneEnemy);
+    const oldWall = d.patrolRight + C.LEASH - d.w;
+    // Player at the drone's own elevation (the CLIMBED case — the one my 04:37 test
+    // missed entirely, which is why I wrongly reported the drone inert), moving right
+    // slightly slower than the drone's chase speed so sight is genuinely maintained.
+    const chaseSpeed = d.speed * C.CHASE_MULT;
+    let px = d.cx, py = d.cy - 8, maxX = d.x, hits = 0;
+    for (let i=0;i<1800;i++) {
+      px += (chaseSpeed * 0.8) / 60;
+      const p = P(px, py);
+      lv.update(1/60, p);
+      hits += (p._s||0);
+      maxX = Math.max(maxX, d.x);
+      if (px > lv.pxW - 200) break;
+    }
+    ok(maxX > oldWall,
+      `${file}: the drone pursues PAST the old leash wall`,
+      `reached x=${maxX.toFixed(0)}, old wall was ${oldWall}`);
+    ok(maxX <= lv.pxW - d.w + 1,
+      `${file}: but never leaves the authored level`,
+      `max x=${maxX.toFixed(0)}, level allows ${lv.pxW - d.w}`);
+    ok(hits > 0, `${file}: and it keeps landing hits during the long chase`, `${hits} stun(s)`);
+  }
+}
+
+sec('Pursuit persists through a BRIEF break in sight, then gives up');
+{
+  const P=(x,y)=>({x,y,w:24,h:30,cx:x+12,cy:y+15,stun(){},scatter(){}});
+  for (const { file, def } of droneLevels) {
+    const lv = new Level(def);
+    const d  = lv.enemies.find(e => e instanceof ENT.DroneEnemy);
+    const near = P(d.cx + 20, d.cy - 8);
+    for (let i=0;i<60;i++) lv.update(1/60, near);           // establish aggro
+    ok(d._aggro === true, `${file}: aggro established`);
+    // One frame with no player at all = sight lost for a single frame.
+    const xBefore = d.x;
+    lv.update(1/60, null);
+    lv.update(1/60, near);
+    ok(d._deaggroT >= 0, `${file}: a one-frame sight break does not hard-reset the chase`,
+      'the de-aggro window carries it through, so a pillar no longer freezes it');
+    // Now leave for good and confirm it de-aggros and walks home.
+    const far = P(20, def.playerStart.y);
+    const seq=[];
+    for (let i=0;i<400;i++){ lv.update(1/60, far); const s=d.alertState; if(seq[seq.length-1]!==s) seq.push(s); }
+    ok(seq.includes('lost') || seq.includes('patrol'),
+      `${file}: it still gives up when he stays out of sight`, `states: ${seq.join(' -> ')}`);
+    ok(d.x >= d.patrolLeft - 1 && d.x + d.w <= d.patrolRight + 1,
+      `${file}: and walks back into its patrol range`,
+      `x=${d.x.toFixed(0)} within ${d.patrolLeft}..${d.patrolRight}`);
+  }
+}
+
+sec('DEAGGRO_TIME is untouched — Chief said the timing is already right');
+ok(Math.abs(C.DEAGGRO_TIME - 0.7) < 1e-9,
+  'DEAGGRO_TIME still 0.7s', 'Chief: "how ever the amount of time is set up now its perfect"');
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
 process.exit(fail===0?0:1);
