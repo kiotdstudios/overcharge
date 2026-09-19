@@ -39,8 +39,8 @@ function _initAvatarImg() {
 function _drawPlayerAvatar(ctx) {
   _initAvatarImg();
   const ax = safeInsetX() + 4;
-  const ay = 4;
-  const aw = 52, ah = 52;
+  const ay = 20;
+  const aw = 72, ah = 72;
   ctx.save();
   // dark background panel
   ctx.fillStyle = 'rgba(3,5,12,0.92)';
@@ -51,7 +51,7 @@ function _drawPlayerAvatar(ctx) {
   ctx.strokeRect(ax + 0.5, ay + 0.5, aw - 1, ah - 1);
   // sprite: 92×92 native → scale to 44px, centered in box
   if (_avatarImg?.complete && _avatarImg.naturalWidth > 0) {
-    const scale = 44 / 92;
+    const scale = 58 / 92;
     const dw = 92 * scale, dh = 92 * scale;
     ctx.drawImage(_avatarImg, ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh);
   }
@@ -81,15 +81,15 @@ const _PIP_GEO = {
   charged:   { cw: 83, ch: 83, cBot: 69 },
   uncharged: { cw: 65, ch: 65, cBot: 60 },
 };
-const _PIP_SCALE = 0.55;  // increased from 0.38 — Chief: hard to notice detail
+const _PIP_SCALE = 0.72;  // bumped again — Chief: make bigger
 
 function _drawBankedPips(ctx, player, t) {
   _initPipImgs();
-  const pipW    = 36;   // was 22 — wider slot for larger sprites
-  const pipH    = 30;   // was 17 — taller to match scale 0.55
-  const gap     = 4;    // was 5
-  const startX  = safeInsetX() + 64;  // shifted right to clear avatar box
-  const startY  = 10;   // was 35 — moved up since pip panel is taller now
+  const pipW    = 48;   // bigger — Chief: make section bigger
+  const pipH    = 40;   // taller to match scale 0.72
+  const gap     = 4;
+  const startX  = safeInsetX() + 84;  // clear 72px avatar (4+72+8)
+  const startY  = 26;   // moved down 16px from top edge
   const count   = player.bankedPips;
   const maxed   = count >= MAX_BANKED_PIPS;
   const bankFx  = player._pipBankFx  > 0;
@@ -219,10 +219,10 @@ function _drawBankedPips(ctx, player, t) {
 
 // ── Charge meter (top-left) — smooth bar, no numbers ─────────────
 function _drawChargeMeter(ctx, player, t) {
-  const barX  = safeInsetX() + 64;     // shifted right to clear avatar box
-  const barY  = 50;   // was 56 — raised to sit below pip panel (panel bottom ≈ 48)
-  const barW  = 244;
-  const barH  = 14;
+  const barX  = safeInsetX() + 84;     // clear 72px avatar
+  const barY  = 70;   // moved down — sits below bigger pip panel
+  const barW  = 272;
+  const barH  = 20;
   const fill  = player.charge / MAX_CHARGE;
 
   // Color tracks charge level
