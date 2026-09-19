@@ -1869,8 +1869,8 @@
       "type": "drone",
       "x": 2080,
       "y": 270,
-      "patrolLeft": 1824,
-      "patrolRight": 2336,
+      "patrolLeft": 1856,
+      "patrolRight": 2304,
       "speed": 58,
       "label": "DRONE"
     },
@@ -1879,7 +1879,7 @@
       "type": "drone",
       "x": 2752,
       "y": 270,
-      "patrolLeft": 2400,
+      "patrolLeft": 2464,
       "patrolRight": 3040,
       "speed": 62,
       "label": "DRONE"
