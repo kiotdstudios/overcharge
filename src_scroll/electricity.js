@@ -588,9 +588,14 @@ export class PowerGate {
       ctx.imageSmoothingEnabled = false;
       if (age < 0.2) { ctx.shadowBlur = 30; ctx.shadowColor = '#ffffff'; }
       else            { ctx.shadowBlur = 16; ctx.shadowColor = '#cc44ff'; }
-      const openImg = this._openImg;
+      // Use rest.png from the new pack, same content crop as every other state.
+      // gate_electric_open.png was pre-recut art at 64x128 — no crop rect, drawn
+      // stretched to 94x105, producing a visible sprite swap on gate open.
+      // rest.png is the 128x128 neutral/base pose; applying GATE_SRC_* crop
+      // gives identical canvas registration to the idle/charging frames.
+      const openImg = this._rest;
       if (openImg && openImg.complete && openImg.naturalWidth > 0) {
-        ctx.drawImage(openImg, dX, dY, spriteW, spriteH);
+        ctx.drawImage(openImg, GATE_SRC_X, GATE_SRC_Y, GATE_SRC_W, GATE_SRC_H, dX, dY, spriteW, spriteH);
       } else {
         drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
       }
