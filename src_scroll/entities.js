@@ -488,9 +488,20 @@ export class DroneEnemy {
         this._shotCd = C.SHOT_CD;
       }
     } else {
-      this.x += this.vx * dt;
-      if (this.x < this.patrolLeft)            { this.x = this.patrolLeft;            this.vx =  this.speed; }
-      if (this.x + this.w > this.patrolRight)  { this.x = this.patrolRight - this.w;  this.vx = -this.speed; }
+      // O12: smooth patrol return -- no instant clamp. If the drone chased past its
+      // patrol bounds (up to LEASH px), move back at most speed*dt per frame.
+      // A hard clamp here was the one-frame teleport Chief reported on de-aggro.
+      if (this.x < this.patrolLeft) {
+        this.vx = this.speed;
+        this.x  = Math.min(this.x + this.speed * dt, this.patrolLeft);
+      } else if (this.x + this.w > this.patrolRight) {
+        this.vx = -this.speed;
+        this.x  = Math.max(this.x - this.speed * dt, this.patrolRight - this.w);
+      } else {
+        this.x += this.vx * dt;
+        if (this.x < this.patrolLeft)           { this.x = this.patrolLeft;           this.vx =  this.speed; }
+        if (this.x + this.w > this.patrolRight) { this.x = this.patrolRight - this.w; this.vx = -this.speed; }
+      }
     }
 
     this.y = this._baseY + Math.sin(this._t * 2.5) * 8;   // hover bob
