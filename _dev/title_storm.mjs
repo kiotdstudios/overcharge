@@ -16,17 +16,21 @@ const sec=t=>console.log(`\n[ ${t} ]`);
 // Recording canvas: counts calls and captures what was asked for, so "did it draw a
 // bolt" is a measurement rather than an opinion.
 function recCtx() {
-  const r = { strokes:0, fills:0, gradients:0, texts:[], placed:[], lineWidths:[], shadowPeak:0, alphas:[] };
+  const r = { strokes:0, fills:0, gradients:0, texts:[], placed:[], lineWidths:[], shadowPeak:0, alphas:[], pts:[], paths:[], cur:null };
   const g = { addColorStop(){} };
   return { rec:r,
     set shadowBlur(v){ if(v>r.shadowPeak) r.shadowPeak=v; }, get shadowBlur(){ return 0; },
     set globalAlpha(v){ r.alphas.push(v); }, get globalAlpha(){ return 1; },
     set lineWidth(v){ r.lineWidths.push(v); }, get lineWidth(){ return 1; },
     shadowColor:'', fillStyle:'', strokeStyle:'', font:'', textAlign:'',
-    fillRect(){ r.fills++; }, beginPath(){}, moveTo(){}, lineTo(){},
+    fillRect(){ r.fills++; },
+    beginPath(){ r.cur=[]; r.paths.push(r.cur); },
+    moveTo(x,y){ if(r.cur) r.cur.push({x,y}); r.pts.push({x,y}); },
+    lineTo(x,y){ if(r.cur) r.cur.push({x,y}); r.pts.push({x,y}); },
     stroke(){ r.strokes++; }, fill(){ r.fills++; },
     fillText(s,x,y){ r.texts.push(s); r.placed.push({s,x,y}); },
     createLinearGradient(){ r.gradients++; return g; },
+    createRadialGradient(){ r.gradients++; return g; },
     save(){}, restore(){}, measureText:()=>({width:100}), arc(){}, closePath(){},
   };
 }
@@ -134,9 +138,10 @@ sec('The draw path executes and reacts to the flash');
   ok(dark.rec.texts.includes('OVERCHARGE'), 'the logo still draws');
   ok(dark.rec.texts.includes('[SPACE] to start'), 'the start prompt still draws');
   ok(dark.rec.texts.includes('KIOTD STUDIOS'), 'the studio credit still draws');
-  ok(dark.rec.strokes > 50, 'rain draws on a dark frame', `${dark.rec.strokes} strokes`);
-  ok(lit.rec.strokes > dark.rec.strokes, 'a strike frame draws MORE (the bolt is extra geometry)',
-    `${lit.rec.strokes} lit vs ${dark.rec.strokes} dark`);
+  ok(dark.rec.strokes === 0,
+    'a dark frame strokes NOTHING — rain is gone per Chief 17:45',
+    `${dark.rec.strokes} strokes on an unlit frame`);
+  ok(lit.rec.strokes > 0, 'a strike frame strokes the bolt geometry', `${lit.rec.strokes} strokes`);
   ok(lit.rec.gradients > dark.rec.gradients, 'and the sky-lift gradient only appears on a flash',
     `${lit.rec.gradients} lit vs ${dark.rec.gradients} dark`);
   ok(lit.rec.shadowPeak > dark.rec.shadowPeak, 'the logo glow spikes on the flash',
@@ -163,7 +168,7 @@ sec('Bolts vary between strikes (not the same zigzag every time)');
   ok(ta!==null && tb!==null, 'two different strikes found to compare', `seeds ${UI.titleStormState(ta).seed} and ${UI.titleStormState(tb).seed}`);
   if (ta!==null && tb!==null) {
     UI.drawTitleScreen(a, ta); UI.drawTitleScreen(b, tb);
-    ok(a.rec.strokes !== b.rec.strokes || a.rec.lineWidths.join() !== b.rec.lineWidths.join(),
+    ok(JSON.stringify(a.rec.pts) !== JSON.stringify(b.rec.pts),
       'the two bolts differ in geometry', `${a.rec.strokes} vs ${b.rec.strokes} strokes`);
   }
 }
@@ -188,6 +193,125 @@ sec('The logo GLITCH reacts to the storm (not a constant amplitude)');
     'the chromatic split WIDENS on a strike',
     `span ${d.span.toFixed(1)}px dark -> ${l.span.toFixed(1)}px lit — the glitch is driven by the lightning`);
   ok(l.span - d.span > 3, 'and the widening is large enough to actually see', `+${(l.span-d.span).toFixed(1)}px`);
+}
+sec('CHIEF 17:45 — bolts reach the TOP of the screen to the BOTTOM');
+{
+  // Measured from the recorded path coordinates, not asserted from the constant. The
+  // first version stopped at y 150..270 and I would not have caught that by reading
+  // the code, because the code looked deliberate.
+  const H_SCREEN = 578;
+  let checked = 0, tooShort = [], offFrame = 0;
+  for (let c = 0; c < 400; c++) {
+    const t = c * UI.STORM_DIAL.STRIKE_PERIOD + UI.titleStormState(c * UI.STORM_DIAL.STRIKE_PERIOD).age * 0;
+    // land exactly on this cycle's strike frame
+    let strikeT = null;
+    for (let k = 0; k < 130; k++) {
+      const tt = c * UI.STORM_DIAL.STRIKE_PERIOD + k / 60;
+      const s = UI.titleStormState(tt);
+      if (s.near && s.flash >= 0.999) { strikeT = tt; break; }
+    }
+    if (strikeT === null) continue;
+    const r = recCtx(); UI.drawTitleScreen(r, strikeT);
+    // The MAIN bolt paths are the long ones; find the tallest path drawn.
+    let best = 0, bestPath = null;
+    for (const p of r.rec.paths) {
+      if (!p || p.length < 3) continue;
+      const ys = p.map(q => q.y), span = Math.max(...ys) - Math.min(...ys);
+      if (span > best) { best = span; bestPath = p; }
+    }
+    checked++;
+    if (best < H_SCREEN - 1) tooShort.push({ c, span: best.toFixed(0) });
+    if (bestPath) {
+      const ys = bestPath.map(q => q.y), xs = bestPath.map(q => q.x);
+      if (Math.min(...ys) > 0.5 || Math.max(...ys) < H_SCREEN - 0.5) tooShort.push({ c, span: best.toFixed(0) });
+      if (Math.min(...xs) < 0 || Math.max(...xs) > 800) offFrame++;
+    }
+  }
+  ok(checked > 200, 'enough strikes sampled to be meaningful', `${checked} strikes measured`);
+  ok(tooShort.length === 0,
+    'EVERY near strike draws a bolt spanning the full screen height',
+    tooShort.length ? `${tooShort.length} short: ${JSON.stringify(tooShort.slice(0,3))}` : `all ${checked} span 0 -> ${H_SCREEN}px`);
+  ok(offFrame === 0, 'and no bolt wanders off the left or right edge (sampled range)', `${offFrame} off-frame`);
+}
+
+sec('The edge clamp is load-bearing — anchored on the cycle that actually breaks it');
+{
+  // My first version of the off-frame check sampled 400 cycles and a mutation removing
+  // the clamp PASSED 43/43 — a vacuous assertion. Unclamped, the x math reaches
+  // -11.5 .. 810.0 on an 800px frame, but the worst offender is CYCLE 1979 (t ~ 3562s),
+  // far outside a 400-cycle window. Sampling wide enough to include it is what gives
+  // this assertion teeth. Anchored on the specific cycle so it cannot silently drift.
+  const WORST_CYCLE = 1979;
+  const P = UI.STORM_DIAL.STRIKE_PERIOD;
+  let worstLo = 1e9, worstHi = -1e9, offFrame = 0, sampled = 0;
+  const cycles = [WORST_CYCLE];
+  for (let c = 1900; c < 2100; c++) if (c !== WORST_CYCLE) cycles.push(c);
+  for (const c of cycles) {
+    let strikeT = null;
+    for (let k = 0; k < 130; k++) {
+      const tt = c * P + k / 60;
+      const s = UI.titleStormState(tt);
+      if (s.near && s.flash >= 0.999) { strikeT = tt; break; }
+    }
+    if (strikeT === null) continue;
+    sampled++;
+    const r = recCtx(); UI.drawTitleScreen(r, strikeT);
+    for (const p of r.rec.pts) {
+      if (p.x < worstLo) worstLo = p.x;
+      if (p.x > worstHi) worstHi = p.x;
+      if (p.x < 0 || p.x > 800) offFrame++;
+    }
+  }
+  ok(sampled > 100, 'the wide window sampled real strikes', `${sampled} strikes around cycle ${WORST_CYCLE}`);
+  ok(offFrame === 0,
+    'not one path point escapes the frame, including the known worst cycle',
+    `x stayed within ${worstLo.toFixed(1)} .. ${worstHi.toFixed(1)} — unclamped this reaches -11.5 .. 810.0`);
+}
+
+sec('One or two bolts per strike — never zero on a near strike');
+{
+  const counts = {};
+  let zero = 0, sampled = 0;
+  for (let c = 0; c < 300; c++) {
+    let strikeT = null;
+    for (let k = 0; k < 130; k++) {
+      const tt = c * UI.STORM_DIAL.STRIKE_PERIOD + k / 60;
+      const s = UI.titleStormState(tt);
+      if (s.near && s.flash >= 0.999) { strikeT = tt; break; }
+    }
+    if (strikeT === null) continue;
+    sampled++;
+    const r = recCtx(); UI.drawTitleScreen(r, strikeT);
+    // Each full-height bolt is drawn as 3 stacked strokes (halo/mid/core), so count
+    // paths that actually span the screen.
+    const full = r.rec.paths.filter(p => p && p.length >= 3 &&
+      (Math.max(...p.map(q=>q.y)) - Math.min(...p.map(q=>q.y))) > 570).length;
+    const bolts = Math.round(full / 3);
+    counts[bolts] = (counts[bolts] || 0) + 1;
+    if (bolts === 0) zero++;
+  }
+  ok(zero === 0, 'no near strike is ever boltless', `${sampled} strikes, ${zero} boltless`);
+  const keys = Object.keys(counts).map(Number).sort();
+  ok(keys.every(k => k === 1 || k === 2), 'bolt count is always 1 or 2, exactly as asked',
+    `distribution ${JSON.stringify(counts)}`);
+  ok(keys.length === 2, 'and BOTH counts actually occur (singles and pairs)', `saw counts: ${keys.join(' and ')}`);
+}
+
+sec('RAIN IS GONE — asserted as absence so it cannot creep back');
+{
+  // Sample many unlit frames; if any strokes anything, something is drawing per-frame
+  // ambience again.
+  let strokedFrames = 0, sampled = 0;
+  for (let i = 0; i < 3000; i++) {
+    const t = i / 60;
+    if (UI.titleStormState(t).flash !== 0) continue;
+    sampled++;
+    const r = recCtx(); UI.drawTitleScreen(r, t);
+    if (r.rec.strokes > 0) strokedFrames++;
+    if (sampled > 400) break;
+  }
+  ok(sampled > 100, 'plenty of unlit frames sampled', `${sampled} frames`);
+  ok(strokedFrames === 0, 'not one unlit frame draws a single stroke', `${strokedFrames} of ${sampled} frames stroked`);
 }
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');

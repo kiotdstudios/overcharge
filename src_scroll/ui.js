@@ -548,7 +548,12 @@ export function drawLevelComplete(ctx, level, timer, t) {
 // drawTitleScreen only receives accumulated time, so a seeded hash keyed on the
 // strike index gives bolts that look random but are reproducible — which is the only
 // reason this is testable at all. A Math.random() bolt could not be asserted.
-const STORM_H = 450;      // matches the existing title backdrop exactly, so no seam
+// STORM_H is the FULL canvas height, not the old 450 title-backdrop box. Chief asked
+// for bolts reaching `top of the screen to bottom`, and 450 is not the bottom - H is
+// 578. Safe to extend because C.BG (what clear() paints below 450) is '#07090f', the
+// exact same colour as the title backdrop, so the boundary was never visible and
+// widening the fill changes no pixel. Verified against constants.js, not assumed.
+const STORM_H = H;
 // ── CHIEF'S DIAL. Say "more" or "less" and these three are what move. ──
 // Tuned by sweeping, not guessed. At these values, measured over 5 minutes of idling:
 //   128 bolts, gaps 1.0s min / 2.3s avg / 5.5s max, longest fully-dark stretch 2.3s,
@@ -599,17 +604,27 @@ export function titleStormState(t) {
 }
 
 // One jagged bolt, fully determined by `seed`.
+//
+// CHIEF 2026-09-19 17:45: "make sure at least 1 or two lightning bolts reaches from
+// top of the screen to bottom". The first version stopped at endY 150..270 — barely
+// past the logo — so nothing ever struck THROUGH the frame. Bolts now span y=0 to the
+// full screen height, and every near strike fires one or two of them.
 function _drawBolt(ctx, seed, w, alpha) {
-  const segs = 9;
-  const x0   = 60 + _h(seed * 31 + 3) * (w - 120);
-  const endY = 150 + _h(seed * 17 + 5) * 120;
+  // More segments than the old short bolt: 16 over 578px keeps the jag tight. At the
+  // old count of 9 a full-height bolt would read as a smooth diagonal line.
+  const segs = 16;
+  const x0   = 70 + _h(seed * 31 + 3) * (w - 140);
+  const drift = (_h(seed * 7 + 1) - 0.5) * 150;   // lean across the screen as it falls
   const pts  = [];
   for (let i = 0; i <= segs; i++) {
     const f = i / segs;
-    const spread = 70 * (1 - f) + 14;
+    // Jag stays wide the whole way down rather than tapering to nothing, so the lower
+    // half still looks like lightning instead of a straight tail.
+    const spread = 54 * (1 - 0.45 * f);
+    const x = x0 + (_h(seed * 101 + i * 13) - 0.5) * spread + f * drift;
     pts.push({
-      x: x0 + (_h(seed * 101 + i * 13) - 0.5) * spread + f * (_h(seed * 7 + 1) - 0.5) * 90,
-      y: f * endY,
+      x: Math.max(8, Math.min(w - 8, x)),          // never wander off-frame
+      y: f * STORM_H,                              // TOP OF SCREEN TO BOTTOM
     });
   }
   const stroke = (lw, col, a) => {
@@ -620,27 +635,41 @@ function _drawBolt(ctx, seed, w, alpha) {
     ctx.stroke();
   };
   // Wide soft halo under a tight white core reads as light rather than as a drawn line.
-  ctx.shadowBlur = 24; ctx.shadowColor = '#7fd4ff';
-  stroke(7, 'rgba(90,190,255,0.30)', alpha * 0.8);
-  stroke(2.4, '#eaf8ff', alpha);
-  // A branch or two, forking off a mid-point.
-  const forks = _h(seed * 53 + 9) > 0.45 ? 2 : 1;
+  ctx.shadowBlur = 26; ctx.shadowColor = '#7fd4ff';
+  stroke(9, 'rgba(90,190,255,0.26)', alpha * 0.8);
+  stroke(3.4, 'rgba(170,225,255,0.85)', alpha * 0.9);
+  stroke(1.6, '#f2fbff', alpha);
+  // Branches fork off mid-points and taper away. Spread across the bolt's length so
+  // the lower half gets them too, not just the top.
+  const forks = _h(seed * 53 + 9) > 0.4 ? 3 : 2;
   for (let b = 0; b < forks; b++) {
-    const i0 = 3 + Math.floor(_h(seed * 71 + b * 19) * 4);
-    const p  = pts[Math.min(i0, pts.length - 2)];
+    const i0 = 3 + Math.floor(_h(seed * 71 + b * 19) * (segs - 5));
+    const p   = pts[Math.min(i0, pts.length - 2)];
     const dir = _h(seed * 91 + b) > 0.5 ? 1 : -1;
     ctx.beginPath();
     ctx.moveTo(p.x, p.y);
     let bx = p.x, by = p.y;
-    for (let k = 0; k < 4; k++) {
-      bx += dir * (12 + _h(seed * 37 + b * 7 + k) * 26);
-      by += 16 + _h(seed * 43 + k) * 22;
+    for (let k = 0; k < 5; k++) {
+      // Forks need the SAME clamp as the trunk. Without it they ran up to 98px past
+      // the edge and got hard-clipped by the canvas, so a fork near the frame border
+      // ended in a straight cut instead of tapering. Found by the frame-bounds
+      // assertion once it sampled wide enough to reach cycle 1979.
+      bx = Math.max(6, Math.min(w - 6, bx + dir * (10 + _h(seed * 37 + b * 7 + k) * 24)));
+      by += 14 + _h(seed * 43 + k + b) * 24;
       ctx.lineTo(bx, by);
     }
-    ctx.lineWidth = 1.4; ctx.strokeStyle = '#cfefff'; ctx.globalAlpha = alpha * 0.7;
+    ctx.lineWidth = 1.5; ctx.strokeStyle = '#cfefff'; ctx.globalAlpha = alpha * 0.65;
     ctx.stroke();
   }
-  ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  // Ground glow where it lands, so the bolt terminates in something.
+  const land = pts[pts.length - 1];
+  const rg = ctx.createRadialGradient(land.x, STORM_H, 0, land.x, STORM_H, 170);
+  rg.addColorStop(0, `rgba(150,210,255,${0.30 * alpha})`);
+  rg.addColorStop(1, 'rgba(150,210,255,0)');
+  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+  ctx.fillStyle = rg;
+  ctx.fillRect(land.x - 170, STORM_H - 150, 340, 150);
+  ctx.globalAlpha = 1;
 }
 
 export function drawTitleScreen(ctx, t) {
@@ -661,20 +690,19 @@ export function drawTitleScreen(ctx, t) {
     ctx.fillRect(0, 0, w, STORM_H);
   }
 
-  // Rain. Deterministic per-streak so it never re-randomises between frames.
-  ctx.lineWidth = 1;
-  for (let i = 0; i < 90; i++) {
-    const sp = 120 + _h(i * 3 + 1) * 90;
-    const x  = (_h(i) * (w + 200) - 60 + t * 22) % (w + 200) - 60;
-    const y  = (_h(i * 5 + 2) * STORM_H + t * sp) % STORM_H;
-    const len = 9 + _h(i * 9) * 13;
-    ctx.strokeStyle = `rgba(150,190,240,${0.05 + 0.10 * _h(i * 11) + 0.22 * S.flash})`;
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 2, y + len); ctx.stroke();
-  }
+  // RAIN REMOVED — CHIEF 2026-09-19 17:45 "take away the rain effect". It was 90
+  // deterministic streaks drawn here. Deleted outright rather than left behind a flag.
 
-  // The bolt itself, only while the strike is actually bright.
+  // ONE OR TWO FULL-HEIGHT BOLTS per near strike, per Chief 17:45. The count is
+  // seed-driven so some strikes are a single bolt and some are a pair, but a near
+  // strike is never boltless — that is the "make sure at least 1 or two" guarantee.
   if (S.near && S.age >= 0 && S.age < 0.20) {
-    _drawBolt(ctx, S.seed, w, S.age < 0.06 ? 1 : (S.age < 0.10 ? 0.12 : 0.55));
+    const a = S.age < 0.06 ? 1 : (S.age < 0.10 ? 0.12 : 0.55);
+    const count = _h(S.seed * 211 + 17) > 0.45 ? 2 : 1;
+    for (let b = 0; b < count; b++) {
+      // Offsetting the seed per bolt keeps a pair from drawing on top of itself.
+      _drawBolt(ctx, S.seed * 1000 + b * 337, w, b === 0 ? a : a * 0.8);
+    }
   }
 
   // Logo. The chromatic split WIDENS on the flash — the glitch reacts to the storm
