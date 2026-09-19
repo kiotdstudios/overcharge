@@ -1808,62 +1808,7 @@
     "x": 96,
     "y": 434
   },
-  "decorations": [
-    {
-      "src": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "x": 758,
-      "y": 570,
-      "w": 21,
-      "h": 5,
-      "snap": 1,
-      "family": "waste_platform"
-    },
-    {
-      "src": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "x": 737,
-      "y": 570,
-      "w": 21,
-      "h": 5,
-      "snap": 1,
-      "family": "waste_platform"
-    },
-    {
-      "src": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "x": 779,
-      "y": 570,
-      "w": 21,
-      "h": 5,
-      "snap": 1,
-      "family": "waste_platform"
-    },
-    {
-      "src": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "x": 800,
-      "y": 570,
-      "w": 21,
-      "h": 5,
-      "snap": 1,
-      "family": "waste_platform"
-    },
-    {
-      "src": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "x": 821,
-      "y": 570,
-      "w": 21,
-      "h": 5,
-      "snap": 1,
-      "family": "waste_platform"
-    },
-    {
-      "src": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "x": 842,
-      "y": 570,
-      "w": 21,
-      "h": 5,
-      "snap": 1,
-      "family": "waste_platform"
-    }
-  ],
+  "decorations": [],
   "sources": [
     {
       "id": "src_1",
