@@ -128,7 +128,8 @@ export class ElectricalSource {
 //   Row 0: static base (unused — we play idle instead when closed)
 //   Row 1: 9-frame idle       → CLOSED, no active discharge
 //   Row 2: 9-frame charging   → CLOSED, currently receiving charge (POWERED-REACTION)
-//   `gate_electric_open.png` single 64x128 frame → OPEN state (fades out over 1s)
+//   OPEN state → `gate/rest.png` from Chief's re-cut pack, faded out over 1s.
+//   (Was `gate_electric_open.png`; Chief cut that asset, it is a different gate.)
 //
 // Idle/charging switch is triggered by `receive()` bumping `_reactT`;
 // while _reactT > 0 the gate plays the 'charging' animation, otherwise 'idle'.
@@ -241,8 +242,11 @@ export class PowerGate {
     // hitbox — animation clearly visible; hitbox untouched).
     this._imgClosed = new Image();
     this._imgClosed.src = 'assets/objects/gate_closed.png';
-    this._openImg   = new Image();
-    this._openImg.src = 'assets/objects/gate_electric_open.png';
+
+    // `gate_electric_open.png` is GONE — Chief cut it deliberately, it is a
+    // different gate asset entirely. The open-state draw moved to `_rest`
+    // (see the open-flash fix below), which left this load dead: fetched every
+    // boot, read by nothing. Removed with the file, so no 404 on load.
 
     // ── Chief's re-cut gate pack (ORCHA 03 addendum + ORCHA 04) ─────────
     // assets/objects/gate/ replaces the old 1152x384 spritesheet. Individual
@@ -588,9 +592,14 @@ export class PowerGate {
       ctx.imageSmoothingEnabled = false;
       if (age < 0.2) { ctx.shadowBlur = 30; ctx.shadowColor = '#ffffff'; }
       else            { ctx.shadowBlur = 16; ctx.shadowColor = '#cc44ff'; }
-      const openImg = this._openImg;
+      // Use rest.png from the new pack, same content crop as every other state.
+      // gate_electric_open.png was pre-recut art at 64x128 — no crop rect, drawn
+      // stretched to 94x105, producing a visible sprite swap on gate open.
+      // rest.png is the 128x128 neutral/base pose; applying GATE_SRC_* crop
+      // gives identical canvas registration to the idle/charging frames.
+      const openImg = this._rest;
       if (openImg && openImg.complete && openImg.naturalWidth > 0) {
-        ctx.drawImage(openImg, dX, dY, spriteW, spriteH);
+        ctx.drawImage(openImg, GATE_SRC_X, GATE_SRC_Y, GATE_SRC_W, GATE_SRC_H, dX, dY, spriteW, spriteH);
       } else {
         drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
       }
