@@ -21,6 +21,11 @@
       "number": 4,
       "name": "CARRY CURRENT",
       "file": "level4.json"
+    },
+    {
+      "number": 5,
+      "name": "LIVE WIRE",
+      "file": "level5.json"
     }
   ]
 }
