@@ -19,6 +19,20 @@ something i expect to be able to refresh and play it"*
 `levels.json` and `_dev_levels.json` are manifests, not content — agents may update those when an order
 requires it, and the guard exempts them.
 
+### AMENDED 2026-09-19 — read this before reverting anything
+This rule, as first written, caused a real defect: an agent read it and reverted Orcha's drone move, which
+left a narrowed sight box pointed at a drone 285px out of range. See
+`docs/KIRO_DIAGNOSIS_DRONE_BLIND_AND_TELEPORT.md`. Two clauses:
+
+**A. Enemy placement is coupled to enemy tuning.** When an order changes sensing or behaviour constants that
+depend on where an enemy sits, moving that enemy is **part of that order** and is permitted — in the **same
+commit** as the constants. Chief's tiles, spawn, generators, gates, switches, chests and checkpoints remain
+his alone.
+
+**B. Never revert half of a coupled change.** If a commit changes code and data together, revert both or
+neither. Half a revert produces a state nobody designed or tested, and it surfaces as a fresh bug in the half
+you kept. If a coupled change looks wrong, **raise it — do not unpick it.**
+
 ## 2. Why this is now mechanical instead of assumed
 
 The convention was already implicit and it still broke. `11e4ef5` promoted an unrelated generator fix from a
