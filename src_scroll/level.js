@@ -85,6 +85,17 @@ export class Level {
     return v === 1 || v >= 10;
   }
 
+  // Building section tiles (IDs 24-41) are solid vertically (player can land on
+  // them) but pass-through horizontally — they are wall-facade art, not barriers.
+  // A player standing on a floor tile must be able to run in front of a building
+  // wall without being stopped. Only _resolveX uses this; _resolveY and solidAt
+  // are unchanged so vertical grounding still works normally.
+  tileBlocksX(tx, ty) {
+    const v = this.tileAt(tx, ty);
+    if (v >= 24 && v <= 41) return false;   // building facades — X-passable
+    return v === 1 || v >= 10;
+  }
+
   isFailState(player) {
     const exit = this.gates.find(g => g.isExit && !g.open);
     if (!exit) return false;

@@ -425,7 +425,7 @@ export class Player {
     if (this.vx > 0) {
       const tRight = Math.floor((this.x + this.w - 1) / TILE);
       for (let ty = tTop; ty <= tBot; ty++) {
-        if (level.solidAt(tRight, ty)) {
+        if (level.tileBlocksX(tRight, ty)) {
           this.x  = tRight * TILE - this.w;
           this.vx = 0;
           break;
@@ -434,7 +434,7 @@ export class Player {
     } else if (this.vx < 0) {
       const tLeft = Math.floor(this.x / TILE);
       for (let ty = tTop; ty <= tBot; ty++) {
-        if (level.solidAt(tLeft, ty)) {
+        if (level.tileBlocksX(tLeft, ty)) {
           this.x  = (tLeft + 1) * TILE;
           this.vx = 0;
           break;
