@@ -420,12 +420,13 @@ export class Player {
   }
 
   _resolveX(level) {
-    const tTop = Math.floor(this.y / TILE);
-    const tBot = Math.floor((this.y + this.h - 1) / TILE);
+    const tTop      = Math.floor(this.y / TILE);
+    const tBot      = Math.floor((this.y + this.h - 1) / TILE);
+    const groundRow = tBot + 1;  // tile row the player is standing on
     if (this.vx > 0) {
       const tRight = Math.floor((this.x + this.w - 1) / TILE);
       for (let ty = tTop; ty <= tBot; ty++) {
-        if (level.tileBlocksX(tRight, ty)) {
+        if (level.tileBlocksX(tRight, ty, groundRow)) {
           this.x  = tRight * TILE - this.w;
           this.vx = 0;
           break;
@@ -434,7 +435,7 @@ export class Player {
     } else if (this.vx < 0) {
       const tLeft = Math.floor(this.x / TILE);
       for (let ty = tTop; ty <= tBot; ty++) {
-        if (level.tileBlocksX(tLeft, ty)) {
+        if (level.tileBlocksX(tLeft, ty, groundRow)) {
           this.x  = (tLeft + 1) * TILE;
           this.vx = 0;
           break;
