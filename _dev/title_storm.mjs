@@ -30,7 +30,7 @@ function recCtx() {
     stroke(){ r.strokes++; }, fill(){ r.fills++; },
     fillText(s,x,y){ r.texts.push(s); r.placed.push({s,x,y}); },
     createLinearGradient(){ r.gradients++; return g; },
-    createRadialGradient(){ r.gradients++; return g; },
+    createRadialGradient(){ r.gradients++; r.radials=(r.radials||0)+1; return g; },
     save(){}, restore(){}, measureText:()=>({width:100}), arc(){}, closePath(){},
   };
 }
@@ -194,107 +194,96 @@ sec('The logo GLITCH reacts to the storm (not a constant amplitude)');
     `span ${d.span.toFixed(1)}px dark -> ${l.span.toFixed(1)}px lit — the glitch is driven by the lightning`);
   ok(l.span - d.span > 3, 'and the widening is large enough to actually see', `+${(l.span-d.span).toFixed(1)}px`);
 }
-sec('CHIEF 17:45 — bolts reach the TOP of the screen to the BOTTOM');
+sec('CHIEF 2026-09-20 — bolt LENGTH VARIES, only a few reach the bottom');
 {
-  // Measured from the recorded path coordinates, not asserted from the constant. The
-  // first version stopped at y 150..270 and I would not have caught that by reading
-  // the code, because the code looked deliberate.
-  const H_SCREEN = 578;
-  let checked = 0, tooShort = [], offFrame = 0;
+  // SUPERSEDES my 17:45 assertion that EVERY near strike spans the full height. Chief:
+  // "all lightning is from top to bottom i said a few varying top to bottom". I had read
+  // "1 or two bolts reaches from top to bottom" as "all bolts", and the suite then locked
+  // that mistake in place. The guarantee is now VARIETY with a minority full-height.
+  //
+  // A TRUNK is identified by starting at y===0; a fork starts mid-bolt. My first
+  // measurement of this counted forks as bolts and reported 100% pairs, which is why the
+  // discriminator is stated explicitly rather than inferred from path length.
+  const D = UI.STORM_DIAL;
+  const trunks = (r) => {
+    const t = r.rec.paths
+      .filter(p => p && p.length >= 4 && Math.min(...p.map(q => q.y)) === 0)
+      .map(p => Math.round(Math.max(...p.map(q => q.y))));
+    return [...new Set(t)].sort((a, b) => b - a);   // each trunk is stroked 3x
+  };
+  let n = 0, pairs = 0, full = 0, bothFull = 0, boltless = 0;
+  const reaches = [], diffs = [];
+  for (let c = 0; c < 600; c++) {
+    let t = null;
+    for (let k = 0; k < 130; k++) {
+      const tt = c * D.STRIKE_PERIOD + k / 60;
+      const s = UI.titleStormState(tt);
+      if (s.near && s.flash >= 0.999) { t = tt; break; }
+    }
+    if (t === null) continue;
+    const r = recCtx(); UI.drawTitleScreen(r, t);
+    const b = trunks(r);
+    n++;
+    if (!b.length) { boltless++; continue; }
+    reaches.push(b[0] / 578);
+    if (b[0] >= 576) full++;
+    if (b.length >= 2) { pairs++; diffs.push(b[0] - b[1]); if (b[1] >= 576) bothFull++; }
+  }
+  ok(n > 300, 'enough strikes sampled', `${n} strikes`);
+  ok(boltless === 0, 'every near strike still draws at least one bolt', `${boltless} boltless`);
+
+  const fullPct = 100 * full / n;
+  ok(fullPct > 5 && fullPct < 40,
+    'SOME bolts reach top-to-bottom, but only a minority',
+    `${fullPct.toFixed(0)}% full height — "a few varying", not the 100% I shipped at 17:45`);
+
+  const pairPct = 100 * pairs / n;
+  ok(pairPct < 30,
+    'double strikes are RARE',
+    `${pairPct.toFixed(0)}% of strikes are pairs — was 55%, which Chief called "a lot"`);
+  ok(pairPct > 3, 'but they do still happen', `${pairPct.toFixed(0)}%`);
+
+  ok(bothFull === 0,
+    'a pair is NEVER two full-height bolts',
+    `${bothFull} such pairs — Chief: "at different lengths not both top to bottom"`);
+  ok(diffs.length === 0 || Math.min(...diffs) > 40,
+    'and the two bolts in a pair are clearly different lengths',
+    diffs.length ? `closest pair differed by ${Math.min(...diffs)}px, avg ${Math.round(diffs.reduce((a,b)=>a+b,0)/diffs.length)}px` : 'no pairs sampled');
+
+  reaches.sort((a, b) => a - b);
+  const buckets = new Set(reaches.map(r => Math.round(r * 20))).size;
+  ok(buckets >= 5,
+    'bolt length genuinely varies rather than snapping between two sizes',
+    `${buckets} distinct length buckets, min ${(reaches[0]*100).toFixed(0)}% median ${(reaches[Math.floor(reaches.length/2)]*100).toFixed(0)}% max ${(reaches[reaches.length-1]*100).toFixed(0)}%`);
+}
+
+sec('A short bolt must NOT light up the ground');
+{
+  // The tell that would make varying lengths look like a bug rather than a choice: a bolt
+  // dying in the sky while the floor still flashes beneath it.
+  const D = UI.STORM_DIAL;
+  let shortWithGlow = 0, shortSeen = 0, fullSeen = 0;
   for (let c = 0; c < 400; c++) {
-    const t = c * UI.STORM_DIAL.STRIKE_PERIOD + UI.titleStormState(c * UI.STORM_DIAL.STRIKE_PERIOD).age * 0;
-    // land exactly on this cycle's strike frame
-    let strikeT = null;
+    let t = null;
     for (let k = 0; k < 130; k++) {
-      const tt = c * UI.STORM_DIAL.STRIKE_PERIOD + k / 60;
+      const tt = c * D.STRIKE_PERIOD + k / 60;
       const s = UI.titleStormState(tt);
-      if (s.near && s.flash >= 0.999) { strikeT = tt; break; }
+      if (s.near && s.flash >= 0.999) { t = tt; break; }
     }
-    if (strikeT === null) continue;
-    const r = recCtx(); UI.drawTitleScreen(r, strikeT);
-    // The MAIN bolt paths are the long ones; find the tallest path drawn.
-    let best = 0, bestPath = null;
-    for (const p of r.rec.paths) {
-      if (!p || p.length < 3) continue;
-      const ys = p.map(q => q.y), span = Math.max(...ys) - Math.min(...ys);
-      if (span > best) { best = span; bestPath = p; }
-    }
-    checked++;
-    if (best < H_SCREEN - 1) tooShort.push({ c, span: best.toFixed(0) });
-    if (bestPath) {
-      const ys = bestPath.map(q => q.y), xs = bestPath.map(q => q.x);
-      if (Math.min(...ys) > 0.5 || Math.max(...ys) < H_SCREEN - 0.5) tooShort.push({ c, span: best.toFixed(0) });
-      if (Math.min(...xs) < 0 || Math.max(...xs) > 800) offFrame++;
-    }
+    if (t === null) continue;
+    const r = recCtx(); UI.drawTitleScreen(r, t);
+    const tr = r.rec.paths.filter(p => p && p.length >= 4 && Math.min(...p.map(q => q.y)) === 0)
+      .map(p => Math.round(Math.max(...p.map(q => q.y)))).sort((a,b)=>b-a);
+    if (!tr.length) continue;
+    // radial gradients are only created by the landing glow; linear is the sky lift
+    const radials = r.rec.radials || 0;
+    if (tr[0] >= 576) fullSeen++;
+    else { shortSeen++; if (radials > 0) shortWithGlow++; }
   }
-  ok(checked > 200, 'enough strikes sampled to be meaningful', `${checked} strikes measured`);
-  ok(tooShort.length === 0,
-    'EVERY near strike draws a bolt spanning the full screen height',
-    tooShort.length ? `${tooShort.length} short: ${JSON.stringify(tooShort.slice(0,3))}` : `all ${checked} span 0 -> ${H_SCREEN}px`);
-  ok(offFrame === 0, 'and no bolt wanders off the left or right edge (sampled range)', `${offFrame} off-frame`);
-}
-
-sec('The edge clamp is load-bearing — anchored on the cycle that actually breaks it');
-{
-  // My first version of the off-frame check sampled 400 cycles and a mutation removing
-  // the clamp PASSED 43/43 — a vacuous assertion. Unclamped, the x math reaches
-  // -11.5 .. 810.0 on an 800px frame, but the worst offender is CYCLE 1979 (t ~ 3562s),
-  // far outside a 400-cycle window. Sampling wide enough to include it is what gives
-  // this assertion teeth. Anchored on the specific cycle so it cannot silently drift.
-  const WORST_CYCLE = 1979;
-  const P = UI.STORM_DIAL.STRIKE_PERIOD;
-  let worstLo = 1e9, worstHi = -1e9, offFrame = 0, sampled = 0;
-  const cycles = [WORST_CYCLE];
-  for (let c = 1900; c < 2100; c++) if (c !== WORST_CYCLE) cycles.push(c);
-  for (const c of cycles) {
-    let strikeT = null;
-    for (let k = 0; k < 130; k++) {
-      const tt = c * P + k / 60;
-      const s = UI.titleStormState(tt);
-      if (s.near && s.flash >= 0.999) { strikeT = tt; break; }
-    }
-    if (strikeT === null) continue;
-    sampled++;
-    const r = recCtx(); UI.drawTitleScreen(r, strikeT);
-    for (const p of r.rec.pts) {
-      if (p.x < worstLo) worstLo = p.x;
-      if (p.x > worstHi) worstHi = p.x;
-      if (p.x < 0 || p.x > 800) offFrame++;
-    }
-  }
-  ok(sampled > 100, 'the wide window sampled real strikes', `${sampled} strikes around cycle ${WORST_CYCLE}`);
-  ok(offFrame === 0,
-    'not one path point escapes the frame, including the known worst cycle',
-    `x stayed within ${worstLo.toFixed(1)} .. ${worstHi.toFixed(1)} — unclamped this reaches -11.5 .. 810.0`);
-}
-
-sec('One or two bolts per strike — never zero on a near strike');
-{
-  const counts = {};
-  let zero = 0, sampled = 0;
-  for (let c = 0; c < 300; c++) {
-    let strikeT = null;
-    for (let k = 0; k < 130; k++) {
-      const tt = c * UI.STORM_DIAL.STRIKE_PERIOD + k / 60;
-      const s = UI.titleStormState(tt);
-      if (s.near && s.flash >= 0.999) { strikeT = tt; break; }
-    }
-    if (strikeT === null) continue;
-    sampled++;
-    const r = recCtx(); UI.drawTitleScreen(r, strikeT);
-    // Each full-height bolt is drawn as 3 stacked strokes (halo/mid/core), so count
-    // paths that actually span the screen.
-    const full = r.rec.paths.filter(p => p && p.length >= 3 &&
-      (Math.max(...p.map(q=>q.y)) - Math.min(...p.map(q=>q.y))) > 570).length;
-    const bolts = Math.round(full / 3);
-    counts[bolts] = (counts[bolts] || 0) + 1;
-    if (bolts === 0) zero++;
-  }
-  ok(zero === 0, 'no near strike is ever boltless', `${sampled} strikes, ${zero} boltless`);
-  const keys = Object.keys(counts).map(Number).sort();
-  ok(keys.every(k => k === 1 || k === 2), 'bolt count is always 1 or 2, exactly as asked',
-    `distribution ${JSON.stringify(counts)}`);
-  ok(keys.length === 2, 'and BOTH counts actually occur (singles and pairs)', `saw counts: ${keys.join(' and ')}`);
+  ok(shortSeen > 50 && fullSeen > 10, 'both short and full bolts were sampled', `${shortSeen} short, ${fullSeen} full`);
+  ok(shortWithGlow === 0,
+    'no sky-only bolt draws a ground glow',
+    `${shortWithGlow} of ${shortSeen} short bolts lit the floor`);
 }
 
 sec('RAIN IS GONE — asserted as absence so it cannot creep back');

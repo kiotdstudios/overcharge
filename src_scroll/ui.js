@@ -575,6 +575,13 @@ const NEAR_THRESHOLD = 0.20; // below this a cycle is distant rumble, no visible
 // late strike is cut off mid-flash when the cycle rolls over. Current margin is 0.30s.
 // Asserted in _dev/title_storm.mjs — do not tune the period down without re-running it.
 const FLASH_DUR = 0.55;
+// CHIEF 2026-09-20 03:28 dials, same block so `more/less` is a one-line change:
+//   PAIR_RARITY      higher = rarer double strikes. 0.84 -> about 1 strike in 6.
+//   FULL_REACH_CHANCE fraction of bolts that drop the FULL screen height. 0.22 -> ~1 in 5,
+//                     which is the `a few varying top to bottom` he asked for. The rest
+//                     stop in the sky between 40% and 80% of the drop.
+const PAIR_RARITY       = 0.84;
+const FULL_REACH_CHANCE = 0.22;
 
 // Deterministic 0..1 hash. Same integer-mix style as the tile variant hash.
 function _h(n) {
@@ -588,7 +595,7 @@ function _h(n) {
 // worth more than eyeballing a canvas.
 // Dial exposed so the suite can assert the truncation invariant against the REAL
 // numbers instead of hard-coding a copy of them that can drift.
-export const STORM_DIAL = Object.freeze({ STRIKE_PERIOD, STRIKE_JITTER, NEAR_THRESHOLD, FLASH_DUR });
+export const STORM_DIAL = Object.freeze({ STRIKE_PERIOD, STRIKE_JITTER, NEAR_THRESHOLD, FLASH_DUR, PAIR_RARITY, FULL_REACH_CHANCE });
 
 export function titleStormState(t) {
   const cycle = Math.floor(t / STRIKE_PERIOD);
@@ -617,22 +624,31 @@ export function titleStormState(t) {
 // top of the screen to bottom". The first version stopped at endY 150..270 — barely
 // past the logo — so nothing ever struck THROUGH the frame. Bolts now span y=0 to the
 // full screen height, and every near strike fires one or two of them.
-function _drawBolt(ctx, seed, w, alpha) {
-  // More segments than the old short bolt: 16 over 578px keeps the jag tight. At the
-  // old count of 9 a full-height bolt would read as a smooth diagonal line.
-  const segs = 16;
+// One jagged bolt. `reach` is the fraction of screen height it spans (0..1).
+//
+// CHIEF 2026-09-20 03:28: "all lightning is from top to bottom i said a few varying top
+// to bottom ... a lot of 2 strikes at once that should be rare and at different lengths
+// not both top to bottom".
+//
+// I over-corrected the 17:45 note. He asked for one or two bolts to REACH the bottom;
+// I made EVERY bolt full height and 55% of strikes a pair, so the variation he wanted
+// was gone in both dimensions. Length is now a parameter, and only a minority of bolts
+// get the full drop.
+function _drawBolt(ctx, seed, w, alpha, reach) {
+  const endY = STORM_H * reach;
+  // Segment count scales with length so short bolts are not over-tessellated and long
+  // ones still jag tightly. 16 over the full drop was tuned earlier; keep that density.
+  const segs = Math.max(6, Math.round(16 * reach));
   const x0   = 70 + _h(seed * 31 + 3) * (w - 140);
-  const drift = (_h(seed * 7 + 1) - 0.5) * 150;   // lean across the screen as it falls
+  const drift = (_h(seed * 7 + 1) - 0.5) * 150 * reach;   // lean, scaled to the drop
   const pts  = [];
   for (let i = 0; i <= segs; i++) {
     const f = i / segs;
-    // Jag stays wide the whole way down rather than tapering to nothing, so the lower
-    // half still looks like lightning instead of a straight tail.
     const spread = 54 * (1 - 0.45 * f);
     const x = x0 + (_h(seed * 101 + i * 13) - 0.5) * spread + f * drift;
     pts.push({
       x: Math.max(8, Math.min(w - 8, x)),          // never wander off-frame
-      y: f * STORM_H,                              // TOP OF SCREEN TO BOTTOM
+      y: f * endY,                                 // starts at the top, ends at `reach`
     });
   }
   const stroke = (lw, col, a) => {
@@ -669,14 +685,18 @@ function _drawBolt(ctx, seed, w, alpha) {
     ctx.lineWidth = 1.5; ctx.strokeStyle = '#cfefff'; ctx.globalAlpha = alpha * 0.65;
     ctx.stroke();
   }
-  // Ground glow where it lands, so the bolt terminates in something.
-  const land = pts[pts.length - 1];
-  const rg = ctx.createRadialGradient(land.x, STORM_H, 0, land.x, STORM_H, 170);
-  rg.addColorStop(0, `rgba(150,210,255,${0.30 * alpha})`);
-  rg.addColorStop(1, 'rgba(150,210,255,0)');
-  ctx.globalAlpha = 1; ctx.shadowBlur = 0;
-  ctx.fillStyle = rg;
-  ctx.fillRect(land.x - 170, STORM_H - 150, 340, 150);
+  // Ground glow ONLY for a bolt that actually reaches the ground. A short bolt that
+  // dies in the sky must not light up the floor — that was the tell that would have
+  // made varying lengths look broken rather than deliberate.
+  if (reach >= 0.92) {
+    const land = pts[pts.length - 1];
+    const rg = ctx.createRadialGradient(land.x, STORM_H, 0, land.x, STORM_H, 170);
+    rg.addColorStop(0, `rgba(150,210,255,${0.30 * alpha})`);
+    rg.addColorStop(1, 'rgba(150,210,255,0)');
+    ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+    ctx.fillStyle = rg;
+    ctx.fillRect(land.x - 170, STORM_H - 150, 340, 150);
+  }
   ctx.globalAlpha = 1;
 }
 
@@ -701,15 +721,32 @@ export function drawTitleScreen(ctx, t) {
   // RAIN REMOVED — CHIEF 2026-09-19 17:45 "take away the rain effect". It was 90
   // deterministic streaks drawn here. Deleted outright rather than left behind a flag.
 
-  // ONE OR TWO FULL-HEIGHT BOLTS per near strike, per Chief 17:45. The count is
-  // seed-driven so some strikes are a single bolt and some are a pair, but a near
-  // strike is never boltless — that is the "make sure at least 1 or two" guarantee.
+  // BOLT COUNT AND LENGTH — CHIEF 2026-09-20 03:28.
+  // "all lightning is from top to bottom i said a few varying top to bottom also there
+  //  are a lot of 2 strikes at once that should be rare and at different lengths not
+  //  both top to bottom"
+  //
+  // Three corrections to my 17:45 over-shoot:
+  //  1 LENGTH VARIES. Most bolts die in the sky; only a MINORITY drop the full height.
+  //    Chief asked for "a few" reaching bottom, not all of them.
+  //  2 PAIRS ARE RARE. Was 55% of strikes, which is not "at once occasionally", it is
+  //    the norm. Now ~1 in 6.
+  //  3 A PAIR IS NEVER TWO FULL-HEIGHT BOLTS. The second is explicitly forced short, so
+  //    a double strike reads as one big bolt plus a smaller one, never two identical
+  //    curtains.
   if (S.near && S.age >= 0 && S.age < 0.20) {
     const a = S.age < 0.06 ? 1 : (S.age < 0.10 ? 0.12 : 0.55);
-    const count = _h(S.seed * 211 + 17) > 0.45 ? 2 : 1;
-    for (let b = 0; b < count; b++) {
-      // Offsetting the seed per bolt keeps a pair from drawing on top of itself.
-      _drawBolt(ctx, S.seed * 1000 + b * 337, w, b === 0 ? a : a * 0.8);
+    const pair = _h(S.seed * 211 + 17) > PAIR_RARITY;
+    // Primary reach: FULL_REACH_CHANCE of strikes go top-to-bottom, the rest stop in the
+    // sky somewhere between 40% and 80% of the drop.
+    const r0 = _h(S.seed * 409 + 23) < FULL_REACH_CHANCE
+      ? 1
+      : 0.40 + _h(S.seed * 577 + 31) * 0.40;
+    _drawBolt(ctx, S.seed * 1000, w, a, r0);
+    if (pair) {
+      // Secondary is always clearly shorter than the primary, and never full height.
+      const r1 = Math.min(r0 * 0.65, 0.30 + _h(S.seed * 733 + 41) * 0.35);
+      _drawBolt(ctx, S.seed * 1000 + 337, w, a * 0.8, r1);
     }
   }
 

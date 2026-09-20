@@ -19,14 +19,35 @@ const sw       = L2.switches[0];
 // Surface y of the first solid tile below a given row, at a column.
 const surfaceAt = (col, fromRow) => { for(let r=fromRow;r<18;r++) if(solid(L2.tiles[r*C+col])) return r*T; return null; };
 
-sec('THE ASSERTION PROTECTING EVERY LEVEL\u2019S ECONOMY: exit gates stay unjumpable');
+sec('EXIT GATES ARE NOW Y-AWARE TOO — Chief ruling 2026-09-20 00:02 (100338f)');
 {
+  // SUPERSEDED, NOT BROKEN. This section used to assert that an exit gate blocks the
+  // FULL COLUMN at any height, on the grounds that otherwise "every exit cost becomes
+  // optional". Chief's commit 100338f makes ALL gates Y-aware and says so explicitly:
+  //   "Supersedes the exit/chargeable carve-out in KIRO_RULING_BLOCKONLY_Y_AWARE."
+  //
+  // I nearly reverted the runtime to satisfy this stale test. The code follows Chief's
+  // newer ruling; the assertion was the out-of-date half. Checked the commit author and
+  // message before changing anything, which is what caught it.
+  //
+  // The economy is still protected, just by elevation rather than by an infinite column:
+  // a player who reaches the gate's own height is blocked and must pay. What changed is
+  // that a player on a DIFFERENT floor no longer collides with a gate he is nowhere near.
   const ex = new EL.PowerGate(exitDef);
-  ok(!exitDef.blockOnly, 'the exit is NOT blockOnly, so it keeps X-only blocking');
-  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, 0, PLAYER_H),
-    'a player FAR ABOVE the exit is still blocked', 'if this ever fails, every exit cost becomes optional');
-  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y, PLAYER_H), 'and blocked at exit level');
-  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, 560, PLAYER_H), 'and blocked far BELOW the exit');
+  ok(!exitDef.blockOnly, 'the exit is not blockOnly (it is a chargeable gate)');
+  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y, PLAYER_H),
+    'a player AT the exit elevation is blocked — this is what protects the cost',
+    'reaching the gate still means paying for it');
+  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y + exitDef.h - PLAYER_H, PLAYER_H),
+    'and blocked at the gate\u2019s lowest row');
+  ok(!ex.blocksHorizontal(exitDef.x-4, PLAYER_W, 0, PLAYER_H),
+    'a player FAR ABOVE the exit passes, per the new ruling',
+    'was asserted as blocked under the superseded carve-out');
+  ok(!ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y + exitDef.h + 200, PLAYER_H),
+    'and a player far BELOW it passes too');
+  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W),
+    'callers with no Y info still get the legacy full-column block',
+    'back-compat path preserved');
 }
 
 sec('Y-aware blockOnly: the fence blocks its OWN rows and nothing else');
