@@ -366,14 +366,24 @@ btnCommitPush?.addEventListener('click', async () => {
   // A8: Pre-flight 1 — no save folder means publish will find nothing.
   // Chief hit this exact case: PUBLISH ran, found nothing, he then moved a
   // generator — having received false confirmation that the publish worked.
-  if (!Persistence.saveFolderName()) {
+  // A8 + A14.3: check PERMISSION, not just that a folder name is cached. A stale
+  // handle keeps its name after a browser restart (and always in incognito), so
+  // the old name-only check passed while every write went nowhere.
+  const _folderState = await Persistence.saveFolderReady();
+  if (_folderState !== 'granted') {
     if (commitPushOut) {
       commitPushOut.style.display = 'block';
       commitPushOut.style.color   = '#ff8888';
-      commitPushOut.textContent   =
-        'NO FOLDER SET — nothing to publish.\n\n' +
-        'Click \u{1F4C1} FOLDER and pick the src_scroll/levels folder in your Git clone. ' +
-        'Without it, SAVE has no target and PUBLISH will commit nothing new.';
+      commitPushOut.textContent = _folderState === 'none'
+        ? 'NO FOLDER SET — nothing was saved and nothing will publish.\n\n' +
+          'Click \u{1F4C1} FOLDER and pick:\n' +
+          '  Documents\\GitHub\\overcharge\\src_scroll\\levels\n\n' +
+          'It must be the "overcharge" clone, not overcharge-aki or overcharge-orcha.'
+        : 'FOLDER PERMISSION LOST — your edits are in the editor ONLY.\n\n' +
+          'Chrome drops write access on restart, and never grants it in an incognito ' +
+          'window. Nothing has been written to disk, so there is nothing to publish.\n\n' +
+          'Click \u{1F4C1} FOLDER, re-pick src_scroll/levels, and allow the prompt. ' +
+          'Then SAVE, then publish.';
     }
     return;
   }
