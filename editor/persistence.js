@@ -149,6 +149,26 @@ export function saveFolderName() {
   return _saveDirHandle ? _saveDirHandle.name : null;
 }
 
+// A NAME IS NOT PERMISSION. `saveFolderName()` returns the cached handle's name
+// even when the browser has revoked write access — which happens on every browser
+// restart, and always in an incognito window. The COMMIT & PUSH pre-flight used
+// the name alone, so it passed, the write then went nowhere, and Chief refreshed
+// into an unchanged game. He lost a full night to this: edits lived in the editor
+// only, the publish reported "remote SHA unchanged" because there was genuinely
+// nothing to commit, and nothing in the chain said which link had failed.
+//
+// Returns: 'granted' | 'prompt' | 'none'.  Never throws — a permission check that
+// throws would reintroduce the silent failure it exists to prevent.
+export async function saveFolderReady() {
+  if (!_saveDirHandle) return 'none';
+  try {
+    const q = await _saveDirHandle.queryPermission?.({ mode: 'readwrite' });
+    return q === 'granted' ? 'granted' : 'prompt';
+  } catch {
+    return 'prompt';
+  }
+}
+
 // ── Level discovery (dropdown population) ────────────────────────────────
 // Two paths:
 //   • Chief has picked a save folder (Chrome, cached directory handle) →

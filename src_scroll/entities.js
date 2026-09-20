@@ -995,8 +995,8 @@ const CHEST_SRC_H   = 104;
 const CHEST_FRAMES  = 9;    // 000..008 — a real 9-frame animation here
 const CHEST_FPS     = 12;
 // On-screen draw size. Chief's dial, same pattern as GATE_DRAW_W/H.
-const CHEST_DRAW_W  = 52;
-const CHEST_DRAW_H  = 52;
+const CHEST_DRAW_W  = 36;   // Chief resize: was 52 (3-block visual) -> 36 (2-block visual)
+const CHEST_DRAW_H  = 36;
 const _chestImg = (p) => { const i = new Image(); i.src = `assets/objects/chest/${p}`; return i; };
 const CHEST_ART = {
   closed: _chestImg('closed.png'),
@@ -1122,5 +1122,68 @@ export class Chest {
       ctx.fillStyle = '#ffcc00';
       ctx.fillRect(bx, by, Math.round(bw * (this.charged / this.cost)), bh);
     }
+  }
+}
+
+// ── ElectricBolt (player projectile — K fires this when no melee target in range) ──
+// Aim is 8-directional: caller derives vx/vy from held movement keys.
+// No auto-aim — the player picks the direction.
+const BOLT_SPEED    = 320;   // px/s
+const BOLT_W        = 6;
+const BOLT_H        = 6;
+const BOLT_MAX_LIFE = 1.5;   // seconds before despawn
+
+export class ElectricBolt {
+  constructor(x, y, vx, vy) {
+    this.x  = x - BOLT_W / 2;
+    this.y  = y - BOLT_H / 2;
+    this.vx = vx;
+    this.vy = vy;
+    this.w  = BOLT_W;
+    this.h  = BOLT_H;
+    this.alive = true;
+    this._life = 0;
+    this._t    = 0;   // oscillator for pulse glow
+  }
+
+  get cx() { return this.x + this.w / 2; }
+  get cy() { return this.y + this.h / 2; }
+
+  update(dt, level, enemies) {
+    if (!this.alive) return;
+    this._life += dt;
+    this._t    += dt;
+    if (this._life > BOLT_MAX_LIFE) { this.alive = false; return; }
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+
+    // solidAt takes tile coords (world_px / TILE)
+    const TILE = 32;
+    if (level.solidAt(Math.floor(this.cx / TILE), Math.floor(this.cy / TILE))) {
+      this.alive = false;
+      return;
+    }
+
+    for (const e of enemies) {
+      if (!e.alive) continue;
+      if (this.cx >= e.x && this.cx <= e.x + e.w &&
+          this.cy >= e.y && this.cy <= e.y + e.h) {
+        e.hit(level);
+        this.alive = false;
+        return;
+      }
+    }
+  }
+
+  draw(ctx) {
+    if (!this.alive) return;
+    const pulse = 0.7 + 0.3 * Math.sin(this._t * 30);
+    ctx.save();
+    ctx.shadowBlur  = 14;
+    ctx.shadowColor = '#44ddff';
+    ctx.fillStyle   = `rgba(68,221,255,${pulse})`;
+    ctx.fillRect(this.x, this.y, this.w, this.h);
+    ctx.restore();
   }
 }

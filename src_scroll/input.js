@@ -11,6 +11,12 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => { cur[e.code] = false; });
 
+// Clear all held keys on focus loss — prevents stuck sprint/jump when keyup
+// events are dropped because the window was not focused when the key was released.
+function _clearAll() { for (const k in cur) cur[k] = false; }
+window.addEventListener('blur', _clearAll);
+document.addEventListener('visibilitychange', () => { if (document.hidden) _clearAll(); });
+
 export function update() {
   Object.assign(prev, cur);
 }

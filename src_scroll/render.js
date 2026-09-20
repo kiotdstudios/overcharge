@@ -6,41 +6,71 @@
 // ALWAYS append a new value. Never renumber. Never derive from array position.
 // Short name (basename without .png) keyed by tile ID integer.
 const TILE_ID_REGISTRY = Object.freeze({
-  // Purple City tileset (IDs 10–13)
-  10: 'tile_dark_a',
-  11: 'tile_dark_b',
-  12: 'tile_purple_a',
-  13: 'tile_purple_b',
-  // Purple Rooftop tileset (IDs 14–23). rt_ prefix avoids _pc cache collision.  16: 'rt_tile_mid_a',
-  17: 'rt_tile_mid_b',
-  18: 'rt_tile_mid_c',
-  19: 'rt_tile_purple_a',
-  20: 'rt_tile_purple_b',
-  21: 'rt_tile_purple_c',
-  22: 'rt_tile_light_a',
-  23: 'rt_tile_accent_a',
+  // IDs 10-13 remapped to mid_a (Purple City retired, Chief 2026-09-19). Values
+  // preserved so existing level JSON continues to decode without error.
+  10: 'env_rt_tile_mid_a',
+  11: 'env_rt_tile_mid_a',
+  12: 'env_rt_tile_mid_a',
+  13: 'env_rt_tile_mid_a',
+  // Purple Rooftop tileset (IDs 16-23). IDs 14/15 never assigned; 20/21/22 retired.
+  16: 'env_rt_tile_mid_a',
+  17: 'env_rt_tile_mid_b',
+  18: 'env_rt_tile_mid_c',
+  19: 'env_rt_tile_purple_a',
+  23: 'env_rt_tile_accent_a',
+  // Purple Rooftop building sections (IDs 24-41) — Chief-chosen rooftop tiles.
+  24: 'env_rt_bldg_r02_c01',
+  25: 'env_rt_bldg_r02_c02',
+  26: 'env_rt_bldg_r02_c03',
+  27: 'env_rt_bldg_r03_c01',
+  28: 'env_rt_bldg_r03_c02',
+  29: 'env_rt_bldg_r03_c03',
+  30: 'env_rt_bldg_r03_c04',
+  31: 'env_rt_bldg_r03_c05',
+  32: 'env_rt_bldg_r03_c06',
+  33: 'env_rt_bldg_r04_c01',
+  34: 'env_rt_bldg_r04_c02',
+  35: 'env_rt_bldg_r04_c03',
+  36: 'env_rt_bldg_r04_c04',
+  37: 'env_rt_bldg_r04_c05',
+  38: 'env_rt_bldg_r04_c06',
+  39: 'env_rt_bldg_r04_c11',
+  40: 'env_rt_bldg_r04_c12',
+  41: 'env_rt_bldg_r04_c13',
 });
-const TILE_DEFAULT_KEY = 'tile_dark_a';
+const TILE_DEFAULT_KEY = 'env_rt_tile_mid_a';
 // Explicit per-name path map — replaces the old `purple_city/tiles/${name}` string
 // construction so tiles from multiple tilesets can coexist without a path collision.
 const TILE_PATHS = Object.freeze({
-  'tile_dark_a':      'assets/tilesets/purple_city/tiles/tile_dark_a.png',
-  'tile_dark_b':      'assets/tilesets/purple_city/tiles/tile_dark_b.png',
-  'tile_purple_a':    'assets/tilesets/purple_city/tiles/tile_purple_a.png',
-  'tile_purple_b':    'assets/tilesets/purple_city/tiles/tile_purple_b.png',  'rt_tile_mid_a':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png',
-  'rt_tile_mid_b':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_b.png',
-  'rt_tile_mid_c':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_c.png',
-  'rt_tile_purple_a': 'assets/tilesets/purple_rooftop/tiles/rt_tile_purple_a.png',
-  'rt_tile_purple_b': 'assets/tilesets/purple_rooftop/tiles/rt_tile_purple_b.png',
-  'rt_tile_purple_c': 'assets/tilesets/purple_rooftop/tiles/rt_tile_purple_c.png',
-  'rt_tile_light_a':  'assets/tilesets/purple_rooftop/tiles/rt_tile_light_a.png',
-  'rt_tile_accent_a': 'assets/tilesets/purple_rooftop/tiles/rt_tile_accent_a.png',
+  'env_rt_tile_mid_a':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png',
+  'env_rt_tile_mid_b':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_b.png',
+  'env_rt_tile_mid_c':    'assets/tilesets/purple_rooftop/tiles/rt_tile_mid_c.png',
+  'env_rt_tile_purple_a': 'assets/tilesets/purple_rooftop/tiles/rt_tile_purple_a.png',
+  'env_rt_tile_accent_a': 'assets/tilesets/purple_rooftop/tiles/rt_tile_accent_a.png',
+  'env_rt_bldg_r02_c01':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r02_c01.png',
+  'env_rt_bldg_r02_c02':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r02_c02.png',
+  'env_rt_bldg_r02_c03':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r02_c03.png',
+  'env_rt_bldg_r03_c01':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c01.png',
+  'env_rt_bldg_r03_c02':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c02.png',
+  'env_rt_bldg_r03_c03':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c03.png',
+  'env_rt_bldg_r03_c04':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c04.png',
+  'env_rt_bldg_r03_c05':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c05.png',
+  'env_rt_bldg_r03_c06':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r03_c06.png',
+  'env_rt_bldg_r04_c01':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c01.png',
+  'env_rt_bldg_r04_c02':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c02.png',
+  'env_rt_bldg_r04_c03':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c03.png',
+  'env_rt_bldg_r04_c04':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c04.png',
+  'env_rt_bldg_r04_c05':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c05.png',
+  'env_rt_bldg_r04_c06':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c06.png',
+  'env_rt_bldg_r04_c11':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c11.png',
+  'env_rt_bldg_r04_c12':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c12.png',
+  'env_rt_bldg_r04_c13':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c13.png',
 });
 // Preload all registered tiles using the explicit path map.
 const _pc = {};
 Object.values(TILE_ID_REGISTRY).forEach(name => {
   const img = new Image();
-  img.src = TILE_PATHS[name] || `assets/tilesets/purple_city/tiles/${name}.png`;
+  img.src = TILE_PATHS[name] || TILE_PATHS[TILE_DEFAULT_KEY]; // fallback: mid_a
   _pc[name] = img;
 });
 
