@@ -913,6 +913,96 @@
         "density": "sparse",
         "stackable": false
       }
+    },
+    {
+      "id": "env_rt_prop_hvac_fan_a",
+      "path": "assets/tilesets/purple_rooftop/props/hvac_fan_a.png",
+      "category": "decoration",
+      "tags": [
+        "hvac",
+        "purple_rooftop",
+        "prop",
+        "rooftop",
+        "decoration",
+        "fan"
+      ],
+      "frame_width": 17,
+      "frame_height": 26,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "HVAC fan panel (left half, no vent grille), dark navy variant. 17x26px. Cropped from env_rt_prop_hvac_a.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decoration"
+        ],
+        "surface": "free",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_prop_hvac_fan_b",
+      "path": "assets/tilesets/purple_rooftop/props/hvac_fan_b.png",
+      "category": "decoration",
+      "tags": [
+        "hvac",
+        "purple_rooftop",
+        "prop",
+        "rooftop",
+        "decoration",
+        "fan"
+      ],
+      "frame_width": 17,
+      "frame_height": 26,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "HVAC fan panel (left half, no vent grille), purple variant. 17x26px. Cropped from env_rt_prop_hvac_b.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decoration"
+        ],
+        "surface": "free",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_prop_hvac_fan_c",
+      "path": "assets/tilesets/purple_rooftop/props/hvac_fan_c.png",
+      "category": "decoration",
+      "tags": [
+        "hvac",
+        "purple_rooftop",
+        "prop",
+        "rooftop",
+        "decoration",
+        "fan"
+      ],
+      "frame_width": 19,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "HVAC fan panel (left half, no vent grille), pink/accent variant. 19x32px. Cropped from env_rt_prop_hvac_c.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decoration"
+        ],
+        "surface": "free",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1113,5 +1203,5 @@
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
   ],
-  "count": 33
+  "count": 36
 }
