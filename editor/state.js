@@ -454,6 +454,8 @@ export function filteredManifestItems() {
   const { category, search, purpleCityOnly, hvacOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
+    // Never show retired assets (eligible: false) in the palette.
+    if (it.raw && it.raw.generation && it.raw.generation.eligible === false) return false;
     if (category !== 'all' && it.category !== category) return false;
     // Spawn-type and player-category assets are meta-objects, not tileset art —
     // always show them regardless of the Purple City quick-filter.

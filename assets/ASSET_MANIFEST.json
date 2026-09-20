@@ -1003,6 +1003,72 @@
         "density": "sparse",
         "stackable": false
       }
+    },
+    {
+      "id": "env_rt_tile_purple_b",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_b.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "retired"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Retired by Chief 2026-09-20"
+      }
+    },
+    {
+      "id": "env_rt_tile_purple_c",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_c.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "retired"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Retired by Chief 2026-09-20"
+      }
+    },
+    {
+      "id": "env_rt_tile_light_a",
+      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_light_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "purple_rooftop",
+        "rooftop",
+        "retired"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Retired by Chief 2026-09-20"
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1203,5 +1269,5 @@
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
   ],
-  "count": 36
+  "count": 39
 }
