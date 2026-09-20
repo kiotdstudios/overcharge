@@ -147,7 +147,7 @@
       "loop": false,
       "notes": "Purple Rooftop tileset. purple_a — brighter purple, partial (219/256), edge tile. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
-        "eligible": true,
+        "eligible": false,
         "roles": [
           "structural",
           "walkable"
@@ -155,7 +155,8 @@
         "surface": "grid",
         "layer": "midground",
         "density": "dense",
-        "stackable": true
+        "stackable": true,
+        "ineligible_reason": "Retired edge tile — removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
       }
     },
     {
@@ -175,7 +176,7 @@
       "loop": false,
       "notes": "Purple Rooftop tileset. accent_a — accent tile from alternate sheet region, avg RGB (20,21,50). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
-        "eligible": true,
+        "eligible": false,
         "roles": [
           "structural",
           "walkable"
@@ -183,7 +184,8 @@
         "surface": "grid",
         "layer": "midground",
         "density": "dense",
-        "stackable": true
+        "stackable": true,
+        "ineligible_reason": "Retired edge tile — removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
       }
     },
     {
