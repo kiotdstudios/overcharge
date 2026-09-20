@@ -4,7 +4,8 @@ globalThis.document={getElementById:()=>null,addEventListener(){},removeEventLis
 globalThis.Image=class{constructor(){this.complete=true;this.naturalWidth=32;this.naturalHeight=32;}addEventListener(){}};// VERTICAL CAMERA — CHIEF RULING 2026-09-19 18:30 decision 3, "follow continuously".
 // Drives src_scroll/camera.js directly, which is the SAME code main.js calls. Nothing
 // here re-implements the deadzone.
-import { nextCamY, maxCamY, camYForSpawn, CAM_DEADZONE_H } from '../src_scroll/camera.js';
+import { nextCamY, maxCamY, minCamY, camYForSpawn, CAM_DEADZONE_H, UI_TOP_INSET } from '../src_scroll/camera.js';
+const INSET = UI_TOP_INSET;
 import fs from 'fs';
 
 let pass=0, fail=0;
@@ -34,7 +35,7 @@ sec('Continuous follow: the camera tracks the player DOWN a tall level');
   let cam = 0;
   const samples = [];
   for (let y=0; y<=pxH; y+=8) { cam = nextCamY(cam, y, VH, pxH); samples.push({y, cam}); }
-  ok(samples[0].cam === 0, 'at the very top the camera is at 0', 'nothing above to reveal');
+  ok(samples[0].cam === minCamY(pxH, VH), 'at the very top the camera rests at its minimum', 'the HUD inset allowance, not 0');
   ok(samples[samples.length-1].cam === room, 'at the very bottom it is fully scrolled', `cam ${samples[samples.length-1].cam} = max ${room}`);
   // Monotonic: descending should never scroll the view back up.
   let regressions = 0;
@@ -42,7 +43,7 @@ sec('Continuous follow: the camera tracks the player DOWN a tall level');
   ok(regressions === 0, 'descending never jerks the camera upward', `${regressions} reversals over ${samples.length} samples`);
   // And the player is ON SCREEN the whole way down. This is the assertion that matters.
   let offScreen = [];
-  for (const s of samples) { const sy = s.y - s.cam; if (sy < 0 || sy > VH) offScreen.push(s.y); }
+  for (const s of samples) { const sy = s.y - s.cam; if (sy < INSET || sy > VH) offScreen.push(s.y); }
   ok(offScreen.length === 0, 'the player is on screen at EVERY point of the descent',
     offScreen.length ? `off at y=${offScreen.slice(0,4)}` : `all ${samples.length} positions within 0..${VH}`);
 }
@@ -58,7 +59,7 @@ sec('DEADZONE — a hop does not pan, but descending follows immediately');
   const pcy = 700;
 
   // 1. CENTRED camera: symmetric slack, so jitter either way does not pan.
-  const centred = pcy - VH / 2;
+  const centred = pcy - (UI_TOP_INSET + VH) / 2;   // safe-band centre, not viewport centre
   let panned = 0;
   for (const dy of [-70, -50, -20, 0, 20, 50, 70]) if (nextCamY(centred, pcy + dy, VH, pxH) !== centred) panned++;
   ok(panned === 0,
@@ -72,12 +73,12 @@ sec('DEADZONE — a hop does not pan, but descending follows immediately');
   // 2. Settled from below, the player sits ON the bottom edge BY DESIGN. Upward hops are
   //    free, and any descent follows at once - which is the behaviour Chief asked for in a
   //    level you traverse downward.
-  const settled = nextCamY(0, 400, VH, pxH);
+  const settled = nextCamY(200, 700, VH, pxH);   // mid-level, not sitting on a clamp
   let upFree = 0;
-  for (const dy of [-10, -40, -80, -140]) if (nextCamY(settled, 400 + dy, VH, pxH) === settled) upFree++;
+  for (const dy of [-10, -40, -80, -140]) if (nextCamY(settled, 700 + dy, VH, pxH) === settled) upFree++;
   ok(upFree === 4, 'hopping UP to 140px from a settled descent never pans the view',
     `${upFree}/4 - so jumping does not shake the screen`);
-  const down = nextCamY(settled, 420, VH, pxH);
+  const down = nextCamY(settled, 720, VH, pxH);
   ok(down === settled + 20,
     'and descending 20px scrolls exactly 20px, no lag and no overshoot',
     `${settled} -> ${down}`);
@@ -87,11 +88,11 @@ sec('DECISION 4 — CLAMP at both ends, never reveal outside the level');
 {
   const pxH = px(30);
   const room = maxCamY(pxH, VH);
-  ok(nextCamY(0, -500, VH, pxH) === 0, 'a player above the ceiling cannot pull the view above 0');
+  ok(nextCamY(0, -500, VH, pxH) === minCamY(pxH, VH), 'a player above the ceiling cannot pull the view past the HUD allowance');
   ok(nextCamY(room, pxH + 2000, VH, pxH) === room, 'a player far below cannot pull the view past the floor', `held at ${room}`);
   for (const y of [-1000, -1, 0, pxH/2, pxH, pxH+1000]) {
     const c = nextCamY(room/2, y, VH, pxH);
-    ok(c >= 0 && c <= room, `camY stays in 0..${room} for player y=${y}`, `got ${c}`);
+    ok(c >= minCamY(pxH, VH) && c <= room, `camY stays in 0..${room} for player y=${y}`, `got ${c}`);
   }
 }
 
@@ -112,13 +113,13 @@ sec('Spawn seeding — the player is on screen on frame ONE, no snap');
   // can traverse down". So a TOP spawn is the real case.
   const topSpawn = 64;
   const cTop = camYForSpawn(topSpawn, pxH, VH);
-  ok(cTop === 0, 'a spawn near the top seeds camY at 0', `cam ${cTop}`);
-  ok(topSpawn - cTop >= 0 && topSpawn - cTop <= VH, 'and that spawn is on screen immediately', `screen y ${topSpawn - cTop}`);
+  ok(cTop === minCamY(pxH, VH), 'a spawn near the top seeds camY at the HUD allowance', `cam ${cTop}`);
+  ok(topSpawn - cTop >= UI_TOP_INSET && topSpawn - cTop <= VH, 'and that spawn is VISIBLE immediately, below the HUD', `screen y ${topSpawn - cTop}`);
   // A checkpoint respawn deep in the level.
   const deep = pxH - 200;
   const cDeep = camYForSpawn(deep, pxH, VH);
   ok(cDeep > 0 && cDeep <= room, 'a deep respawn seeds a scrolled camera', `cam ${cDeep} of max ${room}`);
-  ok(deep - cDeep >= 0 && deep - cDeep <= VH, 'and that respawn is on screen immediately too', `screen y ${(deep-cDeep).toFixed(0)}`);
+  ok(deep - cDeep >= UI_TOP_INSET && deep - cDeep <= VH, 'and that respawn is on screen immediately too', `screen y ${(deep-cDeep).toFixed(0)}`);
   // Seeded value must already be stable: one update must not jump it.
   const after = nextCamY(cDeep, deep, VH, pxH);
   ok(Math.abs(after - cDeep) < 1, 'the seeded camera is already settled, so no visible snap on frame 2',
@@ -249,7 +250,7 @@ sec('END-TO-END — real gravity, real Level, real Player down a real 36-row lev
     cam = nextCamY(cam, p.y + p.h/2, VH, lv.pxH);
     if (cam > deepestCam) deepestCam = cam;
     const sy = p.y - cam;
-    if (sy < -1 || sy > VH + 1) off++;
+    if (sy < INSET || sy > VH + 1) off++;
     if (p.y > lv.pxH + 60) { died = true; break; }        // the real death plane
     if (p.grounded && landedAt === null) landedAt = p.y;
   }
@@ -260,6 +261,57 @@ sec('END-TO-END — real gravity, real Level, real Player down a real 36-row lev
   ok(deepestCam === maxCamY(lv.pxH, VH), 'the camera scrolled all the way to the level floor', `camY ${deepestCam}`);
   ok(landedAt > VH, 'the landing point is BELOW the viewport, so this could not have worked before',
     `floor at y=${landedAt.toFixed(0)} vs viewport ${VH}`);
+}
+sec('UI_TOP_INSET — the player is never hidden behind the HUD (Chief 2026-09-20)');
+{
+  // "if starting above like this camera position needs to change cant see player;
+  //  hidden by UI"
+  //
+  // THIS SUITE PASSED WHILE THE BUG WAS LIVE. Every visibility check asserted
+  // 0 <= screenY <= viewHeight and called that "on screen". The HUD's top cluster owns
+  // y 0..104, so a player at screen y 30 satisfied every assertion and was invisible.
+  // The checks above now measure against the SAFE band instead, and these pin the inset
+  // itself so it cannot quietly go back to zero.
+  ok(UI_TOP_INSET > 104,
+    'the inset actually clears the measured HUD cluster',
+    `inset ${UI_TOP_INSET}px vs HUD bottom 104px`);
+
+  const pxH = px(40);   // tall level: spawn at the very top is the failing case
+  const spawn = 30;
+  const cam = camYForSpawn(spawn, pxH, VH);
+  ok(spawn - cam >= UI_TOP_INSET,
+    'a top-of-level spawn sits BELOW the HUD, not behind it',
+    `screen y ${(spawn - cam).toFixed(0)} >= ${UI_TOP_INSET}`);
+  ok(cam < 0,
+    'which requires camY to go negative on a tall level',
+    `camY ${cam} — reveals sky above row 0, seamless because C.BG matches the empty rows`);
+  ok(cam >= minCamY(pxH, VH),
+    'but never further up than the inset allows',
+    `camY ${cam} >= min ${minCamY(pxH, VH)}`);
+
+  // Walking around near the top must not let the HUD swallow him again.
+  let worst = Infinity;
+  let c = cam;
+  for (let y = 30; y < 400; y += 5) { c = nextCamY(c, y + 15, VH, pxH); worst = Math.min(worst, y - c); }
+  ok(worst >= UI_TOP_INSET - 1,
+    'and he stays clear of the HUD while moving around the top of the level',
+    `closest approach ${worst.toFixed(0)}px vs inset ${UI_TOP_INSET}`);
+}
+
+sec('SHIPPED LEVELS MUST NOT SHIFT — the inset is tall-level only');
+{
+  // If the inset applied to levels that fit the screen, all five shipped levels would
+  // render 112px lower with sky above them. That would be a visible regression to
+  // every existing level, so minCamY is 0 whenever there is no scroll room.
+  for (const n of [1,2,3,4,5]) {
+    const def = JSON.parse(fs.readFileSync(`src_scroll/levels/level${n}.json`,'utf8'));
+    const pxH = Math.floor(def.tiles.length/def.cols) * 32;
+    ok(minCamY(pxH, VH) === 0, `level${n} still has minCamY 0 — no downward shift`);
+    ok(camYForSpawn(def.playerStart.y, pxH, VH) === 0, `level${n} spawn camera still 0`);
+    let cam = 0, moved = 0;
+    for (let y = 0; y < pxH; y += 4) { cam = nextCamY(cam, y, VH, pxH); if (cam !== 0) moved++; }
+    ok(moved === 0, `level${n} camY stays pinned at 0 across every player position`);
+  }
 }
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
