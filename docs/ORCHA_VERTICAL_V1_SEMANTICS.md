@@ -29,7 +29,19 @@ Runtime per-level height is live, 43/0 in `_dev/level_height.mjs`:
 per-level. Adding sections to the right needs no runtime change at all. Only UP was
 pinned, and now it is not.
 
-**Still blocking A10:** the vertical camera (decision 3). Ruled but not built. Levels
+**A10 IS NOW UNBLOCKED.** The vertical camera shipped 2026-09-19 23:00, 75/0 in
+`_dev/camera_vertical.mjs`, including a real end-to-end descent through a real 36-row
+level. Continuous follow with a 150px deadzone, clamped both ends per decision 4, camY
+seeded on both respawn paths, and the death plane moved off the viewport onto the level
+floor. Aki can build `+ ADD ROWS ABOVE` against a runtime that loads and plays it.
+
+**Simplification Chief granted 18:39:** *"you can make the level builder add sections
+above only so that the current floor stays the bottom so if you fall you die; and i can
+just move the player being the spawn point to the top so player can traverse down."*
+That removes the bottom-insert case from A10 entirely, leaves one shift rule, and needs no
+auto-spawn logic. Runtime honours it: the death plane is the level's own floor.
+
+**Superseded note:** the vertical camera (decision 3) was the blocker. Levels
 taller than the 578px viewport will load and collide correctly but the view will not
 follow the player down yet.
 **Blocks:** AKI A10 (Builder vertical expansion)

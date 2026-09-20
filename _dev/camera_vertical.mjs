@@ -1,4 +1,7 @@
-// VERTICAL CAMERA — CHIEF RULING 2026-09-19 18:30 decision 3, "follow continuously".
+// DOM shims: the integration section below imports Level and Player, which touch these.
+globalThis.window={addEventListener(){},removeEventListener(){},innerWidth:1600,innerHeight:900,location:{search:''}};
+globalThis.document={getElementById:()=>null,addEventListener(){},removeEventListener(){},body:{style:{}},createElement:()=>({getContext:()=>null,style:{}})};
+globalThis.Image=class{constructor(){this.complete=true;this.naturalWidth=32;this.naturalHeight=32;}addEventListener(){}};// VERTICAL CAMERA — CHIEF RULING 2026-09-19 18:30 decision 3, "follow continuously".
 // Drives src_scroll/camera.js directly, which is the SAME code main.js calls. Nothing
 // here re-implements the deadzone.
 import { nextCamY, maxCamY, camYForSpawn, CAM_DEADZONE_H } from '../src_scroll/camera.js';
@@ -210,6 +213,53 @@ sec('MAIN.JS WIRING — structural, because main.js boots on import');
   ok(seeds === 2,
     'BOTH respawn paths seed camY (snapshot restore and level load)',
     `${seeds} of 2 — I missed one of these on the first pass and the grep caught it`);
+}
+sec('END-TO-END — real gravity, real Level, real Player down a real 36-row level');
+{
+  // Everything above this point is PURE MATH. Passing it does not prove a player can
+  // actually traverse a tall level, and "the maths is right so the game is right" is the
+  // exact inference that has burned me repeatedly this weekend. So this section builds a
+  // real level the way Chief's Builder will, drops a real Player through it under real
+  // gravity, and measures whether he was ever off screen.
+  const { Level }  = await import('../src_scroll/level.js');
+  const { Player } = await import('../src_scroll/player.js');
+  const L1 = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json','utf8'));
+
+  // Chief 18:39: sections are added ABOVE only, the existing floor stays the bottom, and
+  // the spawn moves to the top so the player traverses DOWN.
+  const ADDED = 18, cols = L1.cols, dy = ADDED * 32;
+  const def = JSON.parse(JSON.stringify(L1));
+  def.tiles = new Array(ADDED*cols).fill(0).concat(L1.tiles);
+  if (Array.isArray(L1.tileRotations)) def.tileRotations = new Array(ADDED*cols).fill(0).concat(L1.tileRotations);
+  def.playerStart = { x:L1.playerStart.x, y:96 };
+  for (const k of ['sources','gates','switches','checkpoints','platforms','enemies','decorations','chests','crates'])
+    if (Array.isArray(def[k])) def[k] = def[k].map(o => ({ ...o, y:(o.y ?? 0) + dy }));
+
+  const lv = new Level(def);
+  ok(lv.rows === 36 && lv.pxH === 1152, 'the built level really is 36 rows / 1152px', `rows ${lv.rows}`);
+  ok(maxCamY(lv.pxH, VH) > 0, 'and it genuinely needs vertical scrolling', `${maxCamY(lv.pxH, VH)}px of room`);
+
+  const p = new Player(def.playerStart.x, def.playerStart.y);
+  let cam = camYForSpawn(def.playerStart.y, lv.pxH, VH);
+  ok(p.y - cam >= 0 && p.y - cam <= VH, 'the player is on screen at spawn', `screen y ${p.y - cam}`);
+
+  let off = 0, landedAt = null, died = false, deepestCam = cam;
+  for (let i=0; i<1200; i++) {
+    p.update(1/60, lv);                                  // real signature (dt, level)
+    cam = nextCamY(cam, p.y + p.h/2, VH, lv.pxH);
+    if (cam > deepestCam) deepestCam = cam;
+    const sy = p.y - cam;
+    if (sy < -1 || sy > VH + 1) off++;
+    if (p.y > lv.pxH + 60) { died = true; break; }        // the real death plane
+    if (p.grounded && landedAt === null) landedAt = p.y;
+  }
+  ok(off === 0, 'the player was NEVER off screen during the whole fall', `${off} off-screen frames of 1200`);
+  ok(landedAt !== null, 'he landed on real floor rather than falling forever', landedAt !== null ? `y=${landedAt.toFixed(0)}` : 'never landed');
+  ok(!died, 'and he did NOT cross the death plane on a legitimate descent',
+    `death plane is ${lv.pxH + 60}; under the old viewport-pinned ${VH + 60} he would have died mid-air`);
+  ok(deepestCam === maxCamY(lv.pxH, VH), 'the camera scrolled all the way to the level floor', `camY ${deepestCam}`);
+  ok(landedAt > VH, 'the landing point is BELOW the viewport, so this could not have worked before',
+    `floor at y=${landedAt.toFixed(0)} vs viewport ${VH}`);
 }
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');

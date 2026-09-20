@@ -12,14 +12,15 @@ desktop.ini
 *.suo
 
 # Builder safety copies written next to the canonical level JSON on SAVE.
-# Never authored content — the canonical file + git history are the truth.
+# Never authored content - the canonical file + git history are the truth.
 src_scroll/levels/*_prev_backup.json
 
-# Kiro agent board — unattended live refresh (every 10 min via Task Scheduler).
+# Kiro agent board - unattended live refresh (every 10 min via Task Scheduler).
 # Derived from git and rewritten constantly, so it must never be committed or it
 # would dirty the tree between every gate. The COMMITTED board lives in docs/ and
 # is written deliberately with `node _kiro/agent_board.mjs --write`.
 _kiro/live/
+
 # Orcha's 15-min autonomous check-in state. Polling watermark + log only.
 # Derived from git, never authored. Must never be committed (a shared/committed
 # watermark is what caused RELAY's 26-message replay incident).
