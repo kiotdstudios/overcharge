@@ -826,6 +826,93 @@
         "eligible": false,
         "ineligible_reason": "Puzzle-critical reward object — requires designer placement"
       }
+    },
+    {
+      "id": "env_rt_prop_hvac_a",
+      "path": "assets/tilesets/purple_rooftop/props/hvac_a.png",
+      "category": "decoration",
+      "tags": [
+        "hvac",
+        "purple_rooftop",
+        "prop",
+        "rooftop",
+        "decoration"
+      ],
+      "frame_width": 33,
+      "frame_height": 26,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "HVAC rooftop unit, dark navy variant. 33x26px. Extracted from Purple Rooftop main.aseprite.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decoration"
+        ],
+        "surface": "free",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_prop_hvac_b",
+      "path": "assets/tilesets/purple_rooftop/props/hvac_b.png",
+      "category": "decoration",
+      "tags": [
+        "hvac",
+        "purple_rooftop",
+        "prop",
+        "rooftop",
+        "decoration"
+      ],
+      "frame_width": 33,
+      "frame_height": 26,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "HVAC rooftop unit, purple variant. 33x26px. Extracted from Purple Rooftop main.aseprite.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decoration"
+        ],
+        "surface": "free",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
+    },
+    {
+      "id": "env_rt_prop_hvac_c",
+      "path": "assets/tilesets/purple_rooftop/props/hvac_c.png",
+      "category": "decoration",
+      "tags": [
+        "hvac",
+        "purple_rooftop",
+        "prop",
+        "rooftop",
+        "decoration"
+      ],
+      "frame_width": 36,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "HVAC rooftop unit, pink/accent variant. 36x32px. Extracted from Purple Rooftop main.aseprite.",
+      "generation": {
+        "eligible": true,
+        "roles": [
+          "decoration"
+        ],
+        "surface": "free",
+        "layer": "foreground",
+        "density": "sparse",
+        "stackable": false
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1026,5 +1113,5 @@
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
   ],
-  "count": 20
+  "count": 33
 }

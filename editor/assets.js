@@ -5,7 +5,7 @@
 import {
   state, subscribe,
   manifestCategories, filteredManifestItems,
-  setFilterCategory, setFilterSearch, setSelectedAsset, setPurpleCityOnly,
+  setFilterCategory, setFilterSearch, setSelectedAsset, setPurpleCityOnly, setHvacOnly,
 } from './state.js';
 import { startAssetDrag } from './tools.js';
 
@@ -48,6 +48,20 @@ export function mountAssetBrowser(container) {
   pcLabel.textContent = 'Purple City only';
   pcRow.appendChild(pcLabel);
   root.appendChild(pcRow);
+
+  // HVAC quick-filter — checkbox that restricts listing to assets tagged 'hvac'.
+  const hvacRow = document.createElement('label');
+  hvacRow.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; color:#aec; margin: 2px 0 6px 0; user-select:none; cursor:pointer;';
+  const hvacBox = document.createElement('input');
+  hvacBox.type = 'checkbox';
+  hvacBox.id = 'ab-hvac-only';
+  hvacBox.checked = !!state.filter.hvacOnly;
+  hvacBox.addEventListener('change', () => setHvacOnly(hvacBox.checked));
+  hvacRow.appendChild(hvacBox);
+  const hvacLabel = document.createElement('span');
+  hvacLabel.textContent = 'HVAC only';
+  hvacRow.appendChild(hvacLabel);
+  root.appendChild(hvacRow);
 
   // Category dropdown — populated from manifest, not hard-coded
   categorySelect = document.createElement('select');
