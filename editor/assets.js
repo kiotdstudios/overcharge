@@ -5,7 +5,7 @@
 import {
   state, subscribe,
   manifestCategories, filteredManifestItems,
-  setFilterCategory, setFilterSearch, setSelectedAsset, setPurpleCityOnly, setHvacOnly,
+  setFilterCategory, setFilterSearch, setSelectedAsset, setPurpleCityOnly, setPurpleRooftopOnly, setHvacOnly,
 } from './state.js';
 import { startAssetDrag } from './tools.js';
 
@@ -48,6 +48,20 @@ export function mountAssetBrowser(container) {
   pcLabel.textContent = 'Purple City only';
   pcRow.appendChild(pcLabel);
   root.appendChild(pcRow);
+
+  // Purple Rooftop quick-filter — restricts listing to /purple_rooftop/ paths.
+  const prRow = document.createElement('label');
+  prRow.style.cssText = 'display:flex; align-items:center; gap:6px; font-size:11px; color:#c9b; margin: 2px 0 6px 0; user-select:none; cursor:pointer;';
+  const prBox = document.createElement('input');
+  prBox.type = 'checkbox';
+  prBox.id = 'ab-purple-rooftop-only';
+  prBox.checked = !!state.filter.purpleRooftopOnly;
+  prBox.addEventListener('change', () => setPurpleRooftopOnly(prBox.checked));
+  prRow.appendChild(prBox);
+  const prLabel = document.createElement('span');
+  prLabel.textContent = 'Purple Rooftop only';
+  prRow.appendChild(prLabel);
+  root.appendChild(prRow);
 
   // HVAC quick-filter — checkbox that restricts listing to assets tagged 'hvac'.
   const hvacRow = document.createElement('label');

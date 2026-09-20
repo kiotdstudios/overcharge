@@ -14,50 +14,6 @@
       ]
     },
     {
-      "id": "tile_dark_a.png",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_a.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_city",
-        "tiles"
-      ]
-    },
-    {
-      "id": "tile_dark_b.png",
-      "path": "assets/tilesets/purple_city/tiles/tile_dark_b.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_city",
-        "tiles"
-      ]
-    },
-    {
-      "id": "tile_purple_a.png",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_a.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_city",
-        "tiles"
-      ]
-    },
-    {
-      "id": "tile_purple_b.png",
-      "path": "assets/tilesets/purple_city/tiles/tile_purple_b.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_city",
-        "tiles"
-      ]
-    },
-    {
       "id": "rt_tile_mid_a.png",
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",
       "category": "tile",
@@ -93,39 +49,6 @@
     {
       "id": "rt_tile_purple_a.png",
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_a.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_rooftop",
-        "tiles"
-      ]
-    },
-    {
-      "id": "rt_tile_purple_b.png",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_b.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_rooftop",
-        "tiles"
-      ]
-    },
-    {
-      "id": "rt_tile_purple_c.png",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_purple_c.png",
-      "category": "tile",
-      "width": 16,
-      "height": 16,
-      "tags": [
-        "purple_rooftop",
-        "tiles"
-      ]
-    },
-    {
-      "id": "rt_tile_light_a.png",
-      "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_light_a.png",
       "category": "tile",
       "width": 16,
       "height": 16,
