@@ -3,6 +3,12 @@
   "_note": "DEV-ONLY. These are ENGINE TESTBEDS, not levels. They exist so a human can actually SEE mechanics that no shipped level exercises yet (Kiro ruling ANSWERS_ORCHA_01 Q5). This file is fetched ONLY when dev mode is active (localhost or ?dev=1); a normal Pages visitor never requests it and a 404 here is harmless by design. NEVER add these to levels.json - that file is the player-facing progression and the single authored source under Order 005.",
   "order": [
     {
+      "number": 97,
+      "name": "VERTICAL TESTBED",
+      "file": "97_VERTICAL_TESTBED.json",
+      "_teaches": "VERTICAL CAMERA. 36 rows / 1152px, about two screens tall, so the camera must scroll or you cannot see where you are going. Spawn is on the TOP ledge; work down the staggered ledges to the bottom floor. The camera follows continuously with a 150px deadzone, so small hops do not pan the screen but any real descent does. Falling past the BOTTOM floor is death (the death plane is the level floor, not the viewport). E_TOP 6 and E_BOT 6 give 12; EXIT costs 8."
+    },
+    {
       "number": 98,
       "name": "FENCE TESTBED",
       "file": "99_FENCE_TESTBED.json",

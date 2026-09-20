@@ -20,7 +20,7 @@ globalThis.Image = FakeImage;
 
 const State = await import('../editor/state.js');
 const { Level } = await import('../src_scroll/level.js');
-const { TILE, ROWS, PLAYER_W, PLAYER_H } = await import('../src_scroll/constants.js');
+const { TILE, ROWS, MAX_ROWS, PLAYER_W, PLAYER_H } = await import('../src_scroll/constants.js');
 // ORDER 005: persistence contract is now asserted via source-level checks below.
 
 let passed = 0;
@@ -67,7 +67,15 @@ function fixtureLevel() {
 
 function validateAuthoredLevel(level, label) {
   check(Number.isInteger(level.cols) && level.cols > 0, `${label}: cols is a positive integer`);
-  check(Array.isArray(level.tiles) && level.tiles.length === level.cols * ROWS, `${label}: tiles is exactly cols × ${ROWS}`);
+  // PER-LEVEL HEIGHT, Chief ruling 2026-09-19 decision 1. This guard used to demand
+  // `cols * ROWS` with ROWS hardcoded at 18, which is the LAST place the old global
+  // assumption lived: it rejected any level taller than one screen, so it would have
+  // failed Aki's A10 output as well as my own vertical testbed. A level's height is now
+  // whatever `tiles.length / cols` says, and the real invariants are that the array is a
+  // whole number of rows, at least one row, and within MAX_ROWS.
+  const _rows = Array.isArray(level.tiles) && level.cols > 0 ? level.tiles.length / level.cols : NaN;
+  check(Array.isArray(level.tiles) && Number.isInteger(_rows) && _rows >= 1 && _rows <= MAX_ROWS,
+    `${label}: tiles is a whole number of rows (${Number.isFinite(_rows) ? _rows : '?'}), 1..${MAX_ROWS}`);
   check(level.tiles.every(value => Number.isInteger(value)), `${label}: tiles contain integers`);
   check(level.tiles.every(value => value === 0 || value === 1 || value === 2 || value >= 10), `${label}: no reserved tile values 3–9 are authored`);
   check(level.playerStart && Number.isFinite(level.playerStart.x) && Number.isFinite(level.playerStart.y), `${label}: playerStart has numeric top-left coordinates`);
@@ -85,7 +93,9 @@ validateAuthoredLevel(reloaded, 'fixture');
 check(reloaded.sources[0].id === 'SRC-1' && reloaded.gates[0].id === 'GATE-1' && reloaded.switches[0].id === 'SW-1' && reloaded.checkpoints[0].id === 'CP-1', 'supported authored IDs survive the JSON round-trip');
 
 console.log('\n[ Tile and Builder contract ]');
-check(TILE === 32 && ROWS === 18, 'runtime tile contract is TILE = 32 and ROWS = 18');
+check(TILE === 32 && ROWS === 18,
+  'runtime tile contract: TILE = 32, and ROWS = 18 remains the DEFAULT height'
+  + ' (per-level height overrides it; ROWS is now only the fallback for a malformed def)');
 State.state.level = structuredClone(authored);
 check(State.worldToTile(63, 63).col === 1 && State.worldToTile(63, 63).row === 1, 'Builder worldToTile uses floor-based 32px coordinates');
 check(State.getTile(0, 0) === 1 && State.getTile(1, 0) === 2 && State.getTile(2, 0) === 10 && State.getTile(1, 1) === 13, 'Builder indexes flat tiles row-major');
