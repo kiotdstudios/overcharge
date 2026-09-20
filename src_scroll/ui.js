@@ -377,6 +377,10 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.textAlign   = 'center';
     ctx.font        = 'bold 11px monospace';
 
+    // lineOff: extra upshift applied only to multi-line prompts so the second
+    // line never lands on the gate's own EXIT label (which sits ~1px below cy).
+    let lineOff = 0;
+
     if (player.discharging) {
       // Live feedback while actively holding SPACE at the device
       ctx.fillStyle   = '#cc44ff';
@@ -389,14 +393,15 @@ function _drawContextPrompts(ctx, player, t) {
       ctx.shadowColor = '#cc44ff';
       ctx.fillText('[SPACE] CHARGE', cx, cy);
     } else {
-      // Two-line prompt: POWER REQUIRED / ABSORB MORE ENERGY
+      // Two-line prompt — shift both lines up so line 2 clears the gate's EXIT label.
+      lineOff = 14;
       ctx.fillStyle   = '#ff4444';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#ff4444';
-      ctx.fillText('POWER REQUIRED', cx, cy);
+      ctx.fillText('POWER REQUIRED', cx, cy - lineOff);
       ctx.font        = 'bold 9px monospace';
       ctx.fillStyle   = '#ff8888';
-      ctx.fillText('ABSORB MORE ENERGY', cx, cy + 12);
+      ctx.fillText('ABSORB MORE ENERGY', cx, cy - lineOff + 12);
     }
 
     // Reserve readout. NOT a key prompt any more — F is unbound and nothing
@@ -411,7 +416,7 @@ function _drawContextPrompts(ctx, player, t) {
       ctx.font        = 'bold 10px monospace';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#ffaa00';
-      ctx.fillText(`RESERVE: ${player.bankedPips} PIP${player.bankedPips === 1 ? '' : 'S'}`, cx, cy + 26);
+      ctx.fillText(`RESERVE: ${player.bankedPips} PIP${player.bankedPips === 1 ? '' : 'S'}`, cx, cy - lineOff + 26);
     }
     ctx.restore();
   }
