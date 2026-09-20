@@ -491,8 +491,11 @@ export class PowerGate {
   blocksHorizontal(rx, rw, ry, rh) {
     if (this.open) return false;
     if (rx + rw <= this.x || rx >= this.x + this.w) return false;
+    // Exit gates block the full column — player cannot physically bypass
+    // without charging. Y-awareness only applies to non-exit (interior) gates.
+    if (this.isExit) return true;
     if (ry !== undefined && rh !== undefined) {
-      // Y-aware for all gate types: block only when player Y overlaps gate Y.
+      // Y-aware for interior gates: block only when player Y overlaps gate Y.
       return !(ry + rh <= this.y || ry >= this.y + this.h);
     }
     return true;   // legacy fallback — no Y info, block the column
