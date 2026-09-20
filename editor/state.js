@@ -32,21 +32,37 @@ export const SNAP_TERRAIN            = TILE_SIZE;   // 32 - do not change
 //   manifest sort order or array position. Old saved levels remain valid
 //   even if a new alphabetically-earlier tile asset is added later.
 export const TILE_ID_REGISTRY = Object.freeze({
-  // Purple City tileset (IDs 10-13)
-  10: 'env_tile_dark_a',
-  11: 'env_tile_dark_b',
-  12: 'env_tile_purple_a',
-  13: 'env_tile_purple_b',
-  // Purple Rooftop tileset (IDs 14-23). env_rt_ prefix = rooftop namespace.
-  // basename(manifest path) for each must equal the rt_ key in render.js.
+  // IDs 10-13 were Purple City dark/purple tiles — remapped to mid_a (Chief 2026-09-19).
+  // Values kept in registry so existing level files continue to decode without error.
+  10: 'env_rt_tile_mid_a',
+  11: 'env_rt_tile_mid_a',
+  12: 'env_rt_tile_mid_a',
+  13: 'env_rt_tile_mid_a',
+  // Purple Rooftop tileset (IDs 16-23). IDs 20/21/22 retired — fall back to default.
   16: 'env_rt_tile_mid_a',
   17: 'env_rt_tile_mid_b',
   18: 'env_rt_tile_mid_c',
   19: 'env_rt_tile_purple_a',
-  20: 'env_rt_tile_purple_b',
-  21: 'env_rt_tile_purple_c',
-  22: 'env_rt_tile_light_a',
   23: 'env_rt_tile_accent_a',
+  // Purple Rooftop building sections (IDs 24-41) — from Chief's rooftop tiles sheet.
+  24: 'env_rt_bldg_r02_c01',
+  25: 'env_rt_bldg_r02_c02',
+  26: 'env_rt_bldg_r02_c03',
+  27: 'env_rt_bldg_r03_c01',
+  28: 'env_rt_bldg_r03_c02',
+  29: 'env_rt_bldg_r03_c03',
+  30: 'env_rt_bldg_r03_c04',
+  31: 'env_rt_bldg_r03_c05',
+  32: 'env_rt_bldg_r03_c06',
+  33: 'env_rt_bldg_r04_c01',
+  34: 'env_rt_bldg_r04_c02',
+  35: 'env_rt_bldg_r04_c03',
+  36: 'env_rt_bldg_r04_c04',
+  37: 'env_rt_bldg_r04_c05',
+  38: 'env_rt_bldg_r04_c06',
+  39: 'env_rt_bldg_r04_c11',
+  40: 'env_rt_bldg_r04_c12',
+  41: 'env_rt_bldg_r04_c13',
 });
 // Reverse map (asset id → tile value). Computed once at module load.
 const _TILE_REV_REGISTRY = Object.freeze(
@@ -60,7 +76,7 @@ export const TILE_REGISTRY_ORDER = Object.freeze(
     .sort((a, b) => a.value - b.value)
 );
 // The default tile ID for legacy value 1 and for unregistered fallbacks.
-export const TILE_DEFAULT_ID = 'env_tile_dark_a';
+export const TILE_DEFAULT_ID = 'env_rt_tile_mid_a';
 
 export const TILE_VARIANT_BASE = 10;
 export function tileIsSolid(v) { return v === 1 || v >= TILE_VARIANT_BASE; }
