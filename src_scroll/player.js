@@ -7,6 +7,7 @@ import {
 import * as Input from './input.js';
 import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
 import { ChargePickup } from './electricity.js';
+import { ElectricBolt } from './entities.js';
 import { PlayerSprites } from './sprites.js';
 
 // Sprite PNGs are 92x92; character content sits from y=14 to y=78 (feet at y=78)
@@ -15,7 +16,8 @@ const SPRITE_H      = 92;
 const SPRITE_FEET_Y = 78;  // pixel row of character feet within the 92px frame
 
 const COYOTE_TIME  = 0.1;   // seconds of grace after walking off an edge
-const JUMP_BUFFER  = 0.1;   // pre-jump input buffer
+const JUMP_BUFFER       = 0.1;   // pre-jump input buffer
+const BOLT_LAUNCH_SPEED = 320;   // px/s — projectile velocity when K fires with no melee target
 
 export class Player {
   constructor(x, y) {
@@ -73,6 +75,9 @@ export class Player {
     this.nearSource = null;
     this.nearDevice = null;  // gate or switch
     this.nearEnemy  = null;
+
+    // Active projectile bolts fired by K (branch 2)
+    this._bolts = [];
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -98,7 +103,8 @@ export class Player {
     this._handleMovement(dt);
     this._applyPhysics(dt, level);
     this._updateAbsorb(dt, level);    // hold E near source  → absorb
-    this._updateAttack(dt, level);    // press K             → attack (melee now, projectile later)
+    this._updateAttack(dt, level);    // press K             → melee or projectile
+    this._updateBolts(dt, level);     // advance + cull live bolts
     this._updateDischarge(dt, level); // hold SPACE near gate/switch → gradual charge
     // ORDER SPACE_CHARGE: _updatePipSpend() is GONE. No button may complete a
     // gate in one press. The spendPip() authority function is retained (the
@@ -622,11 +628,36 @@ export class Player {
       return;
     }
 
-    // branch 2 — future: fire an electric projectile here. Deliberately inert
-    // under this order (no projectiles, no new weapons). Left as a no-op rather
-    // than a stub that costs energy, so nothing silently drains the bar.
+    // branch 2 — fire an electric bolt in aimed direction (8-directional)
+    // Direction: held arrow/WASD keys at moment of K press; fallback = _facingRight.
+    // No auto-aim — player picks direction manually.
+    const aimUp    = Input.heldAny('ArrowUp',    'KeyW');
+    const aimDown  = Input.heldAny('ArrowDown',  'KeyS');
+    const aimLeft  = Input.heldAny('ArrowLeft',  'KeyA');
+    const aimRight = Input.heldAny('ArrowRight', 'KeyD');
+
+    let dx = aimRight ? 1 : aimLeft ? -1 : (this._facingRight ? 1 : -1);
+    let dy = aimUp ? -1 : aimDown ? 1 : 0;
+
+    // Normalize diagonal so speed is consistent in every direction
+    if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
+
+    this._bolts.push(new ElectricBolt(
+      this.cx,
+      this.y + 8,                      // upper-torso spawn — not feet
+      dx * BOLT_LAUNCH_SPEED,
+      dy * BOLT_LAUNCH_SPEED
+    ));
+    this._attackCooldown = ATTACK_COOLDOWN;
+    this._attackFx       = 0.15;
   }
 
+
+  // ── Projectile bolt tick ──────────────────────────────────────────────────
+  _updateBolts(dt, level) {
+    for (const b of this._bolts) b.update(dt, level, level.enemies);
+    this._bolts = this._bolts.filter(b => b.alive);
+  }
 
   // ── Charge a device (hold SPACE near gate/switch) ────────────────
   //
@@ -990,6 +1021,8 @@ export class Player {
       ctx.restore();
     }
 
+    // Electric bolts — drawn in world space (same translate context as player)
+    for (const b of this._bolts) b.draw(ctx);
 
   }
 }
