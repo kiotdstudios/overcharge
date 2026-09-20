@@ -12,7 +12,8 @@ import { init as bgInit, update as bgUpdate } from './background.js';
 import { Player } from './player.js';
 import { drawHUD, drawWorldPrompts, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
-import { initViewport, viewW } from './viewport.js';
+import { initViewport, viewW, viewH } from './viewport.js';
+import { maxCamY, camYForSpawn, nextCamY } from './camera.js';
 import { logLevelSource } from './levelsig.js';
 
 // ── Editor-driven test mode ──────────────────────────────────────────────
@@ -101,15 +102,30 @@ let completeTimer = 0;
 
 // Camera
 let camX = 0;
+let camY = 0;
 
 // Checkpoint respawn
 let respawnX = 0;
 let respawnY = 0;
 let _cpFlash = 0;   // seconds to show "CHECKPOINT SAVED" message
 
+// ── VERTICAL CAMERA — CHIEF RULING 2026-09-19 18:30 decision 3 ────────────────
+// "yes follow the player continuosly".
+//
+// The math lives in src_scroll/camera.js as PURE functions; this file only wires it
+// to game state. That split exists for one reason: main.js boots the game at import
+// time, so anything defined here cannot be driven by a test. A suite that
+// re-implemented the deadzone locally would assert a copy and keep passing while the
+// real camera broke.
+function _maxCamY()       { return maxCamY(level.pxH, viewH()); }
+function _camYForSpawn(y) { return camYForSpawn(y, level.pxH, viewH()); }
+
 function _updateCamera() {
   const target = player.x - viewW() / 2 + player.w / 2;
   camX = Math.max(0, Math.min(target, level.pxW - viewW()));
+  // Delegated so the suite exercises the SAME code the game runs. Returns 0 whenever
+  // the level fits the viewport, which is every shipped level, so those are unchanged.
+  camY = nextCamY(camY, player.y + player.h / 2, viewH(), level.pxH);
 }
 
 // ── Checkpoint snapshot ──────────────────────────
@@ -137,6 +153,7 @@ function _applySnapshot() {
   respawnX = _snap.respawnX;
   respawnY = _snap.respawnY;
   camX = Math.max(0, Math.min(respawnX - viewW() / 2, level.pxW - viewW()));
+  camY = _camYForSpawn(respawnY);
   _cpFlash = 0;
   return true;
 }
@@ -154,6 +171,7 @@ function loadLevel(idx, carryCharge = false) {
   respawnX = level.playerStart.x;
   respawnY = level.playerStart.y;
   camX     = Math.max(0, Math.min(respawnX - viewW() / 2, level.pxW - viewW()));
+  camY     = _camYForSpawn(respawnY);
   _cpFlash = 0;
   // Initial snapshot = clean level + initial player state. If Chief dies
   // before touching any checkpoint, _applySnapshot restores this.
@@ -223,7 +241,12 @@ function _update(dt) {
       // Fall off level → respawn at last checkpoint (not a full game over).
       // _respawn() restores the full snapshot: level state + player
       // charge/pip, not just position.
-      if (player.y > H + 60) _respawn();
+      // DEATH PLANE — was `H + 60`, the VIEWPORT bottom. On any level taller than the
+      // screen that killed the player at y=638 while he was still inside real geometry,
+      // making every tall level unplayable. It must be the LEVEL's own bottom.
+      // Chief 18:39 confirms the semantics: sections are added ABOVE only, the existing
+      // floor stays the bottom, and falling past it is death.
+      if (player.y > level.pxH + 60) _respawn();
 
       // Hit with no charge and no pips → game over
       if (player.dead) state = STATES.GAME_OVER;
@@ -292,7 +315,7 @@ function _drawScrollGame() {
   ctx.restore();
   // World: translate by camera before drawing level + player
   ctx.save();
-  ctx.translate(-Math.round(camX), 0);
+  ctx.translate(-Math.round(camX), -Math.round(camY));
   level.draw(ctx, t);
   player.draw(ctx);
   // World-anchored prompts belong INSIDE the camera transform — they position
