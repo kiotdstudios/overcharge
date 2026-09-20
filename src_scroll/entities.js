@@ -237,6 +237,11 @@ export class Checkpoint {
     this.activated = false;
     this._animT    = 0;
     this._range    = 40;  // px horizontal trigger zone
+    // Vertical trigger zone. One tile (32px) of slack so uneven footing, the hover bob
+    // and sub-pixel landing jitter still count as standing at the flag, while any OTHER
+    // floor in the same column does not. Level6's nearest wrong floor was 128px away, so
+    // 32 leaves a 4x margin and is not a number tuned to one level.
+    this._vRange   = 32;
     this._frame    = 0;   // 0 = dark; 1..8 cycle once activated
     // Guarded so importing this module in a plain Node context (no Image stub)
     // can never throw — the draw path falls back to vector art if unloaded.
@@ -249,13 +254,30 @@ export class Checkpoint {
       : [];
   }
 
+  // CHIEF 2026-09-20 03:54: "im hitting the checkpoint on lvl 6 without even touching it;
+  // checkpoint logic needs to change to player must run past checkpoint to activate it"
+  //
+  // The old test was `|player.cx - this.x| < 40 && player.grounded` — X ONLY, with no Y
+  // component whatsoever. That was harmless while every level was one screen tall, because
+  // being in the column basically meant being at the flag. On a vertical level it is
+  // wrong: measured against Chief's level6, the flag at (640, 576) fires from SIX
+  // different rooftops, as much as 384px above or below it. He never went near it.
+  //
+  // Same Y-unaware shape as the drone vision and the gate blocking before it. Fixing it
+  // the same way: require the player to actually BE there, not merely share a column.
+  //
+  // `this.y` is the ground line the flag stands on (parity asserts checkpoint y+0 ===
+  // surface), so the player's FEET must be at that line, not his centre or his head.
   tryActivate(player) {
     if (this.activated) return false;
-    if (Math.abs(player.cx - this.x) < this._range && player.grounded) {
-      this.activated = true;
-      return true;
-    }
-    return false;
+    if (!player || !player.grounded) return false;
+    if (Math.abs(player.cx - this.x) >= this._range) return false;
+    // Vertical gate: feet within one tile of the flag's ground line. A player on any
+    // other floor in the same column is no longer close enough to count as touching it.
+    const feet = player.y + player.h;
+    if (Math.abs(feet - this.y) > this._vRange) return false;
+    this.activated = true;
+    return true;
   }
 
   update(dt) {
