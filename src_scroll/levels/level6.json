@@ -1631,7 +1631,8 @@
    "w": 32,
    "h": 64,
    "required": 8,
-   "label": "EXIT"
+   "label": "EXIT",
+   "isExit": true
   }
  ],
  "switches": [],
