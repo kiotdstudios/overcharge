@@ -90,9 +90,12 @@ export class Level {
   // A player standing on a floor tile must be able to run in front of a building
   // wall without being stopped. Only _resolveX uses this; _resolveY and solidAt
   // are unchanged so vertical grounding still works normally.
-  tileBlocksX(tx, ty) {
+  // groundRow = tBot + 1 from _resolveX — the tile row the player stands on.
+  // Building facades (24-41) only block horizontally when there is NO floor
+  // in the destination column. Floor present = run past; no floor = wall edge.
+  tileBlocksX(tx, ty, groundRow) {
     const v = this.tileAt(tx, ty);
-    if (v >= 24 && v <= 41) return false;   // building facades — X-passable
+    if (v >= 24 && v <= 41) return !this.solidAt(tx, groundRow);
     return v === 1 || v >= 10;
   }
 
