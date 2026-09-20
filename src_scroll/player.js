@@ -564,6 +564,15 @@ export class Player {
           break;
         }
       }
+      // Gate ceiling: prevent jumping through a closed gate from below.
+      // Without this, the player clips upward through the gate and gravity
+      // snaps them on top of it (the "weird axis" on the exit platform).
+      for (const gate of level.gates) {
+        if (!gate.open && gate.blocks(this.x, this.y, this.w, this.h)) {
+          this.y  = gate.y + gate.h;
+          this.vy = 0;
+        }
+      }
     }
   }
 
