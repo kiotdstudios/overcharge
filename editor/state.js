@@ -315,7 +315,7 @@ export const state = {
   camera: { x: 0, y: 0, zoom: 1 },   // world→screen offset & scale
 
   // Filters
-  filter: { category: 'all', search: '', purpleCityOnly: false, hvacOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, hvacOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -451,7 +451,7 @@ export function manifestCategories() {
 // Filter manifest by current filter state.
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, hvacOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, hvacOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Never show retired assets (eligible: false) in the palette.
@@ -461,6 +461,7 @@ export function filteredManifestItems() {
     // always show them regardless of the Purple City quick-filter.
     const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
     if (purpleCityOnly && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
+    if (purpleRooftopOnly && !isSpawnAsset && !/\/purple_rooftop\//.test(it.path || '')) return false;
     if (hvacOnly && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
@@ -474,6 +475,7 @@ export function setSelectedTile(n)      { state.selectedTile = n; notify(); }
 export function setFilterCategory(c)    { state.filter.category = c; notify(); }
 export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
+export function setPurpleRooftopOnly(v)  { state.filter.purpleRooftopOnly = !!v; notify(); }
 export function setHvacOnly(v)            { state.filter.hvacOnly = !!v; notify(); }
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
 export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
