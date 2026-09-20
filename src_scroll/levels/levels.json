@@ -26,6 +26,11 @@
       "number": 5,
       "name": "LIVE WIRE",
       "file": "level5.json"
+    },
+    {
+      "number": 6,
+      "name": "DESCENT",
+      "file": "level6.json"
     }
   ]
 }
