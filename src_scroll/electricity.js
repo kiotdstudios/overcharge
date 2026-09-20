@@ -476,32 +476,26 @@ export class PowerGate {
 
   // Horizontal movement collision.
   //
-  // KIRO_RULING_BLOCKONLY_Y_AWARE (2026-09-18): `blockOnly` gates block ONLY the
-  // rows their hitbox actually occupies. Exit and chargeable gates keep X-only,
-  // full-height blocking, unchanged.
+  // Chief ruling 2026-09-20: ALL gates are now Y-aware, not just blockOnly fences.
+  // The previous rule (exit/chargeable gates block the full column height) assumed
+  // the gate always filled the only passable corridor. Level design now places exit
+  // gates on elevated platforms with navigable terrain below — a player on the lower
+  // floor must be able to walk under the gate's column freely.
   //
-  // These are two different fictions and always were. A chargeable/exit gate is an
-  // energy barrier filling a doorway — it MUST stay unjumpable, or the exit cost
-  // becomes optional and every level's economy collapses. A fence is a physical
-  // object with a height: BARRIER is h:64, one tile of art, deliberately so after
-  // Chief reported the two-stacked-fences defect. A 64px fence that blocked 578px
-  // of world was the inconsistency.
+  // The exit economy is still protected: the gate physically blocks the player the
+  // moment their Y box overlaps the gate's hitbox. A player who reaches that
+  // elevation and approaches the gate is stopped exactly as before. Only players
+  // on a different floor level — whose Y box does NOT overlap the gate — pass by.
   //
-  // This is also what makes a FORK possible at all. In a side-scroller both branches
-  // must traverse the same X range, so a column-blocking fence seals every branch —
-  // which is why ORCHA 16's "gate the upper route only" was impossible until now.
-  //
-  // `ry`/`rh` are OPTIONAL so every existing caller keeps working: with no Y passed,
-  // behaviour is exactly as before. Narrow by design — one flag, one code path, and
-  // deliberately NOT generalised into per-object Y-aware collision.
+  // `ry`/`rh` are OPTIONAL; callers that omit them get the legacy full-column block.
   blocksHorizontal(rx, rw, ry, rh) {
     if (this.open) return false;
     if (rx + rw <= this.x || rx >= this.x + this.w) return false;
-    if (this.blockOnly && ry !== undefined && rh !== undefined) {
-      // Y-aware: only the rows the fence physically occupies.
+    if (ry !== undefined && rh !== undefined) {
+      // Y-aware for all gate types: block only when player Y overlaps gate Y.
       return !(ry + rh <= this.y || ry >= this.y + this.h);
     }
-    return true;
+    return true;   // legacy fallback — no Y info, block the column
   }
 
   // ── Fence render (F1/F2/F3/F4) ──────────────────────────────────────
