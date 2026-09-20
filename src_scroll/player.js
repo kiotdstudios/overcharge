@@ -54,6 +54,7 @@ export class Player {
 
     // Movement state
     this.running        = false;
+    this._wallBlocked   = false;  // true this frame = tile/gate blocked horizontal, mutes jump anim
     this._stunTime      = 0;  // >0 → input frozen, red flash active
     this._attackCooldown = 0;
     this._attackFx      = 0;  // brief arc-flash timer on swing
@@ -137,7 +138,7 @@ export class Player {
 
     // Tick sprite animator — threshold at 20 avoids idle/walk flicker during decel
     const isMoving = Math.abs(this.vx) > 20;
-    this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy);
+    this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy, this._wallBlocked);
   }
 
   // ══ CANONICAL ENERGY MODEL (Order 004 authority) ══════════════════
@@ -420,6 +421,7 @@ export class Player {
   }
 
   _resolveX(level) {
+    this._wallBlocked = false;  // reset each frame
     const tTop      = Math.floor(this.y / TILE);
     const tBot      = Math.floor((this.y + this.h - 1) / TILE);
     const groundRow = tBot + 1;  // tile row the player is standing on
@@ -427,8 +429,22 @@ export class Player {
       const tRight = Math.floor((this.x + this.w - 1) / TILE);
       for (let ty = tTop; ty <= tBot; ty++) {
         if (level.tileBlocksX(tRight, ty, groundRow)) {
-          this.x  = tRight * TILE - this.w;
-          this.vx = 0;
+          // Corner-hop assist: jumping up, only the bottom tile blocks, ledge
+          // above is clear, and feet are within 6px of the surface. Snap onto
+          // the ledge so the player can hop over corners naturally.
+          const tileTopY  = ty * TILE;
+          const feetBelow = (this.y + this.h) - tileTopY;
+          if (this.vy < 0 && ty === tBot && feetBelow > 0 && feetBelow <= 6 &&
+              ty > 0 && !level.solidAt(tRight, ty - 1)) {
+            this.y        = tileTopY - this.h;
+            this.vy       = 0;
+            this.grounded = true;
+            // vx preserved — player steps onto the ledge
+          } else {
+            this.x        = tRight * TILE - this.w;
+            this.vx       = 0;
+            this._wallBlocked = true;
+          }
           break;
         }
       }
@@ -436,8 +452,18 @@ export class Player {
       const tLeft = Math.floor(this.x / TILE);
       for (let ty = tTop; ty <= tBot; ty++) {
         if (level.tileBlocksX(tLeft, ty, groundRow)) {
-          this.x  = (tLeft + 1) * TILE;
-          this.vx = 0;
+          const tileTopY  = ty * TILE;
+          const feetBelow = (this.y + this.h) - tileTopY;
+          if (this.vy < 0 && ty === tBot && feetBelow > 0 && feetBelow <= 6 &&
+              ty > 0 && !level.solidAt(tLeft, ty - 1)) {
+            this.y        = tileTopY - this.h;
+            this.vy       = 0;
+            this.grounded = true;
+          } else {
+            this.x  = (tLeft + 1) * TILE;
+            this.vx = 0;
+            this._wallBlocked = true;
+          }
           break;
         }
       }
@@ -451,9 +477,16 @@ export class Player {
     // The AABB blocks() is still used for vertical landing (standing on top).
     for (const gate of level.gates) {
       if (gate.blocksHorizontal(this.x, this.w, this.y, this.h)) {
-        if (this.vx > 0) this.x = gate.x - this.w;
+        if (this.vx > 0)      this.x = gate.x - this.w;
         else if (this.vx < 0) this.x = gate.x + gate.w;
+        else {
+          // Stationary but inside gate column (e.g. landed from above) — push out
+          const playerMid = this.x + this.w / 2;
+          const gateMid   = gate.x + gate.w / 2;
+          this.x = playerMid < gateMid ? gate.x - this.w : gate.x + gate.w;
+        }
         this.vx = 0;
+        this._wallBlocked = true;
       }
     }
 

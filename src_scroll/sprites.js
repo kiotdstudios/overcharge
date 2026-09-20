@@ -76,7 +76,7 @@ export class PlayerSprites {
 
   // speed = |vx| in px/s, vy = vertical velocity (negative=rising, positive=falling)
   // Jump frame selection is driven by vy so the pose mirrors physics — no time-based advance.
-  update(dt, isMoving, facingRight, isAbsorbing, isRunning, isJumping, isDischarging, speed = 0, vy = 0) {
+  update(dt, isMoving, facingRight, isAbsorbing, isRunning, isJumping, isDischarging, speed = 0, vy = 0, wallBlocked = false) {
     const dir  = facingRight ? 'e' : 'w';
     const jump = this[`jump_${dir}`];
 
@@ -87,7 +87,7 @@ export class PlayerSprites {
       // Energy states take top priority — charge/discharge anim always wins
       next = this[`charge_${dir}`];
 
-    } else if (isJumping) {
+    } else if (isJumping && !wallBlocked) {
       // Velocity-driven frame selection — pose reflects actual arc position:
       //   vy = -430 (just launched)  → frame 0  (knees bent, arms up)
       //   vy =    0 (apex)           → frame 4  (full body extension)
