@@ -2,6 +2,7 @@
   "name": "NEON RISE",
   "number": 1,
   "cols": 100,
+  "background": "night-city-rail",
   "tiles": [
     0,
     0,

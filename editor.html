@@ -92,6 +92,12 @@
   #inspector-body { padding: 12px; }
   #inspector-body p { font-size: 11px; color: #557; line-height: 1.5; font-family: monospace; }
 
+  /* §7 Background section in inspector */
+  #tp-bg-preview { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  #tp-bg-img { width:64px; height:36px; object-fit:cover; image-rendering:pixelated; border:1px solid #2a3448; flex-shrink:0; background:#0a0d14; }
+  #tp-bg-desc { font-size:10px; font-family:monospace; color:#779; line-height:1.4; }
+  #tp-bg-select { width:100%; background:#1a2030; color:#cdd; border:1px solid #2a3448; padding:4px 6px; font-size:11px; font-family:monospace; margin-bottom:4px; }
+
   /* Show-inspector tab — hugs the right edge of the canvas when collapsed.
      Small vertical tab; click reopens the panel. Only visible when collapsed. */
   #inspector-show-tab {
@@ -417,6 +423,24 @@
       <div class="tp-section" id="tp-selected-section" style="display:none">
         <div class="tp-hdr" data-sec="selected">SELECTED OBJECT <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-selected"></div>
+      </div>
+
+      <!-- §7 BACKGROUND — level parallax backdrop -->
+      <div class="tp-section" id="tp-sec-background">
+        <div class="tp-hdr" data-sec="background"><span class="sec-badge">7</span>BACKGROUND <span class="ch">▼</span></div>
+        <div class="tp-body" id="tp-background">
+          <div id="tp-bg-preview">
+            <img id="tp-bg-img" src="" alt="">
+            <div id="tp-bg-desc">No background</div>
+          </div>
+          <select id="tp-bg-select">
+            <option value="">— none —</option>
+            <option value="night-city-rail">Night City Rail</option>
+          </select>
+          <div style="font-size:9px;color:#446;font-family:monospace;line-height:1.5;">
+            Sets level.background. The game loads the matching parallax layers at runtime.
+          </div>
+        </div>
       </div>
 
       <!-- DEV QA (collapsed) -->

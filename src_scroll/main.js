@@ -282,7 +282,9 @@ function _update(dt) {
 }
 
 function _render() {
-  clear(ctx, viewW(), H, C.BG);
+  // When background DOM layers are active, clear to transparent so they show through.
+  // Otherwise fill with the solid background colour.
+  if (_bgEnabled) { ctx.clearRect(0, 0, viewW(), H); } else { clear(ctx, viewW(), H, C.BG); }
   switch (state) {
     case STATES.TITLE:
       drawTitleScreen(ctx, t);
