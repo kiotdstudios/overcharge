@@ -1,0 +1,119 @@
+{
+  "rail_top_y": 661,
+  "train_vertical_translation": -45,
+  "layers": [
+    {
+      "file": "01-sky.png",
+      "size": [
+        1672,
+        941
+      ],
+      "alpha_values": [
+        255
+      ],
+      "opposite_edges_identical": true,
+      "content_bbox": [
+        0,
+        0,
+        1672,
+        941
+      ],
+      "sha256": "f7c42414b270ca18df123cf37beb21a3a78575528b2c2c961df0d541cbb9ece4"
+    },
+    {
+      "file": "02-distant-skyline.png",
+      "size": [
+        1672,
+        941
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opposite_edges_identical": true,
+      "content_bbox": [
+        0,
+        574,
+        1672,
+        941
+      ],
+      "sha256": "2227ce1a234d3554070d0cb592c8018156dd7135af14f774a7ec77ae684f2f98"
+    },
+    {
+      "file": "03-midground-skyline.png",
+      "size": [
+        1672,
+        941
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opposite_edges_identical": true,
+      "content_bbox": [
+        0,
+        322,
+        1672,
+        941
+      ],
+      "sha256": "59079624cd6040d2602166085d1988d5f2842b7e7a7a6600b0381b29d5c00818"
+    },
+    {
+      "file": "04-elevated-track.png",
+      "size": [
+        1672,
+        941
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opposite_edges_identical": true,
+      "content_bbox": [
+        0,
+        661,
+        1672,
+        941
+      ],
+      "sha256": "88dd40c4a82f98276cd07c0a9181ef1a8d16c1fdae3cc4a77a0b8aa91f78f45f"
+    },
+    {
+      "file": "05-light-rail-train.png",
+      "size": [
+        1672,
+        941
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opposite_edges_identical": true,
+      "content_bbox": [
+        561,
+        536,
+        1124,
+        661
+      ],
+      "sha256": "49458bb252298b61e77d945533cf4404b2cd6e574cc24a1c923fd9bed6367918"
+    },
+    {
+      "file": "06-dark-front-skyline.png",
+      "size": [
+        1672,
+        941
+      ],
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opposite_edges_identical": true,
+      "content_bbox": [
+        0,
+        736,
+        1672,
+        941
+      ],
+      "sha256": "fedce6ff9fb4c91923c6a1766eb94b03eaaa6037ddf03e065bfba5032d304bd7"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Night City — dark skyline and light rail</title>
+<style>body{margin:24px;background:#03010c;color:#b7b7cf;font:14px system-ui}h1{font-size:22px}button,select{padding:9px;margin:0 12px 12px 0;background:#151632;color:#c5c8e0;border:1px solid #393874}label{margin-right:14px}canvas{display:block;image-rendering:pixelated}#viewport{overflow:auto;border:1px solid #1c1d42}p{max-width:1000px;line-height:1.5}</style>
+<h1>Night City / dark front skyline + light rail</h1><p>The faded purple buildings have been removed from the front layer. The train and track are separate PNGs; the train travels right along the rail. Native 1:1 pixels, with excess upper sky cropped by the viewport.</p>
+<button id="pause">Pause</button><button id="center">Center train</button><label><input type="checkbox" id="old"> Include original distant/mid skylines</label><select id="layer"><option value="all">Scene</option><option value="0">Sky</option><option value="3">Track only</option><option value="4">Train only</option><option value="5">Dark front only</option></select>
+<div id="viewport"><canvas width="1200" height="700"></canvas></div><p id="status">Loading…</p>
+<script>
+const names=['01-sky.png','02-distant-skyline.png','03-midground-skyline.png','04-elevated-track.png','05-light-rail-train.png','06-dark-front-skyline.png'];
+const ctx=document.querySelector('canvas').getContext('2d'),W=1672,H=941;let run=true,t=0,last=0;
+document.querySelector('#pause').onclick=()=>{run=!run;document.querySelector('#pause').textContent=run?'Pause':'Play';};
+document.querySelector('#center').onclick=()=>t=0;
+Promise.all(names.map(n=>new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=reject;im.src=n;}))).then(images=>{
+ document.querySelector('#status').textContent='6 separate PNGs • 1672 × 941 • train wheels aligned to rail y=661 • no rain';
+ function frame(now){if(last&&run)t+=Math.min(now-last,100)/1000;last=now;ctx.imageSmoothingEnabled=false;
+ for(let y=0;y<700;y+=16)for(let x=0;x<1200;x+=16){ctx.fillStyle=((x+y)/16)%2?'#171724':'#10101b';ctx.fillRect(x,y,16,16);}
+ const view=document.querySelector('#layer').value,optional=document.querySelector('#old').checked;
+ function repeat(im,shift){shift=((Math.floor(shift)%W)+W)%W;for(let x=-shift;x<1200;x+=W)ctx.drawImage(im,x,700-H);}
+ images.forEach((im,i)=>{
+   if(view!=='all'&&Number(view)!==i)return;
+   if(view==='all'&&(i===1||i===2)&&!optional)return;
+   if(i===4){const cycle=1200+563+500;const left=((300+t*95+563+250)%cycle)-563-250;ctx.drawImage(im,Math.round(left-561),700-H);}
+   else repeat(im,t*12*[.04,.12,.25,.35,0,.45][i]);
+ });requestAnimationFrame(frame);
+ }requestAnimationFrame(frame);
+}).catch(()=>document.querySelector('#status').textContent='Missing image. Keep all PNGs beside this preview.');
+</script></html>
