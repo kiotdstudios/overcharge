@@ -315,7 +315,7 @@ export const state = {
   camera: { x: 0, y: 0, zoom: 1 },   // world→screen offset & scale
 
   // Filters
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, hvacOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -449,23 +449,42 @@ export function manifestCategories() {
 }
 
 // Filter manifest by current filter state.
+// Background-category assets are excluded here — they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, hvacOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, hvacOnly, nightCityRailOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Never show retired assets (eligible: false) in the palette.
     if (it.raw && it.raw.generation && it.raw.generation.eligible === false) return false;
+    // Background assets live in their own section — exclude from tile/object grid.
+    if (it.category === 'background') return false;
     if (category !== 'all' && it.category !== category) return false;
     // Spawn-type and player-category assets are meta-objects, not tileset art —
-    // always show them regardless of the Purple City quick-filter.
+    // always show them regardless of the pack quick-filters.
     const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
-    if (purpleCityOnly && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
+    if (purpleCityOnly    && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
     if (purpleRooftopOnly && !isSpawnAsset && !/\/purple_rooftop\//.test(it.path || '')) return false;
-    if (hvacOnly && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
+    if (hvacOnly          && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
+    if (nightCityRailOnly && !isSpawnAsset && !/\/night-city-rail\//.test(it.path || '')) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
+}
+
+// Return only background-category manifest items, optionally filtered by tag.
+export function filteredBackgroundItems(packTag = null) {
+  if (!state.manifest) return [];
+  return state.manifest.items.filter(it => {
+    if (it.category !== 'background') return false;
+    if (packTag && !(it.tags && it.tags.indexOf(packTag) >= 0)) return false;
+    return true;
+  });
+}
+
+// Returns the active level's background pack key, or null.
+export function currentLevelBackground() {
+  return (state.level && state.level.background) || null;
 }
 
 // ── Setters (call notify() automatically) ────────────────────────────────
@@ -476,7 +495,20 @@ export function setFilterCategory(c)    { state.filter.category = c; notify(); }
 export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
 export function setPurpleRooftopOnly(v)  { state.filter.purpleRooftopOnly = !!v; notify(); }
-export function setHvacOnly(v)            { state.filter.hvacOnly = !!v; notify(); }
+export function setHvacOnly(v)             { state.filter.hvacOnly = !!v; notify(); }
+export function setNightCityRailOnly(v)    { state.filter.nightCityRailOnly = !!v; notify(); }
+// Set the level's background pack key (null = no background).
+// Marks the level dirty so save picks up the change.
+export function setLevelBackground(packKey) {
+  if (!state.level) return;
+  if (packKey) {
+    state.level.background = packKey;
+  } else {
+    delete state.level.background;
+  }
+  state.dirty = true;
+  notify();
+}
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
 export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
 export function setMagneticSnap(v)       { state.magneticSnap = !!v; notify(); }

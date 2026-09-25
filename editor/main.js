@@ -6,6 +6,7 @@ import {
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
+  setLevelBackground, currentLevelBackground,
 } from './state.js';
 import { render } from './renderer.js';
 import { mountAssetBrowser } from './assets.js';
@@ -50,6 +51,9 @@ const inspShowTab    = document.getElementById('inspector-show-tab');
 const guardsToggle   = document.getElementById('guards-toggle');
 const magneticToggle = document.getElementById('magnetic-toggle');
 const snapSelect     = document.getElementById('snap-select');
+const tpBgSelect       = document.getElementById('tp-bg-select');
+const tpBgImg          = document.getElementById('tp-bg-img');
+const tpBgDesc         = document.getElementById('tp-bg-desc');
 const btnLayerFront    = document.getElementById('btn-layer-front');
 const btnLayerForward  = document.getElementById('btn-layer-forward');
 const btnLayerBackward = document.getElementById('btn-layer-backward');
@@ -1573,6 +1577,33 @@ function _refreshSelectedProps() {
 }
 
 subscribe(() => _refreshSelectedProps());
+subscribe(() => _refreshBgInspector());
+
+// ── §7 Background inspector ────────────────────────────────────────────────
+const _BG_PACK_INFO = {
+  'night-city-rail': {
+    img:  'assets/bg/night-city-rail/night-city-rail-v1/01-sky.png',
+    desc: 'Night City Rail — 4 parallax layers: sky, track, train, front skyline',
+  },
+};
+function _refreshBgInspector() {
+  if (!tpBgSelect || !tpBgImg || !tpBgDesc) return;
+  const active = currentLevelBackground();
+  tpBgSelect.value = active || '';
+  const info = active ? _BG_PACK_INFO[active] : null;
+  if (info) {
+    tpBgImg.src = info.img;
+    tpBgImg.style.display = 'block';
+    tpBgDesc.textContent = info.desc;
+  } else {
+    tpBgImg.src = '';
+    tpBgImg.style.display = 'none';
+    tpBgDesc.textContent = 'No background — solid dark fill at runtime.';
+  }
+}
+if (tpBgSelect) {
+  tpBgSelect.addEventListener('change', () => setLevelBackground(tpBgSelect.value || null));
+}
 
 // ── Tools Panel: collapsible sections ──────────────────────────────
 document.querySelectorAll('.tp-hdr').forEach(hdr => {

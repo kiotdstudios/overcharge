@@ -1069,6 +1069,62 @@
         "eligible": false,
         "ineligible_reason": "Retired by Chief 2026-09-20"
       }
+    },
+    {
+      "id": "bg_ncr_sky",
+      "path": "assets/bg/night-city-rail/night-city-rail-v1/01-sky.png",
+      "category": "background",
+      "tags": [
+        "background",
+        "night-city-rail",
+        "sky",
+        "parallax"
+      ],
+      "frame_width": 1672,
+      "frame_height": 941,
+      "notes": "Night City Rail — sky layer. Factor 0.03. Tiles horizontally at 1672px period."
+    },
+    {
+      "id": "bg_ncr_track",
+      "path": "assets/bg/night-city-rail/night-city-rail-v1/04-elevated-track.png",
+      "category": "background",
+      "tags": [
+        "background",
+        "night-city-rail",
+        "track",
+        "parallax"
+      ],
+      "frame_width": 1672,
+      "frame_height": 941,
+      "notes": "Night City Rail — elevated track layer. Factor 0.35. Track top at y=661 source-px."
+    },
+    {
+      "id": "bg_ncr_train",
+      "path": "assets/bg/night-city-rail/night-city-rail-v1/05-light-rail-train.png",
+      "category": "background",
+      "tags": [
+        "background",
+        "night-city-rail",
+        "train",
+        "parallax"
+      ],
+      "frame_width": 1672,
+      "frame_height": 941,
+      "notes": "Night City Rail — train canvas layer. Moves at 95px/s. Opaque box [561,536,1124,661]."
+    },
+    {
+      "id": "bg_ncr_front_skyline",
+      "path": "assets/bg/night-city-rail/night-city-rail-v1/06-dark-front-skyline.png",
+      "category": "background",
+      "tags": [
+        "background",
+        "night-city-rail",
+        "skyline",
+        "parallax"
+      ],
+      "frame_width": 1672,
+      "frame_height": 941,
+      "notes": "Night City Rail — dark front buildings/rooftops. Factor 0.45. Hard alpha only."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1269,5 +1325,5 @@
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
   ],
-  "count": 39
+  "count": 43
 }
