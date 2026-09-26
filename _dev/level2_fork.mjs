@@ -19,35 +19,38 @@ const sw       = L2.switches[0];
 // Surface y of the first solid tile below a given row, at a column.
 const surfaceAt = (col, fromRow) => { for(let r=fromRow;r<18;r++) if(solid(L2.tiles[r*C+col])) return r*T; return null; };
 
-sec('EXIT GATES ARE NOW Y-AWARE TOO — Chief ruling 2026-09-20 00:02 (100338f)');
+sec('EXIT GATES BLOCK THE FULL COLUMN — Chief ruling c35252d 2026-09-20 09:28');
 {
-  // SUPERSEDED, NOT BROKEN. This section used to assert that an exit gate blocks the
-  // FULL COLUMN at any height, on the grounds that otherwise "every exit cost becomes
-  // optional". Chief's commit 100338f makes ALL gates Y-aware and says so explicitly:
-  //   "Supersedes the exit/chargeable carve-out in KIRO_RULING_BLOCKONLY_Y_AWARE."
+  // THIS RULE HAS FLIPPED TWICE. Recording both so nobody "fixes" the runtime to satisfy a
+  // stale assertion, which is a trap I have now nearly walked into once already:
+  //   KIRO_RULING_BLOCKONLY_Y_AWARE  exits block the full column, only blockOnly fences
+  //                                  are Y-aware.
+  //   100338f  2026-09-20 00:02      ALL gates Y-aware; explicitly superseded the carve-out.
+  //   c35252d  2026-09-20 09:28      REVERTED to full-column for exits. Chief's reason:
+  //                                  "Fixes wall-climb exploit around exit gate." A
+  //                                  Y-aware exit let the player climb past it and skip
+  //                                  the cost entirely.
+  // CURRENT AND AUTHORITATIVE: c35252d. isExit -> always blocks. Interior gates stay
+  // Y-aware so a player on another floor is not stopped by a gate he is nowhere near.
   //
-  // I nearly reverted the runtime to satisfy this stale test. The code follows Chief's
-  // newer ruling; the assertion was the out-of-date half. Checked the commit author and
-  // message before changing anything, which is what caught it.
-  //
-  // The economy is still protected, just by elevation rather than by an infinite column:
-  // a player who reaches the gate's own height is blocked and must pay. What changed is
-  // that a player on a DIFFERENT floor no longer collides with a gate he is nowhere near.
+  // If this section fails, check `git log -L` on blocksHorizontal BEFORE editing the
+  // runtime. The newest commit is the ruling; the test is the half that goes stale.
   const ex = new EL.PowerGate(exitDef);
   ok(!exitDef.blockOnly, 'the exit is not blockOnly (it is a chargeable gate)');
   ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y, PLAYER_H),
-    'a player AT the exit elevation is blocked — this is what protects the cost',
-    'reaching the gate still means paying for it');
-  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y + exitDef.h - PLAYER_H, PLAYER_H),
-    'and blocked at the gate\u2019s lowest row');
-  ok(!ex.blocksHorizontal(exitDef.x-4, PLAYER_W, 0, PLAYER_H),
-    'a player FAR ABOVE the exit passes, per the new ruling',
-    'was asserted as blocked under the superseded carve-out');
-  ok(!ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y + exitDef.h + 200, PLAYER_H),
-    'and a player far BELOW it passes too');
+    'blocked at the exit\u2019s own elevation');
+  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, 0, PLAYER_H),
+    'blocked FAR ABOVE it — this is the wall-climb exploit c35252d closed',
+    'a Y-aware exit could be climbed past, making every exit cost optional');
+  ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W, exitDef.y + exitDef.h + 200, PLAYER_H),
+    'and blocked far BELOW it');
   ok(ex.blocksHorizontal(exitDef.x-4, PLAYER_W),
-    'callers with no Y info still get the legacy full-column block',
-    'back-compat path preserved');
+    'callers with no Y info still get the full-column block');
+  // The interior-gate half of the same ruling must NOT have been swept up in the revert.
+  const fence = new EL.PowerGate(fenceDef);
+  ok(!fence.blocksHorizontal(fenceDef.x - PLAYER_W/2, PLAYER_W, fenceDef.y + fenceDef.h + 60, PLAYER_H),
+    'but an INTERIOR gate is still Y-aware',
+    'the revert was scoped to isExit only; blockOnly fences keep per-row blocking');
 }
 
 sec('Y-aware blockOnly: the fence blocks its OWN rows and nothing else');

@@ -497,7 +497,13 @@ export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
 export function setPurpleRooftopOnly(v)  { state.filter.purpleRooftopOnly = !!v; notify(); }
 export function setBlueRooftopOnly(v)      { state.filter.blueRooftopOnly = !!v; notify(); }
-setHvacOnly(v)             { state.filter.hvacOnly = !!v; notify(); }
+// `export function` was missing here (431ae8a, the HVAC filter). Method-shorthand at
+// module top level is a SYNTAX error, so state.js failed to parse, so every editor module
+// that imports it failed, so editor.html ran NO JavaScript AT ALL — blank canvas, stuck
+// "loading...", "No level loaded". bootstrap()'s try/catch never got a chance to report it
+// because the failure happened at parse time, before any code executed.
+// assets.js:12 imports setHvacOnly by name, so it has to be an export, not a local.
+export function setHvacOnly(v)             { state.filter.hvacOnly = !!v; notify(); }
 export function setNightCityRailOnly(v)    { state.filter.nightCityRailOnly = !!v; notify(); }
 // Set the level's background pack key (null = no background).
 // Marks the level dirty so save picks up the change.
