@@ -1,15 +1,15 @@
-// assets.js — asset browser sidebar UI.
+﻿// assets.js â€” asset browser sidebar UI.
 // Reads state.manifest + state.filter + state.level; writes state.filter + state.selectedAsset.
 // Layout:
-//   § BACKGROUNDS — background pack cards; clicking sets level.background
-//   § TILES & OBJECTS — existing tile/object grid with search + filters
+//   Â§ BACKGROUNDS â€” background pack cards; clicking sets level.background
+//   Â§ TILES & OBJECTS â€” existing tile/object grid with search + filters
 
 import {
   state, subscribe,
   manifestCategories, filteredManifestItems, filteredBackgroundItems,
   currentLevelBackground,
   setFilterCategory, setFilterSearch, setSelectedAsset,
-  setPurpleCityOnly, setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly,
+  setPurpleCityOnly, setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly, setElectricOnly,
   setLevelBackground,
 } from './state.js';
 import { startAssetDrag } from './tools.js';
@@ -21,14 +21,14 @@ let thumbGrid;
 let statusEl;
 let bgSectionEl;   // background section container (rebuilt on notify)
 
-// ─── Background pack catalog ─────────────────────────────────────────────────
+// â”€â”€â”€ Background pack catalog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Hardcoded pack registry so the section renders even before ASSET_MANIFEST loads.
 const BG_PACKS = [
   {
     key:         'night-city-rail',
     label:       'Night City Rail',
     preview:     'assets/bg/night-city-rail/night-city-rail-v1/01-sky.png',
-    description: '4-layer parallax • sky / track / train / front skyline',
+    description: '4-layer parallax â€¢ sky / track / train / front skyline',
     tag:         'night-city-rail',
   },
 ];
@@ -38,7 +38,7 @@ export function mountAssetBrowser(container) {
   root.innerHTML = '';
   root.style.cssText += 'display:flex;flex-direction:column;gap:0;';
 
-  // ── § BACKGROUNDS ──────────────────────────────────────────────────────────
+  // â”€â”€ Â§ BACKGROUNDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const bgWrap = document.createElement('div');
   bgWrap.style.cssText = 'border-bottom:1px solid #1c2a3a;padding:8px 8px 0;flex-shrink:0;';
 
@@ -56,7 +56,7 @@ export function mountAssetBrowser(container) {
   bgWrap.appendChild(bgSectionEl);
   root.appendChild(bgWrap);
 
-  // ── § TILES & OBJECTS ──────────────────────────────────────────────────────
+  // â”€â”€ Â§ TILES & OBJECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const tileWrap = document.createElement('div');
   tileWrap.style.cssText = 'flex:1;overflow-y:auto;padding:8px;min-height:0;';
 
@@ -73,7 +73,7 @@ export function mountAssetBrowser(container) {
   searchInput.addEventListener('input', () => setFilterSearch(searchInput.value));
   tileWrap.appendChild(searchInput);
 
-  // ── Quick-filter row: pack checkboxes ─────────────────────────────────────
+  // â”€â”€ Quick-filter row: pack checkboxes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const filterRow = document.createElement('div');
   filterRow.style.cssText = 'border:1px solid #1c2a3a;border-radius:3px;padding:5px 6px 4px;margin-bottom:6px;';
 
@@ -90,6 +90,7 @@ export function mountAssetBrowser(container) {
 
   const extraFilters = [
     { id: 'ab-hvac-only',           label: 'HVAC',             color: '#aec', getter: () => !!state.filter.hvacOnly,          setter: setHvacOnly           },
+    { id: 'ab-electric-only',       label: 'Electric',         color: '#ff6', getter: () => !!state.filter.electricOnly,     setter: setElectricOnly       },
   ];
 
   for (const cfg of [...packFilters, ...extraFilters]) {
@@ -135,7 +136,7 @@ function refresh() {
   _populateThumbs();
 }
 
-// ── Background section ────────────────────────────────────────────────────────
+// â”€â”€ Background section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _refreshBgSection() {
   if (!bgSectionEl) return;
   const activePack = currentLevelBackground();
@@ -150,7 +151,7 @@ function _refreshBgSection() {
       'border:1px solid ' + (isActive ? '#44ccff' : '#1c2a3a') + ';',
       'background:' + (isActive ? '#0a1a28' : '#0d1119') + ';',
     ].join('');
-    card.title = isActive ? `Active: ${pack.label} — click to remove` : `Set background: ${pack.label}`;
+    card.title = isActive ? `Active: ${pack.label} â€” click to remove` : `Set background: ${pack.label}`;
 
     // Preview thumbnail
     const thumb = document.createElement('img');
@@ -191,7 +192,7 @@ function _refreshBgSection() {
     // Preview layers button
     const layersBtn = document.createElement('button');
     layersBtn.style.cssText = 'font-size:8px;font-family:monospace;padding:2px 5px;background:#0d1420;color:#779;border:1px solid #2a3448;cursor:pointer;margin-top:3px;width:100%;text-align:left;';
-    layersBtn.textContent = '▼ ' + (pack.expanded ? 'hide layers' : 'show layers');
+    layersBtn.textContent = 'â–¼ ' + (pack.expanded ? 'hide layers' : 'show layers');
     layersBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       pack.expanded = !pack.expanded;
@@ -228,20 +229,20 @@ function _refreshBgSection() {
     bgSectionEl.appendChild(cardWrap);
   }
 
-  // "None" option — only shown if something is active
+  // "None" option â€” only shown if something is active
   if (activePack) {
     const noneRow = document.createElement('div');
     noneRow.style.cssText = 'text-align:right;margin-bottom:5px;';
     const noneBtn = document.createElement('button');
     noneBtn.style.cssText = 'font-size:9px;font-family:monospace;padding:2px 7px;background:transparent;color:#779;border:1px solid #2a3448;cursor:pointer;';
-    noneBtn.textContent = '✕ remove background';
+    noneBtn.textContent = 'âœ• remove background';
     noneBtn.addEventListener('click', () => setLevelBackground(null));
     noneRow.appendChild(noneBtn);
     bgSectionEl.appendChild(noneRow);
   }
 }
 
-// ── Tiles & objects section ───────────────────────────────────────────────────
+// â”€â”€ Tiles & objects section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function _populateCategories() {
   if (!categorySelect) return;
   const cats = manifestCategories().filter(c => c !== 'background'); // BG lives in its own section
@@ -269,10 +270,10 @@ function _populateThumbs() {
     const isSelected = state.selectedAsset && (state.selectedAsset.id === it.id || state.selectedAsset.path === it.path);
     const cell = document.createElement('div');
     cell.className = 'ab-cell' + (isSelected ? ' selected' : '');
-    const tipParts = [it.name, `${it.category}  ${it.width}×${it.height}`, it.path];
-    if (it.raw && it.raw.notes) tipParts.push('— ' + it.raw.notes);
-    if (it.isAnimation) tipParts.push('(animation — placement disabled in Phase 1)');
-    if (it.source === 'disk-index') tipParts.push('(from disk — not yet in Aki manifest)');
+    const tipParts = [it.name, `${it.category}  ${it.width}Ã—${it.height}`, it.path];
+    if (it.raw && it.raw.notes) tipParts.push('â€” ' + it.raw.notes);
+    if (it.isAnimation) tipParts.push('(animation â€” placement disabled in Phase 1)');
+    if (it.source === 'disk-index') tipParts.push('(from disk â€” not yet in Aki manifest)');
     cell.title = tipParts.join('\n');
     cell.addEventListener('click', () => setSelectedAsset(it));
     cell.addEventListener('mousedown', (e) => {
@@ -301,7 +302,7 @@ function _populateThumbs() {
   if (items.length > cap) {
     const more = document.createElement('div');
     more.className = 'ab-status';
-    more.textContent = `(+${items.length - cap} more — refine filter)`;
+    more.textContent = `(+${items.length - cap} more â€” refine filter)`;
     thumbGrid.appendChild(more);
   }
 }
