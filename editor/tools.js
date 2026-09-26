@@ -48,7 +48,11 @@ function worldUnderMouse(evt, canvas) {
   const { sx, sy } = canvasCoords(evt, canvas);
   return screenToWorld(sx, sy);
 }
-function tileUnderMouse(evt, canvas) {
+// Exported so main.js's tile readout resolves the cell through the SAME conversion the
+// tools use, including the canvas backing-store scale. A second copy of this maths in
+// main.js could name a different tile than the one Place/Erase actually edits, which is
+// worse than no readout at all.
+export function tileUnderMouse(evt, canvas) {
   const w = worldUnderMouse(evt, canvas);
   return worldToTile(w.x, w.y);
 }

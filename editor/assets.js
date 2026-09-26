@@ -1,4 +1,4 @@
-﻿// assets.js â€” asset browser sidebar UI.
+// assets.js â€” asset browser sidebar UI.
 // Reads state.manifest + state.filter + state.level; writes state.filter + state.selectedAsset.
 // Layout:
 //   Â§ BACKGROUNDS â€” background pack cards; clicking sets level.background

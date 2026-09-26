@@ -1473,6 +1473,96 @@
       "directions": null,
       "loop": false,
       "notes": "Blue rooftop building tile at row 4 col 13, right building (c11-c13). 16x16px."
+    },
+    {
+      "id": "prop_ncp_fuse_box",
+      "path": "assets/objects/night-city-props/fuse-box/00.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Fuse box with electric panel. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px draw."
+    },
+    {
+      "id": "prop_ncp_neon_sign",
+      "path": "assets/objects/night-city-props/neon-sign/00.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Neon sign, city atmosphere. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px draw."
+    },
+    {
+      "id": "prop_ncp_security_camera",
+      "path": "assets/objects/night-city-props/security-camera/00.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Security camera, wall-mounted. States: powered(f0-1), absorbing(f2-5), drained(f6). 64x64px draw."
+    },
+    {
+      "id": "prop_ncp_streetlight",
+      "path": "assets/objects/night-city-props/streetlight/00.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 192,
+      "frame_height": 192,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Street lamp / streetlight. States: powered(f0-1), absorbing(f2-5), drained(f6). 192x192px draw."
+    },
+    {
+      "id": "prop_ncp_vending_machine",
+      "path": "assets/objects/night-city-props/vending-machine/00.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1671,97 +1761,6 @@
       "id": "chest_opening_frame_008",
       "src": "assets/objects/chest/opening/frame_008.png",
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
-    }
-  ,
-    {
-      "id": "prop_ncp_fuse_box",
-      "path": "assets/objects/night-city-props/fuse-box/00.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "electric",
-        "prop",
-        "animated"
-      ],
-      "frame_width": 96,
-      "frame_height": 96,
-      "frame_count": 8,
-      "fps": 8,
-      "directions": null,
-      "loop": true,
-      "notes": "Fuse box with electric panel. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px draw."
-    },
-    {
-      "id": "prop_ncp_neon_sign",
-      "path": "assets/objects/night-city-props/neon-sign/00.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "electric",
-        "prop",
-        "animated"
-      ],
-      "frame_width": 96,
-      "frame_height": 96,
-      "frame_count": 8,
-      "fps": 8,
-      "directions": null,
-      "loop": true,
-      "notes": "Neon sign, city atmosphere. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px draw."
-    },
-    {
-      "id": "prop_ncp_security_camera",
-      "path": "assets/objects/night-city-props/security-camera/00.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "electric",
-        "prop",
-        "animated"
-      ],
-      "frame_width": 64,
-      "frame_height": 64,
-      "frame_count": 8,
-      "fps": 8,
-      "directions": null,
-      "loop": true,
-      "notes": "Security camera, wall-mounted. States: powered(f0-1), absorbing(f2-5), drained(f6). 64x64px draw."
-    },
-    {
-      "id": "prop_ncp_streetlight",
-      "path": "assets/objects/night-city-props/streetlight/00.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "electric",
-        "prop",
-        "animated"
-      ],
-      "frame_width": 192,
-      "frame_height": 192,
-      "frame_count": 8,
-      "fps": 8,
-      "directions": null,
-      "loop": true,
-      "notes": "Street lamp / streetlight. States: powered(f0-1), absorbing(f2-5), drained(f6). 192x192px draw."
-    },
-    {
-      "id": "prop_ncp_vending_machine",
-      "path": "assets/objects/night-city-props/vending-machine/00.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "electric",
-        "prop",
-        "animated"
-      ],
-      "frame_width": 128,
-      "frame_height": 128,
-      "frame_count": 8,
-      "fps": 8,
-      "directions": null,
-      "loop": true,
-      "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
   "count": 67

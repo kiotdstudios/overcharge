@@ -6,9 +6,11 @@ import {
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
+  getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
 } from './state.js';
 import { render } from './renderer.js';
+import { tileUnderMouse } from './tools.js';
 import { mountAssetBrowser } from './assets.js';
 import { TOOLS, middleMousePan, wheelZoom } from './tools.js';
 import * as History from './history.js';
@@ -702,9 +704,70 @@ function showSaveFlash(result) {
   setTimeout(() => { saveFlash.className = ''; saveFlash.textContent = ''; }, 3200);
 }
 
+// ── Tile readout (CHIEF 2026-09-26) ───────────────────────────────────────
+// "when u click on a tile the name of the tile is at the top to the right of the
+//  'no folder set' text"
+// Shows the tile you clicked on the canvas. Also updates when you pick a tile in the
+// asset browser, because the question "what am I painting with" is the same question.
+const tileReadout = document.getElementById('tile-readout');
+
+// Friendly name from the asset id. Manifest name if it has one, else the raw id —
+// never a bare number, which is what the level JSON stores and what nobody can read.
+function _tileDisplayName(assetId) {
+  if (!assetId) return null;
+  const item = state.manifest?.items?.find(i => i.id === assetId);
+  return (item && (item.name || item.label)) || assetId;
+}
+
+function _setTileReadout(html) {
+  if (tileReadout) tileReadout.innerHTML = html || '';
+}
+
+// Canvas click → whatever occupies that cell.
+function _reportClickedTile(e) {
+  if (!tileReadout || !state.level) return;
+  const { col, row } = tileUnderMouse(e, canvas);
+  const rows = levelRows();
+  if (col < 0 || col >= state.level.cols || row < 0 || row >= rows) {
+    // Outside the level is a real answer, not an error. Saying so beats a stale name
+    // from three clicks ago that he would read as current.
+    _setTileReadout(`<span class="tr-num">off-grid  r${row} c${col}</span>`);
+    return;
+  }
+  const v = getTile(col, row);
+  const cell = `<span class="tr-num">r${row} c${col}</span>`;
+  if (!tileIsSolid(v)) { _setTileReadout(`<span class="tr-id">empty</span> ${cell}`); return; }
+  const id = tileAssetIdFor(v);
+  const name = _tileDisplayName(id);
+  // Value AND id are both shown: the value is what the JSON stores and what Chief needs
+  // when matching Level 1's edge convention; the name is what he can actually recognise.
+  // Most tiles carry no manifest `name`, so name === id — printing both would read as
+  // "env_rt_tile_mid_a env_rt_tile_mid_a". Only show the id when it adds something.
+  const idPart = (name === id) ? '' : ` <span class="tr-id">${id}</span>`;
+  _setTileReadout(`${name}${idPart} <span class="tr-num">#${v} · ${cell}</span>`);
+}
+
+// Asset-browser pick → what you are about to paint with.
+export function reportSelectedTile() {
+  if (!tileReadout) return;
+  const sel = state.selectedAsset;
+  if (state.selectedTile > 0) {
+    const id = tileAssetIdFor(state.selectedTile);
+    const nm = _tileDisplayName(id);
+    const idPart = (nm === id) ? '' : ` <span class="tr-id">${id}</span>`;
+    _setTileReadout(`${nm}${idPart} <span class="tr-num">#${state.selectedTile} · selected</span>`);
+  } else if (sel) {
+    _setTileReadout(`${sel.name || sel.id} <span class="tr-id">${sel.id}</span> <span class="tr-num">selected</span>`);
+  }
+}
 // ── Canvas mouse events → active tool ─────────────────────────────────────
 canvas.addEventListener('mousedown', (e) => {
   if (state.pendingSpawn) { _doSpawn(e, canvas); return; }
+  // CHIEF 2026-09-26: report the clicked tile's name in the toolbar. Read BEFORE the tool
+  // runs, so a Place/Erase click reports what was actually there when he clicked rather
+  // than what the tool just changed it into. Deliberately outside the tool dispatch so it
+  // works with every tool, including ones added later.
+  _reportClickedTile(e);
   TOOLS[state.tool]?.onMouseDown?.(e, canvas);
 });
 canvas.addEventListener('mousemove', (e) => TOOLS[state.tool]?.onMouseMove?.(e, canvas));
@@ -789,7 +852,20 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // ── UI refresh (subscribes to every state change) ─────────────────────────
+// Last asset-browser selection we reported. refreshUI() runs on EVERY state change
+// (camera zoom, dirty flag, undo depth...), so reporting the selection unconditionally
+// would wipe the clicked-tile name a few milliseconds after Chief clicked, since the click
+// itself triggers a notify. Only speak when the selection actually changed.
+let _lastSelKey = null;
+
 function refreshUI() {
+  const selKey = `${state.selectedTile}|${state.selectedAsset?.id || ''}`;
+  if (selKey !== _lastSelKey) {
+    _lastSelKey = selKey;
+    // At boot the default paint tile IS a selection, so the readout starts by naming what
+    // a Place click would lay down. That is accurate and useful, so it is not suppressed.
+    if (state.selectedTile > 0 || state.selectedAsset) reportSelectedTile();
+  }
   // Live zoom readout on the reset button (Chief: number must change with ±).
   // Click still resets to 100%.
   if (zoomResetBtn) zoomResetBtn.textContent = Math.round(state.camera.zoom * 100) + '%';

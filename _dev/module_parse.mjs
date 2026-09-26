@@ -75,6 +75,34 @@ sec('Every module PARSES as an ES module');
   fs.rmSync(tmp, { recursive: true, force: true });
 }
 
+sec('No file carries a UTF-8 BOM');
+{
+  // ADDED AFTER MY GUARD PASSED A FILE THE BROWSER WOULD REJECT.
+  // Cherry-picking Aki's props commit reintroduced a BOM into editor/state.js. Node parses
+  // a BOM-prefixed module happily, so the parse section above reported a clean 64/0 while
+  // the file was byte-for-byte the thing Aki had already had to fix once (c76e002, "BOM
+  // blocked JS module parse").
+  // That is the same mistake I keep making: asserting what MY runner tolerates instead of
+  // what the thing running the code actually requires. Node is not the customer here, the
+  // browser is. A BOM is invisible in every editor and diff, so nothing else would catch it.
+  for (const f of files) {
+    const b = fs.readFileSync(f);
+    const hasBom = b.length >= 3 && b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF;
+    ok(!hasBom, `${f} has no BOM`,
+      hasBom ? 'strip it — Node tolerates this, the browser module loader does not' : '');
+  }
+  // Level and manifest JSON too: JSON.parse throws on a leading BOM, which would take the
+  // editor down at boot just as thoroughly as bad syntax.
+  const jsons = ['assets/ASSET_MANIFEST.json', 'src_scroll/levels/levels.json']
+    .concat(fs.readdirSync('src_scroll/levels').filter(f=>f.endsWith('.json')).map(f=>'src_scroll/levels/'+f))
+    .filter((v,i,a)=>a.indexOf(v)===i);
+  for (const j of jsons) {
+    if (!fs.existsSync(j)) continue;
+    const b = fs.readFileSync(j);
+    const hasBom = b.length >= 3 && b[0] === 0xEF && b[1] === 0xBB && b[2] === 0xBF;
+    ok(!hasBom, `${j} has no BOM`, hasBom ? 'JSON.parse throws on this' : '');
+  }
+}
 sec('Every EDITOR module IMPORTS (catches a missing export, not just bad syntax)');
 {
   // Parsing is not enough: `setHvacOnly` was also imported by name in assets.js, so a
