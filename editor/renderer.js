@@ -8,6 +8,7 @@
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
          worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation } from './state.js';
 import * as Selection from './selection.js';
+import { drawHvac, sourceBox } from '../src_scroll/source-visuals.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
 function getImage(path) {
@@ -426,6 +427,15 @@ function _drawSources(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const o of arr) {
+    // HVAC uses its own art (sourceBox geometry, drawHvac renderer).
+    if (o.kind === 'hvac') {
+      ctx.save();
+      ctx.scale(z, z);
+      ctx.translate(-state.camera.x, -state.camera.y);
+      drawHvac(ctx, o);
+      ctx.restore();
+      continue;
+    }
     // spriteY: -34 = -(62-28). 62 because sprite has 1px transparent bottom row;
     // visual feet at row 62, so dY+62 = o.y+h = o.y+28 → dY = o.y-34.
     const spriteX = o.x - 18, spriteY = o.y - 34;
