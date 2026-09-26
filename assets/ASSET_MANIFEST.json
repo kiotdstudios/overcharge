@@ -1149,6 +1149,63 @@
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
       }
+    },
+    {
+      "id": "env_bt_bldg_col_a",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_col_a.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building",
+        "column"
+      ],
+      "frame_width": 46,
+      "frame_height": 19,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building column, 1-story height (46x19). Decorative building facade column."
+    },
+    {
+      "id": "env_bt_bldg_col_b",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_col_b.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building",
+        "column"
+      ],
+      "frame_width": 46,
+      "frame_height": 51,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building column, 2-story height (46x51). Decorative building facade column."
+    },
+    {
+      "id": "env_bt_bldg_col_c",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_col_c.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building",
+        "column"
+      ],
+      "frame_width": 46,
+      "frame_height": 67,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building column, 3-story height (46x67). Decorative building facade column."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1349,5 +1406,5 @@
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
   ],
-  "count": 44
+  "count": 47
 }
