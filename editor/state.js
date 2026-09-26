@@ -63,6 +63,37 @@ export const TILE_ID_REGISTRY = Object.freeze({
   39: 'env_rt_bldg_r04_c11',
   40: 'env_rt_bldg_r04_c12',
   41: 'env_rt_bldg_r04_c13',
+  // Blue Rooftop tileset, IDs forty-two through fifty-nine.
+  // Chief reported that placing blue rooftop tiles did nothing new. They had NO registry
+  // entries, so tileValueForAssetId returned minus one and placement fell back to stamping
+  // the default purple mid_a tile wherever he clicked. A tile WAS placed every time, just the
+  // wrong one, which on a purple level looks exactly like nothing happening.
+  // A tile absent from this registry cannot be represented in level JSON at all: levels store
+  // VALUES, and a value is the only thing the runtime can decode back into art.
+  // APPEND ONLY. Forty-one was the previous highest; nothing is reused or reassigned, so every
+  // existing level file decodes exactly as before.
+  // CAREFUL WHEN EDITING THIS COMMENT: parity_regression parses this literal by regex and does
+  // not skip comments, so any number followed by a colon and a quote in prose is read as a
+  // registry entry. Two drafts of this comment silently corrupted a real tile that way. Spell
+  // numbers out in words inside this block.
+  42: 'env_bt_bldg_r02_c01',
+  43: 'env_bt_bldg_r02_c02',
+  44: 'env_bt_bldg_r02_c03',
+  45: 'env_bt_bldg_r03_c01',
+  46: 'env_bt_bldg_r03_c02',
+  47: 'env_bt_bldg_r03_c03',
+  48: 'env_bt_bldg_r03_c04',
+  49: 'env_bt_bldg_r03_c05',
+  50: 'env_bt_bldg_r03_c06',
+  51: 'env_bt_bldg_r04_c01',
+  52: 'env_bt_bldg_r04_c02',
+  53: 'env_bt_bldg_r04_c03',
+  54: 'env_bt_bldg_r04_c04',
+  55: 'env_bt_bldg_r04_c05',
+  56: 'env_bt_bldg_r04_c06',
+  57: 'env_bt_bldg_r04_c11',
+  58: 'env_bt_bldg_r04_c12',
+  59: 'env_bt_bldg_r04_c13',
 });
 // Reverse map (asset id â†’ tile value). Computed once at module load.
 const _TILE_REV_REGISTRY = Object.freeze(

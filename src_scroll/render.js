@@ -37,6 +37,29 @@ const TILE_ID_REGISTRY = Object.freeze({
   39: 'env_rt_bldg_r04_c11',
   40: 'env_rt_bldg_r04_c12',
   41: 'env_rt_bldg_r04_c13',
+  // Blue Rooftop tileset (IDs 42-59) ? CHIEF 2026-09-26. MUST stay identical to
+  // editor/state.js TILE_ID_REGISTRY: the editor writes these VALUES into level JSON and
+  // this map is the only thing that turns them back into art. If one side has an entry the
+  // other lacks, a tile placed in the Builder renders as default purple in the game.
+  // APPEND ONLY ? 41 was the previous highest, nothing reused.
+  42: 'env_bt_bldg_r02_c01',
+  43: 'env_bt_bldg_r02_c02',
+  44: 'env_bt_bldg_r02_c03',
+  45: 'env_bt_bldg_r03_c01',
+  46: 'env_bt_bldg_r03_c02',
+  47: 'env_bt_bldg_r03_c03',
+  48: 'env_bt_bldg_r03_c04',
+  49: 'env_bt_bldg_r03_c05',
+  50: 'env_bt_bldg_r03_c06',
+  51: 'env_bt_bldg_r04_c01',
+  52: 'env_bt_bldg_r04_c02',
+  53: 'env_bt_bldg_r04_c03',
+  54: 'env_bt_bldg_r04_c04',
+  55: 'env_bt_bldg_r04_c05',
+  56: 'env_bt_bldg_r04_c06',
+  57: 'env_bt_bldg_r04_c11',
+  58: 'env_bt_bldg_r04_c12',
+  59: 'env_bt_bldg_r04_c13',
 });
 const TILE_DEFAULT_KEY = 'env_rt_tile_mid_a';
 // Explicit per-name path map — replaces the old `purple_city/tiles/${name}` string
@@ -65,6 +88,26 @@ const TILE_PATHS = Object.freeze({
   'env_rt_bldg_r04_c11':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c11.png',
   'env_rt_bldg_r04_c12':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c12.png',
   'env_rt_bldg_r04_c13':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c13.png',
+  // Blue Rooftop tile art. Separate tileset folder, which is exactly why this map exists
+  // instead of constructing `purple_city/tiles/${name}` ? two tilesets would collide.
+  'env_bt_bldg_r02_c01': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png',
+  'env_bt_bldg_r02_c02': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c02.png',
+  'env_bt_bldg_r02_c03': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c03.png',
+  'env_bt_bldg_r03_c01': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c01.png',
+  'env_bt_bldg_r03_c02': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c02.png',
+  'env_bt_bldg_r03_c03': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c03.png',
+  'env_bt_bldg_r03_c04': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c04.png',
+  'env_bt_bldg_r03_c05': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c05.png',
+  'env_bt_bldg_r03_c06': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c06.png',
+  'env_bt_bldg_r04_c01': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c01.png',
+  'env_bt_bldg_r04_c02': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c02.png',
+  'env_bt_bldg_r04_c03': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c03.png',
+  'env_bt_bldg_r04_c04': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c04.png',
+  'env_bt_bldg_r04_c05': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c05.png',
+  'env_bt_bldg_r04_c06': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c06.png',
+  'env_bt_bldg_r04_c11': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c11.png',
+  'env_bt_bldg_r04_c12': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c12.png',
+  'env_bt_bldg_r04_c13': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c13.png',
 });
 // Preload all registered tiles using the explicit path map.
 const _pc = {};
