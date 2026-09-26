@@ -9,7 +9,7 @@ import {
   manifestCategories, filteredManifestItems, filteredBackgroundItems,
   currentLevelBackground,
   setFilterCategory, setFilterSearch, setSelectedAsset,
-  setPurpleCityOnly, setPurpleRooftopOnly, setHvacOnly, setNightCityRailOnly,
+  setPurpleCityOnly, setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly,
   setLevelBackground,
 } from './state.js';
 import { startAssetDrag } from './tools.js';
@@ -85,6 +85,7 @@ export function mountAssetBrowser(container) {
   const packFilters = [
     { id: 'ab-purple-city-only',    label: 'Purple City',      color: '#9ac', getter: () => !!state.filter.purpleCityOnly,    setter: setPurpleCityOnly    },
     { id: 'ab-purple-rooftop-only', label: 'Purple Rooftop',   color: '#c9b', getter: () => !!state.filter.purpleRooftopOnly, setter: setPurpleRooftopOnly },
+    { id: 'ab-blue-rooftop-only',   label: 'Blue Rooftop',     color: '#7be', getter: () => !!state.filter.blueRooftopOnly,   setter: setBlueRooftopOnly   },
   ];
 
   const extraFilters = [

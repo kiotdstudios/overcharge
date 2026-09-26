@@ -315,7 +315,7 @@ export const state = {
   camera: { x: 0, y: 0, zoom: 1 },   // world→screen offset & scale
 
   // Filters
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -452,7 +452,7 @@ export function manifestCategories() {
 // Background-category assets are excluded here — they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, hvacOnly, nightCityRailOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Never show retired assets (eligible: false) in the palette.
@@ -465,6 +465,7 @@ export function filteredManifestItems() {
     const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
     if (purpleCityOnly    && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
     if (purpleRooftopOnly && !isSpawnAsset && !/\/purple_rooftop\//.test(it.path || '')) return false;
+    if (blueRooftopOnly   && !isSpawnAsset && !/\/blue_rooftop\//.test(it.path || ''))   return false;
     if (hvacOnly          && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
     if (nightCityRailOnly && !isSpawnAsset && !/\/night-city-rail\//.test(it.path || '')) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
@@ -495,7 +496,8 @@ export function setFilterCategory(c)    { state.filter.category = c; notify(); }
 export function setFilterSearch(s)      { state.filter.search = s; notify(); }
 export function setPurpleCityOnly(v)     { state.filter.purpleCityOnly = !!v; notify(); }
 export function setPurpleRooftopOnly(v)  { state.filter.purpleRooftopOnly = !!v; notify(); }
-export function setHvacOnly(v)             { state.filter.hvacOnly = !!v; notify(); }
+export function setBlueRooftopOnly(v)      { state.filter.blueRooftopOnly = !!v; notify(); }
+setHvacOnly(v)             { state.filter.hvacOnly = !!v; notify(); }
 export function setNightCityRailOnly(v)    { state.filter.nightCityRailOnly = !!v; notify(); }
 // Set the level's background pack key (null = no background).
 // Marks the level dirty so save picks up the change.
