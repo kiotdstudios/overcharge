@@ -1,14 +1,14 @@
 // HUD: charge meter, context prompts, level banner
 import { MAX_CHARGE, MAX_BANKED_PIPS, C, W, H } from './constants.js';
 import { drawGlowRect, drawText } from './render.js';
+import { drawEnergyHUD } from './energy-hud.js';
 import { viewW, safeInsetX } from './viewport.js';
 
 // SCREEN-SPACE HUD only. Called after the camera transform has been restored,
 // so everything in here is positioned in viewport pixels.
 export function drawHUD(ctx, player, level, t) {
   _drawPlayerAvatar(ctx);
-  _drawBankedPips(ctx, player, t);
-  _drawChargeMeter(ctx, player, t);
+  drawEnergyHUD(ctx, player, t, { x: safeInsetX() + 84, y: 22 });
   _drawLevelBanner(ctx, level, t);
   if (level.cols > 25) _drawProgressBar(ctx, player, level);
 }
