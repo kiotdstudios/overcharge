@@ -1150,62 +1150,329 @@
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
       }
     },
-    {
-      "id": "env_bt_bldg_col_a",
-      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_col_a.png",
+        {
+      "id": "env_bt_bldg_r02_c01",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "category": "tile",
       "tags": [
         "tile",
         "blue_rooftop",
         "rooftop",
-        "building",
-        "column"
+        "building"
       ],
-      "frame_width": 46,
-      "frame_height": 19,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Blue rooftop building column, 1-story height (46x19). Decorative building facade column."
+      "notes": "Blue rooftop building tile at row 2 col 1, left building (c01-c03). 16x16px."
     },
     {
-      "id": "env_bt_bldg_col_b",
-      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_col_b.png",
+      "id": "env_bt_bldg_r02_c02",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c02.png",
       "category": "tile",
       "tags": [
         "tile",
         "blue_rooftop",
         "rooftop",
-        "building",
-        "column"
+        "building"
       ],
-      "frame_width": 46,
-      "frame_height": 51,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Blue rooftop building column, 2-story height (46x51). Decorative building facade column."
+      "notes": "Blue rooftop building tile at row 2 col 2, left building (c01-c03). 16x16px."
     },
     {
-      "id": "env_bt_bldg_col_c",
-      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_col_c.png",
+      "id": "env_bt_bldg_r02_c03",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c03.png",
       "category": "tile",
       "tags": [
         "tile",
         "blue_rooftop",
         "rooftop",
-        "building",
-        "column"
+        "building"
       ],
-      "frame_width": 46,
-      "frame_height": 67,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Blue rooftop building column, 3-story height (46x67). Decorative building facade column."
+      "notes": "Blue rooftop building tile at row 2 col 3, left building (c01-c03). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r03_c01",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c01.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 3 col 1, left building (c01-c03). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r03_c02",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c02.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 3 col 2, left building (c01-c03). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r03_c03",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c03.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 3 col 3, left building (c01-c03). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r03_c04",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c04.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 3 col 4, center building (c04-c06). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r03_c05",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c05.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 3 col 5, center building (c04-c06). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r03_c06",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c06.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 3 col 6, center building (c04-c06). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c01",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c01.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 1, left building (c01-c03). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c02",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c02.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 2, left building (c01-c03). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c03",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c03.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 3, left building (c01-c03). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c04",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c04.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 4, center building (c04-c06). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c05",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c05.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 5, center building (c04-c06). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c06",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c06.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 6, center building (c04-c06). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c11",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c11.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 11, right building (c11-c13). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c12",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c12.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 12, right building (c11-c13). 16x16px."
+    },
+    {
+      "id": "env_bt_bldg_r04_c13",
+      "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c13.png",
+      "category": "tile",
+      "tags": [
+        "tile",
+        "blue_rooftop",
+        "rooftop",
+        "building"
+      ],
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Blue rooftop building tile at row 4 col 13, right building (c11-c13). 16x16px."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1406,5 +1673,5 @@
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
   ],
-  "count": 47
+  "count": 62
 }
