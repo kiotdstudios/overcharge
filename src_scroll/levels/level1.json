@@ -1809,7 +1809,16 @@
     "x": 96,
     "y": 434
   },
-  "decorations": [],
+  "decorations": [
+    {
+      "src": "assets/objects/night-city-props/streetlight/00.png",
+      "x": 173,
+      "y": 293,
+      "w": 192,
+      "h": 192,
+      "snap": 1
+    }
+  ],
   "sources": [
     {
       "id": "src_1",
