@@ -134,7 +134,7 @@ export function clear(ctx, w, h, bgColor) {
 // topOpen: true when the tile directly above is not solid.
 //   → rooftop surface with neon glow edge
 //   → false = building facade interior → draw windows
-export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0) {
+export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0, flipX = false) {
   const x = tx * T, y = ty * T;
 
   if (type === 2) {
@@ -160,14 +160,22 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0) {
                               : (TILE_ID_REGISTRY[type] || TILE_DEFAULT_KEY);
   const img    = _pc[texKey];
   if (img.complete && img.naturalWidth > 0) {
-    if (!rot) {
+    if (!rot && !flipX) {
       // Tiles are true 16×16 as of Aki Batch 1 — full source blit, no crop.
       ctx.drawImage(img, 0, 0, 16, 16, x, y, T, T);
     } else {
-      // Rotate around tile center. Editor stores rotation in degrees {0,90,180,270}.
+      // Rotate/mirror around tile center. Editor stores rotation in degrees {0,90,180,270}
+      // and the horizontal mirror as a 1 in the parallel tileFlips array.
+      // TRANSFORM ORDER IS PART OF THE CONTRACT and must stay identical to
+      // editor/renderer.js: translate, then scale, then rotate. Canvas applies the last-set
+      // transform to the geometry first, so scale-before-rotate mirrors the ALREADY-ROTATED
+      // tile, which is what the author sees in the Builder. Swap the two lines here and the
+      // game silently renders every rotated-and-flipped tile mirrored the other way from the
+      // Builder that authored it.
       ctx.save();
       ctx.imageSmoothingEnabled = false;
       ctx.translate(x + T / 2, y + T / 2);
+      if (flipX) ctx.scale(-1, 1);
       ctx.rotate(rot * Math.PI / 180);
       ctx.drawImage(img, 0, 0, 16, 16, -T / 2, -T / 2, T, T);
       ctx.restore();

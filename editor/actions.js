@@ -291,6 +291,54 @@ export function rotateTiles(cells, delta = 90) {
   };
 }
 
+// ── FlipTilesAction / FlipDecorationsAction ──────────────────────────────
+// Chief 2026-09-26: "add a flip button next to rotate on the level editor; i wanna
+// fllip the orientation of the tile".
+// Horizontal mirror, stored per-cell in L.tileFlips (parallel to L.tiles, 1 = mirrored)
+// and per-decoration as d.flipX. A TOGGLE, not an accumulator: flipping twice returns
+// the original, so the action records the exact prior value for a clean undo.
+// Purely visual — collision is untouched, same contract as rotation.
+//
+// Flip covers DECORATIONS as well as tiles because the button sits beside Rot, and Rot
+// already handles both. A Flip that silently did nothing to a selected prop would read
+// as broken the first time Chief tried it.
+export function flipTiles(cells) {
+  const L = state.level;
+  if (!L || !cells || cells.length === 0) return null;
+  const rows = levelRows();
+  if (!Array.isArray(L.tileFlips) || L.tileFlips.length !== L.tiles.length) {
+    L.tileFlips = new Array(L.tiles.length).fill(0);
+  }
+  const changes = [];
+  for (const { col, row } of cells) {
+    if (col < 0 || col >= L.cols || row < 0 || row >= rows) continue;
+    const idx = row * L.cols + col;
+    // Flipping an EMPTY cell is a no-op, matching rotateTiles. Otherwise a marquee over
+    // blank sky would fill tileFlips with entries for cells that draw nothing.
+    if (L.tiles[idx] === 0) continue;
+    const prior = L.tileFlips[idx] ? 1 : 0;
+    changes.push({ idx, prior, next: prior ? 0 : 1 });
+  }
+  if (changes.length === 0) return null;
+  return {
+    type: 'flip_tiles',
+    forward() { for (const c of changes) L.tileFlips[c.idx] = c.next; notify(); },
+    inverse() { for (const c of changes) L.tileFlips[c.idx] = c.prior; notify(); },
+  };
+}
+
+export function flipDecorations(decs) {
+  if (!decs || decs.length === 0) return null;
+  // No bbox swap here, unlike rotation: a horizontal mirror keeps width and height, so
+  // x/y/w/h are all unchanged and only the render transform differs.
+  const changes = decs.map(d => ({ ref: d, prior: !!d.flipX }));
+  return {
+    type: 'flip_decorations',
+    forward() { for (const c of changes) c.ref.flipX = !c.prior; state.dirty = true; notify(); },
+    inverse() { for (const c of changes) c.ref.flipX = c.prior;  state.dirty = true; notify(); },
+  };
+}
+
 // ── SetPlayerStartAction ─────────────────────────────────────────────────
 // Moves (or creates) the player spawn point. playerStart is a unique {x,y}
 // field on the level root, not an array entry. Records the old position so

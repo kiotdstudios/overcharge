@@ -6,7 +6,7 @@
 // Any level JSON conforming to SCHEMA.md renders correctly. No Level-1 assumptions.
 
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
-         worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation } from './state.js';
+         worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation, getTileFlip } from './state.js';
 import * as Selection from './selection.js';
 import { drawHvac, sourceBox } from '../src_scroll/source-visuals.js';
 
@@ -132,16 +132,25 @@ export function render(ctx, canvas) {
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
       const img = tileIsSolid(v) ? resolveTileImg(v) : null;
-      const rot = getTileRotation(col, r);
+      const rot  = getTileRotation(col, r);
+      const flip = getTileFlip(col, r);
       if (img && img.complete && img.naturalWidth > 0) {
-        if (rot === 0) {
+        if (rot === 0 && !flip) {
           ctx.drawImage(img, 0, 0, 16, 16, p.x, p.y, tsz, tsz);
         } else {
-          // Rotate the tile around its center. 16×16 source keeps pixel
+          // Rotate/mirror the tile around its center. 16×16 source keeps pixel
           // crispness on 90° turns.
+          // TRANSFORM ORDER IS PART OF THE CONTRACT and must stay identical to
+          // src_scroll/render.js drawTile: translate, then scale, then rotate.
+          // Canvas applies the last-set transform to the geometry FIRST, so writing scale
+          // before rotate means the mirror lands on the already-rotated tile — it mirrors
+          // what Chief sees on screen. Swapping those two lines silently gives the opposite
+          // result for every rotated tile, and then the Builder and the game disagree about
+          // the same level file.
           ctx.save();
           ctx.imageSmoothingEnabled = false;
           ctx.translate(p.x + tsz / 2, p.y + tsz / 2);
+          if (flip) ctx.scale(-1, 1);
           ctx.rotate(rot * Math.PI / 180);
           ctx.drawImage(img, 0, 0, 16, 16, -tsz / 2, -tsz / 2, tsz, tsz);
           ctx.restore();
@@ -161,12 +170,16 @@ export function render(ctx, canvas) {
       if (p.x + dw < 0 || p.x > w || p.y + dh < 0 || p.y > h) continue;
       const img = getImage(d.src);
       if (img.complete && img.naturalWidth > 0) {
-        const rot = d.rotation || 0;
-        if (rot === 0) {
+        const rot  = d.rotation || 0;
+        const flip = !!d.flipX;
+        if (rot === 0 && !flip) {
           ctx.drawImage(img, p.x, p.y, dw, dh);
         } else {
-          // Rotate around visual-bbox center. Source draw dims match the
+          // Rotate/mirror around visual-bbox center. Source draw dims match the
           // sprite's NATIVE orientation: at 90/270 that's (bbox.h, bbox.w).
+          // A horizontal mirror does NOT swap the bbox, so srcDW/srcDH are unaffected by
+          // flip — only the transform changes. Same translate-scale-rotate order as tiles
+          // and as src_scroll/level.js.
           const rad = rot * Math.PI / 180;
           const isHoriz = (rot % 180) === 0;   // 0 or 180
           const srcDW = (isHoriz ? d.w : d.h) * c.zoom;
@@ -174,6 +187,7 @@ export function render(ctx, canvas) {
           ctx.save();
           ctx.imageSmoothingEnabled = false;   // preserve pixel-art crispness
           ctx.translate(p.x + dw / 2, p.y + dh / 2);
+          if (flip) ctx.scale(-1, 1);
           ctx.rotate(rad);
           ctx.drawImage(img, -srcDW / 2, -srcDH / 2, srcDW, srcDH);
           ctx.restore();

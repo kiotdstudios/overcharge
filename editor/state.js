@@ -686,6 +686,42 @@ export function setTileRotation(col, row, degrees) {
   return true;
 }
 
+// ── Tile flip ─────────────────────────────────────────────────────────────────
+// Chief 2026-09-26: "add a flip button next to rotate on the level editor; i wanna fllip
+// the orientation of the tile".
+// Stored in a parallel array L.tileFlips, one entry per L.tiles cell, 1 = mirrored
+// horizontally, 0 / missing / short array = not flipped. Exactly the same shape as
+// tileRotations, so it round-trips through save/load for free and old level files stay valid.
+//
+// WHY HORIZONTAL ONLY IS THE COMPLETE ANSWER, not a shortcut:
+// a horizontal mirror combined with the four rotations already available generates all EIGHT
+// orientations of a square tile (the dihedral group). A separate vertical-flip button would
+// add no reachable orientation — vertical flip is H-flip plus a 180 rotate. So one button.
+//
+// Purely visual, like rotation: collision still reads tileIsSolid on L.tiles untouched.
+export function getTileFlip(col, row) {
+  const L = state.level;
+  if (!L) return false;
+  if (col < 0 || col >= L.cols || row < 0 || row >= levelRows()) return false;
+  const arr = L.tileFlips;
+  if (!Array.isArray(arr)) return false;
+  return !!arr[row * L.cols + col];
+}
+export function setTileFlip(col, row, flipped) {
+  const L = state.level;
+  if (!L) return false;
+  if (col < 0 || col >= L.cols || row < 0 || row >= levelRows()) return false;
+  if (!Array.isArray(L.tileFlips) || L.tileFlips.length !== L.tiles.length) {
+    L.tileFlips = new Array(L.tiles.length).fill(0);
+  }
+  const idx = row * L.cols + col;
+  const next = flipped ? 1 : 0;
+  if (L.tileFlips[idx] === next) return false;
+  L.tileFlips[idx] = next;
+  notify();
+  return true;
+}
+
 // Append a decoration to the current level. Silently no-ops if level has no
 // decorations array or nothing loaded. Returns the appended entry.
 export function addDecoration(entry) {

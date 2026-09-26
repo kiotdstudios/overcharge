@@ -12,6 +12,10 @@ export class Level {
     // Parallel rotation array (0/90/180/270 degrees). Optional in the JSON —
     // missing / short array renders as all-zero rotation (backward-compatible).
     this.tileRotations  = Array.isArray(def.tileRotations) ? def.tileRotations : null;
+    // Parallel horizontal-mirror array (1 = flipped). Optional, same contract as
+    // tileRotations: missing or short array means nothing is flipped, so every level file
+    // authored before the Flip button still loads unchanged.
+    this.tileFlips      = Array.isArray(def.tileFlips) ? def.tileFlips : null;
     this.cols    = def.cols || COLS;
     // ── PER-LEVEL HEIGHT — CHIEF RULING 2026-09-19 18:30, decisions 1/5/6 ──────
     // Rows are now derived exactly the way COLS already worked and exactly the way the
@@ -63,7 +67,7 @@ export class Level {
       img.src = d.src;
       // Preserve rotation ({0,90,180,270} deg) so TEST mode renders
       // decorations exactly as authored in the editor.
-      return { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0 };
+      return { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0, flipX: !!d.flipX };
     });
 
     this.playerStart = def.playerStart || { x: 48, y: 354 };
@@ -276,18 +280,23 @@ export class Level {
     // 1. Background decorations (buildings, props) — behind everything
     for (const dec of this.decorations) {
       if (!(dec.img.complete && dec.img.naturalWidth > 0)) continue;
-      const rot = dec.rotation || 0;
-      if (rot === 0) {
+      const rot  = dec.rotation || 0;
+      const flip = !!dec.flipX;
+      if (rot === 0 && !flip) {
         ctx.drawImage(dec.img, dec.x, dec.y, dec.w, dec.h);
       } else {
         // Rotation swaps the visual bbox — source draw dims are h,w when
         // rotation is 90/270 (matches editor rotate action's bbox swap).
+        // A horizontal mirror does NOT swap the bbox, so it leaves srcW/srcH alone and only
+        // changes the transform. Same translate-scale-rotate order as tiles and as
+        // editor/renderer.js — see the contract note in render.js drawTile.
         const isHoriz = (rot % 180) === 0;
         const srcW = isHoriz ? dec.w : dec.h;
         const srcH = isHoriz ? dec.h : dec.w;
         ctx.save();
         ctx.imageSmoothingEnabled = false;
         ctx.translate(dec.x + dec.w / 2, dec.y + dec.h / 2);
+        if (flip) ctx.scale(-1, 1);
         ctx.rotate(rot * Math.PI / 180);
         ctx.drawImage(dec.img, -srcW / 2, -srcH / 2, srcW, srcH);
         ctx.restore();
@@ -303,7 +312,8 @@ export class Level {
           const topOpen = !(above === 1 || above >= 10);
           const idx = ty * this.cols + tx;
           const rot = this.tileRotations ? (this.tileRotations[idx] || 0) : 0;
-          drawTile(ctx, tx, ty, TILE, tile, topOpen, rot);
+          const flipX = this.tileFlips ? !!this.tileFlips[idx] : false;
+          drawTile(ctx, tx, ty, TILE, tile, topOpen, rot, flipX);
         }
       }
     }

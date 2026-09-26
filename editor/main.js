@@ -61,6 +61,7 @@ const btnLayerForward  = document.getElementById('btn-layer-forward');
 const btnLayerBackward = document.getElementById('btn-layer-backward');
 const btnLayerBack     = document.getElementById('btn-layer-back');
 const btnRotate        = document.getElementById('btn-rotate');
+const btnFlip          = document.getElementById('btn-flip');
 
 // ── Inspector collapse ────────────────────────────────────────────────────
 // UI-only layout toggle. Selection/state is untouched — CSS just hides the
@@ -215,6 +216,25 @@ function _applyRotate(delta) {
   if (!applied) console.info('[editor] rotate — nothing rotatable in selection');
 }
 btnRotate?.addEventListener('click', () => _applyRotate(90));
+
+// Chief 2026-09-26: flip button beside rotate. Mirrors horizontally. Deliberately mirrors
+// BOTH tiles and decorations, because Rot does both and a Flip that ignored a selected prop
+// would read as broken.
+function _applyFlip() {
+  const decs  = Selection.selectedDecorations();
+  const cells = Selection.selectedTiles();
+  let applied = false;
+  if (decs.length > 0) {
+    const a = Actions.flipDecorations(decs);
+    if (a) { History.apply(a); applied = true; }
+  }
+  if (cells.length > 0) {
+    const a = Actions.flipTiles(cells);
+    if (a) { History.apply(a); applied = true; }
+  }
+  if (!applied) console.info('[editor] flip — nothing flippable in selection');
+}
+btnFlip?.addEventListener('click', () => _applyFlip());
 
 // ── Level workflow wiring ─────────────────────────────────────────────────
 btnUndo?.addEventListener('click', () => History.undo());
@@ -844,6 +864,7 @@ window.addEventListener('keydown', async (e) => {
   if (e.key === '[') { e.preventDefault(); _applyLayerOp(shift ? 'send-to-back'  : 'send-backward'); }
   // Rotate — R = 90° CW, Shift+R = 90° CCW
   if (e.key === 'r' || e.key === 'R') { e.preventDefault(); _applyRotate(shift ? -90 : 90); }
+    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); _applyFlip(); }
 });
 
 // beforeunload — warn on unsaved changes (Ctrl+R, tab close, etc.)
