@@ -1390,6 +1390,31 @@ function _doSpawn(e, canvas) {
     // different art + fan animation. kind:'hvac' drives drawHvac in electricity.js.
     obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'HVAC', charge: 4, kind: 'hvac' };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
+  } else if (kind === 'source-prop') {
+    // CHIEF 2026-09-26: "the new electric HVAC unit and the other electric props ... are new
+    // absorbable assests; i put the lamp on lvl 1 but doesnt let me absorb it".
+    // He had placed it as a DECORATION, which is inert art. Absorption is driven entirely by
+    // entries in level.sources — player.js walks that array, calls inRange() then drain().
+    // So a prop has to BE a source to be absorbable. Making decorations absorbable instead
+    // would mean a second drain path, which is exactly what the single-energy-authority rule
+    // forbids.
+    //
+    // Self-describing on purpose: the runtime never loads ASSET_MANIFEST.json, so the sprite
+    // folder and frame geometry must live in the level JSON.
+    const a = state.pendingSpawn.asset || {};
+    // "assets/objects/night-city-props/streetlight/00.png" -> ".../streetlight/"
+    const dir = String(a.path || '').replace(/[^/]*$/, '');
+    obj = {
+      x: _snapGrid(wx), y: _snapGrid(wy),
+      label: String(a.id || 'PROP').replace(/^prop_ncp_/, '').replace(/_/g, ' ').toUpperCase().slice(0, 10),
+      charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
+      kind: 'prop',
+      sprite: dir,
+      frames: a.frame_count  || 8,
+      artW:   a.frame_width  || 64,
+      artH:   a.frame_height || 64,
+    };
+    arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'switch') {
     obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '' };
     arr = L.switches || (L.switches = []); arrLabel = 'add_switch';
@@ -1491,9 +1516,14 @@ function _doSpawn(e, canvas) {
 subscribe(function _assetSpawnIntercept() {
   const raw = state.selectedAsset?.raw;
   if (!raw?.spawnsKind) return;
-  // Consume: clear selectedAsset, enter pendingSpawn mode
+  // Consume: clear selectedAsset, enter pendingSpawn mode.
+  // CHIEF 2026-09-26: the electric props all share ONE spawnsKind ('source-prop'), so the
+  // kind alone no longer says WHAT to place — a streetlight and a vending machine are
+  // different art at different sizes. Carry the manifest entry through so _doSpawn can write
+  // a self-describing source: src_scroll never loads ASSET_MANIFEST.json, so the sprite path
+  // and frame geometry have to travel in the level JSON or the runtime cannot draw it.
   state.selectedAsset = null;
-  state.pendingSpawn = { kind: raw.spawnsKind };
+  state.pendingSpawn = { kind: raw.spawnsKind, asset: raw };
   _refreshSpawnStatus();
   // No notify() needed — subscribe fires after notify, so state is already consistent.
 });

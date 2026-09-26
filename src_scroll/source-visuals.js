@@ -18,6 +18,15 @@ function image(path) {
 }
 
 export function sourceBox(source) {
+  // Prop sources (CHIEF 2026-09-26) carry their own art size, so geometry is derived from
+  // the source rather than hardcoded per kind. Anchored so the art's BOTTOM sits on the
+  // hitbox bottom (y + h) and it is horizontally centred on the hitbox — same contract the
+  // generator uses, which is what makes a 192px streetlight and a 64px camera both stand on
+  // the floor instead of floating by their own height.
+  if (source.kind === 'prop') {
+    const w = source.artW || 64, h = source.artH || 64;
+    return { dX: (source.x + (source.w || 28) / 2) - w / 2, dY: source.y + (source.h || 28) - h, dW: w, dH: h };
+  }
   if (source.kind === 'light') return { dX: source.x - 10, dY: source.y - 60, dW: 48, dH: 88 };
   return source.kind === 'hvac'
     ? { dX: source.x + 14 - 33, dY: source.y + 28 - 52, dW: 66, dH: 52 }

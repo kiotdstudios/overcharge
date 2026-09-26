@@ -1131,6 +1131,7 @@
       "path": "assets/tilesets/purple_rooftop/props/hvac_a.png",
       "category": "electrical",
       "tags": [
+        "electric",
         "hvac",
         "source",
         "electrical",
@@ -1476,9 +1477,13 @@
     },
     {
       "id": "prop_ncp_fuse_box",
+      "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/fuse-box/00.png",
       "category": "decoration",
       "tags": [
+        "source",
+        "placement",
+        "spawn",
         "night_city_props",
         "electric",
         "prop",
@@ -1494,9 +1499,13 @@
     },
     {
       "id": "prop_ncp_neon_sign",
+      "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/neon-sign/00.png",
       "category": "decoration",
       "tags": [
+        "source",
+        "placement",
+        "spawn",
         "night_city_props",
         "electric",
         "prop",
@@ -1512,9 +1521,13 @@
     },
     {
       "id": "prop_ncp_security_camera",
+      "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/security-camera/00.png",
       "category": "decoration",
       "tags": [
+        "source",
+        "placement",
+        "spawn",
         "night_city_props",
         "electric",
         "prop",
@@ -1530,9 +1543,13 @@
     },
     {
       "id": "prop_ncp_streetlight",
+      "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/streetlight/00.png",
       "category": "decoration",
       "tags": [
+        "source",
+        "placement",
+        "spawn",
         "night_city_props",
         "electric",
         "prop",
@@ -1548,9 +1565,13 @@
     },
     {
       "id": "prop_ncp_vending_machine",
+      "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/vending-machine/00.png",
       "category": "decoration",
       "tags": [
+        "source",
+        "placement",
+        "spawn",
         "night_city_props",
         "electric",
         "prop",

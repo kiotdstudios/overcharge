@@ -1,7 +1,7 @@
 // Electrical objects: sources, gates, switches, pickups
 import { ABSORB_RADIUS, INTERACT_RADIUS, PICKUP_GRAVITY, PICKUP_LIFETIME, TILE } from './constants.js';
 import { drawSparks, drawGlowRect, drawText } from './render.js';
-import { drawHvac } from './source-visuals.js';
+import { drawHvac, sourceBox } from './source-visuals.js';
 
 function dist(ax, ay, bx, by) {
   const dx = ax - bx, dy = ay - by;
@@ -12,14 +12,25 @@ function dist(ax, ay, bx, by) {
 // ElectricalSource: fuse box / battery / generator
 // ──────────────────────────────────────────────
 export class ElectricalSource {
-  constructor({ id, x, y, charge = 4, label = '', kind = 'generator', onDepletedGate = '' }) {
+  // CHIEF 2026-09-26: electric props (streetlight, fuse box, neon sign, security camera,
+  // vending machine) are absorbable sources. They arrive as kind:'prop' carrying their own
+  // sprite folder and frame geometry, because the runtime never loads ASSET_MANIFEST.json.
+  constructor({ id, x, y, charge = 4, label = '', kind = 'generator', onDepletedGate = '',
+                sprite = '', frames = 8, artW = 64, artH = 64 }) {
     this.id     = id;
     this.x      = x; this.y = y;
-    this.w      = 28; this.h = 28;  // logical hitbox; sprite is drawn 64x64 above
+    this.w      = 28; this.h = 28;  // logical hitbox; sprite is drawn larger, above
     this.charge = charge;
     this.max    = charge;
     this.label  = label;
-    this.kind = ['hvac', 'light'].includes(kind) ? kind : 'generator';
+    // 'prop' added to the whitelist. Without it a prop source silently coerced to
+    // 'generator' and drew generator art — absorbable, but wearing the wrong face.
+    this.kind = ['hvac', 'light', 'prop'].includes(kind) ? kind : 'generator';
+    // Prop art description. Only meaningful for kind:'prop'.
+    this.sprite = sprite;
+    this.artW   = artW;
+    this.artH   = artH;
+    this._absorbT = 0;   // seconds left on the "being drained right now" tell
     this.onDepletedGate = onDepletedGate;
     this.charge = Number.isFinite(charge) ? Math.max(0, charge) : 0;
     this.max    = this.charge;
@@ -29,12 +40,23 @@ export class ElectricalSource {
     this._t      = 0;
     this._frame  = 0;
     this._frameFps = 8;
-    // Load generator 1 sprite frames
-    this._frames = Array.from({ length: 9 }, (_, i) => {
-      const img = new Image();
-      img.src = `assets/sprites/generator 1/frame_${String(i).padStart(3, '0')}.png`;
-      return img;
-    });
+    if (this.kind === 'prop') {
+      // Aki's props are numbered 00.png..07.png in their own folder, and her manifest notes
+      // define the frame semantics: "powered(f0-1), absorbing(f2-5), drained(f6)".
+      // Those ranges are honoured in draw() rather than invented here.
+      this._frames = Array.from({ length: frames }, (_, i) => {
+        const img = new Image();
+        img.src = `${sprite}${String(i).padStart(2, '0')}.png`;
+        return img;
+      });
+    } else {
+      // Load generator 1 sprite frames
+      this._frames = Array.from({ length: 9 }, (_, i) => {
+        const img = new Image();
+        img.src = `assets/sprites/generator 1/frame_${String(i).padStart(3, '0')}.png`;
+        return img;
+      });
+    }
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -42,6 +64,7 @@ export class ElectricalSource {
 
   update(dt) {
     this._t += dt;
+    if (this._absorbT > 0) this._absorbT = Math.max(0, this._absorbT - dt);
     // Fan: ramp speed toward target (1 = active, 0 = drained), spin phase
     this._fanSpeed = Math.max(0, this._fanSpeed + ((this.drained ? 0 : 1) - this._fanSpeed) * Math.min(1, dt * 2));
     this._fanPhase = (this._fanPhase + this._fanSpeed * dt * 4) % (Math.PI * 2);
@@ -88,12 +111,42 @@ export class ElectricalSource {
     const actual = Math.min(this.charge, amount);
     this.charge -= actual;
     if (this.charge <= 0) { this.charge = 0; this.drained = true; }
+    // Mark "being absorbed right now" so prop art can show Aki's absorbing frames (f2-5).
+    // A short timer rather than a flag because drain() is called per-frame while E is held:
+    // a bare flag would need clearing from somewhere that knows when absorption STOPPED, and
+    // nothing owns that. 0.12s outlives one frame at any sane framerate and lapses on release.
+    if (actual > 0) this._absorbT = 0.12;
     return actual;
   }
 
+  // Prop source art (CHIEF 2026-09-26). Frame semantics are Aki's, straight from her
+  // manifest notes: "powered(f0-1), absorbing(f2-5), drained(f6)". Not invented here —
+  // if she renumbers the sheets, this comment is the contract that was broken.
+  _drawProp(ctx) {
+    const b = sourceBox(this);
+    let fi;
+    if (this.drained)            fi = 6;                                    // dead
+    else if (this._absorbT > 0)  fi = 2 + (Math.floor(this._t * 12) % 4);    // 2,3,4,5
+    else                         fi = Math.floor(this._t * 4) % 2;           // 0,1 idle
+    const img = this._frames[Math.min(fi, this._frames.length - 1)];
+    if (img && img.complete && img.naturalWidth > 0) {
+      ctx.drawImage(img, b.dX, b.dY, b.dW, b.dH);
+    } else {
+      // Art not loaded yet. Draw a placeholder rather than nothing, so a broken sprite path
+      // is visible in-game instead of an invisible-but-absorbable source, which would read
+      // as a phantom energy pickup.
+      ctx.save();
+      ctx.fillStyle = this.drained ? '#2a2d3a' : '#3a3f55';
+      ctx.fillRect(b.dX, b.dY, b.dW, b.dH);
+      ctx.strokeStyle = '#e0a63a';
+      ctx.strokeRect(b.dX + 0.5, b.dY + 0.5, b.dW - 1, b.dH - 1);
+      ctx.restore();
+    }
+  }
   draw(ctx) {
     // HVAC uses its own art module; generator uses sprite animation below.
     if (this.kind === 'hvac') { drawHvac(ctx, this); return; }
+    if (this.kind === 'prop') { this._drawProp(ctx); return; }
     const t  = this._t;
     // Pick sprite: frame 0 when drained, animated frames 1-8 when active
     const fi  = this.drained ? 0 : Math.floor(this._frame) % 9;

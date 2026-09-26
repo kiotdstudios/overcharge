@@ -455,19 +455,38 @@ export function filteredManifestItems() {
   const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
-    // Never show retired assets (eligible: false) in the palette.
-    if (it.raw && it.raw.generation && it.raw.generation.eligible === false) return false;
-    // Background assets live in their own section â€” exclude from tile/object grid.
-    if (it.category === 'background') return false;
-    if (category !== 'all' && it.category !== category) return false;
-    // Spawn-type and player-category assets are meta-objects, not tileset art â€”
+    // Spawn-type and player-category assets are meta-objects, not tileset art —
     // always show them regardless of the pack quick-filters.
     const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
+    // CHIEF 2026-09-26: "the new electric HVAC unit and the other electric props need to be
+    // filtered together". They were not, because source_hvac never appeared in the palette
+    // AT ALL: it carries generation.eligible:false and the rule below read that as "retired".
+    //
+    // eligible:false means "the AUTO GENERATE level builder must not place this at random"
+    // — source_hvac's own note says "Puzzle-critical electrical object — requires scripted
+    // placement by level designer". It was never meant to mean "hide from the designer".
+    // Its note even ends "Appears under the HVAC quick-filter in the asset browser", which
+    // it did not. There is also no + HVAC button in the SPAWN OBJECTS panel, so the HVAC
+    // source was unplaceable by ANY route.
+    //
+    // The contradiction was already in this function: isSpawnAsset exists precisely so spawn
+    // assets "always show", and the line below was overruling it two lines earlier. Scoped
+    // to spawn assets only — ineligible TILES stay hidden, so Aki's palette is unchanged
+    // apart from the four spawn entries that were always meant to be visible.
+    if (it.raw && it.raw.generation && it.raw.generation.eligible === false && !isSpawnAsset) return false;
+    // Genuinely retired art stays hidden no matter what it declares.
+    if (it.tags && it.tags.indexOf('retired') >= 0) return false;
+    // Background assets live in their own section — exclude from tile/object grid.
+    if (it.category === 'background') return false;
+    if (category !== 'all' && it.category !== category) return false;
     if (purpleCityOnly    && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
     if (purpleRooftopOnly && !isSpawnAsset && !/\/purple_rooftop\//.test(it.path || '')) return false;
     if (blueRooftopOnly   && !isSpawnAsset && !/\/blue_rooftop\//.test(it.path || ''))   return false;
     if (hvacOnly          && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
     if (nightCityRailOnly && !isSpawnAsset && !/\/night-city-rail\//.test(it.path || '')) return false;
+    // Electric groups the HVAC source WITH the 5 props (Chief's ruling above). It is a tag
+    // test, not an isSpawnAsset exemption — an explicit filter must still filter, otherwise
+    // every spawn asset would leak into every pack filter.
     if (electricOnly     && !(it.tags && it.tags.indexOf('electric') >= 0))     return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
