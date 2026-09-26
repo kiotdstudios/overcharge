@@ -95,6 +95,9 @@ export class Level {
   // in the destination column. Floor present = run past; no floor = wall edge.
   tileBlocksX(tx, ty, groundRow) {
     const v = this.tileAt(tx, ty);
+    // Tiles 27/38 are structural side walls (left/right edge of enclosed buildings).
+    // They always block horizontally — they are never pass-through facades.
+    if (v === 27 || v === 38) return true;
     if (v >= 24 && v <= 41) return !this.solidAt(tx, groundRow);
     return v === 1 || v >= 10;
   }
