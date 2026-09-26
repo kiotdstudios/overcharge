@@ -1150,7 +1150,7 @@
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
       }
     },
-        {
+    {
       "id": "env_bt_bldg_r02_c01",
       "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "category": "tile",
@@ -1490,7 +1490,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Fuse box with electric panel. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px draw."
+      "notes": "Fuse box. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px."
     },
     {
       "id": "prop_ncp_neon_sign",
@@ -1508,7 +1508,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Neon sign, city atmosphere. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px draw."
+      "notes": "Neon sign. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px."
     },
     {
       "id": "prop_ncp_security_camera",
@@ -1526,7 +1526,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Security camera, wall-mounted. States: powered(f0-1), absorbing(f2-5), drained(f6). 64x64px draw."
+      "notes": "Security camera. States: powered(f0-1), absorbing(f2-5), drained(f6). 64x64px."
     },
     {
       "id": "prop_ncp_streetlight",
@@ -1544,7 +1544,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Street lamp / streetlight. States: powered(f0-1), absorbing(f2-5), drained(f6). 192x192px draw."
+      "notes": "Street lamp. States: powered(f0-1), absorbing(f2-5), drained(f6). 192x192px."
     },
     {
       "id": "prop_ncp_vending_machine",
@@ -1562,7 +1562,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
+      "notes": "Vending machine. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
