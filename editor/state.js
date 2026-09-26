@@ -1,4 +1,4 @@
-﻿// state.js â€” single source of truth for the editor.
+// state.js â€” single source of truth for the editor.
 // Pure data + subscribe/notify. No DOM, no rendering, no fetch.
 // Rendering/UI modules read state and subscribe to notify() to redraw.
 // Tools mutate state via the setters below (or via direct level mutation).
