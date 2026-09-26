@@ -33,6 +33,7 @@ const BASE = 'assets/bg/night-city-rail/night-city-rail-v1/';
 
 // Parallax factors (match preview.html layer array)
 const FACTOR_SKY   = 0.03;
+const FACTOR_MID   = 0.15;  // midground skyline
 const FACTOR_TRACK = 0.35;
 const FACTOR_FRONT = 0.45;
 
@@ -273,7 +274,14 @@ export function init(levelWidth = 3200) {
   buildLightning(skyEl, skyLw);
   _layers.push({ el: skyEl, factor: FACTOR_SKY });
 
-  // ── Layer 2: Elevated track ───────────────────────────────────────────────
+  // ── Layer 2: Midground skyline ───────────────────────────────────────
+  const midLw = calcLayerW(FACTOR_MID, maxCamX, v);
+  const midEl  = div({ position:'absolute', top:'0', left:'0',
+                        width:`${midLw}px`, height:'100%', willChange:'transform' }, _container);
+  buildImageLayer(midEl, '03-midground-skyline.png', midLw, v);
+  _layers.push({ el: midEl, factor: FACTOR_MID });
+
+  // ── Layer 3: Elevated track ───────────────────────────────────────────────
   const trkLw = calcLayerW(FACTOR_TRACK, maxCamX, v);
   const trkEl  = div({ position:'absolute', top:'0', left:'0',
                         width:`${trkLw}px`, height:'100%', willChange:'transform' }, _container);
