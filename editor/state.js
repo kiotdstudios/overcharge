@@ -1,50 +1,50 @@
-// state.js — single source of truth for the editor.
+﻿// state.js â€” single source of truth for the editor.
 // Pure data + subscribe/notify. No DOM, no rendering, no fetch.
 // Rendering/UI modules read state and subscribe to notify() to redraw.
 // Tools mutate state via the setters below (or via direct level mutation).
 
 export const TILE_SIZE = 32;
 
-// ── Snap resolution constants ────────────────────────────────────────────
+// â”€â”€ Snap resolution constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Terrain always snaps to TILE_SIZE (the game construction grid).
 //
 // Non-terrain decorations default to 1px so arbitrary-native-dimension art
-// (e.g. a 26px brick) can sit flush against neighbors — a 16px snap CANNOT
+// (e.g. a 26px brick) can sit flush against neighbors â€” a 16px snap CANNOT
 // achieve edge-to-edge placement for widths that are not multiples of 16.
 // Assets in the manifest may explicitly opt into a coarser grid via `snap`.
 //
 // Gameplay markers (sources, gates, switches, checkpoints, enemies,
-// playerStart) use their own default — currently 16 — as a middle ground:
+// playerStart) use their own default â€” currently 16 â€” as a middle ground:
 // finer than terrain, coarser than free-pixel decorations. Adjustable later.
 export const SNAP_TERRAIN            = TILE_SIZE;   // 32 - do not change
 
-// ── Terrain tile encoding ────────────────────────────────────────────────
+// â”€â”€ Terrain tile encoding â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // The tile grid stores an integer per cell. Values:
 //   0                       empty (non-solid)
-//   1                       LEGACY solid — renders as TILE_ID_REGISTRY[10] (default)
+//   1                       LEGACY solid â€” renders as TILE_ID_REGISTRY[10] (default)
 //   2                       one-way platform (not solid for regular collision)
-//   3-9                     RESERVED — Builder must not emit. Not solid, not rendered.
+//   3-9                     RESERVED â€” Builder must not emit. Not solid, not rendered.
 //   >= 10                   solid, ID looks up TILE_ID_REGISTRY (Chief-chosen)
 //
-// TILE ID REGISTRY (PERMANENT BINDING — CHIEF-LOCKED):
+// TILE ID REGISTRY (PERMANENT BINDING â€” CHIEF-LOCKED):
 //   Once an ID is assigned to an asset, it is stable FOREVER. New tile
 //   variants ALWAYS append a NEW ID. Never renumber. Never derive from
 //   manifest sort order or array position. Old saved levels remain valid
 //   even if a new alphabetically-earlier tile asset is added later.
 export const TILE_ID_REGISTRY = Object.freeze({
-  // IDs 10-13 were Purple City dark/purple tiles — remapped to mid_a (Chief 2026-09-19).
+  // IDs 10-13 were Purple City dark/purple tiles â€” remapped to mid_a (Chief 2026-09-19).
   // Values kept in registry so existing level files continue to decode without error.
   10: 'env_rt_tile_mid_a',
   11: 'env_rt_tile_mid_a',
   12: 'env_rt_tile_mid_a',
   13: 'env_rt_tile_mid_a',
-  // Purple Rooftop tileset (IDs 16-23). IDs 20/21/22 retired — fall back to default.
+  // Purple Rooftop tileset (IDs 16-23). IDs 20/21/22 retired â€” fall back to default.
   16: 'env_rt_tile_mid_a',
   17: 'env_rt_tile_mid_b',
   18: 'env_rt_tile_mid_c',
   19: 'env_rt_tile_purple_a',
   23: 'env_rt_tile_accent_a',
-  // Purple Rooftop building sections (IDs 24-41) — from Chief's rooftop tiles sheet.
+  // Purple Rooftop building sections (IDs 24-41) â€” from Chief's rooftop tiles sheet.
   24: 'env_rt_bldg_r02_c01',
   25: 'env_rt_bldg_r02_c02',
   26: 'env_rt_bldg_r02_c03',
@@ -64,11 +64,11 @@ export const TILE_ID_REGISTRY = Object.freeze({
   40: 'env_rt_bldg_r04_c12',
   41: 'env_rt_bldg_r04_c13',
 });
-// Reverse map (asset id → tile value). Computed once at module load.
+// Reverse map (asset id â†’ tile value). Computed once at module load.
 const _TILE_REV_REGISTRY = Object.freeze(
   Object.fromEntries(Object.entries(TILE_ID_REGISTRY).map(([v, id]) => [id, Number(v)]))
 );
-// Ordered list of {value, id} in registry order — for UI iteration only,
+// Ordered list of {value, id} in registry order â€” for UI iteration only,
 // NEVER for save decoding.
 export const TILE_REGISTRY_ORDER = Object.freeze(
   Object.entries(TILE_ID_REGISTRY)
@@ -82,7 +82,7 @@ export const TILE_VARIANT_BASE = 10;
 export function tileIsSolid(v) { return v === 1 || v >= TILE_VARIANT_BASE; }
 
 // Returns the asset id for a stored tile value, or null if not solid.
-// Value 1 → default id. Value >= 10 → registry lookup. Unknown registry
+// Value 1 â†’ default id. Value >= 10 â†’ registry lookup. Unknown registry
 // value falls back to default id so a corrupt/unknown value still renders.
 export function tileAssetIdFor(v) {
   if (v === 1) return TILE_DEFAULT_ID;
@@ -96,7 +96,7 @@ export function tileValueForAssetId(id) {
   return v === undefined ? -1 : v;
 }
 // Legacy compat: some call sites still expect a 0-based art index. Keep it
-// working by mapping registry value → position in TILE_REGISTRY_ORDER.
+// working by mapping registry value â†’ position in TILE_REGISTRY_ORDER.
 export function tileArtIndex(v) {
   const id = tileAssetIdFor(v);
   if (!id) return -1;
@@ -122,19 +122,19 @@ export function terrainArtOrder() {
   for (const it of byId.values()) ordered.push(it);
   return ordered;
 }
-// Editor's Place tool uses this: asset id → stored tile value.
+// Editor's Place tool uses this: asset id â†’ stored tile value.
 export function tileVariantForAssetId(id) {
   const v = tileValueForAssetId(id);
   return v < 0 ? -1 : v - TILE_VARIANT_BASE;   // return the OFFSET, caller adds BASE
 }
-// ── TILE GRAMMAR: REMOVED — CHIEF RULING 2026-09-19 04:37 ────────────────
+// â”€â”€ TILE GRAMMAR: REMOVED â€” CHIEF RULING 2026-09-19 04:37 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // "rule of top must cary purple wasnt interpreted correctly remove that rule
 //  and hopefully it goes back to being able to click the tiles down correctly"
 //
 // AKI 12 encoded the rule as: fill tiles (10/11/16/17/18) may never be the topmost
 // solid in a column, and any that was got rewritten to an edge tile (12/13/19/20)
 // chosen by a POSITION HASH. That made placing env_tile_dark_a along a row yield
-// 12,13,12,13,12,13 — Chief's "it randomizes placed tiles".
+// 12,13,12,13,12,13 â€” Chief's "it randomizes placed tiles".
 //
 // The interpretation was wrong, not just the implementation. Measured against
 // level1.json, the hand-authored reference: 95 top tiles = 87x purple_a, 8x
@@ -152,14 +152,14 @@ export function tileVariantForAssetId(id) {
 // and marked RETIRED; it is not part of the gate.
 export const SNAP_DECORATION_DEFAULT = 1;           // freeform pixel placement
 // Chief 2026-09-12: gameplay objects must land on WHOLE tiles. This was 16 (half
-// a tile), which is exactly why a dragged gate came to rest at x=1200 — a legal
+// a tile), which is exactly why a dragged gate came to rest at x=1200 â€” a legal
 // 16px step, but off the 32px grid. Group moves use the LCM of members' snaps, so
 // setting this to TILE_SIZE keeps single AND multi-object drags on the grid.
 export const SNAP_GAMEPLAY_DEFAULT   = TILE_SIZE;   // 32 - spawn/source/gate/switch/checkpoint/crate/enemy
 
 // Quantize a single world coordinate down to the nearest `snap`-aligned point.
 // Used at placement time. round-to-nearest so a click lands at the CLOSEST
-// snapped point rather than always toward the top-left — much more intuitive
+// snapped point rather than always toward the top-left â€” much more intuitive
 // for Chief when placing large decorations (was floor, felt like the click
 // jumped away from the cursor).
 export function snapPoint(x, y, snap) {
@@ -192,18 +192,18 @@ export function snapForRef(kind, ref) {
   return SNAP_GAMEPLAY_DEFAULT;
 }
 
-// ── Group-move delta snap ────────────────────────────────────────────────
+// â”€â”€ Group-move delta snap â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // A group-move delta is valid only if it is a valid delta for EVERY member.
-// The set of valid deltas for one member with snap S is {n·S : n ∈ Z}.
-// The intersection of {n·A} and {n·B} is {n·LCM(A,B)}. So the group's
+// The set of valid deltas for one member with snap S is {nÂ·S : n âˆˆ Z}.
+// The intersection of {nÂ·A} and {nÂ·B} is {nÂ·LCM(A,B)}. So the group's
 // required delta increment is the LCM of all members' snaps.
 //
 // In our value space this reduces to the MAX when the finer snap divides the
 // coarser (16 divides 32; 1 divides everything), which is the common case:
-//   • terrain(32) + deco(16)  → LCM(32,16) = 32
-//   • terrain(32) + deco(1)   → LCM(32, 1) = 32
-//   • deco(16)   + deco(1)   → LCM(16, 1) = 16
-//   • deco(1)    + deco(1)   → LCM( 1, 1) =  1   (freeform)
+//   â€¢ terrain(32) + deco(16)  â†’ LCM(32,16) = 32
+//   â€¢ terrain(32) + deco(1)   â†’ LCM(32, 1) = 32
+//   â€¢ deco(16)   + deco(1)   â†’ LCM(16, 1) = 16
+//   â€¢ deco(1)    + deco(1)   â†’ LCM( 1, 1) =  1   (freeform)
 // This is Chief's "most restrictive compatible movement increment".
 function _gcd(a, b) { a = Math.abs(a|0); b = Math.abs(b|0); while (b) { [a, b] = [b, a % b]; } return a || 1; }
 function _lcm(a, b) { return Math.abs((a * b) / _gcd(a, b)); }
@@ -229,18 +229,18 @@ export function lcmSnap(values) {
 //
 // Per-category snap rules (default when the asset doesn't override with a
 // numeric asset.snap):
-//   • tile/terrain/tileset:              32 (tile grid)
-//   • platform, edge:                    16 (gameplay-adjacent: need tiling
+//   â€¢ tile/terrain/tileset:              32 (tile grid)
+//   â€¢ platform, edge:                    16 (gameplay-adjacent: need tiling
 //                                            so pieces line up horizontally
 //                                            AND share the same row Y)
-//   • rooftop, structure, facade,
-//     building, container, wall:         16 (structural — sits on the
+//   â€¢ rooftop, structure, facade,
+//     building, container, wall:         16 (structural â€” sits on the
 //                                            half-tile grid so pieces align
 //                                            against terrain and each other)
-//   • sign, prop, background, other:      1 (ornamental — pixel freeform so
+//   â€¢ sign, prop, background, other:      1 (ornamental â€” pixel freeform so
 //                                            Chief can micro-place)
 // Asset manifest can still override any of the above by setting asset.snap
-// to an integer — used first if present.
+// to an integer â€” used first if present.
 const _SNAP_CATEGORY_16 = new Set([
   'platform', 'edge', 'rooftop', 'structure', 'facade',
   'building', 'container', 'wall',
@@ -248,7 +248,7 @@ const _SNAP_CATEGORY_16 = new Set([
 export function snapForAsset(asset) {
   if (!asset) return SNAP_DECORATION_DEFAULT;
   if (typeof asset.snap === 'number') return asset.snap;
-  // Modular-family assets use native pixel placement — magnetic edge snap
+  // Modular-family assets use native pixel placement â€” magnetic edge snap
   // does all the alignment work, so we don't want a coarse grid interfering.
   if (asset.family) return SNAP_DECORATION_DEFAULT;
   const cat = asset.category;
@@ -258,7 +258,7 @@ export function snapForAsset(asset) {
 }
 
 // Resolve the pixel dimensions a decoration should occupy when placed.
-// Priority: manifest width/height → cached image.naturalWidth/Height → TILE_SIZE.
+// Priority: manifest width/height â†’ cached image.naturalWidth/Height â†’ TILE_SIZE.
 // `cachedImg` is the shared preloaded HTMLImageElement (see imgCache below).
 export function decoDimensions(asset, cachedImg) {
   const w = (asset && typeof asset.width  === 'number' && asset.width  > 0) ? asset.width
@@ -270,10 +270,10 @@ export function decoDimensions(asset, cachedImg) {
   return { w, h };
 }
 
-// ── Shared image cache ───────────────────────────────────────────────────
+// â”€â”€ Shared image cache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Both placeTool (dimension resolution) and renderer.js (drawing) share this
 // so a decoration's natural dimensions are known at placement even when the
-// user has never seen its thumbnail — provided we preloaded at manifest load.
+// user has never seen its thumbnail â€” provided we preloaded at manifest load.
 const _imgCache = new Map();
 export function getCachedImage(path) {
   let img = _imgCache.get(path);
@@ -312,10 +312,10 @@ export const state = {
   tool:          'place', // 'place' | 'erase' | 'pan'
 
   // Viewport
-  camera: { x: 0, y: 0, zoom: 1 },   // world→screen offset & scale
+  camera: { x: 0, y: 0, zoom: 1 },   // worldâ†’screen offset & scale
 
   // Filters
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -323,17 +323,17 @@ export const state = {
                         // Chief can freely place decorations anywhere. Toggle
                         // ON to reject floating placements + wall overlaps
                         // (runtime collision is always unaffected).
-  // (no autoGrammar flag — the tile grammar rule was REMOVED per Chief's ruling,
+  // (no autoGrammar flag â€” the tile grammar rule was REMOVED per Chief's ruling,
   //  not made optional. See the TILE GRAMMAR: REMOVED note above.)
   snapOverride: 'auto', // 'auto' | 1 | 16 | 32. Chief-controlled override for
                         // placement snap and drag delta. 'auto' preserves the
                         // per-ref default behavior (terrain=32, gameplay=16,
                         // decoration=1 or asset-defined).
   magneticSnap: true,   // when true, decoration placement magnetically snaps
-                        // to same-family sibling edges/rows within ±12px so
+                        // to same-family sibling edges/rows within Â±12px so
                         // pieces abut and rows align without pixel-perfect
                         // cursor precision. Toggle in toolbar.
-  // ── Level workflow / persistence ─────────────────────────────────────
+  // â”€â”€ Level workflow / persistence â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   dirty:           false,   // true when unsaved changes exist since load/save
   lastSavedAt:     null,    // Date.now() timestamp of last successful save
   availableLevels: [],      // populated by persistence.discoverLevels() at boot
@@ -343,7 +343,7 @@ const listeners = new Set();
 export function subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 export function notify() { for (const fn of listeners) fn(); }
 
-// ── Data loading ─────────────────────────────────────────────────────────
+// â”€â”€ Data loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // The editor consumes the CURATED semantic manifest at assets/ASSET_MANIFEST.json
 // (owned by Aki). The raw filesystem index at assets/asset_index.json exists
 // for discovery/tooling but is NOT the level-building browser source.
@@ -367,10 +367,10 @@ export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
   const source = Array.isArray(raw.assets) ? raw.assets : (Array.isArray(raw.items) ? raw.items : []);
   const items = source.map(a => _normalizeManifestEntry(a));
 
-  // ── Purple City disk-index merge ────────────────────────────────────
+  // â”€â”€ Purple City disk-index merge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Aki curates ASSET_MANIFEST.json manually; art files that exist on disk
   // but haven't been added to the manifest yet are invisible to the editor.
-  // We fetch a static disk-index (PURPLE_CITY_INDEX.json — generated from
+  // We fetch a static disk-index (PURPLE_CITY_INDEX.json â€” generated from
   // the actual filesystem contents) and append any un-manifested entry
   // as a FALLBACK. If Aki later adds the same file, her metadata wins on
   // next reload because it's normalized first and we skip by path here.
@@ -390,7 +390,7 @@ export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
       items.push(...added);
       if (added.length > 0) console.info('[editor] purple_city index added', added.length, 'un-manifested asset(s)');
     }
-  } catch { /* index optional — silent */ }
+  } catch { /* index optional â€” silent */ }
 
   state.manifest = { source: raw, items, count: items.length };
   notify();
@@ -407,7 +407,7 @@ function _normalizeManifestEntry(a) {
     name:        a.id || (a.name || path.split('/').pop().replace(/\.png$/i, '')),
     category:    a.category || 'other',
     // Modular-family tag: Aki-authored assets that magnetically join
-    // edge-to-edge with peers sharing the same family string. Optional —
+    // edge-to-edge with peers sharing the same family string. Optional â€”
     // absence means the asset uses normal (folder-fallback) magnetic behavior.
     family:      a.family || null,
     width:       a.frame_width  || a.width  || 32,
@@ -420,7 +420,7 @@ function _normalizeManifestEntry(a) {
 
 export async function loadLevel(url) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error('level fetch failed: ' + url + ' → ' + res.status);
+  if (!res.ok) throw new Error('level fetch failed: ' + url + ' â†’ ' + res.status);
   state.level = await res.json();
   state.levelPath = url;
   // Reset camera to level origin, clear dirty flag (fresh load = clean)
@@ -431,7 +431,7 @@ export async function loadLevel(url) {
   return state.level;
 }
 
-// ── Derived helpers ──────────────────────────────────────────────────────
+// â”€â”€ Derived helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Row count is inferred from tiles.length / cols. Keeps level flexible.
 export function levelRows() {
   const L = state.level;
@@ -440,7 +440,7 @@ export function levelRows() {
 export function levelPixelWidth()  { return state.level ? state.level.cols * TILE_SIZE : 0; }
 export function levelPixelHeight() { return levelRows() * TILE_SIZE; }
 
-// Extract unique categories from the loaded manifest — DO NOT hard-code.
+// Extract unique categories from the loaded manifest â€” DO NOT hard-code.
 export function manifestCategories() {
   if (!state.manifest) return [];
   const set = new Set();
@@ -449,18 +449,18 @@ export function manifestCategories() {
 }
 
 // Filter manifest by current filter state.
-// Background-category assets are excluded here — they appear in filteredBackgroundItems().
+// Background-category assets are excluded here â€” they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Never show retired assets (eligible: false) in the palette.
     if (it.raw && it.raw.generation && it.raw.generation.eligible === false) return false;
-    // Background assets live in their own section — exclude from tile/object grid.
+    // Background assets live in their own section â€” exclude from tile/object grid.
     if (it.category === 'background') return false;
     if (category !== 'all' && it.category !== category) return false;
-    // Spawn-type and player-category assets are meta-objects, not tileset art —
+    // Spawn-type and player-category assets are meta-objects, not tileset art â€”
     // always show them regardless of the pack quick-filters.
     const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
     if (purpleCityOnly    && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
@@ -468,6 +468,7 @@ export function filteredManifestItems() {
     if (blueRooftopOnly   && !isSpawnAsset && !/\/blue_rooftop\//.test(it.path || ''))   return false;
     if (hvacOnly          && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
     if (nightCityRailOnly && !isSpawnAsset && !/\/night-city-rail\//.test(it.path || '')) return false;
+    if (electricOnly     && !(it.tags && it.tags.indexOf('electric') >= 0))     return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -488,7 +489,7 @@ export function currentLevelBackground() {
   return (state.level && state.level.background) || null;
 }
 
-// ── Setters (call notify() automatically) ────────────────────────────────
+// â”€â”€ Setters (call notify() automatically) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function setTool(t)              { state.tool = t; notify(); }
 export function setSelectedAsset(item)  { state.selectedAsset = item; notify(); }
 export function setSelectedTile(n)      { state.selectedTile = n; notify(); }
@@ -505,6 +506,7 @@ export function setBlueRooftopOnly(v)      { state.filter.blueRooftopOnly = !!v;
 // assets.js:12 imports setHvacOnly by name, so it has to be an export, not a local.
 export function setHvacOnly(v)             { state.filter.hvacOnly = !!v; notify(); }
 export function setNightCityRailOnly(v)    { state.filter.nightCityRailOnly = !!v; notify(); }
+export function setElectricOnly(v)       { state.filter.electricOnly = !!v; notify(); }
 // Set the level's background pack key (null = no background).
 // Marks the level dirty so save picks up the change.
 export function setLevelBackground(packKey) {
@@ -527,7 +529,7 @@ export function setSnapOverride(v) {
   notify();
 }
 // Effective snap for a placement/drag: Chief's override wins over the per-ref
-// default. Terrain always stays at TILE_SIZE regardless of override — the game
+// default. Terrain always stays at TILE_SIZE regardless of override â€” the game
 // grid is inviolable.
 export function effectiveSnap(fallback) {
   if (fallback === SNAP_TERRAIN) return SNAP_TERRAIN;
@@ -538,7 +540,7 @@ export function effectiveSnap(fallback) {
 
 // Flash a red rejection marker at world (x,y). Renderer picks up
 // state.rejectFlash and draws a fading red X. Auto-clears after 700ms so
-// Chief always sees WHY his click "did nothing" — no more silent rejects.
+// Chief always sees WHY his click "did nothing" â€” no more silent rejects.
 let _flashTimer = null;
 export function flashPlacementReject(worldX, worldY, msg = 'blocked') {
   state.rejectFlash = { x: worldX, y: worldY, msg, at: Date.now() };
@@ -547,12 +549,12 @@ export function flashPlacementReject(worldX, worldY, msg = 'blocked') {
   notify();
 }
 
-// Snap indicator overlay — set every time magnetic edge snap FIRES, cleared
+// Snap indicator overlay â€” set every time magnetic edge snap FIRES, cleared
 // when the snap goes away. Renderer picks up state.snapIndicator and draws
 // a bright green edge-line at the abut edge plus row-align tick marks.
 //   { edgeAxis: 'x'|'y', edgeVal, y0, y1, x0, x1 }  in world coords
 // Cleared by tools whenever no snap is active (drag ends OR mouse moves
-// out of magnetic range). Not time-based — reflects the CURRENT snap.
+// out of magnetic range). Not time-based â€” reflects the CURRENT snap.
 export function setSnapIndicator(payload) {
   state.snapIndicator = payload || null;
   notify();
@@ -577,7 +579,7 @@ export function zoomCamera(factor, anchorScreenX, anchorScreenY) {
 }
 export function resetZoom() { state.camera.zoom = 1; notify(); }
 
-// Coordinate conversion — the ONLY place these live.
+// Coordinate conversion â€” the ONLY place these live.
 export function screenToWorld(sx, sy) {
   const c = state.camera;
   return { x: c.x + sx / c.zoom, y: c.y + sy / c.zoom };
@@ -610,11 +612,11 @@ export function setTile(col, row, value) {
   return true;
 }
 
-// ── Tile rotation ────────────────────────────────────────────────────────
+// â”€â”€ Tile rotation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Rotation is stored in a parallel array L.tileRotations, one entry per
 // L.tiles cell. Values are DEGREES in {0, 90, 180, 270}. Missing array or
 // short array = all zeros (rotation defaults off). Rotation is a purely
-// visual attribute — collision still uses tileIsSolid on L.tiles unchanged.
+// visual attribute â€” collision still uses tileIsSolid on L.tiles unchanged.
 export function getTileRotation(col, row) {
   const L = state.level;
   if (!L) return 0;
