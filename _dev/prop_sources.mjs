@@ -215,6 +215,86 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
   ok(ids().includes('source_hvac'), 'and HVAC still appears under its own HVAC filter too');
 }
 
+sec('BOTH renderers draw the prop art — Builder AND game');
+{
+  // THIS SECTION EXISTS BECAUSE I SHIPPED THIS BUG.
+  // Chief: "street light showing like a generator". My earlier assertions drove
+  // ElectricalSource.draw() through a recording ctx and passed, so I declared the art
+  // correct — but the BUILDER has a completely separate renderer, editor/renderer.js
+  // _drawSources, which handled 'hvac' and fell through to hardcoded generator art for
+  // anything else. The runtime was right the whole time; only the Builder was wrong, and I
+  // never looked at it.
+  // There are TWO draw paths for every gameplay object. Asserting one and claiming the
+  // feature works is the same narrow-check habit as testing the drone at its own height.
+  const recorder = () => { const calls=[]; return new Proxy({calls},{ get:(t,k)=>{
+    if(k==='calls') return calls;
+    if(k==='drawImage') return (img,...a)=>{ if(img&&img.src) calls.push({src:String(img.src),a}); };
+    if(k==='createRadialGradient'||k==='createLinearGradient') return ()=>({addColorStop(){}});
+    if(k==='measureText') return ()=>({width:10});
+    if(k==='canvas') return {width:800,height:600};
+    return ()=>{}; }, set:()=>true}); };
+  const def = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json','utf8'));
+
+  // ── GAME ──
+  {
+    const lv = new Level(def);
+    const ctx = recorder();
+    lv.draw(ctx, 0, 0, 1600, 900);
+    const srcs = [...new Set(ctx.calls.map(c=>c.src))];
+    ok(srcs.some(s=>/night-city-props\/streetlight/.test(s)),
+      'GAME draws the streetlight art for the lamp', srcs.filter(s=>/props|generator/.test(s)).join(' | '));
+    const lamp = ctx.calls.find(c=>/streetlight/.test(c.src));
+    ok(lamp && lamp.a[2]===192 && lamp.a[3]===192, 'GAME draws it at its own 192x192',
+      lamp ? `w=${lamp.a[2]} h=${lamp.a[3]}` : 'not drawn');
+    // The two real generators must still use generator art.
+    ok(srcs.some(s=>/generator/.test(s)), 'GAME still draws generator art for the 2 GEN sources',
+      'the prop branch must not hijack ordinary sources');
+  }
+
+  // ── BUILDER ──
+  {
+    const S = await import('../editor/state.js');
+    const R = await import('../editor/renderer.js');
+    S.state.level  = structuredClone(def);
+    S.state.camera = { x:100, y:300, zoom:1 };
+    const ctx = recorder();
+    R.render(ctx, { width:800, height:600 });
+    const srcs = [...new Set(ctx.calls.map(c=>c.src))];
+    ok(srcs.some(s=>/night-city-props\/streetlight\/00\.png$/.test(s)),
+      'BUILDER draws the streetlight art too — this is what Chief reported',
+      srcs.filter(s=>/props|generator/.test(s)).join(' | ') || 'nothing relevant drawn');
+    const lamp = ctx.calls.find(c=>/streetlight/.test(c.src));
+    ok(lamp && lamp.a[2]===192 && lamp.a[3]===192, 'BUILDER draws it at its own 192x192, not 64x64',
+      lamp ? `w=${lamp.a[2]} h=${lamp.a[3]}` : 'not drawn');
+    // Geometry must agree with the runtime: art world pos (174,288), camera (100,300) zoom 1.
+    ok(lamp && lamp.a[0]===74 && lamp.a[1]===-12,
+      'BUILDER places it exactly where the game will draw it',
+      lamp ? `screen (${lamp.a[0]},${lamp.a[1]}) expected (74,-12)` : 'not drawn');
+    ok(srcs.some(s=>/generator/.test(s)), 'BUILDER still draws generator art for the GEN sources');
+  }
+}
+
+sec('Prop labels are short and never cut mid-word');
+{
+  // "STREETLIGH" was printed over Chief's lamp: my label was the asset id truncated to 10
+  // chars. Short names now match the existing GEN / HVAC convention.
+  const EXPECT = { prop_ncp_fuse_box:'FUSE', prop_ncp_neon_sign:'NEON',
+    prop_ncp_security_camera:'CAM', prop_ncp_streetlight:'LAMP', prop_ncp_vending_machine:'VEND' };
+  const src = fs.readFileSync('editor/main.js','utf8');
+  for (const [id,label] of Object.entries(EXPECT)) {
+    const re = new RegExp(`${id}:\\s*'${label}'`);
+    ok(re.test(src), `${id} labels as ${label}`);
+  }
+  ok(!/slice\(0,\s*10\)/.test(src), 'the 10-char truncation is gone from main.js',
+    'that is what produced "STREETLIGH"');
+  const def = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json','utf8'));
+  const lamp = def.sources.find(s=>s.kind==='prop');
+  ok(lamp && lamp.label === 'LAMP', 'the lamp already saved in level1 reads LAMP',
+    lamp ? `label="${lamp.label}"` : 'no prop source');
+  for (const s of def.sources)
+    ok((s.label||'').length <= 6, `level1 source label "${s.label}" is short enough to read`);
+}
+
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
 process.exit(fail===0?0:1);

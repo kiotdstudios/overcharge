@@ -436,12 +436,27 @@ function _drawSources(ctx, arr) {
       ctx.restore();
       continue;
     }
-    // spriteY: -34 = -(62-28). 62 because sprite has 1px transparent bottom row;
-    // visual feet at row 62, so dY+62 = o.y+h = o.y+28 → dY = o.y-34.
-    const spriteX = o.x - 18, spriteY = o.y - 34;
+    // Prop sources carry their own art and their own size, so geometry comes from
+    // sourceBox() — the SAME helper the runtime uses — and the Builder shows the art exactly
+    // where the game will draw it.
+    // Chief 2026-09-26: "street light showing like a generator". Without this branch a prop
+    // fell straight through to the generator sprite below, so a 192px street lamp rendered
+    // as a 64px battery rack. The runtime was already correct; only the Builder was wrong.
+    let spriteX, spriteY, sw, sh, img;
+    if (o.kind === 'prop') {
+      const b = sourceBox(o);
+      spriteX = b.dX; spriteY = b.dY; sw = b.dW * z; sh = b.dH * z;
+      // Frame 00 is Aki's powered state. The Builder shows one static frame; the absorbing
+      // and drained frames are runtime states and mean nothing while authoring.
+      img = getImage(`${o.sprite || ''}00.png`);
+    } else {
+      // spriteY: -34 = -(62-28). 62 because sprite has 1px transparent bottom row;
+      // visual feet at row 62, so dY+62 = o.y+h = o.y+28 → dY = o.y-34.
+      spriteX = o.x - 18; spriteY = o.y - 34;
+      sw = 64 * z; sh = 64 * z;
+      img = getImage('assets/sprites/generator 1/frame_000.png');
+    }
     const sp = worldToScreen(spriteX, spriteY);
-    const sw = 64 * z, sh = 64 * z;
-    const img = getImage('assets/sprites/generator 1/frame_000.png');
     if (img.complete && img.naturalWidth > 0) {
       ctx.drawImage(img, sp.x, sp.y, sw, sh);
     } else {

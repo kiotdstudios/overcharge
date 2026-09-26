@@ -1354,6 +1354,22 @@ function _groundAt(worldX, worldY, objH) {
 
 function _snapGrid(v) { return Math.round(v / TILE_SIZE) * TILE_SIZE; }
 
+// Short world label for a prop source, matching the existing GEN / HVAC convention.
+// Chief 2026-09-26: deriving the label from the asset id and truncating to 10 chars printed
+// "STREETLIGH" over his lamp — a word cut mid-letter. Known props get a hand-picked short
+// name; anything Aki adds later falls back to its FIRST WORD, which is never cut mid-word.
+function _propLabel(assetId) {
+  const SHORT = {
+    prop_ncp_fuse_box:        'FUSE',
+    prop_ncp_neon_sign:       'NEON',
+    prop_ncp_security_camera: 'CAM',
+    prop_ncp_streetlight:     'LAMP',
+    prop_ncp_vending_machine: 'VEND',
+  };
+  if (SHORT[assetId]) return SHORT[assetId];
+  return String(assetId || 'PROP').replace(/^prop_ncp_/, '').split('_')[0].toUpperCase();
+}
+
 function _doSpawn(e, canvas) {
   const L = state.level;
   if (!L || !state.pendingSpawn) return;
@@ -1406,7 +1422,7 @@ function _doSpawn(e, canvas) {
     const dir = String(a.path || '').replace(/[^/]*$/, '');
     obj = {
       x: _snapGrid(wx), y: _snapGrid(wy),
-      label: String(a.id || 'PROP').replace(/^prop_ncp_/, '').replace(/_/g, ' ').toUpperCase().slice(0, 10),
+      label: _propLabel(a.id),
       charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
       kind: 'prop',
       sprite: dir,

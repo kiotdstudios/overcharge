@@ -1830,7 +1830,7 @@
    "x": 256,
    "y": 452,
    "charge": 4,
-   "label": "STREETLIGH",
+   "label": "LAMP",
    "kind": "prop",
    "sprite": "assets/objects/night-city-props/streetlight/",
    "frames": 8,
