@@ -1240,7 +1240,7 @@ document.getElementById('import-backups-input')?.addEventListener('change', asyn
 // ── Spawn mode ──────────────────────────────────────────────────────────────
 // state.pendingSpawn = null | { kind } where kind is one of:
 //   'drain-enemy', 'patrol-enemy', 'drone-enemy',
-//   'source', 'switch', 'gate', 'checkpoint', 'platform', 'crate', 'chest'
+//   'source', 'source-hvac', 'switch', 'gate', 'checkpoint', 'platform', 'crate', 'chest'
 // Set by spawn buttons. Cleared after placement or Escape.
 
 state.pendingSpawn = null;
@@ -1308,6 +1308,11 @@ function _doSpawn(e, canvas) {
     // Other source types (e.g. ambient street lamps at ~0.5) set their own
     // `charge` — the field is per-source data, editable in the inspector.
     obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: 4 };
+    arr = L.sources || (L.sources = []); arrLabel = 'add_source';
+  } else if (kind === 'source-hvac') {
+    // HVAC powered source — same energy budget as a standard generator,
+    // different art + fan animation. kind:'hvac' drives drawHvac in electricity.js.
+    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'HVAC', charge: 4, kind: 'hvac' };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'switch') {
     obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '' };
@@ -1386,6 +1391,7 @@ function _doSpawn(e, canvas) {
   ['spawn-patrol',     'patrol-enemy'],
   ['spawn-drone',      'drone-enemy'],
   ['spawn-source',     'source'],
+  ['spawn-source-hvac', 'source-hvac'],
   ['spawn-switch',     'switch'],
   ['spawn-gate',       'gate'],
   ['spawn-checkpoint', 'checkpoint'],

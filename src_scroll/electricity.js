@@ -1,6 +1,7 @@
 // Electrical objects: sources, gates, switches, pickups
 import { ABSORB_RADIUS, INTERACT_RADIUS, PICKUP_GRAVITY, PICKUP_LIFETIME, TILE } from './constants.js';
 import { drawSparks, drawGlowRect, drawText } from './render.js';
+import { drawHvac } from './source-visuals.js';
 
 function dist(ax, ay, bx, by) {
   const dx = ax - bx, dy = ay - by;
@@ -11,14 +12,20 @@ function dist(ax, ay, bx, by) {
 // ElectricalSource: fuse box / battery / generator
 // ──────────────────────────────────────────────
 export class ElectricalSource {
-  constructor({ id, x, y, charge, label = '' }) {
+  constructor({ id, x, y, charge = 4, label = '', kind = 'generator', onDepletedGate = '' }) {
     this.id     = id;
     this.x      = x; this.y = y;
     this.w      = 28; this.h = 28;  // logical hitbox; sprite is drawn 64x64 above
     this.charge = charge;
     this.max    = charge;
     this.label  = label;
-    this.drained = false;
+    this.kind = ['hvac', 'light'].includes(kind) ? kind : 'generator';
+    this.onDepletedGate = onDepletedGate;
+    this.charge = Number.isFinite(charge) ? Math.max(0, charge) : 0;
+    this.max    = this.charge;
+    this.drained = this.charge === 0;
+    this._fanSpeed = this.drained ? 0 : 1;
+    this._fanPhase = 0;
     this._t      = 0;
     this._frame  = 0;
     this._frameFps = 8;
@@ -35,6 +42,9 @@ export class ElectricalSource {
 
   update(dt) {
     this._t += dt;
+    // Fan: ramp speed toward target (1 = active, 0 = drained), spin phase
+    this._fanSpeed = Math.max(0, this._fanSpeed + ((this.drained ? 0 : 1) - this._fanSpeed) * Math.min(1, dt * 2));
+    this._fanPhase = (this._fanPhase + this._fanSpeed * dt * 4) % (Math.PI * 2);
     // Advance animation frames 1-8 when active (frame 0 = drained state)
     if (!this.drained) {
       this._frame += dt * this._frameFps;
@@ -82,6 +92,8 @@ export class ElectricalSource {
   }
 
   draw(ctx) {
+    // HVAC uses its own art module; generator uses sprite animation below.
+    if (this.kind === 'hvac') { drawHvac(ctx, this); return; }
     const t  = this._t;
     // Pick sprite: frame 0 when drained, animated frames 1-8 when active
     const fi  = this.drained ? 0 : Math.floor(this._frame) % 9;

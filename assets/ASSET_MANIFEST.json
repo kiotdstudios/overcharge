@@ -1125,6 +1125,30 @@
       "frame_width": 1672,
       "frame_height": 941,
       "notes": "Night City Rail — dark front buildings/rooftops. Factor 0.45. Hard alpha only."
+    },
+    {
+      "id": "source_hvac",
+      "path": "assets/tilesets/purple_rooftop/props/hvac_a.png",
+      "category": "electrical",
+      "tags": [
+        "hvac",
+        "source",
+        "electrical",
+        "spawn",
+        "placement"
+      ],
+      "frame_width": 66,
+      "frame_height": 52,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "source-hvac",
+      "notes": "Palette entry for the HVAC powered source. Clicking enters spawn mode — sets pendingSpawn:{kind:'source-hvac'}. Places an ElectricalSource with kind:'hvac', charge:4. Art: hvac_a.png (66x52) anchored so unit base lands on the tile floor. Fan animation driven by _fanSpeed/_fanPhase in electricity.js. Appears under the HVAC quick-filter in the asset browser.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1325,5 +1349,5 @@
       "notes": "Chest opening animation frame 8 (000..008, plays once). Runtime-only."
     }
   ],
-  "count": 43
+  "count": 44
 }
