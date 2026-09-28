@@ -68,7 +68,7 @@ sec('Runtime: kind:\'prop\' survives construction and loads its own art');
   const b = SV.sourceBox(s);
   ok(b.dW === a.frame_width && b.dH === a.frame_height, 'box uses the prop\u2019s own art size',
     `${b.dW}x${b.dH}`);
-  ok(b.dY + b.dH === s.y + s.h, 'art BOTTOM sits on the hitbox bottom',
+  ok(Math.abs(b.dY + b.dH - 192 * 11 / 444 - (s.y + s.h)) < 1e-9, 'visible streetlight base sits on the hitbox bottom',
     'so a 192px lamp stands on the floor instead of floating by its own height');
   ok(Math.abs((b.dX + b.dW/2) - s.cx) < 0.01, 'art is horizontally centred on the hitbox');
   // a generator must be untouched by all of this
@@ -109,7 +109,7 @@ sec('Frame states follow Aki\u2019s notes — OBSERVED THROUGH THE REAL draw() C
   const c0 = recCtx(); s1.draw(c0);
   ok(c0.calls.length === 1 && c0.calls[0].dw === 192 && c0.calls[0].dh === 192,
     'drawn at the prop\u2019s own 192x192, once', JSON.stringify(c0.calls[0]));
-  ok(c0.calls[0].dy + 192 === s1.y + s1.h, 'and with its feet on the hitbox bottom');
+  ok(Math.abs(c0.calls[0].dy + 192 - 192 * 11 / 444 - (s1.y + s1.h)) < 1e-9, 'and with its visible feet on the hitbox bottom');
 
   const idle=new Set(); for(let i=0;i<60;i++){ s1.update(1/60); idle.add(drawnFrame(s1)); }
   ok([...idle].every(f=>f<=1), 'idle draws only frames 0-1', '['+[...idle].sort().join(',')+']');
@@ -150,7 +150,7 @@ sec('Level 1: Chief\u2019s lamp is a real source he can walk to and drain');
     // exempt from. So it had to move 1px right and 5px up, to (174,288).
     // Asserting the grounded/aligned position rather than his original pixels: keeping his
     // exact placement meant failing two parity rules that every other source obeys.
-    ok(b.dX===174 && b.dY===288, 'art sits where his placement grid-snaps and grounds to',
+    ok(b.dX===174 && Math.abs(b.dY - (288 + 192 * 11 / 444)) < 1e-9, 'art accounts for transparent padding at the grounded position',
       `dX=${b.dX} dY=${b.dY}, was (173,293) freehand`);
     ok(s.y + s.h === 480, 'and the lamp base rests ON the surface, not 5px into it');
   }
@@ -267,7 +267,7 @@ sec('BOTH renderers draw the prop art — Builder AND game');
     ok(lamp && lamp.a[2]===192 && lamp.a[3]===192, 'BUILDER draws it at its own 192x192, not 64x64',
       lamp ? `w=${lamp.a[2]} h=${lamp.a[3]}` : 'not drawn');
     // Geometry must agree with the runtime: art world pos (174,288), camera (100,300) zoom 1.
-    ok(lamp && lamp.a[0]===74 && lamp.a[1]===-12,
+    ok(lamp && lamp.a[0]===74 && Math.abs(lamp.a[1] - (-12 + 192 * 11 / 444)) < 1e-9,
       'BUILDER places it exactly where the game will draw it',
       lamp ? `screen (${lamp.a[0]},${lamp.a[1]}) expected (74,-12)` : 'not drawn');
     ok(srcs.some(s=>/generator/.test(s)), 'BUILDER still draws generator art for the GEN sources');
@@ -295,6 +295,21 @@ sec('Prop labels are short and never cut mid-word');
     ok((s.label||'').length <= 6, `level1 source label "${s.label}" is short enough to read`);
 }
 
+sec('Streetlight selection and dragging use its visible art and grounded source base');
+{
+  const {state}=await import('../editor/state.js');
+  const {boundingRect}=await import('../editor/selection.js');
+  const {__testReanchor}=await import('../editor/tools.js');
+  const lamp={kind:'prop',sprite:'assets/objects/night-city-props/streetlight/',artW:192,artH:192,x:201,y:350};
+  state.level={cols:40,tiles:Array.from({length:40*18},(_,i)=>Math.floor(i/40)>=14?16:0),sources:[lamp]};
+  __testReanchor(new Map([[lamp,{x:lamp.x,y:lamp.y}]]));
+  ok(lamp.x===192 && lamp.y+28===448,'dragged lamp snaps horizontally and rests on rooftop');
+  const b=SV.sourceBox(lamp), selection=boundingRect('source',lamp);
+  ok(selection.x===b.dX && selection.y===b.dY && selection.w===192 && selection.h===192,'selection wraps the lamp art instead of a generator-sized box');
+  ok(Math.abs(b.dY+b.dH-192*11/444-448)<1e-9,'powered visible base touches the rooftop');
+  const drained=SV.sourceBox({...lamp,drained:true});
+  ok(Math.abs(drained.dY+drained.dH-192*12/444-448)<1e-9,'drained visible base also touches the rooftop');
+}
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
 process.exit(fail===0?0:1);

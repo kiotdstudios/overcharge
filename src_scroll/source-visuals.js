@@ -25,7 +25,10 @@ export function sourceBox(source) {
   // the floor instead of floating by their own height.
   if (source.kind === 'prop') {
     const w = source.artW || 64, h = source.artH || 64;
-    return { dX: (source.x + (source.w || 28) / 2) - w / 2, dY: source.y + (source.h || 28) - h, dW: w, dH: h };
+    // Streetlight frames are 444px canvases with 11px below the visible base.
+    // Keep legacy JSON grounded without changing its source hitbox or coordinates.
+    const pad = /\/streetlight\/$/.test(source.sprite || '') ? h * (source.drained ? 12 : 11) / 444 : 0;
+    return { dX: (source.x + (source.w || 28) / 2) - w / 2, dY: source.y + (source.h || 28) - h + pad, dW: w, dH: h };
   }
   if (source.kind === 'light') return { dX: source.x - 10, dY: source.y - 60, dW: 48, dH: 88 };
   return source.kind === 'hvac'

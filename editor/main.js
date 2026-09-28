@@ -1450,7 +1450,7 @@ function _doSpawn(e, canvas) {
     // "assets/objects/night-city-props/streetlight/00.png" -> ".../streetlight/"
     const dir = String(a.path || '').replace(/[^/]*$/, '');
     obj = {
-      x: _snapGrid(wx), y: _snapGrid(wy),
+      x: _snapGrid(wx), y: _groundAt(_snapGrid(wx) + 14, wy, 28),
       label: _propLabel(a.id),
       charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
       kind: 'prop',

@@ -420,6 +420,7 @@ export const pointerTool = {
       }
       // Modular-family magnetic snap while dragging a single family piece.
       _applyDragMagnetic(this._origPositions);
+      _reanchorGameplay(this._origPositions);
     }
     state.dragMove.curWX = w.x;
     state.dragMove.curWY = w.y;

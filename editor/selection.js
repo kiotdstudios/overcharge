@@ -1,3 +1,4 @@
+import { sourceBox } from '../src_scroll/source-visuals.js';
 // selection.js — tracks what is currently selected in the editor.
 //
 // Selection covers every kind of level content:
@@ -218,7 +219,10 @@ export function boundingRect(kind, ref) {
   // SEE, so clicking the visible generator selects it and the outline matches the
   // art (Chief's rule, 2026-09-12). Runtime collision is unaffected: this is an
   // editor-only selection rect.
-  if (kind === 'source')     return { x: ref.x - 18, y: ref.y - 34, w: 64, h: 64 };
+  if (kind === 'source') {
+    const b = sourceBox(ref);
+    return { x: b.dX, y: b.dY, w: b.dW, h: b.dH };
+  }
   // Switch: 56x56 art (wall_switch/switch_off.png or switch_on.png) drawn centred on
   // the hitbox cx and bottom-aligned to the hitbox bottom. Anchor from electricity.js
   // Switch._drawWall: dX = Math.round(cx - 56/2) = x-17, dY = (y+22)-56 = y-34.
