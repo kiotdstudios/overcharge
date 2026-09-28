@@ -511,8 +511,10 @@ export function filteredManifestItems() {
     if (it.category === 'background') return false;
     if (category !== 'all' && it.category !== category) return false;
     if (purpleCityOnly    && !/\/purple_city\//.test(it.path || '')) return false;
-    if (purpleRooftopOnly && !/\/purple_rooftop\//.test(it.path || '')) return false;
-    if (blueRooftopOnly   && !/\/blue_rooftop\//.test(it.path || ''))   return false;
+    // Rooftop filters are tile palettes. HVAC art shares the purple pack's
+    // folder but belongs under HVAC/Electric, rather than the terrain filter.
+    if (purpleRooftopOnly && (it.category !== 'tile' || !/\/purple_rooftop\/tiles\//.test(it.path || ''))) return false;
+    if (blueRooftopOnly   && (it.category !== 'tile' || !/\/blue_rooftop\/tiles\//.test(it.path || ''))) return false;
     if (hvacOnly          && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
     if (nightCityRailOnly && !isSpawnAsset && !/\/night-city-rail\//.test(it.path || '')) return false;
     // Electric groups the HVAC source WITH the 5 props (Chief's ruling above). It is a tag

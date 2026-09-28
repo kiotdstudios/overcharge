@@ -217,7 +217,9 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
   ok(blue.length===18 && blue.every(i=>i.path.includes('/blue_rooftop/')), 'Blue Rooftop contains only its 18 pack assets');
   ok(!ids().some(id=>['player_spawn','chest','drone_enemy','wheel_drone','electrical_generator'].includes(id)), 'unrelated spawn objects do not leak into Blue Rooftop');
   setF({purpleRooftopOnly:true});
-  ok(S.filteredManifestItems().every(i=>i.path.includes('/purple_rooftop/')), 'Purple Rooftop also restricts entries to its pack');
+  const purple=S.filteredManifestItems();
+  ok(purple.length===21 && purple.every(i=>i.category==='tile' && i.path.includes('/purple_rooftop/tiles/')), 'Purple Rooftop shows exactly its 21 active tiles');
+  ok(!purple.some(i=>i.tags.includes('hvac') || i.path.includes('/blue_rooftop/')), 'Purple Rooftop excludes HVAC and Blue Rooftop assets');
 
   setF({ hvacOnly:true });
   ok(ids().includes('source_hvac'), 'and HVAC still appears under its own HVAC filter too');
