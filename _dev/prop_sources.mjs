@@ -30,7 +30,7 @@ const PROPS=['prop_ncp_fuse_box','prop_ncp_neon_sign','prop_ncp_security_camera'
 sec('Manifest: HVAC and the props filter TOGETHER, and all are placeable');
 {
   const el = manifest.assets.filter(a=>(a.tags||[]).includes('electric'));
-  ok(el.length === 6, 'the Electric filter matches 6 assets', 'HVAC source + 5 props');
+  ok(el.length === 7, 'the Electric filter matches 7 assets', 'generator + HVAC source + 5 props');
   ok(el.some(a=>a.id==='source_hvac'), 'HVAC is one of them',
     'Chief: "the new electric HVAC unit and the other electric props need to be filtered together"');
   for (const id of PROPS) {
@@ -194,7 +194,8 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
 
   setF({ electricOnly:true });
   const el = ids();
-  ok(el.length === 6, 'the Electric filter shows exactly 6', el.join(', '));
+  ok(el.length === 7, 'the Electric filter shows exactly 7', el.join(', '));
+  ok(el.includes('electrical_generator'), 'Generator is visible under Electric');
   ok(el.includes('source_hvac'), 'HVAC is in it — filtered TOGETHER with the props',
     'this is the literal request');
   ok(PROPS.every(p=>el.includes(p)), 'and all 5 props are in it');
@@ -205,11 +206,18 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
     'it was invisible before, with no spawn button either — unplaceable by any route');
   for (const id of ['env_rt_tile_purple_b','env_rt_tile_purple_c','env_rt_tile_light_a'])
     ok(!all.includes(id), `retired art ${id} stays hidden`, 'retired means retired');
-  for (const id of ['electrical_generator','gate_electric_closed','wall_switch','electric_fence',
+  for (const id of ['gate_electric_closed','wall_switch','electric_fence',
                     'env_rt_tile_purple_a','env_rt_tile_accent_a'])
     ok(!all.includes(id), `generator-ineligible non-spawn ${id} stays hidden`,
       'the exemption is scoped to spawn assets, so Aki\u2019s palette is otherwise unchanged');
-  ok(all.length === 55, 'palette total is 55', '54 existing entries plus the placeable Wheel Drone');
+  ok(all.length === 56, 'palette total is 56', 'includes placeable Generator and Wheel Drone');
+
+  setF({blueRooftopOnly:true});
+  const blue=S.filteredManifestItems();
+  ok(blue.length===18 && blue.every(i=>i.path.includes('/blue_rooftop/')), 'Blue Rooftop contains only its 18 pack assets');
+  ok(!ids().some(id=>['player_spawn','chest','drone_enemy','wheel_drone','electrical_generator'].includes(id)), 'unrelated spawn objects do not leak into Blue Rooftop');
+  setF({purpleRooftopOnly:true});
+  ok(S.filteredManifestItems().every(i=>i.path.includes('/purple_rooftop/')), 'Purple Rooftop also restricts entries to its pack');
 
   setF({ hvacOnly:true });
   ok(ids().includes('source_hvac'), 'and HVAC still appears under its own HVAC filter too');

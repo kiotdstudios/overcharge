@@ -21,7 +21,7 @@ const entries = S.filteredManifestItems();
 check(entries.length === 2, 'enemy category has exactly the two placeable entries');
 check(entries.map(e=>e.name).sort().join('|') === 'Sky Sentry|Wheel Drone', 'readable enemy names');
 S.setPurpleCityOnly(true);
-check(S.filteredManifestItems().length === 2, 'enemies remain available with environment pack filter');
+check(S.filteredManifestItems().length === 0, 'pack filter excludes unrelated enemy sprites');
 S.setPurpleCityOnly(false);
 for (const item of entries) {
   const type = item.raw.spawnsKind;

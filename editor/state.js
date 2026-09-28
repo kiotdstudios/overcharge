@@ -486,8 +486,8 @@ export function filteredManifestItems() {
   const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
-    // Spawn-type and player-category assets are meta-objects, not tileset art —
-    // always show them regardless of the pack quick-filters.
+    // Hand-authored spawn assets stay available even when random generation
+    // excludes them. Explicit pack filters still restrict their paths below.
     const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
     // CHIEF 2026-09-26: "the new electric HVAC unit and the other electric props need to be
     // filtered together". They were not, because source_hvac never appeared in the palette
@@ -510,9 +510,9 @@ export function filteredManifestItems() {
     // Background assets live in their own section — exclude from tile/object grid.
     if (it.category === 'background') return false;
     if (category !== 'all' && it.category !== category) return false;
-    if (purpleCityOnly    && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
-    if (purpleRooftopOnly && !isSpawnAsset && !/\/purple_rooftop\//.test(it.path || '')) return false;
-    if (blueRooftopOnly   && !isSpawnAsset && !/\/blue_rooftop\//.test(it.path || ''))   return false;
+    if (purpleCityOnly    && !/\/purple_city\//.test(it.path || '')) return false;
+    if (purpleRooftopOnly && !/\/purple_rooftop\//.test(it.path || '')) return false;
+    if (blueRooftopOnly   && !/\/blue_rooftop\//.test(it.path || ''))   return false;
     if (hvacOnly          && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
     if (nightCityRailOnly && !isSpawnAsset && !/\/night-city-rail\//.test(it.path || '')) return false;
     // Electric groups the HVAC source WITH the 5 props (Chief's ruling above). It is a tag

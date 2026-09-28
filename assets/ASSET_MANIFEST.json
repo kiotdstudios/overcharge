@@ -4,10 +4,13 @@
   "assets": [
     {
       "id": "electrical_generator",
+      "name": "Generator",
+      "spawnsKind": "source",
       "path": "assets/sprites/generator 1/frame_{n}.png",
       "category": "electrical",
       "tags": [
         "generator",
+        "electric",
         "source",
         "animation",
         "electrical"
