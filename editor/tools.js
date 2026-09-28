@@ -670,7 +670,7 @@ function _anchorObjBottom(worldX, worldY, ow, oh) {
   const rows = levelRows();
   const x = Math.round(worldX / TILE_SIZE) * TILE_SIZE;
   const fromRow = Math.max(0, Math.floor(worldY / TILE_SIZE));
-  const footCol = Math.max(0, Math.min(Math.floor((worldX + ow / 2) / TILE_SIZE), (L?.cols ?? 1) - 1));
+  const footCol = Math.max(0, Math.min(Math.floor((x + ow / 2) / TILE_SIZE), (L?.cols ?? 1) - 1));
   let surfaceY = null;
   for (let r = fromRow; r < rows; r++) {
     // BUGFIX 2026-09-12: was `tileIsSolid(footCol, r)`. tileIsSolid takes a tile
@@ -796,7 +796,7 @@ function _placeGameplayMarker(asset, worldX, worldY) {
   // playerStart is a single object per level; dragging player_* MOVES it.
   if (cat === 'player') {
     const oldStart = L.playerStart || null;
-    const newStart = { x: pos.x, y: pos.y };
+    const newStart = _anchorObjBottom(worldX, worldY, 20, 30);
     const action = {
       type: 'set_player_start',
       forward: () => { L.playerStart = newStart; notify(); },

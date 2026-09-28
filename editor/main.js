@@ -1507,7 +1507,7 @@ function _doSpawn(e, canvas) {
     // Placing it always moves the existing spawn — exactly one per level.
     const PLAYER_HIT_H = 30;   // matches PLAYER_H in src_scroll/constants.js
     const px = _snapGrid(wx);
-    const py = _groundAt(wx, wy, PLAYER_HIT_H);
+    const py = _groundAt(px + 10, wy, PLAYER_HIT_H);
     const action = Actions.setPlayerStart(L, px, py);
     if (action) History.apply(action);
     if (L.playerStart) Selection.selectByKind('playerStart', L.playerStart);
