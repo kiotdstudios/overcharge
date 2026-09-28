@@ -110,7 +110,10 @@ export function lastPickerError() { return _lastPickerError; }
 
 // Public: let the user re-pick the save folder (e.g. moved repo, wrong pick).
 export async function chooseSaveFolder() {
+  // Clear BOTH in-memory and IndexedDB handles so _ensureSaveDir always
+  // shows the native picker — never silently restores the old location.
   _saveDirHandle = null;
+  await LocalStore.clearDirHandle();
   return await _ensureSaveDir();
 }
 // Public: current save folder name for UI display.
