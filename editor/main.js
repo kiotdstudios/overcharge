@@ -572,11 +572,16 @@ btnCommitPush?.addEventListener('click', async () => {
 // Let Chief pick (or re-pick) the save folder. Once set, all future saves
 // write directly into that folder — no more Downloads downloads.
 btnChooseFolder?.addEventListener('click', async () => {
-  // ORDER 005 diagnostics: this button must NEVER appear to "do nothing".
+  // No showDirectoryPicker (Firefox, Safari) — fall straight into a save-as so
+  // the button still does something useful instead of dying silently.
   if (typeof window.showDirectoryPicker !== 'function') {
-    showSaveFlash({ ok: false, message:
-      'This browser cannot pick folders (no File System Access API). '
-      + 'Use desktop Chrome or Edge to save into the Git folder.' });
+    if (typeof window.showSaveFilePicker !== 'function') {
+      showSaveFlash({ ok: false, message: 'File System Access API unavailable — open this editor in Chrome or Edge.' });
+      return;
+    }
+    showSaveFlash({ ok: true, message: 'Firefox mode — saving now. Navigate to src_scroll/levels/ when the dialog opens.' });
+    const r = await Persistence.saveCurrentLevel();
+    showSaveFlash(r);
     return;
   }
   const handle = await Persistence.chooseSaveFolder();
