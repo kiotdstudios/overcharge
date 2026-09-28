@@ -112,6 +112,21 @@ export function mountAssetBrowser(container) {
   categorySelect.className = 'ab-category';
   categorySelect.addEventListener('change', () => setFilterCategory(categorySelect.value));
   tileWrap.appendChild(categorySelect);
+  const enemiesButton = document.createElement('button');
+  enemiesButton.id = 'ab-enemies';
+  enemiesButton.className = 'ab-enemies';
+  enemiesButton.textContent = 'ENEMIES';
+  enemiesButton.title = 'Show placeable enemies';
+  enemiesButton.addEventListener('click', () => {
+    Object.assign(state.filter, { category: 'enemy', search: '', hvacOnly: false, electricOnly: false });
+    searchInput.value = '';
+    for (const id of ['ab-hvac-only', 'ab-electric-only']) {
+      const checkbox = document.getElementById(id);
+      if (checkbox) checkbox.checked = false;
+    }
+    setFilterCategory('enemy');
+  });
+  tileWrap.appendChild(enemiesButton);
 
   // Status
   statusEl = document.createElement('div');
@@ -254,7 +269,7 @@ function _populateCategories() {
   categorySelect.appendChild(optAll);
   for (const c of cats) {
     const cnt = state.manifest.items.filter(i => i.category === c).length;
-    categorySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: `${c} (${cnt})` }));
+    categorySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: `${c === 'enemy' ? 'ENEMIES' : c} (${cnt})` }));
   }
   categorySelect.value = cats.includes(current) ? current : 'all';
 }

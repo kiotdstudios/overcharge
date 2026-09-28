@@ -209,7 +209,7 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
                     'env_rt_tile_purple_a','env_rt_tile_accent_a'])
     ok(!all.includes(id), `generator-ineligible non-spawn ${id} stays hidden`,
       'the exemption is scoped to spawn assets, so Aki\u2019s palette is otherwise unchanged');
-  ok(all.length === 54, 'palette total is 54', 'was 51; +3 is player_spawn, drone_enemy, chest — spawn entries that were always meant to be visible');
+  ok(all.length === 55, 'palette total is 55', '54 existing entries plus the placeable Wheel Drone');
 
   setF({ hvacOnly:true });
   ok(ids().includes('source_hvac'), 'and HVAC still appears under its own HVAC filter too');

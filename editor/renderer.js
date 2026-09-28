@@ -794,25 +794,27 @@ function _drawEnemies(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const e of arr) {
-    const type = e.type || 'patrol';
+    const type = e.type === 'drone' ? 'sky-sentry' : (e.type || 'patrol');
+    const cityDrone = type === 'sky-sentry' || type === 'wheel-drone';
     // Derive dimensions from type — w/h NOT stored in JSON (match runtime class).
-    const eW = type === 'drain' ? 22 : type === 'drone' ? 40 : 20;
-    const eH = type === 'drain' ? 24 : type === 'drone' ? 36 : 26;
+    const eW = type === 'drain' ? 22 : type === 'sky-sentry' ? 40 : type === 'wheel-drone' ? 38 : 20;
+    const eH = type === 'drain' ? 24 : type === 'sky-sentry' ? 36 : type === 'wheel-drone' ? 34 : 26;
     const ew = eW * z, eh = eH * z;
     const p  = worldToScreen(e.x, e.y);
 
     // Colour per type — mirrors runtime glow colours
     const stroke = type === 'drain'  ? '#ff3355'
-                 : type === 'drone'  ? '#88cc44'
+                 : cityDrone        ? '#ff5577'
                  :                     '#ff7733'; // patrol
 
-    // Drone: draw real sprite (straight blit at o.x, o.y, w×h — matches runtime entities.js:468)
-    if (type === 'drone') {
-      const droneImg = getImage('assets/sprites/drone/idle/frame_000.png');
+    // City drones use the same sprite size and feet anchor as the runtime.
+    if (cityDrone) {
+      const droneImg = getImage(`assets/sprites/city-drones/${type}/frame_000.png`);
       ctx.imageSmoothingEnabled = false;
       if (droneImg.complete && droneImg.naturalWidth > 0) {
         ctx.save();
-        ctx.drawImage(droneImg, p.x, p.y, ew, eh);
+        // Same 64px art and feet anchor as city-drones.js.
+        ctx.drawImage(droneImg, p.x + ew / 2 - 32 * z, p.y + eh - 60 * z, 64 * z, 64 * z);
         ctx.restore();
         // Glow outline on top so it reads as selected-friendly
         ctx.save();
@@ -839,7 +841,7 @@ function _drawEnemies(ctx, arr) {
         ctx.fillStyle = stroke;
         ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
         ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-        ctx.fillText('DRONE', p.x + ew + 2, p.y);
+        ctx.fillText(type === 'sky-sentry' ? 'SKY SENTRY' : 'WHEEL DRONE', p.x + ew + 2, p.y);
         continue;
       }
     }

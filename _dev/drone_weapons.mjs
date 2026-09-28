@@ -1,0 +1,27 @@
+import assert from 'node:assert/strict';
+import {flat} from './support/headless.mjs';
+import {WheelDrone,SkySentry} from '../src_scroll/city-drones.js';
+import {beamHits,ray} from '../src_scroll/drone-weapons.js';
+let n=0;const check=(v,m)=>{assert.ok(v,m);n++;};
+const level=flat();let damage=0;
+const target={x:360,y:414,w:24,h:34,cx:372,cy:431,vx:0,stun(){damage++;},scatter(){}};
+const wheel=new WheelDrone({x:200,y:414,patrolLeft:100,patrolRight:600,speed:50});
+for(let i=0;i<20;i++)wheel.update(1/60,level,target);
+check(wheel._charging&&wheel._plasma.length===0,'ground windup');check(wheel.x===200,'stops to fire');
+for(let i=0;i<45;i++)wheel.update(1/60,level,target);
+check(wheel._burst===0&&wheel._weaponT>1,'three-shot burst followed by recovery');
+check(wheel._plasma.length+damage>=3,'burst shots exist or hit');
+level.enemies=[wheel];const snap=level.snapshot();wheel._plasma.length=0;level.restore(snap);
+check(wheel._plasma.length===snap.enemies[0]._plasma.length,'plasma restores');
+if(wheel._plasma.length){wheel._plasma[0].x+=22;check(wheel._plasma[0].x!==snap.enemies[0]._plasma[0].x,'snapshot is detached');}
+const sky=new SkySentry({x:200,y:350,patrolLeft:100,patrolRight:600,speed:40});
+let before=damage;sky._fire(1,target);sky._updateBlasts(.3,level,target);
+check(sky._laser&&damage===before,'warning laser does not damage');
+sky._updateBlasts(.3,level,target);check(damage>before,'active beam damages');
+const angle=sky._laser.angle;target.x=500;target.cx=512;sky._updateBlasts(.01,level,target);
+check(sky._laser.angle===angle,'laser aim locks for dodge');
+sky.alive=false;sky._updateBlasts(.01,level,target);check(sky._laser===null,'killing sentry cancels laser');
+level.tiles[12*40+10]=16;check(ray(level,{x:280,y:400},0,200)<40,'terrain blocks beam');
+check(!beamHits({x:0,y:0},0,100,{x:30,y:30,w:20,h:20}),'off-axis player misses');
+check(beamHits({x:0,y:0},0,100,{x:30,y:-10,w:20,h:20}),'beam intersects player');
+console.log(`RESULTS: ${n} passed, 0 failed`);

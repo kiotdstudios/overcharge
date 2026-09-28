@@ -721,7 +721,7 @@ function _reanchorGameplay(origPositions) {
     if (!kind) continue;
 
     // Floating by design: align to grid, never drag down to the floor.
-    const floats = kind === 'platform' || (kind === 'enemy' && ref.type === 'drone');
+    const floats = kind === 'platform' || (kind === 'enemy' && ['drone', 'sky-sentry'].includes(ref.type));
     if (floats) {
       ref.x = Math.round(ref.x / TILE_SIZE) * TILE_SIZE;
       ref.y = Math.round(ref.y / TILE_SIZE) * TILE_SIZE;
@@ -742,7 +742,7 @@ function _reanchorGameplay(origPositions) {
       switch:      { w: 22, h: 22 },
       checkpoint:  { w: 0,  h: 0  },
       crate:       { w: ref.w ?? 32, h: ref.h ?? 32 },
-      enemy:       { w: ref.type === 'patrol' ? 20 : 22, h: ref.type === 'patrol' ? 26 : 24 },
+      enemy:       { w: ref.type === 'wheel-drone' ? 38 : ref.type === 'patrol' ? 20 : 22, h: ref.type === 'wheel-drone' ? 34 : ref.type === 'patrol' ? 26 : 24 },
       playerStart: { w: 20, h: 30 },
     }[kind];
     if (!dims) continue;
@@ -1072,6 +1072,13 @@ export function startAssetDrag(asset, initialEvt) {
     const inCanvas = e.clientX >= r.left && e.clientX < r.right
                   && e.clientY >= r.top  && e.clientY < r.bottom;
     if (!inCanvas) { console.info('[drag] released outside canvas'); return; }
+    // Spawn assets must use the same entity creation/undo path as click placement.
+    if (asset.raw?.spawnsKind) {
+      canvas.dispatchEvent(new CustomEvent('asset-spawn', {
+        detail: { asset: asset.raw, clientX: e.clientX, clientY: e.clientY },
+      }));
+      return;
+    }
     const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
     const scaleY = r.height > 0 ? canvas.height / r.height : 1;
     const sx = (e.clientX - r.left) * scaleX;

@@ -2,7 +2,8 @@
 import { TILE, COLS, ROWS, MAX_ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
-import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy, Crate, Chest } from './entities.js';
+import { SkySentry, WheelDrone } from './city-drones.js';
+import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 
 export class Level {
   constructor(def) {
@@ -48,7 +49,9 @@ export class Level {
     this.switches = (def.switches || []).map(d => new Switch(d));
     this.enemies  = (def.enemies  || []).map(d => {
       if (d.type === 'drain')  return new DrainEnemy(d);
-      if (d.type === 'drone')  return new DroneEnemy(d);
+      // Legacy authored drones use the replacement without rewriting level files.
+      if (d.type === 'drone' || d.type === 'sky-sentry') return new SkySentry(d);
+      if (d.type === 'wheel-drone') return new WheelDrone(d);
       return new PatrolEnemy(d);
     });
     this.checkpoints = (def.checkpoints || []).map(d => new Checkpoint(d));
@@ -218,6 +221,7 @@ export class Level {
       enemies:     this.enemies.map(e => ({
         x: e.x, y: e.y, vx: e.vx, hp: e.hp, alive: e.alive,
         _cooldown: e._cooldown || 0, _hitFlash: e._hitFlash || 0, _t: e._t || 0,
+        ...(e.snapshotCombat?.() || {}),
       })),
       platforms:   this.platforms.map(pl => ({ x: pl.x, vx: pl.vx })),
       // ORDER CRATE_TIMED D8 — MANDATORY, not optional. A crate's position is
@@ -253,7 +257,13 @@ export class Level {
       Object.assign(this.checkpoints[i], snap.checkpoints[i]);
     }
     for (let i = 0; i < this.enemies.length && i < snap.enemies.length; i++) {
-      Object.assign(this.enemies[i], snap.enemies[i]);
+      const saved = snap.enemies[i];
+      Object.assign(this.enemies[i], saved);
+      // Each rewind owns its combat objects; simulation must never mutate the snapshot.
+      if ('_laser' in saved) this.enemies[i]._laser = saved._laser ? {...saved._laser} : null;
+      for (const key of ['_plasma', '_blasts']) {
+        if (saved[key]) this.enemies[i][key] = saved[key].map(shot => ({...shot}));
+      }
     }
     for (let i = 0; i < this.platforms.length && i < snap.platforms.length; i++) {
       Object.assign(this.platforms[i], snap.platforms[i]);

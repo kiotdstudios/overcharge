@@ -1336,11 +1336,15 @@ document.getElementById('import-backups-input')?.addEventListener('change', asyn
 
 // ── Spawn mode ──────────────────────────────────────────────────────────────
 // state.pendingSpawn = null | { kind } where kind is one of:
-//   'drain-enemy', 'patrol-enemy', 'drone-enemy',
+//   'drain-enemy', 'patrol-enemy', 'drone-enemy' (legacy), 'sky-sentry', 'wheel-drone',
 //   'source', 'source-hvac', 'switch', 'gate', 'checkpoint', 'platform', 'crate', 'chest'
 // Set by spawn buttons. Cleared after placement or Escape.
 
 state.pendingSpawn = null;
+canvas.addEventListener('asset-spawn', e => {
+  state.pendingSpawn = { kind: e.detail.asset.spawnsKind, asset: e.detail.asset };
+  _doSpawn(e.detail, canvas);
+});
 
 const _spawnStatus   = document.getElementById('spawn-status');
 
@@ -1409,12 +1413,16 @@ function _doSpawn(e, canvas) {
     const w = 20, h = 26, px = Math.round(wx), py = _groundAt(wx, wy, h);
     obj = { type: 'patrol', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 50 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
-  } else if (kind === 'drone-enemy') {
+  } else if (kind === 'drone-enemy' || kind === 'sky-sentry') {
     // Grid-snapped like every other object (Chief 2026-09-12). NOT ground-snapped:
     // the drone is a HOVERING enemy, so it legitimately sits above the floor —
     // but its position should still land on the grid so patrols line up.
     const w = 40, px = _snapGrid(wx), py = _snapGrid(wy);
-    obj = { type: 'drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
+    obj = { type: 'sky-sentry', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
+    arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
+  } else if (kind === 'wheel-drone') {
+    const w = 38, h = 34, px = _snapGrid(wx), py = _groundAt(wx, wy, h);
+    obj = { type: 'wheel-drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
   } else if (kind === 'source') {
     // Chief directive 2026-09-12: a standard generator gives 4 energy, period.
@@ -1513,6 +1521,7 @@ function _doSpawn(e, canvas) {
     if (action) History.apply(action);
     const kindMap = {
       'drain-enemy': 'enemy', 'patrol-enemy': 'enemy', 'drone-enemy': 'enemy',
+      'sky-sentry': 'enemy', 'wheel-drone': 'enemy',
       'source': 'source', 'switch': 'switch', 'gate': 'gate',
       'wall-switch': 'switch', 'fence': 'gate',
       'checkpoint': 'checkpoint', 'platform': 'platform', 'crate': 'crate',
@@ -1527,7 +1536,8 @@ function _doSpawn(e, canvas) {
 [
   ['spawn-drain',      'drain-enemy'],
   ['spawn-patrol',     'patrol-enemy'],
-  ['spawn-drone',      'drone-enemy'],
+  ['spawn-drone',      'sky-sentry'],
+  ['spawn-wheel-drone', 'wheel-drone'],
   ['spawn-source',     'source'],
   ['spawn-source-hvac', 'source-hvac'],
   ['spawn-switch',     'switch'],
@@ -1593,7 +1603,7 @@ function _refreshSelectedProps() {
   let badge = '', color = '#cdd', fields = [];
   if (kind === 'enemy') {
     const type = ref.type || 'patrol';
-    color = type === 'drain' ? '#ff3355' : type === 'drone' ? '#88cc44' : '#ff7733';
+    color = type === 'drain' ? '#ff3355' : ['drone', 'sky-sentry', 'wheel-drone'].includes(type) ? '#ff5577' : '#ff7733';
     badge = 'ENEMY · ' + type.toUpperCase();
     fields = [
       { label:'type',       key:'type',       ro:true },

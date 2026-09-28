@@ -236,12 +236,13 @@ is no `id` field.
 
 ## Enemy
 
-✅ Confirmed from `Level` (type dispatch) plus the three enemy classes. None
-authored yet. The editor CAN place them — verified 2026-09-05.
+Updated 2026-09-28 against `Level` and the city-drone integration. The Builder
+places both city drones from its ENEMIES category; existing authored flying
+drones use the replacement automatically.
 
 ```js
 {
-  type:        string,   // ✅ "drain" | "drone" | anything else → PatrolEnemy
+  type:        string,   // "drain" | "sky-sentry" | "wheel-drone" | legacy "drone"
   x:           number,   // ✅ World pixel X, top-left
   y:           number,   // ✅ World pixel Y, top-left
   patrolLeft:  number,   // ✅ Left limit of the patrol, world px
@@ -253,16 +254,27 @@ authored yet. The editor CAN place them — verified 2026-09-05.
 | `type` | Class | Default `speed` |
 |--------|-------|-----------------|
 | `"drain"` | `DrainEnemy` | 60 |
-| `"drone"` | `DroneEnemy` | 55 |
+| `"sky-sentry"` or legacy `"drone"` | `SkySentry` (40×36 collider) | 55 |
+| `"wheel-drone"` | `WheelDrone` (38×34 collider) | 60; Builder explicitly authors 55 |
 | anything else / omitted | `PatrolEnemy` (20×26) | 50 |
 
 Two traps worth stating plainly:
 
-- The dispatch values are `"drain"` and `"drone"`, **not** the asset ids
-  `enemy_drain_walk` / `drone`. A typo does not error — it silently falls through
+- Dispatch values are enemy types, **not** asset ids such as `drone_enemy` or
+  `wheel_drone`. A typo does not error — it silently falls through
   to a generic `PatrolEnemy`.
 - There is no `id` field. `drainAmount`, `health` and `activationDelay` do not
   exist; they were speculative. Do not emit them.
+
+Sky Sentry is grid-snapped and floats at its authored Y. Wheel Drone rests on
+terrain at `floorY - 34`; its wheels do not create terrain collision. Both use
+the existing two-hit damage/charge-drop contract. Sprite frames are 384×384,
+drawn at 64×64 with feet anchor `(192,360)`. Enemy dimensions stay derived from
+type rather than being written into level JSON.
+
+Checkpoint enemy records include weapon timers, laser state and plasma shots.
+Restore clones each saved laser/shot object so repeated deaths reuse the same
+pristine snapshot. These combat fields are runtime state, not authored JSON.
 
 ---
 

@@ -234,8 +234,8 @@ export function boundingRect(kind, ref) {
   if (kind === 'checkpoint') return { x: ref.x - 22, y: ref.y - 56, w: 44, h: 56 };
   // Enemy: x,y = top-left. w/h NOT in JSON — derive from type to match runtime class.
   if (kind === 'enemy') {
-    const ew = ref.type === 'patrol' ? 20 : ref.type === 'drone' ? 40 : 22;
-    const eh = ref.type === 'patrol' ? 26 : ref.type === 'drone' ? 36 : 24;
+    const ew = ref.type === 'patrol' ? 20 : ['drone', 'sky-sentry'].includes(ref.type) ? 40 : ref.type === 'wheel-drone' ? 38 : 22;
+    const eh = ref.type === 'patrol' ? 26 : ['drone', 'sky-sentry'].includes(ref.type) ? 36 : ref.type === 'wheel-drone' ? 34 : 24;
     return { x: ref.x, y: ref.y, w: ew, h: eh };
   }
   // Platform: x,y = top-left. w/h explicit or defaulted to match MovingPlatform class.

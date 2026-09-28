@@ -435,7 +435,7 @@ function _normalizeManifestEntry(a) {
   return {
     id:          a.id || path,
     path:        path,
-    name:        a.id || (a.name || path.split('/').pop().replace(/\.png$/i, '')),
+    name:        a.name || a.id || path.split('/').pop().replace(/\.png$/i, ''),
     category:    a.category || 'other',
     // Modular-family tag: Aki-authored assets that magnetically join
     // edge-to-edge with peers sharing the same family string. Optional â€”
