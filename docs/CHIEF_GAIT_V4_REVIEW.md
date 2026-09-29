@@ -1,0 +1,9 @@
+# Revised walk/run art candidate
+
+2026-09-29. User requested fluid synchronized arm/leg motion. Generated separate action sheets with the built-in image generator, referencing the original hero-v3 frames. Preserve identity, costume, palette, opposite arm/leg swing, ordered contact/compression/passing/push-off phases, fixed scale and transparent backgrounds. Prompt iterations specifically corrected repeated near-arm poses and the walk loop transition. Pixel Art Animator supplied timing guidance; its Aseprite tools are unavailable in this session.
+
+Review at hero-lab.html?gait=4. Walk is seven frames at 10 fps; run eight frames at 14 fps, mirrored for west. Original hero-v3 PNGs and production player remain unchanged. Revised art is a review candidate, not certified finished production art: inspect limb ownership, heel contacts and the loop transition at 80 px and 160 px before activation.
+
+The generated walk's eighth pose repeated a forward arm at the loop boundary; omitted that pose rather than calling the original eight-frame sequence smooth. The native-pixel export preserves one shared cell scale/root with output 512 and contact anchor 496. It does not resize each frame or anchor its body to a moving support foot. Initial generic feet-alignment processor results clamped several frames, so they were rejected; those outputs remain only in workspace outputs, not in the staged candidate. Generated raw sheets are preserved in workspace outputs and the generator's output directory. No controller physics, level data, gate, charge or mechanics changes.
+
+Assets and geometric export records: assets/sprites/hero-gait-v4/audit.json. Animated previews: walk.gif and run.gif alongside the frames. Local lab checked loading and frame controls; automated animator and renderer tests pass. Browser playback is a visual review aid, not proof of anatomical motion quality. Aki: retain original gait pending user review; continue your isolated traversal QA task.

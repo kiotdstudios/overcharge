@@ -5,10 +5,12 @@ export const HERO_STATES = {
  'ladder-up':[10,true],'ladder-down':[8,true],absorb:[10,true],discharge:[10,true]
 };
 const cache=new Map();
-function framesFor(state,dir){
- const key=`${state}/${dir}`;
- if(!cache.has(key))cache.set(key,Array.from({length:8},(_,i)=>{
-  const img=new Image();img.src=`assets/sprites/hero-v3/${state}/${dir}/frame_${String(i).padStart(3,'0')}.png`;return img;
+function framesFor(state,dir,gaitRoot){
+ const revised=gaitRoot&&(state==='walk'||state==='run');
+ const root=revised?gaitRoot:'assets/sprites/hero-v3';
+ const key=`${root}/${state}/${dir}`;
+ if(!cache.has(key))cache.set(key,Array.from({length:revised&&state==='walk'?7:8},(_,i)=>{
+  const img=new Image();img.src=`${root}/${state}/${dir}/frame_${String(i).padStart(3,'0')}.png`;return img;
  }));return cache.get(key);
 }
 export class Animator{
@@ -28,20 +30,21 @@ export class Animator{
  get image(){return this.frames[this._frame];}
 }
 export class PlayerSprites{
- constructor(){
+ constructor({gaitRoot=null}={}){
+  this.gaitRoot=gaitRoot;
   this.anims={};this.state='idle';this.dir='east';this._current=this.get('idle','east');this._attackHeld=false;
   // Preload movement and attack frames before their first transition.
   for(const state of ['idle','walk','run','jump','projectile-cast','energy-strike'])
    for(const dir of ['east','west'])this.get(state,dir);
  }
- get(state,dir){const key=`${state}/${dir}`;return this.anims[key]??=new Animator(framesFor(state,dir),...HERO_STATES[state]);}
+ get(state,dir){const key=`${state}/${dir}`;return this.anims[key]??=new Animator(framesFor(state,dir,this.gaitRoot),...HERO_STATES[state]);}
  setState(state,facingRight=true){
   if(!HERO_STATES[state])throw new Error(`Unknown hero state: ${state}`);
   const dir=facingRight?'east':'west',next=this.get(state,dir);
   if(next!==this._current){
    const gait=state==='walk'||state==='run',wasGait=this.state==='walk'||this.state==='run';
    if(state===this.state||(gait&&wasGait)){
-    next._frame=this._current._frame;
+    next._frame=Math.floor(this._current._frame/this._current.frames.length*next.frames.length);
     next._t=this._current._t*this._current.fps/next.fps;
     next.done=state===this.state?this._current.done:false;
    }

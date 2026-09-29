@@ -7,7 +7,12 @@ const groups = {
   Traversal: ['ladder-up', 'ladder-down', 'ledge-climb', 'wall-slide', 'grapple'],
 };
 const names = { idle:'Idle', walk:'Walk', run:'Run', jump:'Jump', hurt:'Hurt', stunned:'Stunned', death:'Death', 'energy-strike':'Energy strike', 'projectile-cast':'Projectile cast', absorb:'Absorb', discharge:'Discharge', 'ladder-up':'Ladder up', 'ladder-down':'Ladder down', 'ledge-climb':'Ledge climb', 'wall-slide':'Wall slide', grapple:'Grapple' };
-const sprite = new PlayerSprites();
+const revisedGait = new URLSearchParams(location.search).get('gait') === '4';
+const sprite = new PlayerSprites({gaitRoot: revisedGait ? 'assets/sprites/hero-gait-v4' : null});
+if (revisedGait) {
+  document.querySelector('header span').textContent = 'OVERCHARGE / Revised gait candidate';
+  document.querySelector('.source').textContent = 'Revised walk/run review candidate. Originals remain available without ?gait=4. Production player is unchanged.';
+}
 const canvas = document.getElementById('hero-preview');
 const ctx = canvas.getContext('2d');
 function fitPreview() {
@@ -60,6 +65,7 @@ function selectState(state) {
   badge.classList.toggle('pending', pending);
   buttons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.state === state)));
   const strip = document.getElementById('frame-strip');
+  scrub.max = String(sprite._current.frames.length - 1);
   strip.replaceChildren();
   sprite.get(state, facing.value).frames.forEach((image, index) => {
     const button = document.createElement('button');
@@ -118,13 +124,13 @@ function frame(time) {
   if (current !== lastFrame) {
     lastFrame = current;
     scrub.value = String(sprite._current._frame);
-    document.getElementById('frame-info').textContent = `${names[selected]} · ${facing.value === 'east' ? 'Right' : 'Left'} · frame ${sprite._current._frame + 1}/8 · ${HERO_STATES[selected][0]} fps · source ${image.naturalWidth || 'loading'} × ${image.naturalHeight || 'loading'} · display ${size.value} px`;
+    document.getElementById('frame-info').textContent = `${names[selected]} · ${facing.value === 'east' ? 'Right' : 'Left'} · frame ${sprite._current._frame + 1}/${sprite._current.frames.length} · ${HERO_STATES[selected][0]} fps · source ${image.naturalWidth || 'loading'} × ${image.naturalHeight || 'loading'} · display ${size.value} px`;
     document.querySelectorAll('.frame').forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.frame) === sprite._current._frame)));
   }
   const frames = sprite._current.frames;
   const loaded = frames.filter(image => image.complete && image.naturalWidth).length;
   const failed = frames.filter(image => image.complete && !image.naturalWidth).length;
-  const loadMessage = failed ? `${failed} frame(s) failed to load. Reload this page or check the asset paths.` : `${loaded}/8 frames loaded`;
+  const loadMessage = failed ? `${failed} frame(s) failed to load. Reload this page or check the asset paths.` : `${loaded}/${frames.length} frames loaded`;
   const loadStatus = document.getElementById('load-status');
   if (loadStatus.textContent !== loadMessage) loadStatus.textContent = loadMessage;
   requestAnimationFrame(frame);
