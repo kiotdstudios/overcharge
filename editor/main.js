@@ -362,23 +362,36 @@ genSeedCopy?.addEventListener('click', async () => {
   catch { genStatus.textContent = `Seed: ${v} (clipboard unavailable)`; }
 });
 btnSave?.addEventListener('click', async () => {
+  const ghStatus = document.getElementById('gh-pub-status');
+
+  // If a GitHub token is set, push directly to GitHub — no local folder needed.
+  // This is the cross-machine workflow: edit on any device, SAVE publishes live.
+  if (Persistence.getGitHubPat() && state.level?.number != null) {
+    if (ghStatus) { ghStatus.style.display = ''; ghStatus.style.color = '#8aaabb'; ghStatus.textContent = '↑ pushing to GitHub…'; }
+    const json = JSON.stringify(state.level, null, 2);
+    const gr   = await Persistence.pushLevelToGitHub(json, state.level.number);
+    if (ghStatus) {
+      ghStatus.style.color = gr.ok ? '#44ff88' : '#ff5566';
+      ghStatus.textContent = gr.message;
+      setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, 8000);
+    }
+    if (gr.ok) {
+      state.dirty = false;
+      await SnapUI.snapshotOnSaveIfChanged();
+      showSaveFlash({ ok: true, message: 'Saved + pushed to GitHub Pages' });
+    } else {
+      showSaveFlash({ ok: false, message: gr.message });
+    }
+    _updateFolderDisplay();
+    return;
+  }
+
+  // No token — fall back to local folder save.
   const r = await Persistence.saveCurrentLevel();
   if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
   showSaveFlash(r);
   if (r.ok) {
     try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
-    // Auto-publish to GitHub Pages if a PAT is stored — one-click publish from any device.
-    if (Persistence.getGitHubPat() && state.level?.number != null) {
-      const ghStatus = document.getElementById('gh-pub-status');
-      if (ghStatus) { ghStatus.style.display = ''; ghStatus.style.color = '#8aaabb'; ghStatus.textContent = '↑ pushing…'; }
-      const json = JSON.stringify(state.level, null, 2);
-      const gr   = await Persistence.pushLevelToGitHub(json, state.level.number);
-      if (ghStatus) {
-        ghStatus.style.color   = gr.ok ? '#44ff88' : '#ff5566';
-        ghStatus.textContent   = gr.message;
-        setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, 8000);
-      }
-    }
   }
   _updateFolderDisplay();
 });
