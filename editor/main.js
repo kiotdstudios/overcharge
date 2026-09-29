@@ -22,6 +22,9 @@ import * as Actions     from './actions.js';
 import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
 import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
+import { mountWorkspace } from './workspace.js';
+
+mountWorkspace();
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -637,7 +640,7 @@ const ghPatInput  = document.getElementById('gh-pat-input');
 function _updateTokenBtn() {
   if (!btnGhToken) return;
   const has = !!Persistence.getGitHubPat();
-  btnGhToken.textContent = has ? '🔑 TOKEN ✓' : '🔑 TOKEN';
+  btnGhToken.textContent = has ? 'GitHub connected ✓' : 'Connect GitHub';
   btnGhToken.style.color = has ? '#44ff88'     : '';
 }
 _updateTokenBtn();
@@ -798,7 +801,7 @@ document.getElementById('btn-copy-save-result')?.addEventListener('click', async
   const button = e.currentTarget;
   try {
     await navigator.clipboard.writeText(message);
-    button.textContent = 'COPIED';
+    button.textContent = 'Copied';
   } catch {
     // Clipboard permissions can differ across browsers: leave native copy usable.
     const range = document.createRange();
@@ -814,7 +817,7 @@ function showSaveFlash(result) {
   saveFlash.className = 'show' + (result.ok ? '' : ' err');
   saveFlash.textContent = result.ok ? `✓ ${result.message}` : `✗ ${result.message}`;
   const copyButton = document.getElementById('btn-copy-save-result');
-  if (copyButton) copyButton.textContent = 'COPY RESULT';
+  if (copyButton) copyButton.textContent = 'Copy result';
 }
 
 // ── Tile readout (CHIEF 2026-09-26) ───────────────────────────────────────
@@ -1890,15 +1893,7 @@ document.getElementById('btn-level-next')?.addEventListener('click', () => {
 });
 
 // §1 LEVEL nav readout: clicking the readout shows the native level-select briefly
-document.getElementById('level-nav-readout')?.addEventListener('click', () => {
-  if (!levelSelect) return;
-  levelSelect.style.display = 'block';
-  levelSelect.focus();
-  levelSelect.size = Math.min(8, levelSelect.options.length || 1);
-  const hide = () => { levelSelect.size = 0; levelSelect.style.display = 'none'; };
-  levelSelect.addEventListener('change', hide, { once: true });
-  levelSelect.addEventListener('blur', hide, { once: true });
-});
+document.getElementById('level-nav-readout')?.addEventListener('click', () => levelSelect?.focus());
 
 // §1 Snapshots chip: opens the same history dialog as btn-history
 document.getElementById('btn-snaps-chip')?.addEventListener('click', () => {
@@ -1929,7 +1924,7 @@ subscribe(() => { if (state.dirty) _scheduleRecoverySave(); });
 // Only fires when FSA is available — without it, download IS the correct save path.
 var _warnedNoFolder = false;
 subscribe(function() {
-  if (state.dirty && !_warnedNoFolder && Persistence.hasFSA() && !Persistence.saveFolderName()) {
+  if (state.dirty && !_warnedNoFolder && !Persistence.getGitHubPat() && Persistence.hasFSA() && !Persistence.saveFolderName()) {
     _warnedNoFolder = true;
     showSaveFlash({ ok: false, message: '\u26A0 No save folder set \u2014 SAVE will DOWNLOAD to Downloads, not write to your Git clone. Set \uD83D\uDCC1 FOLDER first.' });
   }

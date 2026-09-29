@@ -10,7 +10,7 @@ function collect(dir) {
   for (const entry of readdirSync(join(root, dir), { withFileTypes: true })) {
     const path = `${dir}/${entry.name}`;
     if (entry.isDirectory()) collect(path);
-    else if (entry.name.endsWith('.js')) files.push(path);
+    else if (/\.(js|css)$/.test(entry.name)) files.push(path);
   }
 }
 collect('editor');
@@ -19,7 +19,7 @@ files.sort();
 const hash = createHash('sha256');
 for (const path of files) hash.update(path).update('\0').update(readFileSync(join(root, path)));
 const version = hash.digest('hex').slice(0, 16);
-const imports = Object.fromEntries(files.map(path => [`./${path}`, `./${path}?v=${version}`]));
+const imports = Object.fromEntries(files.filter(path => path.endsWith('.js')).map(path => [`./${path}`, `./${path}?v=${version}`]));
 const block = `<!-- BEGIN GENERATED EDITOR MODULE VERSIONS -->\n<script type="importmap">\n${JSON.stringify({ imports }, null, 2)}\n</script>\n<!-- END GENERATED EDITOR MODULE VERSIONS -->\n<script type="module" src="editor/main.js?v=${version}"></script>`;
 const path = join(root, 'editor.html');
 let html = readFileSync(path, 'utf8');
@@ -27,6 +27,7 @@ const existing = /<!-- BEGIN GENERATED EDITOR MODULE VERSIONS -->[\s\S]*?<!-- EN
 const original = /<script type="module" src="editor\/main\.js[^"\n]*"><\/script>/;
 if (!existing.test(html) && !original.test(html)) throw new Error('Builder entry script not found');
 html = html.replace(existing.test(html) ? existing : original, block);
+html = html.replace(/href="editor\/workspace\.css[^"\n]*"/, `href="editor/workspace.css?v=${version}"`);
 writeFileSync(path, html);
 console.log(`Builder module version: ${version} (${files.length} modules)`);
 // The game also imports the shared collision modules; refresh both graphs.
