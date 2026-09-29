@@ -25,7 +25,7 @@ const exit = def.gates.find(g => g.isExit);
 check(exit.x === 1984 && exit.y === 256, 'exit remains at Chief original authored position');
 const gatedLevel = new Level({ ...def, enemies: [] });
 const stopped = move(gatedLevel, 48 * 32, 482, 1, 460);
-check(stopped.x + stopped.w <= exit.x, 'closed exit still blocks progression');
+check(stopped.x > exit.x + exit.w && !gatedLevel.complete, 'uncharged elevated exit permits exploration below without completion');
 gatedLevel.gates.find(g => g.isExit).open = true;
 const through = move(gatedLevel, exit.x - 42, 482, 1);
 check(through.x > exit.x + exit.w, 'opened exit allows lower-rooftop traversal');

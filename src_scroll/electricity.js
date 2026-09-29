@@ -534,7 +534,7 @@ export class PowerGate {
 
   // Returns true if this gate blocks the AABB (rx,ry,rw,rh)
   blocks(rx, ry, rw, rh) {
-    if (this.open) return false;
+    if (this.open || this.isExit) return false;
     return !(rx + rw <= this.x || rx >= this.x + this.w ||
              ry + rh <= this.y || ry >= this.y + this.h);
   }
@@ -554,11 +554,9 @@ export class PowerGate {
   //
   // `ry`/`rh` are OPTIONAL; callers that omit them get the legacy full-column block.
   blocksHorizontal(rx, rw, ry, rh) {
-    if (this.open) return false;
+    // Chief: exploration stays free; exit charge/contact controls completion.
+    if (this.open || this.isExit) return false;
     if (rx + rw <= this.x || rx >= this.x + this.w) return false;
-    // Exit gates block the full column — player cannot physically bypass
-    // without charging. Y-awareness only applies to non-exit (interior) gates.
-    if (this.isExit) return true;
     if (ry !== undefined && rh !== undefined) {
       // Y-aware for interior gates: block only when player Y overlaps gate Y.
       return !(ry + rh <= this.y || ry >= this.y + this.h);
