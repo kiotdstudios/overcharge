@@ -246,8 +246,8 @@ export function boundingRect(kind, ref) {
   if (kind === 'platform') return { x: ref.x, y: ref.y, w: ref.w || 96, h: ref.h || 12 };
   // Crate: x,y = top-left. w/h explicit or defaulted to 32×32.
   if (kind === 'crate')    return { x: ref.x, y: ref.y, w: ref.w || 32, h: ref.h || 32 };
-  // Chest: x,y = top-left of 104×104 content box (canvas 128×128, botPad=12 all sides).
-  if (kind === 'chest')    return { x: ref.x, y: ref.y, w: 104, h: 104 };
+  // Chest: x,y = top-left of the runtime 32x32 hitbox.
+  if (kind === 'chest')    return { x: ref.x, y: ref.y, w: 32, h: 32 };
   // SPAWN triangle points right — 14x14 rect from (x, y).
   // playerStart: 20×30 collision box, but the idle sprite is 92×92 drawn at
   // (x-36, y-48) — see renderer.js::_drawPlayerStart. Wrap the visible player.

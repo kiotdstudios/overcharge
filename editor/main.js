@@ -1593,10 +1593,10 @@ function _doSpawn(e, canvas) {
     obj = { id: 'crate_' + Date.now(), x: px, y: py, w: cw, h: ch };
     arr = L.crates || (L.crates = []); arrLabel = 'add_crate';
   } else if (kind === 'chest') {
-    // Chest: content box 104x104 (canvas 128x128, botPad=12). x = grid-snapped,
+    // Chest: runtime hitbox 32x32, display 36x36. x = grid-snapped,
     // y = grounded so content bottom sits on the floor tile. Default cost/reward
     // from Chief's ratification (cost 2, reward 10 — full pip).
-    const CHEST_H = 104;
+    const CHEST_H = 32; // Match the runtime hitbox and ground anchor.
     const px = _snapGrid(wx), py = _groundAt(wx, wy, CHEST_H);
     obj = { id: 'chest_' + Date.now(), x: px, y: py, cost: 2, reward: 10 };
     arr = L.chests || (L.chests = []); arrLabel = 'add_chest';

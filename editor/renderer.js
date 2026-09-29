@@ -1002,12 +1002,12 @@ function _drawCrates(ctx, arr) {
 }
 
 
-// Chest: real closed.png art (128x128 canvas, 104x104 content, botPad=12 on all sides).
-// x,y = top-left of the content box. Art is drawn at (x-12, y-12) to align content.
+// Chest: crop the 104x104 source content and display at runtime size 36x36.
+// x,y = runtime 32x32 hitbox top-left. Art is centered and bottom-aligned.
 // GEOMETRY.md is the contract — do not re-derive. frame_000 IS a real frame in this pack
 // (hash-verified different from closed.png); only closed.png is placeable.
-const CHEST_CANVAS  = 128;
-const CHEST_CONTENT = 104;
+const CHEST_CANVAS  = 36; // Runtime display size, not the source PNG canvas.
+const CHEST_CONTENT = 32; // Runtime hitbox, not the source art content size.
 const CHEST_BOT_PAD = 12;  // botPad = 12 uniform across all 11 files (GEOMETRY.md)
 
 function _drawChests(ctx, arr) {
@@ -1017,14 +1017,14 @@ function _drawChests(ctx, arr) {
   const IMG_PATH = 'assets/objects/chest/closed.png';
   for (const ch of arr) {
     // Art top-left is 12px left/above the content top-left
-    const artWorldX = ch.x - CHEST_BOT_PAD;
-    const artWorldY = ch.y - CHEST_BOT_PAD;
+    const artWorldX = Math.round(ch.x + CHEST_CONTENT / 2 - CHEST_CANVAS / 2);
+    const artWorldY = ch.y + CHEST_CONTENT - CHEST_CANVAS;
     const p  = worldToScreen(artWorldX, artWorldY);
     const artW = CHEST_CANVAS * z, artH = CHEST_CANVAS * z;
     const img = getImage(IMG_PATH);
     ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      ctx.drawImage(img, p.x, p.y, artW, artH);
+      ctx.drawImage(img, CHEST_BOT_PAD, CHEST_BOT_PAD, 104, 104, p.x, p.y, artW, artH);
       // Faint outline over content box so the hitbox is legible
       const cp = worldToScreen(ch.x, ch.y);
       const cw = CHEST_CONTENT * z, cch = CHEST_CONTENT * z;
