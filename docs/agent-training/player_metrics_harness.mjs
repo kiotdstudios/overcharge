@@ -1,42 +1,15 @@
-// Instrumentation harness for OVERCHARGE player controller.
-// Boots the actual Player class against a synthetic Level shim, drives
-// keyboard events into the Input module, steps physics at fixed dt,
-// records trajectory data and prints metrics.
+// Movement measurements using the real Player, Level and shared headless input.
+import { Player, Level, Input, held } from "../../_dev/support/headless.mjs";
 
-// ── DOM/env shims — must be installed BEFORE input.js registers listeners ──
-globalThis.__listeners = {};
-globalThis.window = {
-  addEventListener: (name, fn) => {
-    (globalThis.__listeners[name] = globalThis.__listeners[name] || []).push(fn);
-  }
-};
-globalThis.document = {
-  addEventListener: () => {},
-  createElement: () => ({ getContext: () => ({ fillRect: () => {}, drawImage: () => {}, save:()=>{}, restore:()=>{}, translate:()=>{}, rotate:()=>{}, beginPath:()=>{}, closePath:()=>{}, arc:()=>{}, fill:()=>{}, stroke:()=>{}, moveTo:()=>{}, lineTo:()=>{}, rect:()=>{}, fillText:()=>{}, strokeText:()=>{}, measureText:()=>({width:0}) }) }),
-  body: { appendChild: () => {} },
-};
-globalThis.Image = class {
-  constructor() { this.complete = true; this.naturalWidth = 92; this.naturalHeight = 92; }
-  addEventListener(n, f) { if (n === 'load') setTimeout(f, 0); }
-};
-
-// Dynamic imports AFTER shims are attached above.
-const { Player } = await import('../../src_scroll/player.js');
-const Input = await import('../../src_scroll/input.js');
 const {
   TILE, COLS, ROWS, W, H,
   GRAVITY, PLAYER_SPEED, JUMP_FORCE, PLAYER_W, PLAYER_H, RUN_MULTIPLIER,
 } = await import('../../src_scroll/constants.js');
 
-function fireKey(name, code) {
-  const ls = globalThis.__listeners[name] || [];
-  for (const fn of ls) fn({ code, preventDefault: () => {} });
-}
-const keyDown = c => fireKey('keydown', c);
-const keyUp   = c => fireKey('keyup',   c);
-function releaseAll() {
-  for (const c of ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','KeyA','KeyD','KeyW','KeyS','ShiftLeft','ShiftRight','Space','KeyE','KeyF']) keyUp(c);
-}
+const pressed = new Set();
+function keyDown(c) { pressed.add(c); held([...pressed]); }
+function keyUp(c) { pressed.delete(c); held([...pressed]); }
+function releaseAll() { pressed.clear(); held([]); Input.update(); }
 
 // ── Synthetic level (floor at row 12, 200 cols wide) ──
 function makeLevel({ platformX = null, gapCols = null, floorRow = 12, ledgeCol = null, ledgeRow = null } = {}) {
@@ -53,13 +26,7 @@ function makeLevel({ platformX = null, gapCols = null, floorRow = 12, ledgeCol =
   if (ledgeCol !== null && ledgeRow !== null) {
     for (let c = ledgeCol; c < ledgeCol + 8; c++) put(c, ledgeRow, 1);
   }
-  return {
-    cols, tiles,
-    gates: [], platforms: [], sources: [], pickups: [], enemies: [], switches: [], checkpoints: [],
-    pxW: cols * TILE,
-    tileAt(tx, ty) { if (tx < 0 || tx >= cols || ty < 0) return 1; if (ty >= ROWS) return 0; return tiles[ty*cols + tx] || 0; },
-    solidAt(tx, ty) { const v = this.tileAt(tx, ty); return v === 1 || v >= 10; },
-  };
+  return new Level({ cols, tiles });
 }
 
 const DT = 1/60;
@@ -237,13 +204,7 @@ function measureTerminalFall() {
   const cols = 20;
   const tiles = new Array(cols * ROWS).fill(0);
   for (let c = 0; c < cols; c++) tiles[(ROWS - 1) * cols + c] = 1;
-  const level = {
-    cols, tiles,
-    gates: [], platforms: [], sources: [], pickups: [], enemies: [], switches: [], checkpoints: [],
-    pxW: cols * TILE,
-    tileAt(tx, ty) { if (tx < 0 || tx >= cols || ty < 0) return 1; if (ty >= ROWS) return 0; return tiles[ty*cols + tx] || 0; },
-    solidAt(tx, ty) { const v = this.tileAt(tx, ty); return v === 1 || v >= 10; },
-  };
+  const level = new Level({ cols, tiles });
   const p = new Player(100, 0);
   let peakVy = 0;
   for (let i = 0; i < 300; i++) {
