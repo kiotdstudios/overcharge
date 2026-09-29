@@ -9,6 +9,7 @@ import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
 import { ChargePickup } from './electricity.js';
 import { ElectricBolt } from './entities.js';
 import { PlayerSprites } from './sprites.js';
+import { tileIsSolid, tileAllowsLanding } from './terrain-policy.js';
 
 // Sprite PNGs are 92x92; character content sits from y=14 to y=78 (feet at y=78)
 const SPRITE_W      = 92;
@@ -563,7 +564,7 @@ export class Player {
       const tBot = Math.floor((this.y + this.h) / TILE);
       for (let tx = tLeft; tx <= tRight; tx++) {
         const tile = level.tileAt(tx, tBot);
-        if (tile === 1 || tile >= 10) {   // legacy 1 OR any variant tile is solid ground
+        if (tileIsSolid(tile)) {
           this.y        = tBot * TILE - this.h;
           this.vy       = 0;
           this.grounded = true;
@@ -573,7 +574,7 @@ export class Player {
         // Using (tBot+1)*TILE instead of tBot*TILE prevents fall-through when
         // standing still — gravity nudges the player ~0.23px per frame which
         // rounds the tile index one row up, missing the narrow top-of-tile check.
-        if (tile === 2 && !dropThrough && prevBottom <= tBot * TILE + 8) {
+        if (tile === 2 && tileAllowsLanding(tile, prevBottom, tBot * TILE, dropThrough)) {
           this.y        = tBot * TILE - this.h;
           this.vy       = 0;
           this.grounded = true;

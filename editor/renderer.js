@@ -157,7 +157,7 @@ export function render(ctx, canvas) {
         }
       } else {
         ctx.fillStyle = tileIsSolid(v) ? '#2a3448' : (v === 2 ? '#3a4d6a' : '#552');
-        ctx.fillRect(p.x, p.y, tsz, tsz);
+        ctx.fillRect(p.x, p.y, tsz, v === 2 ? 7 * c.zoom : tsz);
       }
     }
   }

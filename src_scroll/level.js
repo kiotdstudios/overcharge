@@ -1,6 +1,7 @@
 // Level: tilemap + entity manager + update/draw
 import { TILE, COLS, ROWS, MAX_ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
+import { tileIsSolid } from './terrain-policy.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
 import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
@@ -89,7 +90,7 @@ export class Level {
     // Value 2 (one-way platform) is intentionally NOT solid.
     // Values 3-9 are RESERVED — treated as non-solid by design.
     const v = this.tileAt(tx, ty);
-    return v === 1 || v >= 10;
+    return tileIsSolid(v);
   }
 
   // Terrain blocks on both axes. Non-colliding facade art belongs in decorations.
@@ -97,7 +98,7 @@ export class Level {
     const v = this.tileAt(tx, ty);
     // Solid terrain must block both axes: side entry into vertically solid
     // building fill produces invisible floors inside the building.
-    return v === 1 || v >= 10;
+    return tileIsSolid(v);
   }
 
   isFailState(player) {

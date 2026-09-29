@@ -38,6 +38,12 @@ export function mountWorkspace() {
   byId('btn-choose-folder').title = 'Optional: save to a local Git clone instead of GitHub';
 
   const ribbon = document.createElement('div');
+  const facadeButton = document.createElement('button');
+  facadeButton.id = 'btn-landable-facade';
+  facadeButton.className = 'tp-btn';
+  facadeButton.textContent = 'Walk in front · landable top';
+  facadeButton.title = 'Select the raised building tiles, excluding the lower floor. Preserve the art, make its top landable, and open the route in front. Undo restores solid terrain.';
+  byId('tp-arrange').append(facadeButton);
   ribbon.id = 'workspace-tools';
   ribbon.setAttribute('aria-label', 'Level editing tools');
   root.append(ribbon);
@@ -126,6 +132,7 @@ export function mountWorkspace() {
     document.querySelectorAll('[data-tool]').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.tool === state.tool)));
     empty.classList.toggle('has-selection', byId('tp-selected-section').style.display !== 'none');
     const decorations = state.selection?.decorations?.size || 0;
+    facadeButton.disabled = !(state.selection?.tiles?.size > 0);
     const tiles = state.selection?.tiles?.size || 0;
     for (const id of ['btn-layer-front', 'btn-layer-forward', 'btn-layer-backward', 'btn-layer-back']) {
       byId(id).disabled = !decorations;

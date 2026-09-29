@@ -5,7 +5,7 @@ import {
   loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
-  screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
+  screenToWorld, levelRows, TILE_SIZE, tileIsSolid, tileSupportsStanding,
   getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
 } from './state.js';
@@ -23,8 +23,19 @@ import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
 import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
+import { facadeAction } from './facade.js';
 
 mountWorkspace();
+document.getElementById('btn-landable-facade')?.addEventListener('click', () => {
+  if (!state.level) return;
+  const cells = Selection.selectedTiles().map(cell => {
+    const value = state.level.tiles[cell.row * state.level.cols + cell.col];
+    const asset = state.manifest?.items?.find(item => item.id === tileAssetIdFor(value));
+    return { ...cell, path: asset?.path };
+  });
+  const action = facadeAction(state.level, cells, notify);
+  if (action) History.apply(action);
+});
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -1469,7 +1480,7 @@ function _groundAt(worldX, worldY, objH) {
   for (let r = startRow; r < rows; r++) {
     if (col >= 0 && col < L.cols) {
       const v = L.tiles[r * L.cols + col];
-      if (tileIsSolid(v)) return r * TILE_SIZE - objH;
+      if (tileSupportsStanding(v)) return r * TILE_SIZE - objH;
     }
   }
   return Math.round(worldY);
