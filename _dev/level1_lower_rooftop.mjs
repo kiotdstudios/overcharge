@@ -1,34 +1,32 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { Player, Level, held, step } from './support/headless.mjs';
-
 const def = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json', 'utf8'));
 let checks = 0;
-function walk(map, col, direction) {
-  // Isolate terrain traversal from the exit's deliberate route barrier.
-  const level = new Level({ ...map, gates: [], enemies: [] });
-  const player = new Player(direction > 0 ? col * 32 - 42 : (col + 1) * 32 + 10, 16 * 32 - 30);
+function check(ok, message) { assert.ok(ok, message); checks++; }
+function move(level, x, y, direction) {
+  const player = new Player(x, y);
   player.grounded = true;
   held([direction > 0 ? 'ArrowRight' : 'ArrowLeft']);
   for (let i = 0; i < 90; i++) step(player, level);
   held([]);
   return player;
 }
-for (const col of [49]) {
-  for (const direction of [1, -1]) {
-    const p = walk(def, col, direction);
-    assert.ok(direction > 0 ? p.x > (col + 1) * 32 : p.x + p.w < col * 32,
-      `lower rooftop crosses building edge ${col} direction ${direction}`);
-    assert.equal(p.y + p.h, 512, 'feet remain on lower rooftop');
-    checks += 2;
-  }
-  const original = structuredClone(def);
-  original.tiles[15 * original.cols + col] = col === 49 ? 27 : 38;
-  assert.ok(walk(original, col, 1).x < col * 32, 'original side wall reproduces blocker');
-  checks++;
+const level = new Level({ ...def, gates: [], enemies: [] });
+const blocked = move(level, 49 * 32 - 42, 512 - 30, 1);
+check(blocked.x + blocked.w <= 49 * 32, 'lower path cannot enter solid building');
+check(blocked.y + blocked.h === 512, 'blocked player remains on lower rooftop');
+const roof = move(level, 50 * 32, 320 - 30, 1);
+check(roof.x > 50 * 32 + 80, 'player walks across upper rooftop');
+check(roof.y + roof.h === 320, 'player stands on visible rooftop surface');
+for (let tile = 24; tile <= 59; tile++) {
+  const tiles = new Array(8 * 18).fill(0);
+  for (let col = 0; col < 8; col++) tiles[16 * 8 + col] = 16;
+  tiles[15 * 8 + 4] = tile;
+  const rig = new Level({ cols: 8, tiles });
+  const right = move(rig, 4 * 32 - 42, 512 - 30, 1);
+  const left = move(rig, 5 * 32 + 10, 512 - 30, -1);
+  check(right.x + right.w <= 128, `tile ${tile} blocks entry from left`);
+  check(left.x >= 160, `tile ${tile} blocks entry from right`);
 }
-const level = new Level(def);
-assert.ok(level.tileBlocksX(49, 14, 15), 'upper building side remains solid');
-assert.ok(level.tileBlocksX(65, 14, 15), 'upper right wall remains solid');
-checks += 2;
 console.log(`RESULTS: ${checks} passed, 0 failed`);

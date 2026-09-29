@@ -92,20 +92,11 @@ export class Level {
     return v === 1 || v >= 10;
   }
 
-  // Building section tiles (IDs 24-41) are solid vertically (player can land on
-  // them) but pass-through horizontally — they are wall-facade art, not barriers.
-  // A player standing on a floor tile must be able to run in front of a building
-  // wall without being stopped. Only _resolveX uses this; _resolveY and solidAt
-  // are unchanged so vertical grounding still works normally.
-  // groundRow = tBot + 1 from _resolveX — the tile row the player stands on.
-  // Building facades (24-41) only block horizontally when there is NO floor
-  // in the destination column. Floor present = run past; no floor = wall edge.
-  tileBlocksX(tx, ty, groundRow) {
+  // Terrain blocks on both axes. Non-colliding facade art belongs in decorations.
+  tileBlocksX(tx, ty) {
     const v = this.tileAt(tx, ty);
-    // Tiles 27/38 are structural side walls (left/right edge of enclosed buildings).
-    // They always block horizontally — they are never pass-through facades.
-    if (v === 27 || v === 38) return true;
-    if (v >= 24 && v <= 41) return !this.solidAt(tx, groundRow);
+    // Solid terrain must block both axes: side entry into vertically solid
+    // building fill produces invisible floors inside the building.
     return v === 1 || v >= 10;
   }
 
