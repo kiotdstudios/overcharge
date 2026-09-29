@@ -4,21 +4,31 @@ import { Player, Level, held, step } from './support/headless.mjs';
 const def = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json', 'utf8'));
 let checks = 0;
 function check(ok, message) { assert.ok(ok, message); checks++; }
-function move(level, x, y, direction) {
+function move(level, x, y, direction, frames = 90) {
   const player = new Player(x, y);
   player.grounded = true;
   held([direction > 0 ? 'ArrowRight' : 'ArrowLeft']);
-  for (let i = 0; i < 90; i++) step(player, level);
+  for (let i = 0; i < frames; i++) step(player, level);
   held([]);
   return player;
 }
 const level = new Level({ ...def, gates: [], enemies: [] });
-const blocked = move(level, 49 * 32 - 42, 512 - 30, 1);
-check(blocked.x + blocked.w <= 49 * 32, 'lower path cannot enter solid building');
-check(blocked.y + blocked.h === 512, 'blocked player remains on lower rooftop');
-const roof = move(level, 50 * 32, 320 - 30, 1);
-check(roof.x > 50 * 32 + 80, 'player walks across upper rooftop');
-check(roof.y + roof.h === 320, 'player stands on visible rooftop surface');
+const crossing = move(level, 48 * 32, 512 - 30, 1, 460);
+check(crossing.x > 65 * 32, 'player crosses whole background building along lower rooftop');
+check(crossing.y + crossing.h === 512, 'feet remain on visible lower rooftop throughout crossing');
+for (let y = 10; y < 16; y++) for (let x = 49; x <= 65; x++) {
+  check(!level.solidAt(x, y), 'background building has no invisible floors or walls');
+  check(def.decorations.some(d => d.id === `bg_exit_building_${x}_${y}` && fs.existsSync(d.src)), 'original art remains as background decoration');
+}
+const gate = level.gates; // terrain-only rig intentionally excludes gates
+const exit = def.gates.find(g => g.isExit);
+check(exit.y + exit.h === 512, 'exit is grounded on the same lower walking surface');
+const gatedLevel = new Level({ ...def, enemies: [] });
+const stopped = move(gatedLevel, 48 * 32, 482, 1, 460);
+check(stopped.x + stopped.w <= exit.x, 'closed exit still blocks progression');
+gatedLevel.gates.find(g => g.isExit).open = true;
+const through = move(gatedLevel, exit.x - 42, 482, 1);
+check(through.x > exit.x + exit.w, 'opened exit allows lower-rooftop traversal');
 for (let tile = 24; tile <= 59; tile++) {
   const tiles = new Array(8 * 18).fill(0);
   for (let col = 0; col < 8; col++) tiles[16 * 8 + col] = 16;

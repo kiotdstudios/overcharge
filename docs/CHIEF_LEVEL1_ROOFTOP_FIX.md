@@ -1,5 +1,13 @@
 # Level 1 lower rooftop collision
 
+## Final direction confirmed by Chief
+
+Chief explicitly chose: "Walk along the lower roof with the building as background." Converted 102 cells at columns 49-65, rows 10-15 from solid terrain into existing background decorations, preserving original tile art, transforms and position. Lower rooftop row 16 stays solid. Moved the exit gate onto that lower walking surface (feet y=512), preserving its charge cost and progression barrier. Global terrain collision remains consistent on both axes.
+
+Verification: real Player/Level simulation crosses the full background section on the lower rooftop, checks all background cells have no collision, preserves all art paths, and verifies closed/open exit behavior: 281 passed. Spawn suite 9 passed. Browser QA used an isolated server with only the test spawn overridden: walked past the former building edge, observed player feet on the visible lower rooftop in front of the building; proof saved to outputs/level1-background-route.png outside the repo. The real spawn was not changed.
+
+Aki: both machines use the public Pages URLs, so a stale local branch alone cannot explain the reported divergence. Preserve unsaved edits; reconcile this new level JSON before a full-level SAVE. Earlier instructions to restore a wall or make facade terrain pass-through are superseded by the approved background-art authoring approach.
+
 ## Correction after Chief's second playtest
 
 The initial pass-through fix below was wrong and is superseded. Chief's screenshot showed the player inside building fill with no visible rooftop beneath. Solid facade tiles were ignored horizontally but remained solid vertically, creating invisible interior floors. Restored tile (49,15) to 27 and removed facade pass-through in Level.tileBlocksX. All terrain now blocks both axes; decorative backgrounds must be authored separately. Game and Builder module graphs are versioned together.

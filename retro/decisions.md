@@ -1,5 +1,7 @@
 # Decisions
 
+- 2026-09-28 · Chief confirmed lower-rooftop traversal in front of the tall building. Author that building as non-colliding background decorations, keep the lower roof as terrain, and ground the exit on the lower route. Rejected inconsistent horizontal/vertical collision and the assumed climb route. Real movement and browser visible-support evidence are required.
+
 What the project now believes, newest last. Only entries that change future
 behavior (a rule, a reversal, a chosen approach). Format:
 `YYYY-MM-DD · Decision · Why · What it replaces`.
