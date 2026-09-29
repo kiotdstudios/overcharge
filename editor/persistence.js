@@ -705,7 +705,7 @@ async function _confirmDiscardIfDirty(msg) {
 // works as a publish tool from any browser on any machine — no git, no local
 // clone required. Token is stored in localStorage (never sent anywhere else).
 const _GH_REPO   = 'kiotdstudios/overcharge';
-const _GH_BRANCH = 'main';
+const _GH_BRANCH = 'agent/orcha-gameplay';
 
 export function getGitHubPat()      { return localStorage.getItem('overcharge_gh_pat') || ''; }
 export function setGitHubPat(token) {
@@ -744,7 +744,7 @@ export async function pushLevelToGitHub(levelJson, levelNumber) {
     }
     const j   = await r.json();
     const sha7 = j.commit?.sha?.slice(0, 7) || '?';
-    return { ok: true, sha: sha7, message: `✓ Published to GitHub (${sha7}) — live in ~60s` };
+    return { ok: true, sha: sha7, message: `✓ Saved to ${_GH_BRANCH} (${sha7}) — Pages deployment pending` };
   } catch (err) { return { ok: false, message: `Push network error: ${err.message}` }; }
 }
 
