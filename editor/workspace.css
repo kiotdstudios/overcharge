@@ -107,3 +107,5 @@ input[type=checkbox] { accent-color:var(--cyan); }
 @media (max-width:1180px) { #editor-root { grid-template-rows:64px 88px minmax(0,1fr) auto; } }
 @media (max-width:900px) { #editor-root { grid-template-rows:auto 116px minmax(0,1fr) auto; } }
 @media (max-width:650px) { #editor-root { grid-template-rows:auto 164px minmax(0,1fr) auto; } }
+#btn-landable-facade { width:100%; margin-top:8px; padding:9px; border:1px solid #536d87; border-radius:5px; background:#203248; color:#dceaff; cursor:pointer; }
+#btn-landable-facade:disabled { opacity:.45; cursor:default; }

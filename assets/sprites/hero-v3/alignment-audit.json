@@ -1,0 +1,252 @@
+{
+  "referenceFrameSize": 512,
+  "referenceAnchor": [
+    256,
+    496
+  ],
+  "displaySize": 80,
+  "maxWalkFootDeviationPixels": 0.1395534290271172,
+  "walkFrames": [
+    {
+      "path": "walk/east/frame_000.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        124,
+        74,
+        386,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/east/frame_001.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        146,
+        74,
+        350,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/east/frame_002.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        169,
+        74,
+        352,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/east/frame_003.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "alphaBounds": [
+        414,
+        182,
+        863,
+        1217
+      ],
+      "normalizedFeet": 0.970494417862839,
+      "displayFeetAt80": 77.63955342902712
+    },
+    {
+      "path": "walk/east/frame_004.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        115,
+        87,
+        403,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/east/frame_005.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        128,
+        82,
+        353,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/east/frame_006.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        150,
+        82,
+        354,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/east/frame_007.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        123,
+        87,
+        404,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/west/frame_000.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        126,
+        74,
+        388,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/west/frame_001.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        162,
+        74,
+        366,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/west/frame_002.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        160,
+        74,
+        343,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/west/frame_003.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "alphaBounds": [
+        391,
+        182,
+        840,
+        1217
+      ],
+      "normalizedFeet": 0.970494417862839,
+      "displayFeetAt80": 77.63955342902712
+    },
+    {
+      "path": "walk/west/frame_004.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        109,
+        87,
+        397,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/west/frame_005.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        159,
+        82,
+        384,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/west/frame_006.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        158,
+        82,
+        362,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    },
+    {
+      "path": "walk/west/frame_007.png",
+      "size": [
+        512,
+        512
+      ],
+      "alphaBounds": [
+        108,
+        87,
+        389,
+        496
+      ],
+      "normalizedFeet": 0.96875,
+      "displayFeetAt80": 77.5
+    }
+  ],
+  "originalImagesUnchanged": true
+}

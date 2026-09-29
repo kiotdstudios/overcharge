@@ -39,3 +39,11 @@ let gameHtml = readFileSync(gamePath, 'utf8');
 if (!gameExisting.test(gameHtml) && !gameOriginal.test(gameHtml)) throw new Error('Game entry script not found');
 gameHtml = gameHtml.replace(gameExisting.test(gameHtml) ? gameExisting : gameOriginal, gameBlock);
 writeFileSync(gamePath, gameHtml);
+// The isolated character lab shares the tested animator, but is not production activation.
+const labPath = join(root, 'hero-lab.html');
+const labBlock = block.replaceAll('EDITOR MODULE', 'HERO LAB MODULE').replace('<script type="module" src="editor/main.js?v=', '<script type="module" src="editor/hero-lab.js?v=');
+const labExisting = /<!-- BEGIN GENERATED HERO LAB MODULE VERSIONS -->[\s\S]*?<!-- END GENERATED HERO LAB MODULE VERSIONS -->\s*<script type="module" src="editor\/hero-lab\.js[^"\n]*"><\/script>/;
+const labOriginal = /<script type="module" src="editor\/hero-lab\.js[^"\n]*"><\/script>/;
+const labHtml = readFileSync(labPath, 'utf8');
+if (!labExisting.test(labHtml) && !labOriginal.test(labHtml)) throw new Error('Character lab entry script not found');
+writeFileSync(labPath, labHtml.replace(labExisting.test(labHtml) ? labExisting : labOriginal, labBlock));

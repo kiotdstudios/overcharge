@@ -1,0 +1,164 @@
+{
+  "status": "review candidate, not production activated",
+  "cellSize": 512,
+  "footAnchor": 496,
+  "actions": {
+    "walk": {
+      "frameCount": 7,
+      "fps": 10,
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "nativeScale": 1,
+      "frames": [
+        {
+          "sourceCell": 0,
+          "bounds": [
+            81,
+            63,
+            470,
+            496
+          ]
+        },
+        {
+          "sourceCell": 1,
+          "bounds": [
+            35,
+            53,
+            477,
+            496
+          ]
+        },
+        {
+          "sourceCell": 2,
+          "bounds": [
+            34,
+            63,
+            477,
+            496
+          ]
+        },
+        {
+          "sourceCell": 3,
+          "bounds": [
+            34,
+            53,
+            455,
+            496
+          ]
+        },
+        {
+          "sourceCell": 4,
+          "bounds": [
+            76,
+            53,
+            435,
+            496
+          ]
+        },
+        {
+          "sourceCell": 5,
+          "bounds": [
+            60,
+            53,
+            474,
+            496
+          ]
+        },
+        {
+          "sourceCell": 6,
+          "bounds": [
+            34,
+            53,
+            464,
+            496
+          ]
+        }
+      ]
+    },
+    "run": {
+      "frameCount": 8,
+      "fps": 14,
+      "sourceSize": [
+        1774,
+        887
+      ],
+      "nativeScale": 1,
+      "frames": [
+        {
+          "sourceCell": 0,
+          "bounds": [
+            51,
+            70,
+            470,
+            496
+          ]
+        },
+        {
+          "sourceCell": 1,
+          "bounds": [
+            35,
+            70,
+            477,
+            496
+          ]
+        },
+        {
+          "sourceCell": 2,
+          "bounds": [
+            34,
+            66,
+            477,
+            496
+          ]
+        },
+        {
+          "sourceCell": 3,
+          "bounds": [
+            34,
+            55,
+            477,
+            496
+          ]
+        },
+        {
+          "sourceCell": 4,
+          "bounds": [
+            61,
+            53,
+            468,
+            496
+          ]
+        },
+        {
+          "sourceCell": 5,
+          "bounds": [
+            52,
+            53,
+            476,
+            486
+          ]
+        },
+        {
+          "sourceCell": 6,
+          "bounds": [
+            34,
+            53,
+            462,
+            496
+          ]
+        },
+        {
+          "sourceCell": 7,
+          "bounds": [
+            42,
+            53,
+            451,
+            482
+          ]
+        }
+      ]
+    }
+  }
+}

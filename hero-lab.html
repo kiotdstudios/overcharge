@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OVERCHARGE • Character lab</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101824;color:#e4edf9;font:14px 'Segoe UI',sans-serif}header{padding:22px 28px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #334155;background:#182332}header a{color:#8bdcff;text-decoration:none}h1{font:600 22px Bahnschrift,'Segoe UI',sans-serif;margin:0}header span{color:#aebed2;margin-left:auto;font-size:12px}main{display:grid;grid-template-columns:280px minmax(0,1fr);max-width:1280px;margin:auto;padding:24px;gap:24px}aside{background:#182332;border:1px solid #334155;border-radius:8px;padding:20px}h2{font-size:15px;margin:0 0 10px}p{color:#afc0d6;line-height:1.6;margin:8px 0 18px}.state-group{margin-bottom:22px}.state-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px}button,select,input{font:inherit}button,select{background:#24354b;color:#e4edf9;border:1px solid #405773;border-radius:5px;padding:9px 10px;cursor:pointer}button[aria-pressed=true]{border-color:#68d8ff;background:#254a60;color:#b3eeff}button:hover{background:#304860}button:focus-visible,select:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid #68d8ff;outline-offset:3px}button:disabled{opacity:.45;cursor:default}.preview{min-width:0}.preview-heading{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}.preview-heading h2{font-size:22px;margin:0}.badge{font-size:11px;border:1px solid #607188;border-radius:4px;padding:5px 8px;color:#d2e3f5;background:#243248}.badge.pending{color:#f4d39a;border-color:#82683e;background:#342a20}canvas{width:100%;height:330px;display:block;background:#09111f;border:1px solid #334155;border-radius:8px;image-rendering:pixelated}.controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:18px 0}label{display:flex;gap:8px;align-items:center;color:#b8c9df}input[type=range]{accent-color:#68d8ff}.frame-info{font:12px Consolas,monospace;color:#a4bbd6;padding:12px;background:#182332;border-radius:5px}.frames{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-top:20px}.frame{padding:6px;background:#182332;border:1px solid #334155;border-radius:5px;cursor:pointer}.frame[aria-pressed=true]{border-color:#f4cf66}.frame img{display:block;width:100%;height:86px;object-fit:contain;image-rendering:pixelated;background:#0b1422;pointer-events:none}.frame span{display:block;color:#a9bbd1;font-size:11px;margin-top:5px;text-align:center}.note{border-left:3px solid #68d8ff;padding:4px 0 4px 14px;margin:22px 0;color:#afc0d6;font-size:13px;line-height:1.6}#load-status{color:#a9c4dd;font-size:12px}.key{font-family:Consolas,monospace;color:#e4edf9}details{margin-top:24px;color:#afc0d6}summary{cursor:pointer}details p{font-size:12px}.source{font-size:12px;color:#8ea5be;margin:14px 0}#playback-note{font-size:12px;margin-top:8px}.reduced{color:#f4d39a}@media(max-width:850px){main{grid-template-columns:1fr;padding:16px}.state-group{display:inline-block;vertical-align:top;width:31%;margin-right:2%}aside{padding:15px}.frames{grid-template-columns:repeat(4,1fr)}header{padding:16px;flex-wrap:wrap}header span{margin:0}.state-buttons{grid-template-columns:1fr}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header><a href="editor.html">‹ Builder</a><h1>Character lab</h1><span>OVERCHARGE / Hero v3</span></header>
+<main>
+<aside>
+<h2>Animation library</h2>
+<p>Choose a state to inspect the new character at game scale.</p>
+<div id="animation-groups"></div>
+<details><summary>Integration status</summary><p>The new animator is prepared and tested. This page previews assets; it does not enable climbing, ladders, wall sliding, or grappling in the game. Production still uses the current player until integration is verified.</p><p>Original PNGs are preserved. Higher-resolution walking frames are drawn using their natural source dimensions and the same display anchor.</p></details>
+</aside>
+<section class="preview">
+<div class="preview-heading"><h2 id="state-title">Idle</h2><span id="state-badge" class="badge">Animation preview</span></div>
+<canvas id="hero-preview" width="880" height="330" aria-label="Animated hero preview at 80 pixels with a feet baseline"></canvas>
+<div class="controls">
+<button id="play-toggle" type="button">Pause</button><button id="replay" type="button">Replay</button>
+<label>Facing <select id="facing"><option value="east">Right</option><option value="west">Left</option></select></label>
+<label>Size <select id="display-size"><option value="80">80 px · game scale</option><option value="160">160 px · inspect</option></select></label>
+<label>Frame <input id="frame-scrub" type="range" min="0" max="7" value="0" aria-label="Animation frame"></label>
+</div>
+<div class="frame-info" id="frame-info" role="status">Loading character frames…</div>
+<div id="playback-note"></div><p id="load-status" role="status"></p>
+<div id="frame-strip" class="frames" aria-label="Eight animation frames"></div>
+<div class="note">A cyan line marks the feet anchor. Select individual frames to check pose continuity and ground alignment. <span class="key">Space</span> pauses playback; <span class="key">R</span> replays the animation.</div>
+<p class="source">Source: the tested overcharge-v2 hero-v3 pack. Traversal states are marked as assets only.</p>
+</section>
+</main>
+<!-- BEGIN GENERATED HERO LAB MODULE VERSIONS -->
+<script type="importmap">
+{
+  "imports": {
+    "./editor/actions.js": "./editor/actions.js?v=c2fc84517a6c01e2",
+    "./editor/assets.js": "./editor/assets.js?v=c2fc84517a6c01e2",
+    "./editor/buildinfo.js": "./editor/buildinfo.js?v=c2fc84517a6c01e2",
+    "./editor/clipboard.js": "./editor/clipboard.js?v=c2fc84517a6c01e2",
+    "./editor/facade.js": "./editor/facade.js?v=c2fc84517a6c01e2",
+    "./editor/generator.js": "./editor/generator.js?v=c2fc84517a6c01e2",
+    "./editor/hero-lab.js": "./editor/hero-lab.js?v=c2fc84517a6c01e2",
+    "./editor/history.js": "./editor/history.js?v=c2fc84517a6c01e2",
+    "./editor/localstore.js": "./editor/localstore.js?v=c2fc84517a6c01e2",
+    "./editor/main.js": "./editor/main.js?v=c2fc84517a6c01e2",
+    "./editor/persistence.js": "./editor/persistence.js?v=c2fc84517a6c01e2",
+    "./editor/renderer.js": "./editor/renderer.js?v=c2fc84517a6c01e2",
+    "./editor/selection.js": "./editor/selection.js?v=c2fc84517a6c01e2",
+    "./editor/snapshots.js": "./editor/snapshots.js?v=c2fc84517a6c01e2",
+    "./editor/snapshotui.js": "./editor/snapshotui.js?v=c2fc84517a6c01e2",
+    "./editor/state.js": "./editor/state.js?v=c2fc84517a6c01e2",
+    "./editor/tools.js": "./editor/tools.js?v=c2fc84517a6c01e2",
+    "./editor/workspace.js": "./editor/workspace.js?v=c2fc84517a6c01e2",
+    "./src_scroll/background.js": "./src_scroll/background.js?v=c2fc84517a6c01e2",
+    "./src_scroll/camera.js": "./src_scroll/camera.js?v=c2fc84517a6c01e2",
+    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=c2fc84517a6c01e2",
+    "./src_scroll/constants.js": "./src_scroll/constants.js?v=c2fc84517a6c01e2",
+    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=c2fc84517a6c01e2",
+    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=c2fc84517a6c01e2",
+    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=c2fc84517a6c01e2",
+    "./src_scroll/entities.js": "./src_scroll/entities.js?v=c2fc84517a6c01e2",
+    "./src_scroll/hero-render.js": "./src_scroll/hero-render.js?v=c2fc84517a6c01e2",
+    "./src_scroll/hero-sprites.js": "./src_scroll/hero-sprites.js?v=c2fc84517a6c01e2",
+    "./src_scroll/input.js": "./src_scroll/input.js?v=c2fc84517a6c01e2",
+    "./src_scroll/level.js": "./src_scroll/level.js?v=c2fc84517a6c01e2",
+    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=c2fc84517a6c01e2",
+    "./src_scroll/main.js": "./src_scroll/main.js?v=c2fc84517a6c01e2",
+    "./src_scroll/player.js": "./src_scroll/player.js?v=c2fc84517a6c01e2",
+    "./src_scroll/render.js": "./src_scroll/render.js?v=c2fc84517a6c01e2",
+    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=c2fc84517a6c01e2",
+    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=c2fc84517a6c01e2",
+    "./src_scroll/terrain-policy.js": "./src_scroll/terrain-policy.js?v=c2fc84517a6c01e2",
+    "./src_scroll/ui.js": "./src_scroll/ui.js?v=c2fc84517a6c01e2",
+    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=c2fc84517a6c01e2"
+  }
+}
+</script>
+<!-- END GENERATED HERO LAB MODULE VERSIONS -->
+<script type="module" src="editor/hero-lab.js?v=c2fc84517a6c01e2"></script>
+</body>
+</html>

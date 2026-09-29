@@ -38,6 +38,12 @@ export function mountWorkspace() {
   byId('btn-choose-folder').title = 'Optional: save to a local Git clone instead of GitHub';
 
   const ribbon = document.createElement('div');
+  const facadeButton = document.createElement('button');
+  facadeButton.id = 'btn-landable-facade';
+  facadeButton.className = 'tp-btn';
+  facadeButton.textContent = 'Walk in front · landable top';
+  facadeButton.title = 'Select the raised building tiles, excluding the lower floor. Preserve the art, make its top landable, and open the route in front. Undo restores solid terrain.';
+  byId('tp-arrange').append(facadeButton);
   ribbon.id = 'workspace-tools';
   ribbon.setAttribute('aria-label', 'Level editing tools');
   root.append(ribbon);
@@ -88,7 +94,7 @@ export function mountWorkspace() {
   byId('tools-panel-hdr').after(views);
   const empty = document.createElement('div');
   empty.id = 'selection-help';
-  empty.innerHTML = '<h3>Edit an object</h3><p>Use Move and click an object to adjust its position, size, or settings.</p><p>Choose an asset on the left, then click or drag it onto the level.</p>';
+  empty.innerHTML = '<h3>Edit an object</h3><p>Use Move and click an object to adjust its position, size, or settings.</p><p>Choose an asset on the left, then click or drag it onto the level.</p><p><a href="hero-lab.html" target="_blank" rel="noopener" style="color:#8bdcff">Preview new character animations</a></p>';
   views.after(empty);
 
   const editSections = [byId('tp-selected-section'), byId('tp-arrange').parentElement, byId('tp-spawn').parentElement];
@@ -126,6 +132,7 @@ export function mountWorkspace() {
     document.querySelectorAll('[data-tool]').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.tool === state.tool)));
     empty.classList.toggle('has-selection', byId('tp-selected-section').style.display !== 'none');
     const decorations = state.selection?.decorations?.size || 0;
+    facadeButton.disabled = !(state.selection?.tiles?.size > 0);
     const tiles = state.selection?.tiles?.size || 0;
     for (const id of ['btn-layer-front', 'btn-layer-forward', 'btn-layer-backward', 'btn-layer-back']) {
       byId(id).disabled = !decorations;

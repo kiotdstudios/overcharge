@@ -121,7 +121,7 @@ export const TILE_REGISTRY_ORDER = Object.freeze(
 export const TILE_DEFAULT_ID = 'env_rt_tile_mid_a';
 
 export const TILE_VARIANT_BASE = 10;
-export function tileIsSolid(v) { return v === 1 || v >= TILE_VARIANT_BASE; }
+export { tileIsSolid, tileSupportsStanding } from '../src_scroll/terrain-policy.js';
 
 // Returns the asset id for a stored tile value, or null if not solid.
 // Value 1 â†’ default id. Value >= 10 â†’ registry lookup. Unknown registry

@@ -47,3 +47,5 @@ Evidence 2026-09-28: Builder SAVE first wrote main instead of gameplay; transfer
 - **Improves**: Fewer permission retries and partial installations.
 - **Risks**: Parent permissions are broader; request only the smallest directory required and never overwrite existing skills without authorization.
 - **Routed to**:
+
+Evidence 2026-09-29: Placement/movement verification recurred: one-way rooftop support was ignored by Builder grounding, and new raised facade cells blocked the lower route. Added explicit landable-facade conversion and shared terrain predicates.

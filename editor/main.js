@@ -5,7 +5,7 @@ import {
   loadManifest, loadLevel, preloadManifestImages,
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
-  screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
+  screenToWorld, levelRows, TILE_SIZE, tileIsSolid, tileSupportsStanding,
   getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
   DEFAULT_SECTION_ROWS, DEFAULT_SECTION_COLS, MAX_LEVEL_ROWS,
@@ -24,8 +24,19 @@ import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
 import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
+import { facadeAction } from './facade.js';
 
 mountWorkspace();
+document.getElementById('btn-landable-facade')?.addEventListener('click', () => {
+  if (!state.level) return;
+  const cells = Selection.selectedTiles().map(cell => {
+    const value = state.level.tiles[cell.row * state.level.cols + cell.col];
+    const asset = state.manifest?.items?.find(item => item.id === tileAssetIdFor(value));
+    return { ...cell, path: asset?.path };
+  });
+  const action = facadeAction(state.level, cells, notify);
+  if (action) History.apply(action);
+});
 
 // Default level to load on first boot. After that, the dropdown drives switching.
 const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
@@ -1517,7 +1528,7 @@ function _groundAt(worldX, worldY, objH) {
   for (let r = startRow; r < rows; r++) {
     if (col >= 0 && col < L.cols) {
       const v = L.tiles[r * L.cols + col];
-      if (tileIsSolid(v)) return r * TILE_SIZE - objH;
+      if (tileSupportsStanding(v)) return r * TILE_SIZE - objH;
     }
   }
   return Math.round(worldY);
@@ -1641,10 +1652,10 @@ function _doSpawn(e, canvas) {
     obj = { id: 'crate_' + Date.now(), x: px, y: py, w: cw, h: ch };
     arr = L.crates || (L.crates = []); arrLabel = 'add_crate';
   } else if (kind === 'chest') {
-    // Chest: content box 104x104 (canvas 128x128, botPad=12). x = grid-snapped,
+    // Chest: runtime hitbox 32x32, display 36x36. x = grid-snapped,
     // y = grounded so content bottom sits on the floor tile. Default cost/reward
     // from Chief's ratification (cost 2, reward 10 — full pip).
-    const CHEST_H = 104;
+    const CHEST_H = 32; // Match the runtime hitbox and ground anchor.
     const px = _snapGrid(wx), py = _groundAt(wx, wy, CHEST_H);
     obj = { id: 'chest_' + Date.now(), x: px, y: py, cost: 2, reward: 10 };
     arr = L.chests || (L.chests = []); arrLabel = 'add_chest';

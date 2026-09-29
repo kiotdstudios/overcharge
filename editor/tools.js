@@ -17,7 +17,7 @@ import {
   snapPoint, snapDelta, snapForAsset, snapForRef, groupSnap,
   SNAP_DECORATION_DEFAULT, effectiveSnap,
   decoDimensions, getCachedImage,
-  tileValueForAssetId, tileIsSolid, getTile, levelRows,
+  tileValueForAssetId, tileIsSolid, tileSupportsStanding, getTile, levelRows,
   flashPlacementReject,
 } from './state.js';
 import * as Actions from './actions.js';
@@ -677,7 +677,7 @@ function _anchorObjBottom(worldX, worldY, ow, oh) {
     // VALUE, not (col,row) — so it evaluated `footCol >= 10` and reported "solid"
     // on the very first row scanned for any object past column 10, grounding it
     // into thin air. Must read the tile first.
-    if (tileIsSolid(getTile(footCol, r))) { surfaceY = r * TILE_SIZE; break; }
+    if (tileSupportsStanding(getTile(footCol, r))) { surfaceY = r * TILE_SIZE; break; }
   }
   if (surfaceY == null) {
     // No floor found below — snap top to 16px grid (place in air)
@@ -774,7 +774,7 @@ function _anchorGateBottom(worldX, worldY, gw, gh) {
   for (let r = fromRow; r < rows; r++) {
     let solid = false;
     for (let c = startCol; c <= endCol; c++) {
-      if (tileIsSolid(getTile(c, r))) { solid = true; break; }
+    if (tileSupportsStanding(getTile(c, r))) { solid = true; break; }
     }
     if (solid) { surfaceRow = r; break; }
   }
@@ -964,7 +964,7 @@ export function placeAssetAt(asset, worldX, worldY) {
     for (let r = bottomRow; r <= Math.min(bottomRow + MAX_FALL_TILES, rows - 1) && !hasGround; r++) {
       if (r < 0) continue;
       for (let c = startCol; c <= endCol; c++) {
-        if (tileIsSolid(L.tiles[r * L.cols + c])) { hasGround = true; break; }
+        if (tileSupportsStanding(L.tiles[r * L.cols + c])) { hasGround = true; break; }
       }
     }
     // Walls also treat other walls as ground so vertical stacking works.
