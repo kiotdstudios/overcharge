@@ -362,14 +362,34 @@ genSeedCopy?.addEventListener('click', async () => {
   catch { genStatus.textContent = `Seed: ${v} (clipboard unavailable)`; }
 });
 btnSave?.addEventListener('click', async () => {
+  const ghStatus = document.getElementById('gh-pub-status');
+
+  // If a GitHub token is set, push directly to GitHub — no local folder needed.
+  // This is the cross-machine workflow: edit on any device, SAVE publishes live.
+  if (Persistence.getGitHubPat() && state.level?.number != null) {
+    if (ghStatus) { ghStatus.style.display = ''; ghStatus.style.color = '#8aaabb'; ghStatus.textContent = '↑ pushing to GitHub…'; }
+    const json = JSON.stringify(state.level, null, 2);
+    const gr   = await Persistence.pushLevelToGitHub(json, state.level.number);
+    if (ghStatus) {
+      ghStatus.style.color = gr.ok ? '#44ff88' : '#ff5566';
+      ghStatus.textContent = gr.message;
+      setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, 8000);
+    }
+    if (gr.ok) {
+      state.dirty = false;
+      await SnapUI.snapshotOnSaveIfChanged();
+      showSaveFlash({ ok: true, message: 'Saved + pushed to GitHub Pages' });
+    } else {
+      showSaveFlash({ ok: false, message: gr.message });
+    }
+    _updateFolderDisplay();
+    return;
+  }
+
+  // No token — fall back to local folder save.
   const r = await Persistence.saveCurrentLevel();
-  // Snapshot on a SUCCESSFUL save, but only if the level changed since the last
-  // snapshot — repeated saves of identical content must not fill history.
   if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
-  // A successful save writes to local disk + IndexedDB, never to the server.
-  // Record that so the parity strip stops claiming "in sync with committed".
   showSaveFlash(r);
-  // Refresh dropdown so a newly-created custom filename appears immediately.
   if (r.ok) {
     try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
   }
@@ -589,6 +609,42 @@ btnCommitPush?.addEventListener('click', async () => {
       _buildFallback();
     }
   }
+});
+
+// ── GitHub token setup ───────────────────────────────────────────────────
+// One-time: click 🔑 TOKEN, paste a GitHub PAT (repo scope), Enter.
+// After that every SAVE also pushes level JSON to GitHub — visible on any
+// device and on GitHub Pages within ~60 s.
+const btnGhToken  = document.getElementById('btn-gh-token');
+const ghPatInput  = document.getElementById('gh-pat-input');
+function _updateTokenBtn() {
+  if (!btnGhToken) return;
+  const has = !!Persistence.getGitHubPat();
+  btnGhToken.textContent = has ? '🔑 TOKEN ✓' : '🔑 TOKEN';
+  btnGhToken.style.color = has ? '#44ff88'     : '';
+}
+_updateTokenBtn();
+btnGhToken?.addEventListener('click', () => {
+  if (!ghPatInput) return;
+  const showing = ghPatInput.style.display !== 'none';
+  ghPatInput.style.display = showing ? 'none' : '';
+  if (!showing) { ghPatInput.value = Persistence.getGitHubPat() || ''; ghPatInput.focus(); }
+});
+ghPatInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = ghPatInput.value.trim();
+    Persistence.setGitHubPat(val);
+    ghPatInput.style.display = 'none';
+    _updateTokenBtn();
+    const ghStatus = document.getElementById('gh-pub-status');
+    if (ghStatus) {
+      ghStatus.style.display = '';
+      ghStatus.style.color   = val ? '#44ff88' : '#ff5566';
+      ghStatus.textContent   = val ? 'Token saved — next SAVE will publish to GitHub Pages' : 'Token cleared';
+      setTimeout(() => { ghStatus.style.display = 'none'; ghStatus.textContent = ''; }, 4000);
+    }
+  }
+  if (e.key === 'Escape') { ghPatInput.style.display = 'none'; }
 });
 
 // Let Chief pick (or re-pick) the save folder. Once set, all future saves
