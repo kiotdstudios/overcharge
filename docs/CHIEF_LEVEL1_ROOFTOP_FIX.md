@@ -1,5 +1,7 @@
 # Level 1 lower rooftop collision
 
+Chief rejected the unauthorized exit relocation. Restored gate_1 to its original x=1984, y=256. Background-art conversion remains; exit relocation described below is historical and superseded. Do not move authored gameplay objects to solve unrelated terrain problems without Chief's direction. Next queued Aki task: docs/AKI_NEXT_TASK_VERTICALITY.md, after current SAVE/sync work.
+
 ## Final direction confirmed by Chief
 
 Chief explicitly chose: "Walk along the lower roof with the building as background." Converted 102 cells at columns 49-65, rows 10-15 from solid terrain into existing background decorations, preserving original tile art, transforms and position. Lower rooftop row 16 stays solid. Moved the exit gate onto that lower walking surface (feet y=512), preserving its charge cost and progression barrier. Global terrain collision remains consistent on both axes.

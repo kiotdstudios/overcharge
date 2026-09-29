@@ -22,7 +22,7 @@ for (let y = 10; y < 16; y++) for (let x = 49; x <= 65; x++) {
 }
 const gate = level.gates; // terrain-only rig intentionally excludes gates
 const exit = def.gates.find(g => g.isExit);
-check(exit.y + exit.h === 512, 'exit is grounded on the same lower walking surface');
+check(exit.x === 1984 && exit.y === 256, 'exit remains at Chief original authored position');
 const gatedLevel = new Level({ ...def, enemies: [] });
 const stopped = move(gatedLevel, 48 * 32, 482, 1, 460);
 check(stopped.x + stopped.w <= exit.x, 'closed exit still blocks progression');
