@@ -2935,18 +2935,22 @@
   ],
   "sources": [
     {
-      "id": "src_1",
-      "x": 992,
-      "y": 324,
-      "charge": 4,
-      "label": "GEN"
-    },
-    {
       "id": "src_4",
       "x": 256,
       "y": 452,
       "charge": 4,
       "label": "LAMP",
+      "kind": "prop",
+      "sprite": "assets/objects/night-city-props/streetlight/",
+      "frames": 8,
+      "artW": 192,
+      "artH": 192
+    },
+    {
+      "x": 1024,
+      "y": 324,
+      "label": "LAMP",
+      "charge": 4,
       "kind": "prop",
       "sprite": "assets/objects/night-city-props/streetlight/",
       "frames": 8,
