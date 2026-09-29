@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { heroFramePlacement, drawHeroFrame } from '../src_scroll/hero-render.js';
+
+const normal = { naturalWidth: 512, naturalHeight: 512 };
+const large = { naturalWidth: 1254, naturalHeight: 1254 };
+const a = heroFramePlacement(normal, 150, 200);
+const b = heroFramePlacement(large, 150, 200);
+assert.deepEqual([a.x, a.y, a.width, a.height], [b.x, b.y, b.width, b.height]);
+assert.equal(b.sw, 1254);
+assert.equal(b.sh, 1254);
+assert.equal(heroFramePlacement({ naturalWidth: 0 }, 0, 0), null);
+assert.equal(heroFramePlacement(normal, 0, 0, 0), null);
+const calls = [];
+const ctx = { save() {}, restore() {}, drawImage(...args) { calls.push(args); } };
+assert.equal(drawHeroFrame(ctx, large, 150, 200), true);
+assert.equal(ctx.imageSmoothingEnabled, false);
+assert.deepEqual(calls[0].slice(1), [0, 0, 1254, 1254, b.x, b.y, 80, 80]);
+const audit = JSON.parse(readFileSync(new URL('../assets/sprites/hero-v3/alignment-audit.json', import.meta.url)));
+assert.ok(audit.maxWalkFootDeviationPixels < 1);
+assert.equal(audit.walkFrames.length, 16);
+console.log('PASS: natural source bounds, identical display geometry, nearest-neighbor draw, missing frames, and measured walk alignment');

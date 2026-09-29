@@ -88,7 +88,7 @@ export function mountWorkspace() {
   byId('tools-panel-hdr').after(views);
   const empty = document.createElement('div');
   empty.id = 'selection-help';
-  empty.innerHTML = '<h3>Edit an object</h3><p>Use Move and click an object to adjust its position, size, or settings.</p><p>Choose an asset on the left, then click or drag it onto the level.</p>';
+  empty.innerHTML = '<h3>Edit an object</h3><p>Use Move and click an object to adjust its position, size, or settings.</p><p>Choose an asset on the left, then click or drag it onto the level.</p><p><a href="hero-lab.html" target="_blank" rel="noopener" style="color:#8bdcff">Preview new character animations</a></p>';
   views.after(empty);
 
   const editSections = [byId('tp-selected-section'), byId('tp-arrange').parentElement, byId('tp-spawn').parentElement];
