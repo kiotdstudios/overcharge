@@ -31,8 +31,8 @@ writeFileSync(path, html);
 console.log(`Builder module version: ${version} (${files.length} modules)`);
 // The game also imports the shared collision modules; refresh both graphs.
 const gamePath = join(root, 'index.html');
-const gameBlock = block.replaceAll('EDITOR MODULE', 'GAME MODULE').replace('editor/main.js?v=', 'src_scroll/main.js?v=');
-const gameExisting = /<!-- BEGIN GENERATED GAME MODULE VERSIONS -->[\s\S]*?<!-- END GENERATED GAME MODULE VERSIONS -->\s*<script type="module" src="src_scroll\/main\.js[^"\n]*"><\/script>/;
+const gameBlock = block.replaceAll('EDITOR MODULE', 'GAME MODULE').replace('<script type="module" src="editor/main.js?v=', '<script type="module" src="src_scroll/main.js?v=');
+const gameExisting = /<!-- BEGIN GENERATED GAME MODULE VERSIONS -->[\s\S]*?<!-- END GENERATED GAME MODULE VERSIONS -->\s*<script type="module" src="(?:src_scroll|editor)\/main\.js[^"\n]*"><\/script>/;
 const gameOriginal = /<script type="module" src="src_scroll\/main\.js[^"\n]*"><\/script>/;
 let gameHtml = readFileSync(gamePath, 'utf8');
 if (!gameExisting.test(gameHtml) && !gameOriginal.test(gameHtml)) throw new Error('Game entry script not found');
