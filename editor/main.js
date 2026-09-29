@@ -367,19 +367,39 @@ btnSave?.addEventListener('click', async () => {
   // If a GitHub token is set, push directly to GitHub — no local folder needed.
   // This is the cross-machine workflow: edit on any device, SAVE publishes live.
   if (Persistence.getGitHubPat() && state.level?.number != null) {
+    // Serialize: a double-click or a second SAVE firing mid-flight must not
+    // race two PUTs against the same file. Disable the button for the whole
+    // request, always re-enable in finally (AKI_SAVE_409_HANDOFF item 3).
+    if (Persistence.isPublishing()) return;
+    if (btnSave) btnSave.disabled = true;
     if (ghStatus) { ghStatus.style.display = ''; ghStatus.style.color = '#8aaabb'; ghStatus.textContent = '↑ pushing to GitHub…'; }
+    const wasDirty = state.dirty;
     const json = JSON.stringify(state.level, null, 2);
-    const gr   = await Persistence.pushLevelToGitHub(json, state.level.number);
+    let gr;
+    try {
+      gr = await Persistence.pushLevelToGitHub(json, state.level.number);
+    } finally {
+      if (btnSave) btnSave.disabled = false;
+    }
     if (ghStatus) {
       ghStatus.style.color = gr.ok ? '#44ff88' : '#ff5566';
       ghStatus.textContent = gr.message;
-      setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, 8000);
+      // Conflicts and errors stay visible longer — Chief needs to actually
+      // read a conflict message, not have it vanish in 8s.
+      const holdMs = gr.ok ? 8000 : (gr.conflict ? 20000 : 12000);
+      setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, holdMs);
     }
     if (gr.ok) {
-      state.dirty = false;
-      await SnapUI.snapshotOnSaveIfChanged();
+      // Only clear dirty if nothing changed the level while the save was in
+      // flight — an edit made mid-save must not be silently marked clean.
+      const stillMatches = JSON.stringify(state.level, null, 2) === json;
+      state.dirty = stillMatches ? false : wasDirty;
+      if (stillMatches) await SnapUI.snapshotOnSaveIfChanged();
       showSaveFlash({ ok: true, message: 'Saved + pushed to GitHub Pages' });
     } else {
+      // 409 conflict or any other failure: never clear dirty, never overwrite
+      // silently. Local edits are preserved exactly as they were.
+      state.dirty = wasDirty;
       showSaveFlash({ ok: false, message: gr.message });
     }
     _updateFolderDisplay();

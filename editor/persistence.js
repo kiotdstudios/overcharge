@@ -713,38 +713,109 @@ export function setGitHubPat(token) {
   else        localStorage.removeItem('overcharge_gh_pat');
 }
 
+// Save-in-flight lock — prevents overlapping PUTs from a double-click or a
+// second save firing while one is still in flight. Exported so main.js can
+// disable the SAVE button for the same window instead of just trusting state.
+let _publishing = false;
+export function isPublishing() { return _publishing; }
+
+// Last SHA we successfully wrote per level number, so a 409 retry can tell
+// "stale read of our own prior write" apart from "someone else changed it".
+const _lastWrittenSha = new Map();
+
 export async function pushLevelToGitHub(levelJson, levelNumber) {
   const pat = getGitHubPat();
   if (!pat) return { ok: false, message: 'No GitHub token — click 🔑 TOKEN and paste your PAT (needs repo scope).' };
+  if (_publishing) return { ok: false, message: 'A save is already in progress — wait for it to finish.' };
 
+  _publishing = true;
+  try {
+    return await _pushLevelToGitHubOnce(levelJson, levelNumber, pat, /*retriesLeft*/ 1);
+  } finally {
+    _publishing = false;
+  }
+}
+
+async function _fetchRemoteSha(apiUrl, headers) {
+  // cache: 'no-store' + a unique query value defeats both the browser HTTP
+  // cache and any intermediate cache in front of the GitHub API — the exact
+  // gap that let a stale blob SHA cause spurious 409s (CHIEF_CACHE_BUG).
+  const bust = `${apiUrl}?ref=${_GH_BRANCH}&_=${Date.now()}`;
+  const r = await fetch(bust, { headers, cache: 'no-store' });
+  if (r.ok) {
+    const j = await r.json();
+    return { ok: true, sha: j.sha, content: j.content };
+  }
+  if (r.status === 404) return { ok: true, sha: null, content: null };
+  return { ok: false, message: `GitHub API error ${r.status} fetching SHA.` };
+}
+
+async function _doPut(apiUrl, headers, levelJson, levelNumber, sha) {
+  const bytes = new TextEncoder().encode(levelJson);
+  const b64   = btoa(String.fromCharCode(...bytes));
+  const body  = { message: `level${levelNumber}: save from Builder`, content: b64, branch: _GH_BRANCH };
+  if (sha) body.sha = sha;
+  const r = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(body) });
+  return { r, j: r.ok ? await r.json() : await r.json().catch(() => ({})) };
+}
+
+async function _pushLevelToGitHubOnce(levelJson, levelNumber, pat, retriesLeft) {
   const filename = `level${levelNumber}.json`;
   const apiUrl   = `https://api.github.com/repos/${_GH_REPO}/contents/src_scroll/levels/${filename}`;
   const headers  = { Authorization: `token ${pat}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
 
-  // Fetch current SHA (file must exist to update; 404 means first-ever upload — ok).
-  let sha = null;
-  try {
-    const r = await fetch(`${apiUrl}?ref=${_GH_BRANCH}`, { headers });
-    if (r.ok)              sha = (await r.json()).sha;
-    else if (r.status !== 404) return { ok: false, message: `GitHub API error ${r.status} fetching SHA.` };
-  } catch (err) { return { ok: false, message: `Network error: ${err.message}` }; }
+  // Fetch current SHA fresh, no cache. Never reuse a blob SHA left over from
+  // a previous save, from main, or from localStorage - GET and PUT branch
+  // must both be _GH_BRANCH (agent/orcha-gameplay), and the SHA used in the
+  // PUT must be the one this GET just returned.
+  const meta = await _fetchRemoteSha(apiUrl, headers).catch(err => ({ ok: false, message: `Network error: ${err.message}` }));
+  if (!meta.ok) return meta;
 
-  // Base64-encode the JSON (TextEncoder handles unicode cleanly).
-  const bytes   = new TextEncoder().encode(levelJson);
-  const b64     = btoa(String.fromCharCode(...bytes));
-  const body    = { message: `level${levelNumber}: save from Builder`, content: b64, branch: _GH_BRANCH };
-  if (sha) body.sha = sha;
-
+  let sha = meta.sha;
+  let attempt;
   try {
-    const r = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(body) });
-    if (!r.ok) {
-      const j = await r.json().catch(() => ({}));
-      if (r.status === 401) return { ok: false, message: 'Token rejected (401) — regenerate your PAT and update it with 🔑 TOKEN.' };
-      return { ok: false, message: `GitHub push failed ${r.status}: ${j.message || 'unknown error'}` };
+    attempt = await _doPut(apiUrl, headers, levelJson, levelNumber, sha);
+  } catch (err) {
+    return { ok: false, message: `Push network error: ${err.message}` };
+  }
+  let { r, j } = attempt;
+
+  while (!r.ok && r.status === 409 && retriesLeft > 0) {
+    // Distinguish "our own GET was stale" (safe to retry with the sha we
+    // just re-read) from "someone else's save landed since we read" (real
+    // conflict - never silently overwrite it). Re-read with no cache.
+    const recheck = await _fetchRemoteSha(apiUrl, headers).catch(() => null);
+    if (!recheck || !recheck.ok) break;
+    const priorWrite = _lastWrittenSha.get(levelNumber);
+    const remoteMatchesOurLastWrite = priorWrite && recheck.sha === priorWrite;
+    const remoteUnchangedFromOurRead = recheck.sha === sha; // still what we started from
+    if (!remoteMatchesOurLastWrite && !remoteUnchangedFromOurRead) break; // genuine external change
+    retriesLeft -= 1;
+    sha = recheck.sha;
+    try {
+      attempt = await _doPut(apiUrl, headers, levelJson, levelNumber, sha);
+    } catch (err) {
+      return { ok: false, message: `Push network error: ${err.message}` };
     }
-    const j   = await r.json();
-    const sha7 = j.commit?.sha?.slice(0, 7) || '?';
-    return { ok: true, sha: sha7, message: `✓ Saved to ${_GH_BRANCH} (${sha7}) — Pages deployment pending` };
-  } catch (err) { return { ok: false, message: `Push network error: ${err.message}` }; }
-}
+    ({ r, j } = attempt);
+  }
 
+  if (r.ok) {
+    const sha7 = j.commit?.sha?.slice(0, 7) || '?';
+    if (j.content?.sha) _lastWrittenSha.set(levelNumber, j.content.sha);
+    return { ok: true, sha: sha7, message: `✓ Saved to ${_GH_BRANCH} (${sha7}) — Pages deployment pending` };
+  }
+
+  if (r.status === 401) return { ok: false, message: 'Token rejected (401) — regenerate your PAT and update it with 🔑 TOKEN.' };
+  if (r.status === 409) {
+    // Retries exhausted or a genuine external change was detected above.
+    // Do NOT overwrite. Keep local edits dirty and surface an explicit conflict.
+    return {
+      ok: false, conflict: true,
+      message: `⚠ Save conflict — ${filename} was changed remotely since you loaded it. ` +
+        `Your edits are NOT lost but were NOT published. Reload the level to see the remote version, ` +
+        `or export/back up your edits before overwriting.`,
+    };
+  }
+  return { ok: false, message: `GitHub push failed ${r.status}: ${j.message || 'unknown error'}` };
+}
