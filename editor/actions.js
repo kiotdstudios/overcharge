@@ -9,7 +9,7 @@
 // wherever the mutation originates. Layers/inspector/collision/links will
 // add their own action types without touching history.js.
 
-import { state, notify, levelRows, TILE_VARIANT_BASE, tileIsSolid } from './state.js';
+import { state, notify, levelRows, TILE_VARIANT_BASE, tileIsSolid, TILE_SIZE, MAX_LEVEL_ROWS } from './state.js';
 
 // ── SetTileAction ────────────────────────────────────────────────────────
 // Sets a single tile (col,row) to `newVal`, remembers `oldVal` for undo.
@@ -359,3 +359,127 @@ export function setPlayerStart(level, x, y) {
 // demoting buried edges back to fill. The rule it enforced was a misreading of
 // Chief's intent, so the action and its FIX ALL button are gone rather than left as
 // a trap that silently retiles a hand-authored level.
+
+
+// ── AddSectionAboveAction / AddSectionRightAction ───────────────────────
+// ORCHA_VERTICAL_V1_SEMANTICS + AKI_NEXT_TASK_VERTICALITY: per-level height
+// is derived (tiles.length / cols), not stored. ABOVE prepends empty rows
+// and shifts every world-Y coordinate on the level by addedRows*TILE, so the
+// existing layout is preserved relative to its own terrain — the added rows
+// are new empty space above it. RIGHT appends empty columns to every grid
+// row without touching any world coordinate, since width has always been
+// per-level (level.js:15 `this.cols = def.cols || COLS`) and needs no shift.
+//
+// Both actions snapshot the ENTIRE level object (deep clone via JSON
+// round-trip — the level is plain JSON-safe data, no functions/Dates/Maps)
+// before mutating, and inverse() restores that exact snapshot. This is
+// deliberately simpler than reversing each field by hand: the brief requires
+// "restores dimensions, every coordinate and every aligned array exactly",
+// and a whole-level snapshot is byte-for-byte over engineering a symmetric
+// inverse for every current AND future coordinate-bearing array.
+
+function _cloneLevel(level) {
+  return JSON.parse(JSON.stringify(level));
+}
+
+function _restoreLevel(level, snapshot) {
+  // Replace every enumerable own key so removed/added keys round-trip too,
+  // without swapping the object identity other modules may have captured.
+  for (const k of Object.keys(level)) delete level[k];
+  Object.assign(level, snapshot);
+}
+
+// addedRows > 0. Prepends addedRows*cols empty (0) cells to tiles (and, if
+// present, tileRotations/tileFlips — kept aligned per Chief's ruling that a
+// tiles-only shift silently corrupts levels that carry rotations), then
+// shifts every authored world-Y field by addedRows*TILE_SIZE: playerStart,
+// decorations, sources, gates, switches, checkpoints, platforms (y only —
+// x1/x2 are horizontal and untouched), enemies, crates, chests. Rejects if the
+// resulting height would exceed MAX_LEVEL_ROWS (mirrors src_scroll's
+// MAX_ROWS cap — the Builder must not silently raise it).
+export function addSectionAbove(level, addedRows) {
+  if (!level || !Number.isFinite(addedRows) || addedRows <= 0) return null;
+  const curRows = Math.floor(level.tiles.length / level.cols);
+  const newRows = curRows + addedRows;
+  if (newRows > MAX_LEVEL_ROWS) {
+    console.warn(`[editor] addSectionAbove rejected: ${newRows} rows exceeds MAX_LEVEL_ROWS (${MAX_LEVEL_ROWS}).`);
+    return null;
+  }
+  const before = _cloneLevel(level);
+  const dy = addedRows * TILE_SIZE;
+  const padCells = addedRows * level.cols;
+
+  return {
+    type: 'add_section_above',
+    addedRows,
+    forward() {
+      const pad = new Array(padCells).fill(0);
+      level.tiles = pad.concat(level.tiles);
+      if (Array.isArray(level.tileRotations) && level.tileRotations.length === before.tiles.length) {
+        level.tileRotations = new Array(padCells).fill(0).concat(level.tileRotations);
+      }
+      if (Array.isArray(level.tileFlips) && level.tileFlips.length === before.tiles.length) {
+        level.tileFlips = new Array(padCells).fill(0).concat(level.tileFlips);
+      }
+      if (level.playerStart) level.playerStart.y += dy;
+      for (const d of level.decorations  || []) d.y += dy;
+      for (const s of level.sources      || []) s.y += dy;
+      for (const g of level.gates        || []) g.y += dy;
+      for (const sw of level.switches    || []) sw.y += dy;
+      for (const c of level.checkpoints  || []) c.y += dy;
+      for (const p of level.platforms    || []) p.y += dy;
+      for (const e of level.enemies      || []) e.y += dy;
+      for (const cr of level.crates      || []) cr.y += dy;
+      for (const ch of level.chests      || []) ch.y += dy;
+      notify();
+    },
+    inverse() {
+      _restoreLevel(level, before);
+      notify();
+    },
+  };
+}
+
+// addedCols > 0. Re-strides every row of tiles/tileRotations/tileFlips to
+// append addedCols empty cells on the right of EACH row (not a flat
+// append, which would shift every later row's cells left by addedCols and
+// corrupt the whole map — re-striding per row is the only correct form).
+// No world coordinate changes: width has always been per-level, existing
+// x-values stay exactly where they were authored.
+export function addSectionRight(level, addedCols) {
+  if (!level || !Number.isFinite(addedCols) || addedCols <= 0) return null;
+  const before = _cloneLevel(level);
+  const oldCols = level.cols;
+  const rows = Math.floor(level.tiles.length / oldCols);
+  const newCols = oldCols + addedCols;
+
+  function restride(flatOld) {
+    const out = new Array(rows * newCols).fill(0);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < oldCols; c++) {
+        out[r * newCols + c] = flatOld[r * oldCols + c];
+      }
+    }
+    return out;
+  }
+
+  return {
+    type: 'add_section_right',
+    addedCols,
+    forward() {
+      level.tiles = restride(before.tiles);
+      if (Array.isArray(level.tileRotations) && level.tileRotations.length === before.tiles.length) {
+        level.tileRotations = restride(before.tileRotations);
+      }
+      if (Array.isArray(level.tileFlips) && level.tileFlips.length === before.tiles.length) {
+        level.tileFlips = restride(before.tileFlips);
+      }
+      level.cols = newCols;
+      notify();
+    },
+    inverse() {
+      _restoreLevel(level, before);
+      notify();
+    },
+  };
+}

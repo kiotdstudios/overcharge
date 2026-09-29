@@ -8,6 +8,7 @@ import {
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
   getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
+  DEFAULT_SECTION_ROWS, DEFAULT_SECTION_COLS, MAX_LEVEL_ROWS,
 } from './state.js';
 import { render } from './renderer.js';
 import { tileUnderMouse } from './tools.js';
@@ -251,6 +252,48 @@ btnNew?.addEventListener('click', async () => {
 btnDuplicate?.addEventListener('click', async () => {
   await SnapUI.autoSnapshot(SnapUI.REASON.BEFORE_REPLACE);
   await Persistence.duplicateLevel();
+});
+
+// -- Verticality: ADD SECTION ABOVE / RIGHT (docs/AKI_NEXT_TASK_VERTICALITY.md) --
+// ABOVE-only per Chief's ruling: floor stays the death plane at the bottom.
+// Each click is exactly one undoable action. Inputs default to the section
+// size constants (one screen) and are clamped to >=1 before use.
+const sectionRowsInput  = document.getElementById('section-rows-input');
+const sectionColsInput  = document.getElementById('section-cols-input');
+const sectionExpandStatus = document.getElementById('section-expand-status');
+const btnAddSectionAbove = document.getElementById('btn-add-section-above');
+const btnAddSectionRight = document.getElementById('btn-add-section-right');
+if (sectionRowsInput) sectionRowsInput.value = String(DEFAULT_SECTION_ROWS);
+if (sectionColsInput) sectionColsInput.value = String(DEFAULT_SECTION_COLS);
+
+function _sectionAmount(input, fallback) {
+  const n = Math.floor(Number(input?.value));
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+btnAddSectionAbove?.addEventListener('click', () => {
+  const L = state.level;
+  if (!L) return;
+  const addedRows = _sectionAmount(sectionRowsInput, DEFAULT_SECTION_ROWS);
+  const curRows = levelRows();
+  const action = Actions.addSectionAbove(L, addedRows);
+  if (!action) {
+    if (sectionExpandStatus) sectionExpandStatus.textContent =
+      `Rejected: ${curRows + addedRows} rows exceeds cap of ${MAX_LEVEL_ROWS}.`;
+    return;
+  }
+  History.apply(action);
+  if (sectionExpandStatus) sectionExpandStatus.textContent =
+    `Added ${addedRows} rows above -- now ${levelRows()} rows x ${L.cols} cols. Move spawn manually if needed.`;
+});
+btnAddSectionRight?.addEventListener('click', () => {
+  const L = state.level;
+  if (!L) return;
+  const addedCols = _sectionAmount(sectionColsInput, DEFAULT_SECTION_COLS);
+  const action = Actions.addSectionRight(L, addedCols);
+  if (!action) return;
+  History.apply(action);
+  if (sectionExpandStatus) sectionExpandStatus.textContent =
+    `Added ${addedCols} cols right -- now ${levelRows()} rows x ${L.cols} cols.`;
 });
 
 // ── Test Level ────────────────────────────────────────────────────────────

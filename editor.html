@@ -222,7 +222,7 @@
   #parity-status { font-family:monospace; font-size:10px; letter-spacing:0.3px; line-height:1.6; margin-bottom:6px; }
 
 </style>
-<link rel="stylesheet" href="editor/workspace.css?v=9671d409770234e8">
+<link rel="stylesheet" href="editor/workspace.css?v=a101b39cc43c2bef">
 </head>
 <body>
 <div id="editor-root">
@@ -378,6 +378,20 @@
             <button class="tp-btn" id="btn-snapshot" title="Save snapshot to history">📷 SNAP</button>
             <button class="tp-btn" id="btn-history"  title="Level version history">🕔 HIST</button>
           </div>
+          <!-- Verticality (AKI_NEXT_TASK_VERTICALITY.md): ABOVE-only expansion per Chief's
+               ruling — floor stays the death plane at the bottom. RIGHT is a pure grid
+               re-stride, no world coordinates move. Both are one undoable action. -->
+          <div class="tp-row" style="margin-top:4px;padding-top:4px;border-top:1px solid #1c2436">
+            <label style="font-size:11px;color:#8aaabb">Rows</label>
+            <input type="number" id="section-rows-input" value="18" min="1" step="1" style="width:48px">
+            <button class="tp-btn" id="btn-add-section-above" title="Prepend N empty rows above the level. Floor stays at the bottom (death plane) — move the spawn manually afterward.">⬆ ADD SECTION ABOVE</button>
+          </div>
+          <div class="tp-row">
+            <label style="font-size:11px;color:#8aaabb">Cols</label>
+            <input type="number" id="section-cols-input" value="25" min="1" step="1" style="width:48px">
+            <button class="tp-btn" id="btn-add-section-right" title="Append N empty columns to the right of the level. No world coordinates change.">➡ ADD SECTION RIGHT</button>
+          </div>
+          <div id="section-expand-status" style="font-size:11px;color:#8aaabb;min-height:14px"></div>
           <div class="tp-row" style="margin-top:4px;padding-top:4px;border-top:1px solid #1c2436">
             <button class="tp-btn warn" id="btn-revert-local"  title="Reload this level from the Git JSON, discarding unsaved editor changes">↺ REVERT TO GIT</button>
           </div>
@@ -581,44 +595,44 @@
 <script type="importmap">
 {
   "imports": {
-    "./editor/actions.js": "./editor/actions.js?v=9671d409770234e8",
-    "./editor/assets.js": "./editor/assets.js?v=9671d409770234e8",
-    "./editor/buildinfo.js": "./editor/buildinfo.js?v=9671d409770234e8",
-    "./editor/clipboard.js": "./editor/clipboard.js?v=9671d409770234e8",
-    "./editor/generator.js": "./editor/generator.js?v=9671d409770234e8",
-    "./editor/history.js": "./editor/history.js?v=9671d409770234e8",
-    "./editor/localstore.js": "./editor/localstore.js?v=9671d409770234e8",
-    "./editor/main.js": "./editor/main.js?v=9671d409770234e8",
-    "./editor/persistence.js": "./editor/persistence.js?v=9671d409770234e8",
-    "./editor/renderer.js": "./editor/renderer.js?v=9671d409770234e8",
-    "./editor/selection.js": "./editor/selection.js?v=9671d409770234e8",
-    "./editor/snapshots.js": "./editor/snapshots.js?v=9671d409770234e8",
-    "./editor/snapshotui.js": "./editor/snapshotui.js?v=9671d409770234e8",
-    "./editor/state.js": "./editor/state.js?v=9671d409770234e8",
-    "./editor/tools.js": "./editor/tools.js?v=9671d409770234e8",
-    "./editor/workspace.js": "./editor/workspace.js?v=9671d409770234e8",
-    "./src_scroll/background.js": "./src_scroll/background.js?v=9671d409770234e8",
-    "./src_scroll/camera.js": "./src_scroll/camera.js?v=9671d409770234e8",
-    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=9671d409770234e8",
-    "./src_scroll/constants.js": "./src_scroll/constants.js?v=9671d409770234e8",
-    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=9671d409770234e8",
-    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=9671d409770234e8",
-    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=9671d409770234e8",
-    "./src_scroll/entities.js": "./src_scroll/entities.js?v=9671d409770234e8",
-    "./src_scroll/input.js": "./src_scroll/input.js?v=9671d409770234e8",
-    "./src_scroll/level.js": "./src_scroll/level.js?v=9671d409770234e8",
-    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=9671d409770234e8",
-    "./src_scroll/main.js": "./src_scroll/main.js?v=9671d409770234e8",
-    "./src_scroll/player.js": "./src_scroll/player.js?v=9671d409770234e8",
-    "./src_scroll/render.js": "./src_scroll/render.js?v=9671d409770234e8",
-    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=9671d409770234e8",
-    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=9671d409770234e8",
-    "./src_scroll/ui.js": "./src_scroll/ui.js?v=9671d409770234e8",
-    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=9671d409770234e8"
+    "./editor/actions.js": "./editor/actions.js?v=a101b39cc43c2bef",
+    "./editor/assets.js": "./editor/assets.js?v=a101b39cc43c2bef",
+    "./editor/buildinfo.js": "./editor/buildinfo.js?v=a101b39cc43c2bef",
+    "./editor/clipboard.js": "./editor/clipboard.js?v=a101b39cc43c2bef",
+    "./editor/generator.js": "./editor/generator.js?v=a101b39cc43c2bef",
+    "./editor/history.js": "./editor/history.js?v=a101b39cc43c2bef",
+    "./editor/localstore.js": "./editor/localstore.js?v=a101b39cc43c2bef",
+    "./editor/main.js": "./editor/main.js?v=a101b39cc43c2bef",
+    "./editor/persistence.js": "./editor/persistence.js?v=a101b39cc43c2bef",
+    "./editor/renderer.js": "./editor/renderer.js?v=a101b39cc43c2bef",
+    "./editor/selection.js": "./editor/selection.js?v=a101b39cc43c2bef",
+    "./editor/snapshots.js": "./editor/snapshots.js?v=a101b39cc43c2bef",
+    "./editor/snapshotui.js": "./editor/snapshotui.js?v=a101b39cc43c2bef",
+    "./editor/state.js": "./editor/state.js?v=a101b39cc43c2bef",
+    "./editor/tools.js": "./editor/tools.js?v=a101b39cc43c2bef",
+    "./editor/workspace.js": "./editor/workspace.js?v=a101b39cc43c2bef",
+    "./src_scroll/background.js": "./src_scroll/background.js?v=a101b39cc43c2bef",
+    "./src_scroll/camera.js": "./src_scroll/camera.js?v=a101b39cc43c2bef",
+    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=a101b39cc43c2bef",
+    "./src_scroll/constants.js": "./src_scroll/constants.js?v=a101b39cc43c2bef",
+    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=a101b39cc43c2bef",
+    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=a101b39cc43c2bef",
+    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=a101b39cc43c2bef",
+    "./src_scroll/entities.js": "./src_scroll/entities.js?v=a101b39cc43c2bef",
+    "./src_scroll/input.js": "./src_scroll/input.js?v=a101b39cc43c2bef",
+    "./src_scroll/level.js": "./src_scroll/level.js?v=a101b39cc43c2bef",
+    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=a101b39cc43c2bef",
+    "./src_scroll/main.js": "./src_scroll/main.js?v=a101b39cc43c2bef",
+    "./src_scroll/player.js": "./src_scroll/player.js?v=a101b39cc43c2bef",
+    "./src_scroll/render.js": "./src_scroll/render.js?v=a101b39cc43c2bef",
+    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=a101b39cc43c2bef",
+    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=a101b39cc43c2bef",
+    "./src_scroll/ui.js": "./src_scroll/ui.js?v=a101b39cc43c2bef",
+    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=a101b39cc43c2bef"
   }
 }
 </script>
 <!-- END GENERATED EDITOR MODULE VERSIONS -->
-<script type="module" src="editor/main.js?v=9671d409770234e8"></script>
+<script type="module" src="editor/main.js?v=a101b39cc43c2bef"></script>
 </body>
 </html>

@@ -55,7 +55,7 @@ function makeLevel({ platformX = null, gapCols = null, floorRow = 12, ledgeCol =
   }
   return {
     cols, tiles,
-    gates: [], platforms: [], sources: [], pickups: [], enemies: [], switches: [], checkpoints: [],
+    gates: [], platforms: [], sources: [], pickups: [], enemies: [], switches: [], checkpoints: [], crates: [],
     pxW: cols * TILE,
     tileAt(tx, ty) { if (tx < 0 || tx >= cols || ty < 0) return 1; if (ty >= ROWS) return 0; return tiles[ty*cols + tx] || 0; },
     solidAt(tx, ty) { const v = this.tileAt(tx, ty); return v === 1 || v >= 10; },
@@ -239,7 +239,7 @@ function measureTerminalFall() {
   for (let c = 0; c < cols; c++) tiles[(ROWS - 1) * cols + c] = 1;
   const level = {
     cols, tiles,
-    gates: [], platforms: [], sources: [], pickups: [], enemies: [], switches: [], checkpoints: [],
+    gates: [], platforms: [], sources: [], pickups: [], enemies: [], switches: [], checkpoints: [], crates: [],
     pxW: cols * TILE,
     tileAt(tx, ty) { if (tx < 0 || tx >= cols || ty < 0) return 1; if (ty >= ROWS) return 0; return tiles[ty*cols + tx] || 0; },
     solidAt(tx, ty) { const v = this.tileAt(tx, ty); return v === 1 || v >= 10; },

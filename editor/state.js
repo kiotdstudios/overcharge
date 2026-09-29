@@ -18,6 +18,17 @@ export const TILE_SIZE = 32;
 // finer than terrain, coarser than free-pixel decorations. Adjustable later.
 export const SNAP_TERRAIN            = TILE_SIZE;   // 32 - do not change
 
+// ── Vertical/horizontal section expansion (ORCHA_VERTICAL_V1_SEMANTICS) ────
+// Default section size = one screen: DEFAULT_SECTION_ROWS matches src_scroll
+// constants.js ROWS (18), DEFAULT_SECTION_COLS matches src_scroll's screen
+// width in tiles (W/TILE = 800/32 = 25). MAX_ROWS mirrors src_scroll's
+// MAX_ROWS (54, Chief ruling 2026-09-19 decision 6) — the Builder must not
+// raise this silently; it is duplicated here (not imported) because the
+// editor has no build-time link to src_scroll and does not want one.
+export const DEFAULT_SECTION_ROWS    = 18;
+export const DEFAULT_SECTION_COLS    = 25;
+export const MAX_LEVEL_ROWS          = 54;
+
 // â”€â”€ Terrain tile encoding â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // The tile grid stores an integer per cell. Values:
 //   0                       empty (non-solid)
