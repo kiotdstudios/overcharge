@@ -19,3 +19,7 @@ Your merge summary says you restored a Purple City filter checkbox. Chief alread
 Use docs/AKI_NEXT_TASK_VERTICALITY.md. Audit existing per-level height and vertical camera first; implement missing ADD SECTION ABOVE and RIGHT authoring with atomic grid/entity shifts, undo/redo and correct save/test parity. Re-measure movement using the real controller; publish clear jump/reach/head-clearance/drop recommendations without changing physics. Preserve current levels and gate positions; use isolated fixtures. Test a real descending route and camera/respawn in the browser, not just array transformations.
 
 Deliver tests, updated concise verticality reference, AKI_STATUS evidence, full pushed SHA and a docs/AKI_VERTICALITY_DELIVERY.md handoff for Chief's review. Regenerate both module graphs after JS changes. Chief polls Git every ten minutes. This GO authorizes work within that brief; it does not authorize unrelated art/filter changes, redesigning Chief's levels, or replacing unsaved edits.
+# New user request queued, 2026-09-29
+
+Read `docs/AKI_SYNC_AND_HERO_NEXT.md`: reply with laptop live-browser sync evidence, finish your current verticality task, then coordinate the staged hero-v3 and traversal/attack Builder work. The redesigned workspace is now deployed; preserve its modules and controls in subsequent edits.
+

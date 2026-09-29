@@ -11,6 +11,7 @@ import {
   setFilterCategory, setFilterSearch, setSelectedAsset,
   setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly, setElectricOnly,
   setLevelBackground,
+  setTool,
 } from './state.js';
 import { startAssetDrag } from './tools.js';
 
@@ -40,15 +41,16 @@ export function mountAssetBrowser(container) {
   root.style.cssText += 'display:flex;flex-direction:column;gap:0;';
 
   // â”€â”€ Â§ BACKGROUNDS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  const bgWrap = document.createElement('div');
+  const bgWrap = document.createElement('details');
+  bgWrap.className = 'ab-backgrounds';
   bgWrap.style.cssText = 'border-bottom:1px solid #1c2a3a;padding:8px 8px 0;flex-shrink:0;';
 
-  const bgHdr = document.createElement('div');
+  const bgHdr = document.createElement('summary');
   bgHdr.style.cssText = 'display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;';
   const bgTitle = document.createElement('h3');
   bgTitle.className = 'ab-header';
   bgTitle.style.cssText = 'font-size:10px;letter-spacing:2px;color:#557;margin:0;';
-  bgTitle.textContent = 'BACKGROUNDS';
+  bgTitle.textContent = 'Background packs';
   bgHdr.appendChild(bgTitle);
   bgWrap.appendChild(bgHdr);
 
@@ -59,11 +61,12 @@ export function mountAssetBrowser(container) {
 
   // â”€â”€ Â§ TILES & OBJECTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const tileWrap = document.createElement('div');
+  tileWrap.className = 'ab-library';
   tileWrap.style.cssText = 'flex:1;overflow-y:auto;padding:8px;min-height:0;';
 
   const tileHdr = document.createElement('h3');
   tileHdr.style.cssText = 'font-size:10px;letter-spacing:2px;color:#557;margin:0 0 6px;';
-  tileHdr.textContent = 'TILES & OBJECTS';
+  tileHdr.textContent = 'Asset library';
   tileWrap.appendChild(tileHdr);
 
   // Search
@@ -71,16 +74,18 @@ export function mountAssetBrowser(container) {
   searchInput.type = 'text';
   searchInput.placeholder = 'Search (e.g. roof, lamp, gate)';
   searchInput.className = 'ab-search';
+  searchInput.setAttribute('aria-label', 'Search assets');
   searchInput.addEventListener('input', () => setFilterSearch(searchInput.value));
   tileWrap.appendChild(searchInput);
 
   // â”€â”€ Quick-filter row: pack checkboxes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const filterRow = document.createElement('div');
+  filterRow.className = 'ab-pack-filters';
   filterRow.style.cssText = 'border:1px solid #1c2a3a;border-radius:3px;padding:5px 6px 4px;margin-bottom:6px;';
 
   const filterLbl = document.createElement('div');
   filterLbl.style.cssText = 'font-size:9px;letter-spacing:2px;color:#446;margin-bottom:4px;';
-  filterLbl.textContent = 'FILTER BY PACK';
+  filterLbl.textContent = 'Asset groups';
   filterRow.appendChild(filterLbl);
 
   const packFilters = [
@@ -121,8 +126,18 @@ export function mountAssetBrowser(container) {
   // Category dropdown
   categorySelect = document.createElement('select');
   categorySelect.className = 'ab-category';
+  categorySelect.setAttribute('aria-label', 'Asset type');
   categorySelect.addEventListener('change', () => setFilterCategory(categorySelect.value));
   tileWrap.appendChild(categorySelect);
+  const clear = document.createElement('button');
+  clear.className = 'ab-clear';
+  clear.textContent = 'Clear filters';
+  clear.addEventListener('click', () => {
+    Object.assign(state.filter, { category: 'all', purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, electricOnly: false, purpleCityOnly: false, nightCityRailOnly: false });
+    searchInput.value = '';
+    setFilterSearch('');
+  });
+  tileWrap.appendChild(clear);
 
   // Status
   statusEl = document.createElement('div');
@@ -135,6 +150,7 @@ export function mountAssetBrowser(container) {
   tileWrap.appendChild(thumbGrid);
 
   root.appendChild(tileWrap);
+  root.appendChild(bgWrap);
 
   subscribe(refresh);
   refresh();
@@ -262,11 +278,12 @@ function _populateCategories() {
   const current = state.filter.category;
   categorySelect.innerHTML = '';
   const count = state.manifest ? state.manifest.items.filter(i => i.category !== 'background').length : 0;
-  const optAll = Object.assign(document.createElement('option'), { value: 'all', textContent: `all (${count})` });
+  const optAll = Object.assign(document.createElement('option'), { value: 'all', textContent: `All asset types (${count})` });
   categorySelect.appendChild(optAll);
   for (const c of cats) {
     const cnt = state.manifest.items.filter(i => i.category === c).length;
-    categorySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: `${c === 'enemy' ? 'ENEMIES' : c} (${cnt})` }));
+    const names = { enemy: 'Enemies', tile: 'Terrain tiles', decoration: 'Scenery', electrical: 'Electric', object: 'Objects', player: 'Player' };
+    categorySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: `${names[c] || c} (${cnt})` }));
   }
   categorySelect.value = cats.includes(current) ? current : 'all';
 }
@@ -282,12 +299,19 @@ function _populateThumbs() {
     const isSelected = state.selectedAsset && (state.selectedAsset.id === it.id || state.selectedAsset.path === it.path);
     const cell = document.createElement('div');
     cell.className = 'ab-cell' + (isSelected ? ' selected' : '');
+    cell.tabIndex = 0;
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('aria-label', `Choose ${it.name}`);
+    cell.setAttribute('aria-pressed', String(!!isSelected));
+    cell.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setTool('place'); setSelectedAsset(it); }
+    });
     const tipParts = [it.name, `${it.category}  ${it.width}Ã—${it.height}`, it.path];
     if (it.raw && it.raw.notes) tipParts.push('â€” ' + it.raw.notes);
     if (it.isAnimation && !it.raw?.spawnsKind) tipParts.push('(animation â€” placement disabled in Phase 1)');
     if (it.source === 'disk-index') tipParts.push('(from disk â€” not yet in Aki manifest)');
     cell.title = tipParts.join('\n');
-    cell.addEventListener('click', () => setSelectedAsset(it));
+    cell.addEventListener('click', () => { setTool('place'); setSelectedAsset(it); });
     cell.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
       e.preventDefault();
@@ -307,7 +331,7 @@ function _populateThumbs() {
     cell.appendChild(img);
     const label = document.createElement('div');
     label.className = 'ab-label';
-    label.textContent = it.name;
+    label.textContent = it.name.replace(/^env_rt_/, 'Purple ').replace(/^env_bt_/, 'Blue ').replace(/^prop_ncp_/, '').replace(/_/g, ' ');
     cell.appendChild(label);
     thumbGrid.appendChild(cell);
   }
@@ -316,5 +340,11 @@ function _populateThumbs() {
     more.className = 'ab-status';
     more.textContent = `(+${items.length - cap} more â€” refine filter)`;
     thumbGrid.appendChild(more);
+  }
+  if (!items.length) {
+    const empty = document.createElement('p');
+    empty.className = 'ab-empty';
+    empty.textContent = 'No matching assets. Try another search or clear the filters.';
+    thumbGrid.appendChild(empty);
   }
 }

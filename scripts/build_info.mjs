@@ -4,7 +4,7 @@
 // different editors and nothing on screen said which was which.
 //
 // Run: node scripts/build_info.mjs        (re-run after committing)
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { writeFileSync } from 'fs';
 import { join, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -13,7 +13,7 @@ const ROOT = join(fileURLToPath(import.meta.url), '..', '..');
 const OUT  = join(ROOT, 'editor', 'buildinfo.js');
 
 function git(args, fallback) {
-  try { return execSync('git ' + args, { cwd: ROOT, encoding: 'utf8' }).trim(); }
+  try { return execFileSync('git', ['-c', `safe.directory=${ROOT}`, ...args.split(' ')], { cwd: ROOT, encoding: 'utf8' }).trim(); }
   catch { return fallback; }
 }
 

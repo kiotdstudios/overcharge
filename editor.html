@@ -222,6 +222,7 @@
   #parity-status { font-family:monospace; font-size:10px; letter-spacing:0.3px; line-height:1.6; margin-bottom:6px; }
 
 </style>
+<link rel="stylesheet" href="editor/workspace.css?v=9671d409770234e8">
 </head>
 <body>
 <div id="editor-root">
@@ -294,7 +295,6 @@
           <!-- level-select kept in DOM for main.js wiring; hidden — readout is the visible UI -->
           <select id="level-select" style="display:none" title="Switch level (warns on unsaved changes)"></select>
           <!-- Snapshots chip: shows count, opens history dialog -->
-          <button id="btn-snaps-chip">📷 SNAPSHOTS <span id="snaps-chip-count"></span></button>
         </div>
       </div>
 
@@ -377,17 +377,10 @@
           <div class="tp-row">
             <button class="tp-btn" id="btn-snapshot" title="Save snapshot to history">📷 SNAP</button>
             <button class="tp-btn" id="btn-history"  title="Level version history">🕔 HIST</button>
-            <button class="tp-btn" id="btn-order-up"   title="Move this level EARLIER in the Git-tracked level order">⬆ ORDER</button>
-            <button class="tp-btn" id="btn-order-down" title="Move this level LATER in the Git-tracked level order">⬇ ORDER</button>
           </div>
           <div class="tp-row" style="margin-top:4px;padding-top:4px;border-top:1px solid #1c2436">
             <button class="tp-btn warn" id="btn-revert-local"  title="Reload this level from the Git JSON, discarding unsaved editor changes">↺ REVERT TO GIT</button>
-            <button class="tp-btn warn" id="btn-delete-level"  title="Delete this level's JSON files from the Git folder">&#128465; DELETE LEVEL</button>
           </div>
-          <div class="tp-row" style="margin-top:4px;padding-top:4px;border-top:1px solid #1c2436">
-            <button class="tp-btn primary" id="btn-commit-push" title="SAVE this level into the Git folder (verified), then hand you the exact commit+push command — copied to your clipboard. A web page cannot run git itself.">&#11014; COMMIT &amp; PUSH TO GITHUB</button>
-          </div>
-          <div id="commit-push-out" style="display:none;margin-top:4px;padding:5px 6px;background:#0d1420;border:1px solid #1c2436;border-radius:3px;font-family:monospace;font-size:10px;color:#8fb; white-space:pre-wrap;word-break:break-all"></div>
           <div class="tp-row" style="margin-top:3px">
             <button class="tp-btn" id="btn-export-backups" title="Download all snapshots as one backup package">⬇ EXPORT BACKUPS</button>
             <button class="tp-btn" id="btn-import-backups" title="Import a snapshot backup package">⬆ IMPORT BACKUP</button>
@@ -402,8 +395,7 @@
         <div class="tp-body" id="tp-leveltest">
           <div id="parity-status"></div>
           <div class="tp-row">
-            <button id="btn-play" title="Open game in dev mode — plays your local save (?dev=1)" class="tp-btn primary">▶ PLAY</button>
-            <button id="btn-test" title="Test the current in-editor level in the game (opens new tab)" class="tp-btn">▶ TEST LIVE</button>
+            <button id="btn-test" title="Test the current in-editor level in the game (opens new tab)" class="tp-btn">▶ TEST CURRENT LEVEL</button>
           </div>
         </div>
       </div>
@@ -460,33 +452,6 @@
           </select>
           <div style="font-size:9px;color:#446;font-family:monospace;line-height:1.5;">
             Sets level.background. The game loads the matching parallax layers at runtime.
-          </div>
-        </div>
-      </div>
-
-      <!-- DEV QA (collapsed) -->
-      <div class="tp-section" style="border-bottom:none">
-        <div class="tp-hdr collapsed" data-sec="devqa">DEV QA <span class="ch">▼</span></div>
-        <div class="tp-body hidden" id="tp-devqa">
-          <div class="tp-row">
-            <button class="tp-btn primary" id="qa-play">&#9654; PLAY LEVEL</button>
-            <button class="tp-btn" id="qa-test">&#9654; TEST LIVE</button>
-          </div>
-          <div class="tp-row">
-            <button class="tp-btn" id="qa-snapshot">&#128247; SNAPSHOT NOW</button>
-            <button class="tp-btn" id="qa-history">&#128340; HISTORY</button>
-          </div>
-          <div style="margin-top:8px;padding-top:6px;border-top:1px solid #1c2436">
-            <div style="font-size:9px;letter-spacing:2px;color:#446;margin-bottom:5px;">CHIEF MUST VISUALLY VERIFY:</div>
-            <label class="qa-check"><input type="checkbox"> Saved edit appears in PLAY (not TEST)</label>
-            <label class="qa-check"><input type="checkbox"> Objects sit on terrain surface</label>
-            <label class="qa-check"><input type="checkbox"> Gate: no purple strip at rest</label>
-            <label class="qa-check"><input type="checkbox"> Gate: cannot be jumped over (closed)</label>
-            <label class="qa-check"><input type="checkbox"> Gate: opens when fully charged</label>
-            <label class="qa-check"><input type="checkbox"> Open gate: player passes through</label>
-            <label class="qa-check"><input type="checkbox"> L1 &#8594; L2 switch via [ key</label>
-            <label class="qa-check"><input type="checkbox"> L2 &#8594; L1 switch via ] key</label>
-            <label class="qa-check"><input type="checkbox"> Each switch: player/state fully reset</label>
           </div>
         </div>
       </div>
@@ -616,43 +581,44 @@
 <script type="importmap">
 {
   "imports": {
-    "./editor/actions.js": "./editor/actions.js?v=bad77172368af4e9",
-    "./editor/assets.js": "./editor/assets.js?v=bad77172368af4e9",
-    "./editor/buildinfo.js": "./editor/buildinfo.js?v=bad77172368af4e9",
-    "./editor/clipboard.js": "./editor/clipboard.js?v=bad77172368af4e9",
-    "./editor/generator.js": "./editor/generator.js?v=bad77172368af4e9",
-    "./editor/history.js": "./editor/history.js?v=bad77172368af4e9",
-    "./editor/localstore.js": "./editor/localstore.js?v=bad77172368af4e9",
-    "./editor/main.js": "./editor/main.js?v=bad77172368af4e9",
-    "./editor/persistence.js": "./editor/persistence.js?v=bad77172368af4e9",
-    "./editor/renderer.js": "./editor/renderer.js?v=bad77172368af4e9",
-    "./editor/selection.js": "./editor/selection.js?v=bad77172368af4e9",
-    "./editor/snapshots.js": "./editor/snapshots.js?v=bad77172368af4e9",
-    "./editor/snapshotui.js": "./editor/snapshotui.js?v=bad77172368af4e9",
-    "./editor/state.js": "./editor/state.js?v=bad77172368af4e9",
-    "./editor/tools.js": "./editor/tools.js?v=bad77172368af4e9",
-    "./src_scroll/background.js": "./src_scroll/background.js?v=bad77172368af4e9",
-    "./src_scroll/camera.js": "./src_scroll/camera.js?v=bad77172368af4e9",
-    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=bad77172368af4e9",
-    "./src_scroll/constants.js": "./src_scroll/constants.js?v=bad77172368af4e9",
-    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=bad77172368af4e9",
-    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=bad77172368af4e9",
-    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=bad77172368af4e9",
-    "./src_scroll/entities.js": "./src_scroll/entities.js?v=bad77172368af4e9",
-    "./src_scroll/input.js": "./src_scroll/input.js?v=bad77172368af4e9",
-    "./src_scroll/level.js": "./src_scroll/level.js?v=bad77172368af4e9",
-    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=bad77172368af4e9",
-    "./src_scroll/main.js": "./src_scroll/main.js?v=bad77172368af4e9",
-    "./src_scroll/player.js": "./src_scroll/player.js?v=bad77172368af4e9",
-    "./src_scroll/render.js": "./src_scroll/render.js?v=bad77172368af4e9",
-    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=bad77172368af4e9",
-    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=bad77172368af4e9",
-    "./src_scroll/ui.js": "./src_scroll/ui.js?v=bad77172368af4e9",
-    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=bad77172368af4e9"
+    "./editor/actions.js": "./editor/actions.js?v=9671d409770234e8",
+    "./editor/assets.js": "./editor/assets.js?v=9671d409770234e8",
+    "./editor/buildinfo.js": "./editor/buildinfo.js?v=9671d409770234e8",
+    "./editor/clipboard.js": "./editor/clipboard.js?v=9671d409770234e8",
+    "./editor/generator.js": "./editor/generator.js?v=9671d409770234e8",
+    "./editor/history.js": "./editor/history.js?v=9671d409770234e8",
+    "./editor/localstore.js": "./editor/localstore.js?v=9671d409770234e8",
+    "./editor/main.js": "./editor/main.js?v=9671d409770234e8",
+    "./editor/persistence.js": "./editor/persistence.js?v=9671d409770234e8",
+    "./editor/renderer.js": "./editor/renderer.js?v=9671d409770234e8",
+    "./editor/selection.js": "./editor/selection.js?v=9671d409770234e8",
+    "./editor/snapshots.js": "./editor/snapshots.js?v=9671d409770234e8",
+    "./editor/snapshotui.js": "./editor/snapshotui.js?v=9671d409770234e8",
+    "./editor/state.js": "./editor/state.js?v=9671d409770234e8",
+    "./editor/tools.js": "./editor/tools.js?v=9671d409770234e8",
+    "./editor/workspace.js": "./editor/workspace.js?v=9671d409770234e8",
+    "./src_scroll/background.js": "./src_scroll/background.js?v=9671d409770234e8",
+    "./src_scroll/camera.js": "./src_scroll/camera.js?v=9671d409770234e8",
+    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=9671d409770234e8",
+    "./src_scroll/constants.js": "./src_scroll/constants.js?v=9671d409770234e8",
+    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=9671d409770234e8",
+    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=9671d409770234e8",
+    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=9671d409770234e8",
+    "./src_scroll/entities.js": "./src_scroll/entities.js?v=9671d409770234e8",
+    "./src_scroll/input.js": "./src_scroll/input.js?v=9671d409770234e8",
+    "./src_scroll/level.js": "./src_scroll/level.js?v=9671d409770234e8",
+    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=9671d409770234e8",
+    "./src_scroll/main.js": "./src_scroll/main.js?v=9671d409770234e8",
+    "./src_scroll/player.js": "./src_scroll/player.js?v=9671d409770234e8",
+    "./src_scroll/render.js": "./src_scroll/render.js?v=9671d409770234e8",
+    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=9671d409770234e8",
+    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=9671d409770234e8",
+    "./src_scroll/ui.js": "./src_scroll/ui.js?v=9671d409770234e8",
+    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=9671d409770234e8"
   }
 }
 </script>
 <!-- END GENERATED EDITOR MODULE VERSIONS -->
-<script type="module" src="editor/main.js?v=bad77172368af4e9"></script>
+<script type="module" src="editor/main.js?v=9671d409770234e8"></script>
 </body>
 </html>
