@@ -46,3 +46,4 @@ export const BUILD = ${JSON.stringify({
 writeFileSync(OUT, body);
 console.log(`Wrote ${OUT}`);
 console.log(`  BRANCH: ${branch}  SHA: ${shaShort}${dirty ? ' (dirty)' : ''}  worktree: ${worktree}`);
+await import('./version_editor.mjs');

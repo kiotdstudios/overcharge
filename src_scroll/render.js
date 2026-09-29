@@ -37,6 +37,29 @@ const TILE_ID_REGISTRY = Object.freeze({
   39: 'env_rt_bldg_r04_c11',
   40: 'env_rt_bldg_r04_c12',
   41: 'env_rt_bldg_r04_c13',
+  // Blue Rooftop tileset (IDs 42-59) ? CHIEF 2026-09-26. MUST stay identical to
+  // editor/state.js TILE_ID_REGISTRY: the editor writes these VALUES into level JSON and
+  // this map is the only thing that turns them back into art. If one side has an entry the
+  // other lacks, a tile placed in the Builder renders as default purple in the game.
+  // APPEND ONLY ? 41 was the previous highest, nothing reused.
+  42: 'env_bt_bldg_r02_c01',
+  43: 'env_bt_bldg_r02_c02',
+  44: 'env_bt_bldg_r02_c03',
+  45: 'env_bt_bldg_r03_c01',
+  46: 'env_bt_bldg_r03_c02',
+  47: 'env_bt_bldg_r03_c03',
+  48: 'env_bt_bldg_r03_c04',
+  49: 'env_bt_bldg_r03_c05',
+  50: 'env_bt_bldg_r03_c06',
+  51: 'env_bt_bldg_r04_c01',
+  52: 'env_bt_bldg_r04_c02',
+  53: 'env_bt_bldg_r04_c03',
+  54: 'env_bt_bldg_r04_c04',
+  55: 'env_bt_bldg_r04_c05',
+  56: 'env_bt_bldg_r04_c06',
+  57: 'env_bt_bldg_r04_c11',
+  58: 'env_bt_bldg_r04_c12',
+  59: 'env_bt_bldg_r04_c13',
 });
 const TILE_DEFAULT_KEY = 'env_rt_tile_mid_a';
 // Explicit per-name path map — replaces the old `purple_city/tiles/${name}` string
@@ -65,6 +88,26 @@ const TILE_PATHS = Object.freeze({
   'env_rt_bldg_r04_c11':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c11.png',
   'env_rt_bldg_r04_c12':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c12.png',
   'env_rt_bldg_r04_c13':  'assets/tilesets/purple_rooftop/tiles/rt_bldg_r04_c13.png',
+  // Blue Rooftop tile art. Separate tileset folder, which is exactly why this map exists
+  // instead of constructing `purple_city/tiles/${name}` ? two tilesets would collide.
+  'env_bt_bldg_r02_c01': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png',
+  'env_bt_bldg_r02_c02': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c02.png',
+  'env_bt_bldg_r02_c03': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c03.png',
+  'env_bt_bldg_r03_c01': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c01.png',
+  'env_bt_bldg_r03_c02': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c02.png',
+  'env_bt_bldg_r03_c03': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c03.png',
+  'env_bt_bldg_r03_c04': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c04.png',
+  'env_bt_bldg_r03_c05': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c05.png',
+  'env_bt_bldg_r03_c06': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r03_c06.png',
+  'env_bt_bldg_r04_c01': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c01.png',
+  'env_bt_bldg_r04_c02': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c02.png',
+  'env_bt_bldg_r04_c03': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c03.png',
+  'env_bt_bldg_r04_c04': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c04.png',
+  'env_bt_bldg_r04_c05': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c05.png',
+  'env_bt_bldg_r04_c06': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c06.png',
+  'env_bt_bldg_r04_c11': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c11.png',
+  'env_bt_bldg_r04_c12': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c12.png',
+  'env_bt_bldg_r04_c13': 'assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c13.png',
 });
 // Preload all registered tiles using the explicit path map.
 const _pc = {};
@@ -91,7 +134,7 @@ export function clear(ctx, w, h, bgColor) {
 // topOpen: true when the tile directly above is not solid.
 //   → rooftop surface with neon glow edge
 //   → false = building facade interior → draw windows
-export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0) {
+export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0, flipX = false) {
   const x = tx * T, y = ty * T;
 
   if (type === 2) {
@@ -117,14 +160,22 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0) {
                               : (TILE_ID_REGISTRY[type] || TILE_DEFAULT_KEY);
   const img    = _pc[texKey];
   if (img.complete && img.naturalWidth > 0) {
-    if (!rot) {
+    if (!rot && !flipX) {
       // Tiles are true 16×16 as of Aki Batch 1 — full source blit, no crop.
       ctx.drawImage(img, 0, 0, 16, 16, x, y, T, T);
     } else {
-      // Rotate around tile center. Editor stores rotation in degrees {0,90,180,270}.
+      // Rotate/mirror around tile center. Editor stores rotation in degrees {0,90,180,270}
+      // and the horizontal mirror as a 1 in the parallel tileFlips array.
+      // TRANSFORM ORDER IS PART OF THE CONTRACT and must stay identical to
+      // editor/renderer.js: translate, then scale, then rotate. Canvas applies the last-set
+      // transform to the geometry first, so scale-before-rotate mirrors the ALREADY-ROTATED
+      // tile, which is what the author sees in the Builder. Swap the two lines here and the
+      // game silently renders every rotated-and-flipped tile mirrored the other way from the
+      // Builder that authored it.
       ctx.save();
       ctx.imageSmoothingEnabled = false;
       ctx.translate(x + T / 2, y + T / 2);
+      if (flipX) ctx.scale(-1, 1);
       ctx.rotate(rot * Math.PI / 180);
       ctx.drawImage(img, 0, 0, 16, 16, -T / 2, -T / 2, T, T);
       ctx.restore();

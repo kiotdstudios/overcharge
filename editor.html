@@ -34,6 +34,12 @@
   #save-flash.err { color: #ff5566; }
   #save-folder-name { font-family: monospace; font-size: 10px; color: #556; margin-left: 4px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
   #save-folder-name.set { color: #44aa66; }
+/* Tile readout — same monospace/size as the folder name it sits beside, so the toolbar row
+   stays visually one strip. Amber to separate "what I clicked" from "where I save". */
+#tile-readout { font-family: monospace; font-size: 10px; color: #e0a63a; margin-left: 10px;
+                white-space: nowrap; letter-spacing: 0.3px; }
+#tile-readout .tr-id  { color: #8891a8; }
+#tile-readout .tr-num { color: #556; }
   .dirty-star { color: #ff8800; margin-left: 4px; }
 
   /* Sidebar (asset browser) */
@@ -225,6 +231,11 @@
     <button id="btn-save" class="primary" title="Save current level (Ctrl+S)">💾 SAVE</button>
     <button id="btn-choose-folder" class="tp-btn" title="REQUIRED before saving — pick the git levels folder (src_scroll/levels) so SAVE writes directly into your Git clone">📁 FOLDER</button>
     <span id="save-folder-name"></span>
+    <!-- CHIEF 2026-09-26: "when u click on a tile the name of the tile is at the top to the
+         right of the 'no folder set' text". Sits immediately after #save-folder-name so it
+         reads left-to-right in the same toolbar row. Empty until the first click, so it
+         never occupies space it has nothing to say in. -->
+    <span id="tile-readout" title="Name of the last tile you clicked, or the tile currently selected for painting"></span>
     <span id="save-flash"></span>
     <span id="gh-pub-status" style="font-family:monospace;font-size:11px;margin-left:6px;display:none"></span>
     <button id="btn-gh-token" class="tp-btn" title="Set GitHub Personal Access Token for one-click publish to GitHub Pages" style="margin-left:4px">🔑 TOKEN</button>
@@ -328,6 +339,10 @@
             <button class="tp-btn" id="btn-layer-backward" title="Send Backward ([)">⇓ Bwd</button>
             <button class="tp-btn" id="btn-layer-back"     title="Send to Back (Shift+[)">⤓ Back</button>
             <button class="tp-btn" id="btn-rotate"         title="Rotate 90° CW (R)">↻ Rot</button>
+    <!-- Chief 2026-09-26: flip button next to rotate. Horizontal mirror — with the four
+         rotations already available that reaches all 8 orientations of a square tile, so a
+         separate vertical button would add nothing. -->
+    <button class="tp-btn" id="btn-flip"           title="Flip horizontally (F) — mirrors tiles and decorations in the selection">⇄ Flip</button>
           </div>
           <div class="tp-row" style="margin-top:4px">
             <button class="tp-btn" id="zoom-out"   title="Zoom out (-)">- Zoom</button>
@@ -399,7 +414,8 @@
           <div class="tp-row">
             <button class="tp-btn" id="spawn-drain"    title="Place Drain Enemy (22×24, hp=2, drops 2 charge)">+ Drain</button>
             <button class="tp-btn" id="spawn-patrol"   title="Place Patrol Enemy (20×26, hp=1, drops 1 charge)">+ Patrol</button>
-            <button class="tp-btn" id="spawn-drone"    title="Place Drone Enemy (40×36, hp=2, sprite)">+ Drone</button>
+            <button class="tp-btn" id="spawn-drone"    title="Place Sky Sentry (flying, 2 HP, red laser)">+ Sky Sentry</button>
+            <button class="tp-btn" id="spawn-wheel-drone" title="Place Wheel Drone (grounded, 2 HP, plasma burst)">+ Wheel Drone</button>
           </div>
           <div class="tp-row">
             <button class="tp-btn" id="spawn-source"     title="Place Electrical Source">+ Source</button>
@@ -595,6 +611,47 @@
 
 <!-- Generic confirm used for RESTORE / DELETE / CLEAR. No one-click destruction. -->
 
-<script type="module" src="editor/main.js"></script>
+<!-- BEGIN GENERATED EDITOR MODULE VERSIONS -->
+<script type="importmap">
+{
+  "imports": {
+    "./editor/actions.js": "./editor/actions.js?v=305df77fc13f3313",
+    "./editor/assets.js": "./editor/assets.js?v=305df77fc13f3313",
+    "./editor/buildinfo.js": "./editor/buildinfo.js?v=305df77fc13f3313",
+    "./editor/clipboard.js": "./editor/clipboard.js?v=305df77fc13f3313",
+    "./editor/generator.js": "./editor/generator.js?v=305df77fc13f3313",
+    "./editor/history.js": "./editor/history.js?v=305df77fc13f3313",
+    "./editor/localstore.js": "./editor/localstore.js?v=305df77fc13f3313",
+    "./editor/main.js": "./editor/main.js?v=305df77fc13f3313",
+    "./editor/persistence.js": "./editor/persistence.js?v=305df77fc13f3313",
+    "./editor/renderer.js": "./editor/renderer.js?v=305df77fc13f3313",
+    "./editor/selection.js": "./editor/selection.js?v=305df77fc13f3313",
+    "./editor/snapshots.js": "./editor/snapshots.js?v=305df77fc13f3313",
+    "./editor/snapshotui.js": "./editor/snapshotui.js?v=305df77fc13f3313",
+    "./editor/state.js": "./editor/state.js?v=305df77fc13f3313",
+    "./editor/tools.js": "./editor/tools.js?v=305df77fc13f3313",
+    "./src_scroll/background.js": "./src_scroll/background.js?v=305df77fc13f3313",
+    "./src_scroll/camera.js": "./src_scroll/camera.js?v=305df77fc13f3313",
+    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=305df77fc13f3313",
+    "./src_scroll/constants.js": "./src_scroll/constants.js?v=305df77fc13f3313",
+    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=305df77fc13f3313",
+    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=305df77fc13f3313",
+    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=305df77fc13f3313",
+    "./src_scroll/entities.js": "./src_scroll/entities.js?v=305df77fc13f3313",
+    "./src_scroll/input.js": "./src_scroll/input.js?v=305df77fc13f3313",
+    "./src_scroll/level.js": "./src_scroll/level.js?v=305df77fc13f3313",
+    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=305df77fc13f3313",
+    "./src_scroll/main.js": "./src_scroll/main.js?v=305df77fc13f3313",
+    "./src_scroll/player.js": "./src_scroll/player.js?v=305df77fc13f3313",
+    "./src_scroll/render.js": "./src_scroll/render.js?v=305df77fc13f3313",
+    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=305df77fc13f3313",
+    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=305df77fc13f3313",
+    "./src_scroll/ui.js": "./src_scroll/ui.js?v=305df77fc13f3313",
+    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=305df77fc13f3313"
+  }
+}
+</script>
+<!-- END GENERATED EDITOR MODULE VERSIONS -->
+<script type="module" src="editor/main.js?v=305df77fc13f3313"></script>
 </body>
 </html>

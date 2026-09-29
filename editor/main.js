@@ -6,9 +6,11 @@ import {
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid,
+  getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
 } from './state.js';
 import { render } from './renderer.js';
+import { tileUnderMouse } from './tools.js';
 import { mountAssetBrowser } from './assets.js';
 import { TOOLS, middleMousePan, wheelZoom } from './tools.js';
 import * as History from './history.js';
@@ -59,6 +61,7 @@ const btnLayerForward  = document.getElementById('btn-layer-forward');
 const btnLayerBackward = document.getElementById('btn-layer-backward');
 const btnLayerBack     = document.getElementById('btn-layer-back');
 const btnRotate        = document.getElementById('btn-rotate');
+const btnFlip          = document.getElementById('btn-flip');
 
 // ── Inspector collapse ────────────────────────────────────────────────────
 // UI-only layout toggle. Selection/state is untouched — CSS just hides the
@@ -214,6 +217,25 @@ function _applyRotate(delta) {
 }
 btnRotate?.addEventListener('click', () => _applyRotate(90));
 
+// Chief 2026-09-26: flip button beside rotate. Mirrors horizontally. Deliberately mirrors
+// BOTH tiles and decorations, because Rot does both and a Flip that ignored a selected prop
+// would read as broken.
+function _applyFlip() {
+  const decs  = Selection.selectedDecorations();
+  const cells = Selection.selectedTiles();
+  let applied = false;
+  if (decs.length > 0) {
+    const a = Actions.flipDecorations(decs);
+    if (a) { History.apply(a); applied = true; }
+  }
+  if (cells.length > 0) {
+    const a = Actions.flipTiles(cells);
+    if (a) { History.apply(a); applied = true; }
+  }
+  if (!applied) console.info('[editor] flip — nothing flippable in selection');
+}
+btnFlip?.addEventListener('click', () => _applyFlip());
+
 // ── Level workflow wiring ─────────────────────────────────────────────────
 btnUndo?.addEventListener('click', () => History.undo());
 btnRedo?.addEventListener('click', () => History.redo());
@@ -345,19 +367,39 @@ btnSave?.addEventListener('click', async () => {
   // If a GitHub token is set, push directly to GitHub — no local folder needed.
   // This is the cross-machine workflow: edit on any device, SAVE publishes live.
   if (Persistence.getGitHubPat() && state.level?.number != null) {
+    // Serialize: a double-click or a second SAVE firing mid-flight must not
+    // race two PUTs against the same file. Disable the button for the whole
+    // request, always re-enable in finally (AKI_SAVE_409_HANDOFF item 3).
+    if (Persistence.isPublishing()) return;
+    if (btnSave) btnSave.disabled = true;
     if (ghStatus) { ghStatus.style.display = ''; ghStatus.style.color = '#8aaabb'; ghStatus.textContent = '↑ pushing to GitHub…'; }
+    const wasDirty = state.dirty;
     const json = JSON.stringify(state.level, null, 2);
-    const gr   = await Persistence.pushLevelToGitHub(json, state.level.number);
+    let gr;
+    try {
+      gr = await Persistence.pushLevelToGitHub(json, state.level.number);
+    } finally {
+      if (btnSave) btnSave.disabled = false;
+    }
     if (ghStatus) {
       ghStatus.style.color = gr.ok ? '#44ff88' : '#ff5566';
       ghStatus.textContent = gr.message;
-      setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, 8000);
+      // Conflicts and errors stay visible longer — Chief needs to actually
+      // read a conflict message, not have it vanish in 8s.
+      const holdMs = gr.ok ? 8000 : (gr.conflict ? 20000 : 12000);
+      setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, holdMs);
     }
     if (gr.ok) {
-      state.dirty = false;
-      await SnapUI.snapshotOnSaveIfChanged();
+      // Only clear dirty if nothing changed the level while the save was in
+      // flight — an edit made mid-save must not be silently marked clean.
+      const stillMatches = JSON.stringify(state.level, null, 2) === json;
+      state.dirty = stillMatches ? false : wasDirty;
+      if (stillMatches) await SnapUI.snapshotOnSaveIfChanged();
       showSaveFlash({ ok: true, message: 'Saved + pushed to GitHub Pages' });
     } else {
+      // 409 conflict or any other failure: never clear dirty, never overwrite
+      // silently. Local edits are preserved exactly as they were.
+      state.dirty = wasDirty;
       showSaveFlash({ ok: false, message: gr.message });
     }
     _updateFolderDisplay();
@@ -763,9 +805,70 @@ function showSaveFlash(result) {
   setTimeout(() => { saveFlash.className = ''; saveFlash.textContent = ''; }, 3200);
 }
 
+// ── Tile readout (CHIEF 2026-09-26) ───────────────────────────────────────
+// "when u click on a tile the name of the tile is at the top to the right of the
+//  'no folder set' text"
+// Shows the tile you clicked on the canvas. Also updates when you pick a tile in the
+// asset browser, because the question "what am I painting with" is the same question.
+const tileReadout = document.getElementById('tile-readout');
+
+// Friendly name from the asset id. Manifest name if it has one, else the raw id —
+// never a bare number, which is what the level JSON stores and what nobody can read.
+function _tileDisplayName(assetId) {
+  if (!assetId) return null;
+  const item = state.manifest?.items?.find(i => i.id === assetId);
+  return (item && (item.name || item.label)) || assetId;
+}
+
+function _setTileReadout(html) {
+  if (tileReadout) tileReadout.innerHTML = html || '';
+}
+
+// Canvas click → whatever occupies that cell.
+function _reportClickedTile(e) {
+  if (!tileReadout || !state.level) return;
+  const { col, row } = tileUnderMouse(e, canvas);
+  const rows = levelRows();
+  if (col < 0 || col >= state.level.cols || row < 0 || row >= rows) {
+    // Outside the level is a real answer, not an error. Saying so beats a stale name
+    // from three clicks ago that he would read as current.
+    _setTileReadout(`<span class="tr-num">off-grid  r${row} c${col}</span>`);
+    return;
+  }
+  const v = getTile(col, row);
+  const cell = `<span class="tr-num">r${row} c${col}</span>`;
+  if (!tileIsSolid(v)) { _setTileReadout(`<span class="tr-id">empty</span> ${cell}`); return; }
+  const id = tileAssetIdFor(v);
+  const name = _tileDisplayName(id);
+  // Value AND id are both shown: the value is what the JSON stores and what Chief needs
+  // when matching Level 1's edge convention; the name is what he can actually recognise.
+  // Most tiles carry no manifest `name`, so name === id — printing both would read as
+  // "env_rt_tile_mid_a env_rt_tile_mid_a". Only show the id when it adds something.
+  const idPart = (name === id) ? '' : ` <span class="tr-id">${id}</span>`;
+  _setTileReadout(`${name}${idPart} <span class="tr-num">#${v} · ${cell}</span>`);
+}
+
+// Asset-browser pick → what you are about to paint with.
+export function reportSelectedTile() {
+  if (!tileReadout) return;
+  const sel = state.selectedAsset;
+  if (state.selectedTile > 0) {
+    const id = tileAssetIdFor(state.selectedTile);
+    const nm = _tileDisplayName(id);
+    const idPart = (nm === id) ? '' : ` <span class="tr-id">${id}</span>`;
+    _setTileReadout(`${nm}${idPart} <span class="tr-num">#${state.selectedTile} · selected</span>`);
+  } else if (sel) {
+    _setTileReadout(`${sel.name || sel.id} <span class="tr-id">${sel.id}</span> <span class="tr-num">selected</span>`);
+  }
+}
 // ── Canvas mouse events → active tool ─────────────────────────────────────
 canvas.addEventListener('mousedown', (e) => {
   if (state.pendingSpawn) { _doSpawn(e, canvas); return; }
+  // CHIEF 2026-09-26: report the clicked tile's name in the toolbar. Read BEFORE the tool
+  // runs, so a Place/Erase click reports what was actually there when he clicked rather
+  // than what the tool just changed it into. Deliberately outside the tool dispatch so it
+  // works with every tool, including ones added later.
+  _reportClickedTile(e);
   TOOLS[state.tool]?.onMouseDown?.(e, canvas);
 });
 canvas.addEventListener('mousemove', (e) => TOOLS[state.tool]?.onMouseMove?.(e, canvas));
@@ -842,6 +945,7 @@ window.addEventListener('keydown', async (e) => {
   if (e.key === '[') { e.preventDefault(); _applyLayerOp(shift ? 'send-to-back'  : 'send-backward'); }
   // Rotate — R = 90° CW, Shift+R = 90° CCW
   if (e.key === 'r' || e.key === 'R') { e.preventDefault(); _applyRotate(shift ? -90 : 90); }
+    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); _applyFlip(); }
 });
 
 // beforeunload — warn on unsaved changes (Ctrl+R, tab close, etc.)
@@ -850,7 +954,20 @@ window.addEventListener('beforeunload', (e) => {
 });
 
 // ── UI refresh (subscribes to every state change) ─────────────────────────
+// Last asset-browser selection we reported. refreshUI() runs on EVERY state change
+// (camera zoom, dirty flag, undo depth...), so reporting the selection unconditionally
+// would wipe the clicked-tile name a few milliseconds after Chief clicked, since the click
+// itself triggers a notify. Only speak when the selection actually changed.
+let _lastSelKey = null;
+
 function refreshUI() {
+  const selKey = `${state.selectedTile}|${state.selectedAsset?.id || ''}`;
+  if (selKey !== _lastSelKey) {
+    _lastSelKey = selKey;
+    // At boot the default paint tile IS a selection, so the readout starts by naming what
+    // a Place click would lay down. That is accurate and useful, so it is not suppressed.
+    if (state.selectedTile > 0 || state.selectedAsset) reportSelectedTile();
+  }
   // Live zoom readout on the reset button (Chief: number must change with ±).
   // Click still resets to 100%.
   if (zoomResetBtn) zoomResetBtn.textContent = Math.round(state.camera.zoom * 100) + '%';
@@ -1300,11 +1417,15 @@ document.getElementById('import-backups-input')?.addEventListener('change', asyn
 
 // ── Spawn mode ──────────────────────────────────────────────────────────────
 // state.pendingSpawn = null | { kind } where kind is one of:
-//   'drain-enemy', 'patrol-enemy', 'drone-enemy',
+//   'drain-enemy', 'patrol-enemy', 'drone-enemy' (legacy), 'sky-sentry', 'wheel-drone',
 //   'source', 'source-hvac', 'switch', 'gate', 'checkpoint', 'platform', 'crate', 'chest'
 // Set by spawn buttons. Cleared after placement or Escape.
 
 state.pendingSpawn = null;
+canvas.addEventListener('asset-spawn', e => {
+  state.pendingSpawn = { kind: e.detail.asset.spawnsKind, asset: e.detail.asset };
+  _doSpawn(e.detail, canvas);
+});
 
 const _spawnStatus   = document.getElementById('spawn-status');
 
@@ -1339,6 +1460,22 @@ function _groundAt(worldX, worldY, objH) {
 
 function _snapGrid(v) { return Math.round(v / TILE_SIZE) * TILE_SIZE; }
 
+// Short world label for a prop source, matching the existing GEN / HVAC convention.
+// Chief 2026-09-26: deriving the label from the asset id and truncating to 10 chars printed
+// "STREETLIGH" over his lamp — a word cut mid-letter. Known props get a hand-picked short
+// name; anything Aki adds later falls back to its FIRST WORD, which is never cut mid-word.
+function _propLabel(assetId) {
+  const SHORT = {
+    prop_ncp_fuse_box:        'FUSE',
+    prop_ncp_neon_sign:       'NEON',
+    prop_ncp_security_camera: 'CAM',
+    prop_ncp_streetlight:     'LAMP',
+    prop_ncp_vending_machine: 'VEND',
+  };
+  if (SHORT[assetId]) return SHORT[assetId];
+  return String(assetId || 'PROP').replace(/^prop_ncp_/, '').split('_')[0].toUpperCase();
+}
+
 function _doSpawn(e, canvas) {
   const L = state.level;
   if (!L || !state.pendingSpawn) return;
@@ -1357,12 +1494,16 @@ function _doSpawn(e, canvas) {
     const w = 20, h = 26, px = Math.round(wx), py = _groundAt(wx, wy, h);
     obj = { type: 'patrol', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 50 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
-  } else if (kind === 'drone-enemy') {
+  } else if (kind === 'drone-enemy' || kind === 'sky-sentry') {
     // Grid-snapped like every other object (Chief 2026-09-12). NOT ground-snapped:
     // the drone is a HOVERING enemy, so it legitimately sits above the floor —
     // but its position should still land on the grid so patrols line up.
     const w = 40, px = _snapGrid(wx), py = _snapGrid(wy);
-    obj = { type: 'drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
+    obj = { type: 'sky-sentry', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
+    arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
+  } else if (kind === 'wheel-drone') {
+    const w = 38, h = 34, px = _snapGrid(wx), py = _groundAt(wx, wy, h);
+    obj = { type: 'wheel-drone', x: px, y: py, patrolLeft: px - 64, patrolRight: px + 64 + w, speed: 55 };
     arr = L.enemies || (L.enemies = []); arrLabel = 'add_enemy';
   } else if (kind === 'source') {
     // Chief directive 2026-09-12: a standard generator gives 4 energy, period.
@@ -1374,6 +1515,31 @@ function _doSpawn(e, canvas) {
     // HVAC powered source — same energy budget as a standard generator,
     // different art + fan animation. kind:'hvac' drives drawHvac in electricity.js.
     obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'HVAC', charge: 4, kind: 'hvac' };
+    arr = L.sources || (L.sources = []); arrLabel = 'add_source';
+  } else if (kind === 'source-prop') {
+    // CHIEF 2026-09-26: "the new electric HVAC unit and the other electric props ... are new
+    // absorbable assests; i put the lamp on lvl 1 but doesnt let me absorb it".
+    // He had placed it as a DECORATION, which is inert art. Absorption is driven entirely by
+    // entries in level.sources — player.js walks that array, calls inRange() then drain().
+    // So a prop has to BE a source to be absorbable. Making decorations absorbable instead
+    // would mean a second drain path, which is exactly what the single-energy-authority rule
+    // forbids.
+    //
+    // Self-describing on purpose: the runtime never loads ASSET_MANIFEST.json, so the sprite
+    // folder and frame geometry must live in the level JSON.
+    const a = state.pendingSpawn.asset || {};
+    // "assets/objects/night-city-props/streetlight/00.png" -> ".../streetlight/"
+    const dir = String(a.path || '').replace(/[^/]*$/, '');
+    obj = {
+      x: _snapGrid(wx), y: _groundAt(_snapGrid(wx) + 14, wy, 28),
+      label: _propLabel(a.id),
+      charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
+      kind: 'prop',
+      sprite: dir,
+      frames: a.frame_count  || 8,
+      artW:   a.frame_width  || 64,
+      artH:   a.frame_height || 64,
+    };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'switch') {
     obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '' };
@@ -1422,7 +1588,7 @@ function _doSpawn(e, canvas) {
     // Placing it always moves the existing spawn — exactly one per level.
     const PLAYER_HIT_H = 30;   // matches PLAYER_H in src_scroll/constants.js
     const px = _snapGrid(wx);
-    const py = _groundAt(wx, wy, PLAYER_HIT_H);
+    const py = _groundAt(px + 10, wy, PLAYER_HIT_H);
     const action = Actions.setPlayerStart(L, px, py);
     if (action) History.apply(action);
     if (L.playerStart) Selection.selectByKind('playerStart', L.playerStart);
@@ -1436,6 +1602,7 @@ function _doSpawn(e, canvas) {
     if (action) History.apply(action);
     const kindMap = {
       'drain-enemy': 'enemy', 'patrol-enemy': 'enemy', 'drone-enemy': 'enemy',
+      'sky-sentry': 'enemy', 'wheel-drone': 'enemy',
       'source': 'source', 'switch': 'switch', 'gate': 'gate',
       'wall-switch': 'switch', 'fence': 'gate',
       'checkpoint': 'checkpoint', 'platform': 'platform', 'crate': 'crate',
@@ -1450,7 +1617,8 @@ function _doSpawn(e, canvas) {
 [
   ['spawn-drain',      'drain-enemy'],
   ['spawn-patrol',     'patrol-enemy'],
-  ['spawn-drone',      'drone-enemy'],
+  ['spawn-drone',      'sky-sentry'],
+  ['spawn-wheel-drone', 'wheel-drone'],
   ['spawn-source',     'source'],
   ['spawn-source-hvac', 'source-hvac'],
   ['spawn-switch',     'switch'],
@@ -1476,9 +1644,14 @@ function _doSpawn(e, canvas) {
 subscribe(function _assetSpawnIntercept() {
   const raw = state.selectedAsset?.raw;
   if (!raw?.spawnsKind) return;
-  // Consume: clear selectedAsset, enter pendingSpawn mode
+  // Consume: clear selectedAsset, enter pendingSpawn mode.
+  // CHIEF 2026-09-26: the electric props all share ONE spawnsKind ('source-prop'), so the
+  // kind alone no longer says WHAT to place — a streetlight and a vending machine are
+  // different art at different sizes. Carry the manifest entry through so _doSpawn can write
+  // a self-describing source: src_scroll never loads ASSET_MANIFEST.json, so the sprite path
+  // and frame geometry have to travel in the level JSON or the runtime cannot draw it.
   state.selectedAsset = null;
-  state.pendingSpawn = { kind: raw.spawnsKind };
+  state.pendingSpawn = { kind: raw.spawnsKind, asset: raw };
   _refreshSpawnStatus();
   // No notify() needed — subscribe fires after notify, so state is already consistent.
 });
@@ -1511,7 +1684,7 @@ function _refreshSelectedProps() {
   let badge = '', color = '#cdd', fields = [];
   if (kind === 'enemy') {
     const type = ref.type || 'patrol';
-    color = type === 'drain' ? '#ff3355' : type === 'drone' ? '#88cc44' : '#ff7733';
+    color = type === 'drain' ? '#ff3355' : ['drone', 'sky-sentry', 'wheel-drone'].includes(type) ? '#ff5577' : '#ff7733';
     badge = 'ENEMY · ' + type.toUpperCase();
     fields = [
       { label:'type',       key:'type',       ro:true },

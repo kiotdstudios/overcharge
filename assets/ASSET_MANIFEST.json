@@ -4,10 +4,13 @@
   "assets": [
     {
       "id": "electrical_generator",
+      "name": "Generator",
+      "spawnsKind": "source",
       "path": "assets/sprites/generator 1/frame_{n}.png",
       "category": "electrical",
       "tags": [
         "generator",
+        "electric",
         "source",
         "animation",
         "electrical"
@@ -779,30 +782,31 @@
     },
     {
       "id": "drone_enemy",
-      "path": "assets/sprites/drone/idle/frame_000.png",
+      "path": "assets/sprites/city-drones/sky-sentry/frame_000.png",
       "category": "enemy",
       "tags": [
-        "drone",
         "enemy",
-        "spawn",
-        "placement"
+        "drone",
+        "sky-sentry",
+        "spawn"
       ],
-      "frame_width": 64,
-      "frame_height": 64,
+      "frame_width": 384,
+      "frame_height": 384,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "spawnsKind": "drone-enemy",
+      "spawnsKind": "sky-sentry",
       "boundingRect": {
         "w": 40,
         "h": 36
       },
-      "notes": "Palette entry for the drone enemy. Clicking enters spawn mode — sets pendingSpawn:{kind:'drone-enemy'}. Art: idle/frame_000.png (64x64). Hitbox 40x36. Default patrol range is set relative to spawn position (px-64, px+64+w). State/animation frames (9 shooting frames, idle set) stay OUT of the palette — one placeable entry only.",
+      "notes": "Flying replacement for legacy drone. 64x64 rendered art, feet anchor (192,360) in 384x384 frame. Collider 40x36. Eight animation frames; only this palette entry is placeable.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
-      }
+      },
+      "name": "Sky Sentry"
     },
     {
       "id": "chest",
@@ -1131,6 +1135,7 @@
       "path": "assets/tilesets/purple_rooftop/props/hvac_a.png",
       "category": "electrical",
       "tags": [
+        "electric",
         "hvac",
         "source",
         "electrical",
@@ -1150,7 +1155,7 @@
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
       }
     },
-        {
+    {
       "id": "env_bt_bldg_r02_c01",
       "path": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "category": "tile",
@@ -1473,6 +1478,144 @@
       "directions": null,
       "loop": false,
       "notes": "Blue rooftop building tile at row 4 col 13, right building (c11-c13). 16x16px."
+    },
+    {
+      "id": "prop_ncp_fuse_box",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/fuse-box/00.png",
+      "category": "decoration",
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Fuse box. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px."
+    },
+    {
+      "id": "prop_ncp_neon_sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/neon-sign/00.png",
+      "category": "decoration",
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 96,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Neon sign. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px."
+    },
+    {
+      "id": "prop_ncp_security_camera",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/security-camera/00.png",
+      "category": "decoration",
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Security camera. States: powered(f0-1), absorbing(f2-5), drained(f6). 64x64px."
+    },
+    {
+      "id": "prop_ncp_streetlight",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/streetlight/00.png",
+      "category": "decoration",
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 192,
+      "frame_height": 192,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Street lamp. States: powered(f0-1), absorbing(f2-5), drained(f6). 192x192px."
+    },
+    {
+      "id": "prop_ncp_vending_machine",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/vending-machine/00.png",
+      "category": "decoration",
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Vending machine. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px."
+    },
+    {
+      "id": "wheel_drone",
+      "path": "assets/sprites/city-drones/wheel-drone/frame_000.png",
+      "category": "enemy",
+      "tags": [
+        "enemy",
+        "drone",
+        "wheel-drone",
+        "spawn"
+      ],
+      "frame_width": 384,
+      "frame_height": 384,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "wheel-drone",
+      "boundingRect": {
+        "w": 38,
+        "h": 34
+      },
+      "notes": "Grounded patrol with plasma burst. 64x64 rendered art, feet anchor (192,360) in 384x384 frame. Collider 38x34. Only this palette entry is placeable.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
+      },
+      "name": "Wheel Drone"
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -1764,5 +1907,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 67
+  "count": 68
 }

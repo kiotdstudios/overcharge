@@ -48,7 +48,11 @@ function worldUnderMouse(evt, canvas) {
   const { sx, sy } = canvasCoords(evt, canvas);
   return screenToWorld(sx, sy);
 }
-function tileUnderMouse(evt, canvas) {
+// Exported so main.js's tile readout resolves the cell through the SAME conversion the
+// tools use, including the canvas backing-store scale. A second copy of this maths in
+// main.js could name a different tile than the one Place/Erase actually edits, which is
+// worse than no readout at all.
+export function tileUnderMouse(evt, canvas) {
   const w = worldUnderMouse(evt, canvas);
   return worldToTile(w.x, w.y);
 }
@@ -416,6 +420,7 @@ export const pointerTool = {
       }
       // Modular-family magnetic snap while dragging a single family piece.
       _applyDragMagnetic(this._origPositions);
+      _reanchorGameplay(this._origPositions);
     }
     state.dragMove.curWX = w.x;
     state.dragMove.curWY = w.y;
@@ -665,7 +670,7 @@ function _anchorObjBottom(worldX, worldY, ow, oh) {
   const rows = levelRows();
   const x = Math.round(worldX / TILE_SIZE) * TILE_SIZE;
   const fromRow = Math.max(0, Math.floor(worldY / TILE_SIZE));
-  const footCol = Math.max(0, Math.min(Math.floor((worldX + ow / 2) / TILE_SIZE), (L?.cols ?? 1) - 1));
+  const footCol = Math.max(0, Math.min(Math.floor((x + ow / 2) / TILE_SIZE), (L?.cols ?? 1) - 1));
   let surfaceY = null;
   for (let r = fromRow; r < rows; r++) {
     // BUGFIX 2026-09-12: was `tileIsSolid(footCol, r)`. tileIsSolid takes a tile
@@ -717,7 +722,7 @@ function _reanchorGameplay(origPositions) {
     if (!kind) continue;
 
     // Floating by design: align to grid, never drag down to the floor.
-    const floats = kind === 'platform' || (kind === 'enemy' && ref.type === 'drone');
+    const floats = kind === 'platform' || (kind === 'enemy' && ['drone', 'sky-sentry'].includes(ref.type));
     if (floats) {
       ref.x = Math.round(ref.x / TILE_SIZE) * TILE_SIZE;
       ref.y = Math.round(ref.y / TILE_SIZE) * TILE_SIZE;
@@ -738,7 +743,7 @@ function _reanchorGameplay(origPositions) {
       switch:      { w: 22, h: 22 },
       checkpoint:  { w: 0,  h: 0  },
       crate:       { w: ref.w ?? 32, h: ref.h ?? 32 },
-      enemy:       { w: ref.type === 'patrol' ? 20 : 22, h: ref.type === 'patrol' ? 26 : 24 },
+      enemy:       { w: ref.type === 'wheel-drone' ? 38 : ref.type === 'patrol' ? 20 : 22, h: ref.type === 'wheel-drone' ? 34 : ref.type === 'patrol' ? 26 : 24 },
       playerStart: { w: 20, h: 30 },
     }[kind];
     if (!dims) continue;
@@ -791,7 +796,7 @@ function _placeGameplayMarker(asset, worldX, worldY) {
   // playerStart is a single object per level; dragging player_* MOVES it.
   if (cat === 'player') {
     const oldStart = L.playerStart || null;
-    const newStart = { x: pos.x, y: pos.y };
+    const newStart = _anchorObjBottom(worldX, worldY, 20, 30);
     const action = {
       type: 'set_player_start',
       forward: () => { L.playerStart = newStart; notify(); },
@@ -1068,6 +1073,13 @@ export function startAssetDrag(asset, initialEvt) {
     const inCanvas = e.clientX >= r.left && e.clientX < r.right
                   && e.clientY >= r.top  && e.clientY < r.bottom;
     if (!inCanvas) { console.info('[drag] released outside canvas'); return; }
+    // Spawn assets must use the same entity creation/undo path as click placement.
+    if (asset.raw?.spawnsKind) {
+      canvas.dispatchEvent(new CustomEvent('asset-spawn', {
+        detail: { asset: asset.raw, clientX: e.clientX, clientY: e.clientY },
+      }));
+      return;
+    }
     const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
     const scaleY = r.height > 0 ? canvas.height / r.height : 1;
     const sx = (e.clientX - r.left) * scaleX;

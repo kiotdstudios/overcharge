@@ -3,17 +3,6 @@
   "_note": "auto-generated inventory of every PNG under assets/tilesets/purple_city/. Editor fetches this after ASSET_MANIFEST.json and merges any un-manifested files as fallback entries. Aki-manifest entries always win when there is a path collision.",
   "assets": [
     {
-      "id": "env_waste_platform_long.png",
-      "path": "assets/tilesets/purple_city/props/env_waste_platform_long.png",
-      "category": "prop",
-      "width": 21,
-      "height": 5,
-      "tags": [
-        "purple_city",
-        "props"
-      ]
-    },
-    {
       "id": "rt_tile_mid_a.png",
       "path": "assets/tilesets/purple_rooftop/tiles/rt_tile_mid_a.png",
       "category": "tile",

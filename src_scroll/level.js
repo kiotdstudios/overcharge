@@ -2,7 +2,8 @@
 import { TILE, COLS, ROWS, MAX_ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
-import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, DroneEnemy, Crate, Chest } from './entities.js';
+import { SkySentry, WheelDrone } from './city-drones.js';
+import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 
 export class Level {
   constructor(def) {
@@ -12,6 +13,10 @@ export class Level {
     // Parallel rotation array (0/90/180/270 degrees). Optional in the JSON —
     // missing / short array renders as all-zero rotation (backward-compatible).
     this.tileRotations  = Array.isArray(def.tileRotations) ? def.tileRotations : null;
+    // Parallel horizontal-mirror array (1 = flipped). Optional, same contract as
+    // tileRotations: missing or short array means nothing is flipped, so every level file
+    // authored before the Flip button still loads unchanged.
+    this.tileFlips      = Array.isArray(def.tileFlips) ? def.tileFlips : null;
     this.cols    = def.cols || COLS;
     // ── PER-LEVEL HEIGHT — CHIEF RULING 2026-09-19 18:30, decisions 1/5/6 ──────
     // Rows are now derived exactly the way COLS already worked and exactly the way the
@@ -44,7 +49,9 @@ export class Level {
     this.switches = (def.switches || []).map(d => new Switch(d));
     this.enemies  = (def.enemies  || []).map(d => {
       if (d.type === 'drain')  return new DrainEnemy(d);
-      if (d.type === 'drone')  return new DroneEnemy(d);
+      // Legacy authored drones use the replacement without rewriting level files.
+      if (d.type === 'drone' || d.type === 'sky-sentry') return new SkySentry(d);
+      if (d.type === 'wheel-drone') return new WheelDrone(d);
       return new PatrolEnemy(d);
     });
     this.checkpoints = (def.checkpoints || []).map(d => new Checkpoint(d));
@@ -63,7 +70,7 @@ export class Level {
       img.src = d.src;
       // Preserve rotation ({0,90,180,270} deg) so TEST mode renders
       // decorations exactly as authored in the editor.
-      return { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0 };
+      return { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0, flipX: !!d.flipX };
     });
 
     this.playerStart = def.playerStart || { x: 48, y: 354 };
@@ -85,20 +92,11 @@ export class Level {
     return v === 1 || v >= 10;
   }
 
-  // Building section tiles (IDs 24-41) are solid vertically (player can land on
-  // them) but pass-through horizontally — they are wall-facade art, not barriers.
-  // A player standing on a floor tile must be able to run in front of a building
-  // wall without being stopped. Only _resolveX uses this; _resolveY and solidAt
-  // are unchanged so vertical grounding still works normally.
-  // groundRow = tBot + 1 from _resolveX — the tile row the player stands on.
-  // Building facades (24-41) only block horizontally when there is NO floor
-  // in the destination column. Floor present = run past; no floor = wall edge.
-  tileBlocksX(tx, ty, groundRow) {
+  // Terrain blocks on both axes. Non-colliding facade art belongs in decorations.
+  tileBlocksX(tx, ty) {
     const v = this.tileAt(tx, ty);
-    // Tiles 27/38 are structural side walls (left/right edge of enclosed buildings).
-    // They always block horizontally — they are never pass-through facades.
-    if (v === 27 || v === 38) return true;
-    if (v >= 24 && v <= 41) return !this.solidAt(tx, groundRow);
+    // Solid terrain must block both axes: side entry into vertically solid
+    // building fill produces invisible floors inside the building.
     return v === 1 || v >= 10;
   }
 
@@ -214,6 +212,7 @@ export class Level {
       enemies:     this.enemies.map(e => ({
         x: e.x, y: e.y, vx: e.vx, hp: e.hp, alive: e.alive,
         _cooldown: e._cooldown || 0, _hitFlash: e._hitFlash || 0, _t: e._t || 0,
+        ...(e.snapshotCombat?.() || {}),
       })),
       platforms:   this.platforms.map(pl => ({ x: pl.x, vx: pl.vx })),
       // ORDER CRATE_TIMED D8 — MANDATORY, not optional. A crate's position is
@@ -249,7 +248,13 @@ export class Level {
       Object.assign(this.checkpoints[i], snap.checkpoints[i]);
     }
     for (let i = 0; i < this.enemies.length && i < snap.enemies.length; i++) {
-      Object.assign(this.enemies[i], snap.enemies[i]);
+      const saved = snap.enemies[i];
+      Object.assign(this.enemies[i], saved);
+      // Each rewind owns its combat objects; simulation must never mutate the snapshot.
+      if ('_laser' in saved) this.enemies[i]._laser = saved._laser ? {...saved._laser} : null;
+      for (const key of ['_plasma', '_blasts']) {
+        if (saved[key]) this.enemies[i][key] = saved[key].map(shot => ({...shot}));
+      }
     }
     for (let i = 0; i < this.platforms.length && i < snap.platforms.length; i++) {
       Object.assign(this.platforms[i], snap.platforms[i]);
@@ -276,18 +281,23 @@ export class Level {
     // 1. Background decorations (buildings, props) — behind everything
     for (const dec of this.decorations) {
       if (!(dec.img.complete && dec.img.naturalWidth > 0)) continue;
-      const rot = dec.rotation || 0;
-      if (rot === 0) {
+      const rot  = dec.rotation || 0;
+      const flip = !!dec.flipX;
+      if (rot === 0 && !flip) {
         ctx.drawImage(dec.img, dec.x, dec.y, dec.w, dec.h);
       } else {
         // Rotation swaps the visual bbox — source draw dims are h,w when
         // rotation is 90/270 (matches editor rotate action's bbox swap).
+        // A horizontal mirror does NOT swap the bbox, so it leaves srcW/srcH alone and only
+        // changes the transform. Same translate-scale-rotate order as tiles and as
+        // editor/renderer.js — see the contract note in render.js drawTile.
         const isHoriz = (rot % 180) === 0;
         const srcW = isHoriz ? dec.w : dec.h;
         const srcH = isHoriz ? dec.h : dec.w;
         ctx.save();
         ctx.imageSmoothingEnabled = false;
         ctx.translate(dec.x + dec.w / 2, dec.y + dec.h / 2);
+        if (flip) ctx.scale(-1, 1);
         ctx.rotate(rot * Math.PI / 180);
         ctx.drawImage(dec.img, -srcW / 2, -srcH / 2, srcW, srcH);
         ctx.restore();
@@ -303,7 +313,8 @@ export class Level {
           const topOpen = !(above === 1 || above >= 10);
           const idx = ty * this.cols + tx;
           const rot = this.tileRotations ? (this.tileRotations[idx] || 0) : 0;
-          drawTile(ctx, tx, ty, TILE, tile, topOpen, rot);
+          const flipX = this.tileFlips ? !!this.tileFlips[idx] : false;
+          drawTile(ctx, tx, ty, TILE, tile, topOpen, rot, flipX);
         }
       }
     }

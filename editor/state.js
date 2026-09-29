@@ -63,7 +63,19 @@ export const TILE_ID_REGISTRY = Object.freeze({
   39: 'env_rt_bldg_r04_c11',
   40: 'env_rt_bldg_r04_c12',
   41: 'env_rt_bldg_r04_c13',
-  // Blue Rooftop tileset (IDs 42-59). APPEND ONLY — do not reassign existing values.
+  // Blue Rooftop tileset, IDs forty-two through fifty-nine.
+  // Chief reported that placing blue rooftop tiles did nothing new. They had NO registry
+  // entries, so tileValueForAssetId returned minus one and placement fell back to stamping
+  // the default purple mid_a tile wherever he clicked. A tile WAS placed every time, just the
+  // wrong one, which on a purple level looks exactly like nothing happening.
+  // A tile absent from this registry cannot be represented in level JSON at all: levels store
+  // VALUES, and a value is the only thing the runtime can decode back into art.
+  // APPEND ONLY. Forty-one was the previous highest; nothing is reused or reassigned, so every
+  // existing level file decodes exactly as before.
+  // CAREFUL WHEN EDITING THIS COMMENT: parity_regression parses this literal by regex and does
+  // not skip comments, so any number followed by a colon and a quote in prose is read as a
+  // registry entry. Two drafts of this comment silently corrupted a real tile that way. Spell
+  // numbers out in words inside this block.
   42: 'env_bt_bldg_r02_c01',
   43: 'env_bt_bldg_r02_c02',
   44: 'env_bt_bldg_r02_c03',
@@ -423,7 +435,7 @@ function _normalizeManifestEntry(a) {
   return {
     id:          a.id || path,
     path:        path,
-    name:        a.id || (a.name || path.split('/').pop().replace(/\.png$/i, '')),
+    name:        a.name || a.id || path.split('/').pop().replace(/\.png$/i, ''),
     category:    a.category || 'other',
     // Modular-family tag: Aki-authored assets that magnetically join
     // edge-to-edge with peers sharing the same family string. Optional â€”
@@ -474,19 +486,40 @@ export function filteredManifestItems() {
   const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
-    // Never show retired assets (eligible: false) in the palette.
-    if (it.raw && it.raw.generation && it.raw.generation.eligible === false) return false;
-    // Background assets live in their own section â€” exclude from tile/object grid.
+    // Hand-authored spawn assets stay available even when random generation
+    // excludes them. Explicit pack filters still restrict their paths below.
+    const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
+    // CHIEF 2026-09-26: "the new electric HVAC unit and the other electric props need to be
+    // filtered together". They were not, because source_hvac never appeared in the palette
+    // AT ALL: it carries generation.eligible:false and the rule below read that as "retired".
+    //
+    // eligible:false means "the AUTO GENERATE level builder must not place this at random"
+    // — source_hvac's own note says "Puzzle-critical electrical object — requires scripted
+    // placement by level designer". It was never meant to mean "hide from the designer".
+    // Its note even ends "Appears under the HVAC quick-filter in the asset browser", which
+    // it did not. There is also no + HVAC button in the SPAWN OBJECTS panel, so the HVAC
+    // source was unplaceable by ANY route.
+    //
+    // The contradiction was already in this function: isSpawnAsset exists precisely so spawn
+    // assets "always show", and the line below was overruling it two lines earlier. Scoped
+    // to spawn assets only — ineligible TILES stay hidden, so Aki's palette is unchanged
+    // apart from the four spawn entries that were always meant to be visible.
+    if (it.raw && it.raw.generation && it.raw.generation.eligible === false && !isSpawnAsset) return false;
+    // Genuinely retired art stays hidden no matter what it declares.
+    if (it.tags && it.tags.indexOf('retired') >= 0) return false;
+    // Background assets live in their own section — exclude from tile/object grid.
     if (it.category === 'background') return false;
     if (category !== 'all' && it.category !== category) return false;
-    // Spawn-type and player-category assets are meta-objects, not tileset art â€”
-    // always show them regardless of the pack quick-filters.
-    const isSpawnAsset = it.category === 'player' || !!(it.raw && it.raw.spawnsKind);
-    if (purpleCityOnly    && !isSpawnAsset && !/\/purple_city\//.test(it.path || '')) return false;
-    if (purpleRooftopOnly && !isSpawnAsset && !/\/purple_rooftop\//.test(it.path || '')) return false;
-    if (blueRooftopOnly   && !isSpawnAsset && !/\/blue_rooftop\//.test(it.path || ''))   return false;
+    if (purpleCityOnly    && !/\/purple_city\//.test(it.path || '')) return false;
+    // Rooftop filters are tile palettes. HVAC art shares the purple pack's
+    // folder but belongs under HVAC/Electric, rather than the terrain filter.
+    if (purpleRooftopOnly && (it.category !== 'tile' || !/\/purple_rooftop\/tiles\//.test(it.path || ''))) return false;
+    if (blueRooftopOnly   && (it.category !== 'tile' || !/\/blue_rooftop\/tiles\//.test(it.path || ''))) return false;
     if (hvacOnly          && !(it.tags && it.tags.indexOf('hvac') >= 0)) return false;
     if (nightCityRailOnly && !isSpawnAsset && !/\/night-city-rail\//.test(it.path || '')) return false;
+    // Electric groups the HVAC source WITH the 5 props (Chief's ruling above). It is a tag
+    // test, not an isSpawnAsset exemption — an explicit filter must still filter, otherwise
+    // every spawn asset would leak into every pack filter.
     if (electricOnly     && !(it.tags && it.tags.indexOf('electric') >= 0))     return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
@@ -651,6 +684,42 @@ export function setTileRotation(col, row, degrees) {
   const idx = row * L.cols + col;
   if (L.tileRotations[idx] === norm) return false;
   L.tileRotations[idx] = norm;
+  notify();
+  return true;
+}
+
+// ── Tile flip ─────────────────────────────────────────────────────────────────
+// Chief 2026-09-26: "add a flip button next to rotate on the level editor; i wanna fllip
+// the orientation of the tile".
+// Stored in a parallel array L.tileFlips, one entry per L.tiles cell, 1 = mirrored
+// horizontally, 0 / missing / short array = not flipped. Exactly the same shape as
+// tileRotations, so it round-trips through save/load for free and old level files stay valid.
+//
+// WHY HORIZONTAL ONLY IS THE COMPLETE ANSWER, not a shortcut:
+// a horizontal mirror combined with the four rotations already available generates all EIGHT
+// orientations of a square tile (the dihedral group). A separate vertical-flip button would
+// add no reachable orientation — vertical flip is H-flip plus a 180 rotate. So one button.
+//
+// Purely visual, like rotation: collision still reads tileIsSolid on L.tiles untouched.
+export function getTileFlip(col, row) {
+  const L = state.level;
+  if (!L) return false;
+  if (col < 0 || col >= L.cols || row < 0 || row >= levelRows()) return false;
+  const arr = L.tileFlips;
+  if (!Array.isArray(arr)) return false;
+  return !!arr[row * L.cols + col];
+}
+export function setTileFlip(col, row, flipped) {
+  const L = state.level;
+  if (!L) return false;
+  if (col < 0 || col >= L.cols || row < 0 || row >= levelRows()) return false;
+  if (!Array.isArray(L.tileFlips) || L.tileFlips.length !== L.tiles.length) {
+    L.tileFlips = new Array(L.tiles.length).fill(0);
+  }
+  const idx = row * L.cols + col;
+  const next = flipped ? 1 : 0;
+  if (L.tileFlips[idx] === next) return false;
+  L.tileFlips[idx] = next;
   notify();
   return true;
 }

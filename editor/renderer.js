@@ -6,7 +6,7 @@
 // Any level JSON conforming to SCHEMA.md renders correctly. No Level-1 assumptions.
 
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
-         worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation } from './state.js';
+         worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation, getTileFlip } from './state.js';
 import * as Selection from './selection.js';
 import { drawHvac, sourceBox } from '../src_scroll/source-visuals.js';
 
@@ -132,16 +132,25 @@ export function render(ctx, canvas) {
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
       const img = tileIsSolid(v) ? resolveTileImg(v) : null;
-      const rot = getTileRotation(col, r);
+      const rot  = getTileRotation(col, r);
+      const flip = getTileFlip(col, r);
       if (img && img.complete && img.naturalWidth > 0) {
-        if (rot === 0) {
+        if (rot === 0 && !flip) {
           ctx.drawImage(img, 0, 0, 16, 16, p.x, p.y, tsz, tsz);
         } else {
-          // Rotate the tile around its center. 16×16 source keeps pixel
+          // Rotate/mirror the tile around its center. 16×16 source keeps pixel
           // crispness on 90° turns.
+          // TRANSFORM ORDER IS PART OF THE CONTRACT and must stay identical to
+          // src_scroll/render.js drawTile: translate, then scale, then rotate.
+          // Canvas applies the last-set transform to the geometry FIRST, so writing scale
+          // before rotate means the mirror lands on the already-rotated tile — it mirrors
+          // what Chief sees on screen. Swapping those two lines silently gives the opposite
+          // result for every rotated tile, and then the Builder and the game disagree about
+          // the same level file.
           ctx.save();
           ctx.imageSmoothingEnabled = false;
           ctx.translate(p.x + tsz / 2, p.y + tsz / 2);
+          if (flip) ctx.scale(-1, 1);
           ctx.rotate(rot * Math.PI / 180);
           ctx.drawImage(img, 0, 0, 16, 16, -tsz / 2, -tsz / 2, tsz, tsz);
           ctx.restore();
@@ -161,12 +170,16 @@ export function render(ctx, canvas) {
       if (p.x + dw < 0 || p.x > w || p.y + dh < 0 || p.y > h) continue;
       const img = getImage(d.src);
       if (img.complete && img.naturalWidth > 0) {
-        const rot = d.rotation || 0;
-        if (rot === 0) {
+        const rot  = d.rotation || 0;
+        const flip = !!d.flipX;
+        if (rot === 0 && !flip) {
           ctx.drawImage(img, p.x, p.y, dw, dh);
         } else {
-          // Rotate around visual-bbox center. Source draw dims match the
+          // Rotate/mirror around visual-bbox center. Source draw dims match the
           // sprite's NATIVE orientation: at 90/270 that's (bbox.h, bbox.w).
+          // A horizontal mirror does NOT swap the bbox, so srcDW/srcDH are unaffected by
+          // flip — only the transform changes. Same translate-scale-rotate order as tiles
+          // and as src_scroll/level.js.
           const rad = rot * Math.PI / 180;
           const isHoriz = (rot % 180) === 0;   // 0 or 180
           const srcDW = (isHoriz ? d.w : d.h) * c.zoom;
@@ -174,6 +187,7 @@ export function render(ctx, canvas) {
           ctx.save();
           ctx.imageSmoothingEnabled = false;   // preserve pixel-art crispness
           ctx.translate(p.x + dw / 2, p.y + dh / 2);
+          if (flip) ctx.scale(-1, 1);
           ctx.rotate(rad);
           ctx.drawImage(img, -srcDW / 2, -srcDH / 2, srcDW, srcDH);
           ctx.restore();
@@ -436,12 +450,27 @@ function _drawSources(ctx, arr) {
       ctx.restore();
       continue;
     }
-    // spriteY: -34 = -(62-28). 62 because sprite has 1px transparent bottom row;
-    // visual feet at row 62, so dY+62 = o.y+h = o.y+28 → dY = o.y-34.
-    const spriteX = o.x - 18, spriteY = o.y - 34;
+    // Prop sources carry their own art and their own size, so geometry comes from
+    // sourceBox() — the SAME helper the runtime uses — and the Builder shows the art exactly
+    // where the game will draw it.
+    // Chief 2026-09-26: "street light showing like a generator". Without this branch a prop
+    // fell straight through to the generator sprite below, so a 192px street lamp rendered
+    // as a 64px battery rack. The runtime was already correct; only the Builder was wrong.
+    let spriteX, spriteY, sw, sh, img;
+    if (o.kind === 'prop') {
+      const b = sourceBox(o);
+      spriteX = b.dX; spriteY = b.dY; sw = b.dW * z; sh = b.dH * z;
+      // Frame 00 is Aki's powered state. The Builder shows one static frame; the absorbing
+      // and drained frames are runtime states and mean nothing while authoring.
+      img = getImage(`${o.sprite || ''}00.png`);
+    } else {
+      // spriteY: -34 = -(62-28). 62 because sprite has 1px transparent bottom row;
+      // visual feet at row 62, so dY+62 = o.y+h = o.y+28 → dY = o.y-34.
+      spriteX = o.x - 18; spriteY = o.y - 34;
+      sw = 64 * z; sh = 64 * z;
+      img = getImage('assets/sprites/generator 1/frame_000.png');
+    }
     const sp = worldToScreen(spriteX, spriteY);
-    const sw = 64 * z, sh = 64 * z;
-    const img = getImage('assets/sprites/generator 1/frame_000.png');
     if (img.complete && img.naturalWidth > 0) {
       ctx.drawImage(img, sp.x, sp.y, sw, sh);
     } else {
@@ -765,25 +794,27 @@ function _drawEnemies(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   for (const e of arr) {
-    const type = e.type || 'patrol';
+    const type = e.type === 'drone' ? 'sky-sentry' : (e.type || 'patrol');
+    const cityDrone = type === 'sky-sentry' || type === 'wheel-drone';
     // Derive dimensions from type — w/h NOT stored in JSON (match runtime class).
-    const eW = type === 'drain' ? 22 : type === 'drone' ? 40 : 20;
-    const eH = type === 'drain' ? 24 : type === 'drone' ? 36 : 26;
+    const eW = type === 'drain' ? 22 : type === 'sky-sentry' ? 40 : type === 'wheel-drone' ? 38 : 20;
+    const eH = type === 'drain' ? 24 : type === 'sky-sentry' ? 36 : type === 'wheel-drone' ? 34 : 26;
     const ew = eW * z, eh = eH * z;
     const p  = worldToScreen(e.x, e.y);
 
     // Colour per type — mirrors runtime glow colours
     const stroke = type === 'drain'  ? '#ff3355'
-                 : type === 'drone'  ? '#88cc44'
+                 : cityDrone        ? '#ff5577'
                  :                     '#ff7733'; // patrol
 
-    // Drone: draw real sprite (straight blit at o.x, o.y, w×h — matches runtime entities.js:468)
-    if (type === 'drone') {
-      const droneImg = getImage('assets/sprites/drone/idle/frame_000.png');
+    // City drones use the same sprite size and feet anchor as the runtime.
+    if (cityDrone) {
+      const droneImg = getImage(`assets/sprites/city-drones/${type}/frame_000.png`);
       ctx.imageSmoothingEnabled = false;
       if (droneImg.complete && droneImg.naturalWidth > 0) {
         ctx.save();
-        ctx.drawImage(droneImg, p.x, p.y, ew, eh);
+        // Same 64px art and feet anchor as city-drones.js.
+        ctx.drawImage(droneImg, p.x + ew / 2 - 32 * z, p.y + eh - 60 * z, 64 * z, 64 * z);
         ctx.restore();
         // Glow outline on top so it reads as selected-friendly
         ctx.save();
@@ -810,7 +841,7 @@ function _drawEnemies(ctx, arr) {
         ctx.fillStyle = stroke;
         ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
         ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-        ctx.fillText('DRONE', p.x + ew + 2, p.y);
+        ctx.fillText(type === 'sky-sentry' ? 'SKY SENTRY' : 'WHEEL DRONE', p.x + ew + 2, p.y);
         continue;
       }
     }

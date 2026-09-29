@@ -20,6 +20,7 @@ let categorySelect;
 let thumbGrid;
 let statusEl;
 let bgSectionEl;   // background section container (rebuilt on notify)
+let filterCheckboxes = [];
 
 // â”€â”€â”€ Background pack catalog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Hardcoded pack registry so the section renders even before ASSET_MANIFEST loads.
@@ -91,8 +92,10 @@ export function mountAssetBrowser(container) {
   const extraFilters = [
     { id: 'ab-hvac-only',           label: 'HVAC',             color: '#aec', getter: () => !!state.filter.hvacOnly,          setter: setHvacOnly           },
     { id: 'ab-electric-only',       label: 'Electric',         color: '#ff6', getter: () => !!state.filter.electricOnly,     setter: setElectricOnly       },
+    { id: 'ab-enemies', label: 'Enemies', color: '#f79', getter: () => state.filter.category === 'enemy', setter: v => setFilterCategory(v ? 'enemy' : 'all') },
   ];
 
+  filterCheckboxes = [];
   for (const cfg of [...packFilters, ...extraFilters]) {
     const row = document.createElement('label');
     row.style.cssText = `display:flex;align-items:center;gap:6px;font-size:11px;color:${cfg.color};margin:1px 0;user-select:none;cursor:pointer;`;
@@ -100,7 +103,16 @@ export function mountAssetBrowser(container) {
     box.type = 'checkbox';
     box.id = cfg.id;
     box.checked = cfg.getter();
-    box.addEventListener('change', () => cfg.setter(box.checked));
+    box.addEventListener('change', () => {
+      const checked = box.checked;
+      // Each quick filter selects one asset group; changing groups must not
+      // leave a stale pack/category restriction hiding the requested assets.
+      Object.assign(state.filter, { category: 'all', purpleCityOnly: false,
+        purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false,
+        nightCityRailOnly: false, electricOnly: false });
+      cfg.setter(checked);
+    });
+    filterCheckboxes.push({box, cfg});
     row.appendChild(box);
     row.appendChild(Object.assign(document.createElement('span'), { textContent: cfg.label }));
     filterRow.appendChild(row);
@@ -131,6 +143,7 @@ export function mountAssetBrowser(container) {
 
 function refresh() {
   if (!root) return;
+  for (const {box, cfg} of filterCheckboxes) box.checked = cfg.getter();
   _refreshBgSection();
   _populateCategories();
   _populateThumbs();
@@ -254,7 +267,7 @@ function _populateCategories() {
   categorySelect.appendChild(optAll);
   for (const c of cats) {
     const cnt = state.manifest.items.filter(i => i.category === c).length;
-    categorySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: `${c} (${cnt})` }));
+    categorySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: `${c === 'enemy' ? 'ENEMIES' : c} (${cnt})` }));
   }
   categorySelect.value = cats.includes(current) ? current : 'all';
 }
@@ -272,7 +285,7 @@ function _populateThumbs() {
     cell.className = 'ab-cell' + (isSelected ? ' selected' : '');
     const tipParts = [it.name, `${it.category}  ${it.width}Ã—${it.height}`, it.path];
     if (it.raw && it.raw.notes) tipParts.push('â€” ' + it.raw.notes);
-    if (it.isAnimation) tipParts.push('(animation â€” placement disabled in Phase 1)');
+    if (it.isAnimation && !it.raw?.spawnsKind) tipParts.push('(animation â€” placement disabled in Phase 1)');
     if (it.source === 'disk-index') tipParts.push('(from disk â€” not yet in Aki manifest)');
     cell.title = tipParts.join('\n');
     cell.addEventListener('click', () => setSelectedAsset(it));

@@ -153,7 +153,7 @@ for (const { file, def, drone } of droneLevels) {
     const st = d.alertState;
     if (seq[seq.length-1] !== st) seq.push(st);
     if (st==='engaged' && engagedAt<0) engagedAt=i;
-    if ((d._blasts||[]).length && firstShot<0) firstShot=i;
+    if (((d._laser && d._laser.time >= .55) || (d._blasts||[]).length) && firstShot<0) firstShot=i;
   }
   ok(seq.includes('alert'), `${file}: at the drone's elevation it ALERTS`, `sequence: ${seq.join(' -> ')}`);
   ok(engagedAt>0 && firstShot>=engagedAt, `${file}: no blast before the telegraph elapsed`, `engaged f${engagedAt}, first blast f${firstShot}`);

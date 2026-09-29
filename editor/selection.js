@@ -1,3 +1,4 @@
+import { sourceBox } from '../src_scroll/source-visuals.js';
 // selection.js — tracks what is currently selected in the editor.
 //
 // Selection covers every kind of level content:
@@ -218,7 +219,10 @@ export function boundingRect(kind, ref) {
   // SEE, so clicking the visible generator selects it and the outline matches the
   // art (Chief's rule, 2026-09-12). Runtime collision is unaffected: this is an
   // editor-only selection rect.
-  if (kind === 'source')     return { x: ref.x - 18, y: ref.y - 34, w: 64, h: 64 };
+  if (kind === 'source') {
+    const b = sourceBox(ref);
+    return { x: b.dX, y: b.dY, w: b.dW, h: b.dH };
+  }
   // Switch: 56x56 art (wall_switch/switch_off.png or switch_on.png) drawn centred on
   // the hitbox cx and bottom-aligned to the hitbox bottom. Anchor from electricity.js
   // Switch._drawWall: dX = Math.round(cx - 56/2) = x-17, dY = (y+22)-56 = y-34.
@@ -234,8 +238,8 @@ export function boundingRect(kind, ref) {
   if (kind === 'checkpoint') return { x: ref.x - 22, y: ref.y - 56, w: 44, h: 56 };
   // Enemy: x,y = top-left. w/h NOT in JSON — derive from type to match runtime class.
   if (kind === 'enemy') {
-    const ew = ref.type === 'patrol' ? 20 : ref.type === 'drone' ? 40 : 22;
-    const eh = ref.type === 'patrol' ? 26 : ref.type === 'drone' ? 36 : 24;
+    const ew = ref.type === 'patrol' ? 20 : ['drone', 'sky-sentry'].includes(ref.type) ? 40 : ref.type === 'wheel-drone' ? 38 : 22;
+    const eh = ref.type === 'patrol' ? 26 : ['drone', 'sky-sentry'].includes(ref.type) ? 36 : ref.type === 'wheel-drone' ? 34 : 24;
     return { x: ref.x, y: ref.y, w: ew, h: eh };
   }
   // Platform: x,y = top-left. w/h explicit or defaulted to match MovingPlatform class.
