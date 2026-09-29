@@ -24,6 +24,8 @@ record.
 - **Risks**: Too broad a matrix could waste time on unrelated assets; scope it to changed behavior.
 - **Routed to**:
 
+Evidence 2026-09-28: Rooftop traversal was tested headlessly against an assumed pass-through requirement, then reversed after Chief's screenshot exposed invisible interior floors. Revised tests passed while Chief remained blocked at the same route. Tests must verify the intended route, visible support and real browser play, not just the implementation's chosen collision policy.
+
 ### Verify delivered content after Pages deployment
 
 - **Status**: queued
@@ -33,6 +35,8 @@ record.
 - **Improves**: Clear delivery claims and less repeated cache exploration.
 - **Risks**: Cache delays can persist; report the uncertainty instead of polling indefinitely.
 - **Routed to**:
+
+Evidence 2026-09-28: Builder SAVE first wrote main instead of gameplay; transferring the actual level change required another publish. Chief confirmed both machines use the same Pages URLs, contradicting the later assumption that a stale Aki local branch explained the UI mismatch. Capture actual URL and loaded-level source before prescribing branch synchronization.
 
 ### Install local skills with one scoped permission check
 
