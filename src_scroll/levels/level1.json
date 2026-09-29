@@ -2956,6 +2956,13 @@
       "frames": 8,
       "artW": 192,
       "artH": 192
+    },
+    {
+      "x": 544,
+      "y": 420,
+      "label": "HVAC",
+      "charge": 4,
+      "kind": "hvac"
     }
   ],
   "gates": [
