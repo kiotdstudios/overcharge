@@ -1,0 +1,5 @@
+# Urgent evidence: browser still saving to main
+
+Chief supplied SAVE code f0aa338. Verified main HEAD f0aa338e0a7cbc6946dcaf8f21fc0d527a376a73; gameplay HEAD f857ece. That main commit is a no-content-change save; main level1 contains 80 blue tiles while gameplay/Pages contains 36. Chief transferred only the blue terrain replacements to current gameplay data, preserving background conversion and original gate position. Do not merge main's whole level over gameplay.
+
+The Builder used for this SAVE is still running a main-targeted handler, despite deployed persistence.js targeting gameplay. Both PCs use public Pages URLs, per Chief. Inspect the actual browser document/module requests and SAVE network GET ref/PUT branch. Reopen the editor with a fresh document query after preserving unsaved work, then verify the success label explicitly says agent/orcha-gameplay. Do not say same page URLs guarantee same running code or assume this is local branch drift. This remains part of current SAVE/sync work before queued verticality.
