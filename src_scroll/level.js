@@ -168,7 +168,9 @@ export class Level {
     }
 
     for (const gate of this.gates) {
-      if (gate.isExit && gate.open && !this.complete) {
+      const atExit = player.x + player.w > gate.x && player.x < gate.x + gate.w &&
+        player.y + player.h > gate.y && player.y < gate.y + gate.h;
+      if (gate.isExit && gate.open && gate.charged >= gate.required - 1e-9 && atExit && !this.complete) {
         this.complete = true;
         this._completedGate = gate;
       }
