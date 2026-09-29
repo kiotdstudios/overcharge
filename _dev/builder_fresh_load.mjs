@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import './support/headless.mjs';
+window.location.href = 'https://kiotdstudios.github.io/overcharge/editor.html';
+const { state, loadLevel } = await import('../editor/state.js');
+let calls = 0;
+globalThis.fetch = async (url, options) => {
+  const parsed = new URL(url);
+  assert.equal(parsed.pathname, '/overcharge/src_scroll/levels/level1.json');
+  assert.equal(parsed.searchParams.get('view'), 'authored');
+  assert.ok(parsed.searchParams.has('_level'));
+  assert.equal(options.cache, 'no-store');
+  return { ok: true, json: async () => ({ cols: 2, tiles: [++calls, 0] }) };
+};
+await loadLevel('src_scroll/levels/level1.json?view=authored');
+assert.equal(state.level.tiles[0], 1);
+await loadLevel('src_scroll/levels/level1.json?view=authored');
+assert.equal(state.level.tiles[0], 2, 'second load receives updated server JSON');
+assert.equal(state.levelPath, 'src_scroll/levels/level1.json?view=authored');
+const previous = state.level;
+globalThis.fetch = async () => ({ ok: false, status: 503 });
+await assert.rejects(loadLevel('src_scroll/levels/level1.json'));
+assert.equal(state.level, previous, 'failed refresh does not erase loaded level');
+console.log('PASS: fresh reload, URL preservation, updated data, and failed-load preservation');

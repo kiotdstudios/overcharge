@@ -450,7 +450,10 @@ function _normalizeManifestEntry(a) {
 }
 
 export async function loadLevel(url) {
-  const res = await fetch(url);
+  // A refresh must not reload a browser/CDN-cached authored level.
+  const freshUrl = new URL(url, window.location.href);
+  freshUrl.searchParams.set('_level', String(Date.now()));
+  const res = await fetch(freshUrl.href, { cache: 'no-store' });
   if (!res.ok) throw new Error('level fetch failed: ' + url + ' â†’ ' + res.status);
   state.level = await res.json();
   state.levelPath = url;
