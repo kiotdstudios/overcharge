@@ -699,3 +699,52 @@ async function _confirmDiscardIfDirty(msg) {
     dialog.showModal();
   });
 }
+
+// ── GitHub API direct publish ─────────────────────────────────────────────
+// Pushes a level JSON directly to GitHub via the Contents API, so the editor
+// works as a publish tool from any browser on any machine — no git, no local
+// clone required. Token is stored in localStorage (never sent anywhere else).
+const _GH_REPO   = 'kiotdstudios/overcharge';
+const _GH_BRANCH = 'main';
+
+export function getGitHubPat()      { return localStorage.getItem('overcharge_gh_pat') || ''; }
+export function setGitHubPat(token) {
+  if (token) localStorage.setItem('overcharge_gh_pat', token);
+  else        localStorage.removeItem('overcharge_gh_pat');
+}
+
+export async function pushLevelToGitHub(levelJson, levelNumber) {
+  const pat = getGitHubPat();
+  if (!pat) return { ok: false, message: 'No GitHub token — click 🔑 TOKEN and paste your PAT (needs repo scope).' };
+
+  const filename = `level${levelNumber}.json`;
+  const apiUrl   = `https://api.github.com/repos/${_GH_REPO}/contents/src_scroll/levels/${filename}`;
+  const headers  = { Authorization: `token ${pat}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' };
+
+  // Fetch current SHA (file must exist to update; 404 means first-ever upload — ok).
+  let sha = null;
+  try {
+    const r = await fetch(`${apiUrl}?ref=${_GH_BRANCH}`, { headers });
+    if (r.ok)              sha = (await r.json()).sha;
+    else if (r.status !== 404) return { ok: false, message: `GitHub API error ${r.status} fetching SHA.` };
+  } catch (err) { return { ok: false, message: `Network error: ${err.message}` }; }
+
+  // Base64-encode the JSON (TextEncoder handles unicode cleanly).
+  const bytes   = new TextEncoder().encode(levelJson);
+  const b64     = btoa(String.fromCharCode(...bytes));
+  const body    = { message: `level${levelNumber}: save from Builder`, content: b64, branch: _GH_BRANCH };
+  if (sha) body.sha = sha;
+
+  try {
+    const r = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(body) });
+    if (!r.ok) {
+      const j = await r.json().catch(() => ({}));
+      if (r.status === 401) return { ok: false, message: 'Token rejected (401) — regenerate your PAT and update it with 🔑 TOKEN.' };
+      return { ok: false, message: `GitHub push failed ${r.status}: ${j.message || 'unknown error'}` };
+    }
+    const j   = await r.json();
+    const sha7 = j.commit?.sha?.slice(0, 7) || '?';
+    return { ok: true, sha: sha7, message: `✓ Published to GitHub (${sha7}) — live in ~60s` };
+  } catch (err) { return { ok: false, message: `Push network error: ${err.message}` }; }
+}
+
