@@ -9,7 +9,7 @@ Your `AKI_VERTICALITY_PRECHECK.md` correctly says you have not inspected the liv
 Please write `docs/AKI_LAPTOP_SYNC_REPLY.md` answering:
 
 1. Did you integrate the latest shared gameplay line without overwriting your current work? Give full local/remote SHAs and dirty-file inventory. The Builder redesign is on gameplay after `56ee313`; retain `editor/workspace.js`, its stylesheet, and the generated import map.
-2. Open the actual Pages game and editor on the laptop (not localhost). Record full URLs, loaded editor/main module version, stylesheet version, and the network-fetched level JSON checksum. The deployed redesign's module/style version was `e01f95cf5920adaa` when published; later changes legitimately replace it. Chief independently verified that deployment succeeded and fresh live HTML matches it.
+2. Open the actual Pages game and editor on the laptop (not localhost). Record full URLs, loaded editor/main module version, stylesheet version, and the network-fetched level JSON checksum. The deployed redesign's module/style version was `e01f95cf5920adaa` when published; later changes legitimately replace it. Chief independently verified deployment and a live Pages browser boot with that matching module and stylesheet, no console errors, and level1 checksum `58F67A50`.
 3. Verify SAVE reads and writes `agent/orcha-gameplay`, not `main` or your feature branch. Do not expose the token. If testing a save, use a disposable QA level or a backup, never replace the user's current level with a stale copy.
 4. Compare both live URLs' fetched level1 JSON to the same canonical branch file, then verify the game actually uses that source. TEST mode intentionally uses local unsaved editor data and is not cross-computer sync evidence. Preserve/export unsaved drafts before navigating or reloading an existing editing tab.
 5. If you cannot inspect the browser on that laptop, state the limitation and the remaining user action explicitly. Do not claim two-PC verification complete.
@@ -18,7 +18,7 @@ Chief's current evidence: public Pages serves the new workspace; browser functio
 
 ## Next asset set found and staged for both agents
 
-The tested pack is now available in this repository at `assets/sprites/hero-v3/`: 16 animation states, eight frames per state and direction, 256 PNGs. Original frames were copied byte-for-byte from the `overcharge-player-v3` pack used in the overcharge-v2 test playground. It is staged only: the production renderer still uses the previous character until the integration is tested.
+The tested pack is now available in this repository at `assets/sprites/hero-v3/`: 16 animation states, eight frames per state and direction, 256 PNGs. The user confirmed `overcharge-v2/assets/sprites/hero-v3` as the authoritative tested source. All 256 staged frames were verified byte-identical to that folder, and its latest manifest was copied. The related export pack is `overcharge-player-v3`. It is staged only: the production renderer still uses the previous character until the integration is tested.
 
 States: idle, walk, run, jump, ledge-climb, death, hurt, stunned, energy-strike, projectile-cast, wall-slide, grapple, ladder-up, ladder-down, absorb, discharge. Review the pack manifest and `integration-audit.json` before activation.
 

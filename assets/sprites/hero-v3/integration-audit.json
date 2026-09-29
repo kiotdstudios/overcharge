@@ -1,5 +1,5 @@
 {
-  "source": "overcharge-player-v3, from the tested overcharge-v2 playground",
+  "source": "User-confirmed authoritative overcharge-v2/assets/sprites/hero-v3; all 256 staged frames verified byte-identical",
   "states": [
     "absorb",
     "death",

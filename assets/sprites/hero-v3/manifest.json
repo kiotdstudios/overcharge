@@ -136,16 +136,7 @@
           496
         ]
       ],
-      "rowSplit": 444,
-      "frameOverrides": {
-        "3": {
-          "sourceSize": [
-            1254,
-            1254
-          ],
-          "note": "Corrected passing pose. Draw into nominal 512px cell; near leg straight, far leg advances. Individual frame supersedes sheet frame 3."
-        }
-      }
+      "rowSplit": 444
     },
     "run": {
       "frames": 8,
