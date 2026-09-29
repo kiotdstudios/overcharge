@@ -237,7 +237,8 @@
          never occupies space it has nothing to say in. -->
     <span id="tile-readout" title="Name of the last tile you clicked, or the tile currently selected for painting"></span>
     <span id="save-flash"></span>
-    <span id="gh-pub-status" style="font-family:monospace;font-size:11px;margin-left:6px;display:none"></span>
+    <span id="gh-pub-status" role="status" style="font-family:monospace;font-size:11px;margin-left:6px;display:none;user-select:text"></span>
+    <button id="btn-copy-save-result" type="button" title="Copy the latest SAVE result, including its commit code">COPY RESULT</button>
     <button id="btn-gh-token" class="tp-btn" title="Set GitHub Personal Access Token for one-click publish to GitHub Pages" style="margin-left:4px">🔑 TOKEN</button>
     <input id="gh-pat-input" type="password" placeholder="ghp_your_token_here" autocomplete="off"
       style="display:none;font-family:monospace;font-size:11px;padding:2px 6px;background:#111;color:#ccc;border:1px solid #445;border-radius:3px;width:220px;margin-left:4px">
@@ -615,43 +616,43 @@
 <script type="importmap">
 {
   "imports": {
-    "./editor/actions.js": "./editor/actions.js?v=a695b184ae7077ef",
-    "./editor/assets.js": "./editor/assets.js?v=a695b184ae7077ef",
-    "./editor/buildinfo.js": "./editor/buildinfo.js?v=a695b184ae7077ef",
-    "./editor/clipboard.js": "./editor/clipboard.js?v=a695b184ae7077ef",
-    "./editor/generator.js": "./editor/generator.js?v=a695b184ae7077ef",
-    "./editor/history.js": "./editor/history.js?v=a695b184ae7077ef",
-    "./editor/localstore.js": "./editor/localstore.js?v=a695b184ae7077ef",
-    "./editor/main.js": "./editor/main.js?v=a695b184ae7077ef",
-    "./editor/persistence.js": "./editor/persistence.js?v=a695b184ae7077ef",
-    "./editor/renderer.js": "./editor/renderer.js?v=a695b184ae7077ef",
-    "./editor/selection.js": "./editor/selection.js?v=a695b184ae7077ef",
-    "./editor/snapshots.js": "./editor/snapshots.js?v=a695b184ae7077ef",
-    "./editor/snapshotui.js": "./editor/snapshotui.js?v=a695b184ae7077ef",
-    "./editor/state.js": "./editor/state.js?v=a695b184ae7077ef",
-    "./editor/tools.js": "./editor/tools.js?v=a695b184ae7077ef",
-    "./src_scroll/background.js": "./src_scroll/background.js?v=a695b184ae7077ef",
-    "./src_scroll/camera.js": "./src_scroll/camera.js?v=a695b184ae7077ef",
-    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=a695b184ae7077ef",
-    "./src_scroll/constants.js": "./src_scroll/constants.js?v=a695b184ae7077ef",
-    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=a695b184ae7077ef",
-    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=a695b184ae7077ef",
-    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=a695b184ae7077ef",
-    "./src_scroll/entities.js": "./src_scroll/entities.js?v=a695b184ae7077ef",
-    "./src_scroll/input.js": "./src_scroll/input.js?v=a695b184ae7077ef",
-    "./src_scroll/level.js": "./src_scroll/level.js?v=a695b184ae7077ef",
-    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=a695b184ae7077ef",
-    "./src_scroll/main.js": "./src_scroll/main.js?v=a695b184ae7077ef",
-    "./src_scroll/player.js": "./src_scroll/player.js?v=a695b184ae7077ef",
-    "./src_scroll/render.js": "./src_scroll/render.js?v=a695b184ae7077ef",
-    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=a695b184ae7077ef",
-    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=a695b184ae7077ef",
-    "./src_scroll/ui.js": "./src_scroll/ui.js?v=a695b184ae7077ef",
-    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=a695b184ae7077ef"
+    "./editor/actions.js": "./editor/actions.js?v=edeb03e1b6d2886d",
+    "./editor/assets.js": "./editor/assets.js?v=edeb03e1b6d2886d",
+    "./editor/buildinfo.js": "./editor/buildinfo.js?v=edeb03e1b6d2886d",
+    "./editor/clipboard.js": "./editor/clipboard.js?v=edeb03e1b6d2886d",
+    "./editor/generator.js": "./editor/generator.js?v=edeb03e1b6d2886d",
+    "./editor/history.js": "./editor/history.js?v=edeb03e1b6d2886d",
+    "./editor/localstore.js": "./editor/localstore.js?v=edeb03e1b6d2886d",
+    "./editor/main.js": "./editor/main.js?v=edeb03e1b6d2886d",
+    "./editor/persistence.js": "./editor/persistence.js?v=edeb03e1b6d2886d",
+    "./editor/renderer.js": "./editor/renderer.js?v=edeb03e1b6d2886d",
+    "./editor/selection.js": "./editor/selection.js?v=edeb03e1b6d2886d",
+    "./editor/snapshots.js": "./editor/snapshots.js?v=edeb03e1b6d2886d",
+    "./editor/snapshotui.js": "./editor/snapshotui.js?v=edeb03e1b6d2886d",
+    "./editor/state.js": "./editor/state.js?v=edeb03e1b6d2886d",
+    "./editor/tools.js": "./editor/tools.js?v=edeb03e1b6d2886d",
+    "./src_scroll/background.js": "./src_scroll/background.js?v=edeb03e1b6d2886d",
+    "./src_scroll/camera.js": "./src_scroll/camera.js?v=edeb03e1b6d2886d",
+    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=edeb03e1b6d2886d",
+    "./src_scroll/constants.js": "./src_scroll/constants.js?v=edeb03e1b6d2886d",
+    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=edeb03e1b6d2886d",
+    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=edeb03e1b6d2886d",
+    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=edeb03e1b6d2886d",
+    "./src_scroll/entities.js": "./src_scroll/entities.js?v=edeb03e1b6d2886d",
+    "./src_scroll/input.js": "./src_scroll/input.js?v=edeb03e1b6d2886d",
+    "./src_scroll/level.js": "./src_scroll/level.js?v=edeb03e1b6d2886d",
+    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=edeb03e1b6d2886d",
+    "./src_scroll/main.js": "./src_scroll/main.js?v=edeb03e1b6d2886d",
+    "./src_scroll/player.js": "./src_scroll/player.js?v=edeb03e1b6d2886d",
+    "./src_scroll/render.js": "./src_scroll/render.js?v=edeb03e1b6d2886d",
+    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=edeb03e1b6d2886d",
+    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=edeb03e1b6d2886d",
+    "./src_scroll/ui.js": "./src_scroll/ui.js?v=edeb03e1b6d2886d",
+    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=edeb03e1b6d2886d"
   }
 }
 </script>
 <!-- END GENERATED EDITOR MODULE VERSIONS -->
-<script type="module" src="editor/main.js?v=a695b184ae7077ef"></script>
+<script type="module" src="editor/main.js?v=edeb03e1b6d2886d"></script>
 </body>
 </html>

@@ -384,10 +384,7 @@ btnSave?.addEventListener('click', async () => {
     if (ghStatus) {
       ghStatus.style.color = gr.ok ? '#44ff88' : '#ff5566';
       ghStatus.textContent = gr.message;
-      // Conflicts and errors stay visible longer — Chief needs to actually
-      // read a conflict message, not have it vanish in 8s.
-      const holdMs = gr.ok ? 8000 : (gr.conflict ? 20000 : 12000);
-      setTimeout(() => { if (ghStatus) { ghStatus.style.display = 'none'; ghStatus.textContent = ''; } }, holdMs);
+      // Keep the result until another SAVE replaces it; Chief needs time to copy.
     }
     if (gr.ok) {
       // Only clear dirty if nothing changed the level while the save was in
@@ -793,11 +790,31 @@ levelSelect?.addEventListener('change', async (e) => {
   }
 });
 
+document.getElementById('btn-copy-save-result')?.addEventListener('click', async (e) => {
+  const status = document.getElementById('gh-pub-status');
+  const messageNode = status?.textContent ? status : saveFlash;
+  const message = messageNode?.textContent || '';
+  if (!message) { e.currentTarget.textContent = 'NO RESULT YET'; return; }
+  const button = e.currentTarget;
+  try {
+    await navigator.clipboard.writeText(message);
+    button.textContent = 'COPIED';
+  } catch {
+    // Clipboard permissions can differ across browsers: leave native copy usable.
+    const range = document.createRange();
+    range.selectNodeContents(messageNode);
+    const selection = window.getSelection();
+    selection.removeAllRanges(); selection.addRange(range);
+    button.textContent = 'SELECTED — PRESS CTRL+C';
+  }
+});
+
 function showSaveFlash(result) {
   if (!saveFlash) return;
   saveFlash.className = 'show' + (result.ok ? '' : ' err');
   saveFlash.textContent = result.ok ? `✓ ${result.message}` : `✗ ${result.message}`;
-  setTimeout(() => { saveFlash.className = ''; saveFlash.textContent = ''; }, 3200);
+  const copyButton = document.getElementById('btn-copy-save-result');
+  if (copyButton) copyButton.textContent = 'COPY RESULT';
 }
 
 // ── Tile readout (CHIEF 2026-09-26) ───────────────────────────────────────
@@ -879,6 +896,8 @@ wheelZoom(canvas);
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────
 window.addEventListener('keydown', async (e) => {
+  // Native text selection takes precedence over the canvas copy shortcut.
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && window.getSelection()?.toString()) return;
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
 
   const ctrl = e.ctrlKey || e.metaKey;
