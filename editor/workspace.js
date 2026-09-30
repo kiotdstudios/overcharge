@@ -140,7 +140,9 @@ export function mountWorkspace() {
     }
     for (const id of ['btn-rotate', 'btn-flip']) {
       byId(id).disabled = !decorations && !tiles;
-      byId(id).title = decorations || tiles ? 'Transform selected tiles or scenery' : 'Select tiles or scenery first';
+      byId(id).title = id === 'btn-rotate'
+        ? (decorations || tiles ? 'Rotate selected tiles or scenery 90° (R; Shift+R reverses)' : 'Select tiles or scenery first, then press R to rotate')
+        : (decorations || tiles ? 'Flip selected tiles or scenery (F)' : 'Select tiles or scenery first');
     }
   };
   subscribe(update);

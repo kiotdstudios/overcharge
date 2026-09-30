@@ -312,10 +312,11 @@ function _populateThumbs() {
     if (it.isAnimation && !it.raw?.spawnsKind) tipParts.push('(animation â€” placement disabled in Phase 1)');
     if (it.source === 'disk-index') tipParts.push('(from disk â€” not yet in Aki manifest)');
     cell.title = tipParts.join('\n');
-    cell.addEventListener('click', () => { setTool('place'); setSelectedAsset(it); });
+    cell.addEventListener('click', () => { document.activeElement?.blur?.(); setTool('place'); setSelectedAsset(it); });
     cell.addEventListener('mousedown', (e) => {
       if (e.button !== 0) return;
       e.preventDefault();
+      document.activeElement?.blur?.();
       console.info('[drag] mousedown on', it.id);
       setSelectedAsset(it);
       startAssetDrag(it, e);

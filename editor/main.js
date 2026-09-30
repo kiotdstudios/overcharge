@@ -965,6 +965,9 @@ export function reportSelectedTile() {
 }
 // ── Canvas mouse events → active tool ─────────────────────────────────────
 canvas.addEventListener('mousedown', (e) => {
+  // A sidebar search/input can retain focus after choosing an asset. Once the
+  // user returns to the canvas, keyboard shortcuts should target the editor.
+  if (document.activeElement?.matches?.('input, textarea, select')) document.activeElement.blur();
   if (state.pendingSpawn) { _doSpawn(e, canvas); return; }
   // CHIEF 2026-09-26: report the clicked tile's name in the toolbar. Read BEFORE the tool
   // runs, so a Place/Erase click reports what was actually there when he clicked rather
