@@ -274,6 +274,8 @@ const sectionColsInput  = document.getElementById('section-cols-input');
 const sectionExpandStatus = document.getElementById('section-expand-status');
 const btnAddSectionAbove = document.getElementById('btn-add-section-above');
 const btnAddSectionRight = document.getElementById('btn-add-section-right');
+const btnRemoveSectionAbove = document.getElementById('btn-remove-section-above');
+const btnRemoveSectionRight = document.getElementById('btn-remove-section-right');
 if (sectionRowsInput) sectionRowsInput.value = String(DEFAULT_SECTION_ROWS);
 if (sectionColsInput) sectionColsInput.value = String(DEFAULT_SECTION_COLS);
 
@@ -305,6 +307,32 @@ btnAddSectionRight?.addEventListener('click', () => {
   History.apply(action);
   if (sectionExpandStatus) sectionExpandStatus.textContent =
     `Added ${addedCols} cols right -- now ${levelRows()} rows x ${L.cols} cols.`;
+});
+btnRemoveSectionAbove?.addEventListener('click', () => {
+  const L = state.level;
+  if (!L) return;
+  const rows = _sectionAmount(sectionRowsInput, DEFAULT_SECTION_ROWS);
+  const issue = Actions.removeSectionAboveIssue(L, rows);
+  if (issue) {
+    if (sectionExpandStatus) sectionExpandStatus.textContent = `Not removed: ${issue}`;
+    return;
+  }
+  History.apply(Actions.removeSectionAbove(L, rows));
+  if (sectionExpandStatus) sectionExpandStatus.textContent =
+    `Removed ${rows} empty rows from top -- now ${levelRows()} rows x ${L.cols} cols. Undo restores them.`;
+});
+btnRemoveSectionRight?.addEventListener('click', () => {
+  const L = state.level;
+  if (!L) return;
+  const cols = _sectionAmount(sectionColsInput, DEFAULT_SECTION_COLS);
+  const issue = Actions.removeSectionRightIssue(L, cols);
+  if (issue) {
+    if (sectionExpandStatus) sectionExpandStatus.textContent = `Not removed: ${issue}`;
+    return;
+  }
+  History.apply(Actions.removeSectionRight(L, cols));
+  if (sectionExpandStatus) sectionExpandStatus.textContent =
+    `Removed ${cols} empty columns from right -- now ${levelRows()} rows x ${L.cols} cols. Undo restores them.`;
 });
 
 // ── Test Level ────────────────────────────────────────────────────────────

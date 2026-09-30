@@ -6,7 +6,8 @@
 globalThis.window = globalThis.window || {};
 globalThis.document = globalThis.document || { getElementById: () => null };
 
-const { addSectionAbove, addSectionRight } = await import('../actions.js');
+const { addSectionAbove, addSectionRight, removeSectionAbove, removeSectionRight,
+  removeSectionAboveIssue, removeSectionRightIssue } = await import('../actions.js');
 const { apply, undo, redo, clearAll } = await import('../history.js');
 const { state } = await import('../state.js');
 
@@ -152,6 +153,73 @@ function makeFixture() {
   check('addSectionAbove(-1) is a no-op (returns null)', addSectionAbove(state.level, -1) === null);
   check('addSectionRight(0) is a no-op (returns null)', addSectionRight(state.level, 0) === null);
   check('addSectionAbove(null level) is a no-op', addSectionAbove(null, 5) === null);
+}
+
+// Section removal must round-trip only blank outer space and reject content.
+{
+  clearAll();
+  state.level = makeFixture();
+  const original = JSON.stringify(state.level);
+  apply(addSectionAbove(state.level, 2));
+  const expanded = JSON.stringify(state.level);
+  check('top removal accepts rows added above existing content', removeSectionAboveIssue(state.level, 2) === null);
+  apply(removeSectionAbove(state.level, 2));
+  check('top removal restores every original field and tile array', JSON.stringify(state.level) === original);
+  undo();
+  check('undo restores removed top rows exactly', JSON.stringify(state.level) === expanded);
+  redo();
+  check('redo removes top rows exactly', JSON.stringify(state.level) === original);
+}
+{
+  clearAll();
+  state.level = makeFixture();
+  state.level.gates[0].x = 80; // synthetic fixture gate must be within its four-column grid
+  const original = JSON.stringify(state.level);
+  apply(addSectionRight(state.level, 2));
+  const expanded = JSON.stringify(state.level);
+  check('right removal accepts columns added after existing content', removeSectionRightIssue(state.level, 2) === null);
+  apply(removeSectionRight(state.level, 2));
+  check('right removal re-strides every row and restores original fields', JSON.stringify(state.level) === original);
+  undo();
+  check('undo restores removed right columns exactly', JSON.stringify(state.level) === expanded);
+  redo();
+  check('redo removes right columns exactly', JSON.stringify(state.level) === original);
+}
+{
+  const L = makeFixture();
+  const original = JSON.stringify(L);
+  L.tiles[0] = 11;
+  check('top removal rejects authored tiles', /contain tiles/.test(removeSectionAboveIssue(L, 1)));
+  check('rejected top removal creates no action', removeSectionAbove(L, 1) === null);
+  L.tiles[0] = 0;
+  L.tileFlips[0] = 1;
+  check('top removal rejects aligned flip data', /tileFlips/.test(removeSectionAboveIssue(L, 1)));
+  L.tileFlips[0] = 0;
+  L.playerStart.y = 0;
+  check('top removal rejects an object in the trimmed rows', /player start/.test(removeSectionAboveIssue(L, 2)));
+  check('rejections did not mutate geometry', L.cols === 4 && L.tiles.length === 12);
+  L.tileFlips.pop();
+  check('top removal rejects malformed aligned arrays', /not aligned/.test(removeSectionAboveIssue(L, 1)));
+  check('top removal rejects all rows', /at least one row/.test(removeSectionAboveIssue(makeFixture(), 3)));
+  check('top removal rejects fractional counts', /whole number/.test(removeSectionAboveIssue(makeFixture(), 1.5)));
+}
+{
+  const L = makeFixture();
+  L.gates[0].x = 80;
+  L.tiles[3] = 11;
+  check('right removal rejects authored tiles', /contain tiles/.test(removeSectionRightIssue(L, 1)));
+  check('rejected right removal creates no action', removeSectionRight(L, 1) === null);
+  L.tiles[3] = 0;
+  L.tileRotations[3] = 90;
+  check('right removal rejects aligned rotation data', /tileRotations/.test(removeSectionRightIssue(L, 1)));
+  L.tileRotations[3] = 0;
+  L.decorations[0].x = 110;
+  check('right removal rejects objects in trimmed columns', /decoration/.test(removeSectionRightIssue(L, 1)));
+  L.decorations[0].x = 90;
+  L.decorations[0].w = 16;
+  check('right removal rejects objects overlapping trimmed columns', /overlaps/.test(removeSectionRightIssue(L, 1)));
+  check('right removal rejects all columns', /at least one column/.test(removeSectionRightIssue(makeFixture(), 4)));
+  check('right removal rejects fractional counts', /whole number/.test(removeSectionRightIssue(makeFixture(), 1.5)));
 }
 
 console.log(`\n${pass} passed, ${fail} failed`);

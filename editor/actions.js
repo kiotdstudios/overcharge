@@ -483,3 +483,125 @@ export function addSectionRight(level, addedCols) {
     },
   };
 }
+
+// Section removal is deliberately limited to empty outer grid space. A
+// populated strip must be cleared or moved explicitly before it can be cut;
+// this prevents a mistaken count from deleting authored terrain or objects.
+const SECTION_OBJECT_LISTS = [
+  'decorations', 'sources', 'gates', 'switches', 'checkpoints',
+  'platforms', 'enemies', 'crates', 'chests',
+];
+
+function _sectionGridIssue(level, amount) {
+  if (!level || !Number.isInteger(amount) || amount <= 0) return 'Enter a whole number greater than zero.';
+  if (!Number.isInteger(level.cols) || level.cols <= 0 ||
+      !Array.isArray(level.tiles) || level.tiles.length === 0 ||
+      level.tiles.length % level.cols !== 0) return 'The level grid is malformed.';
+  for (const key of ['tileRotations', 'tileFlips']) {
+    if (level[key] != null && (!Array.isArray(level[key]) || level[key].length !== level.tiles.length)) {
+      return `${key} is not aligned with the tile grid.`;
+    }
+  }
+  return null;
+}
+
+function _sectionObjects(level) {
+  const objects = level.playerStart ? [['player start', level.playerStart]] : [];
+  for (const key of SECTION_OBJECT_LISTS) {
+    const name = key.replace(/ies$/, 'y').replace(/s$/, '');
+    for (const obj of level[key] || []) objects.push([name, obj]);
+  }
+  return objects;
+}
+
+export function removeSectionAboveIssue(level, removedRows) {
+  const issue = _sectionGridIssue(level, removedRows);
+  if (issue) return issue;
+  const rows = level.tiles.length / level.cols;
+  if (removedRows >= rows) return 'Keep at least one row in the level.';
+  const cells = removedRows * level.cols;
+  for (const key of ['tiles', 'tileRotations', 'tileFlips']) {
+    if (level[key] && level[key].slice(0, cells).some(v => v !== 0)) {
+      return `The top ${removedRows} rows contain ${key === 'tiles' ? 'tiles' : key}. Clear them first.`;
+    }
+  }
+  const cutoff = removedRows * TILE_SIZE;
+  for (const [name, obj] of _sectionObjects(level)) {
+    if (!Number.isFinite(obj.y) || obj.y < cutoff) return `A ${name} is in the top section. Move it first.`;
+  }
+  return null;
+}
+
+export function removeSectionAbove(level, removedRows) {
+  if (removeSectionAboveIssue(level, removedRows)) return null;
+  const before = _cloneLevel(level);
+  const cells = removedRows * level.cols;
+  const dy = removedRows * TILE_SIZE;
+  return {
+    type: 'remove_section_above', removedRows,
+    forward() {
+      _restoreLevel(level, _cloneLevel(before));
+      level.tiles = level.tiles.slice(cells);
+      if (level.tileRotations) level.tileRotations = level.tileRotations.slice(cells);
+      if (level.tileFlips) level.tileFlips = level.tileFlips.slice(cells);
+      if (level.playerStart) level.playerStart.y -= dy;
+      for (const key of SECTION_OBJECT_LISTS) {
+        for (const obj of level[key] || []) obj.y -= dy;
+      }
+      notify();
+    },
+    inverse() { _restoreLevel(level, _cloneLevel(before)); notify(); },
+  };
+}
+
+export function removeSectionRightIssue(level, removedCols) {
+  const issue = _sectionGridIssue(level, removedCols);
+  if (issue) return issue;
+  if (removedCols >= level.cols) return 'Keep at least one column in the level.';
+  const newCols = level.cols - removedCols;
+  const rows = level.tiles.length / level.cols;
+  for (const key of ['tiles', 'tileRotations', 'tileFlips']) {
+    if (!level[key]) continue;
+    for (let row = 0; row < rows; row++) {
+      if (level[key].slice(row * level.cols + newCols, (row + 1) * level.cols).some(v => v !== 0)) {
+        return `The right ${removedCols} columns contain ${key === 'tiles' ? 'tiles' : key}. Clear them first.`;
+      }
+    }
+  }
+  const cutoff = newCols * TILE_SIZE;
+  for (const [name, obj] of _sectionObjects(level)) {
+    const anchorX = name === 'platform' && !Number.isFinite(obj.x) ? obj.x1 : obj.x;
+    if (!Number.isFinite(anchorX) || anchorX >= cutoff) return `A ${name} is in the right section. Move it first.`;
+    if (Number.isFinite(obj.w) && obj.w > 0 && anchorX + obj.w > cutoff) {
+      return `A ${name} overlaps the right section. Move or resize it first.`;
+    }
+    if (name === 'platform' && (obj.x1 >= cutoff || obj.x2 > cutoff)) return 'A platform path crosses the right section. Move it first.';
+    if (name === 'enemy' && obj.patrolRight > cutoff) return 'An enemy patrol crosses the right section. Move it first.';
+  }
+  return null;
+}
+
+export function removeSectionRight(level, removedCols) {
+  if (removeSectionRightIssue(level, removedCols)) return null;
+  const before = _cloneLevel(level);
+  const oldCols = level.cols;
+  const newCols = oldCols - removedCols;
+  const rows = level.tiles.length / oldCols;
+  function trim(flat) {
+    const out = [];
+    for (let row = 0; row < rows; row++) out.push(...flat.slice(row * oldCols, row * oldCols + newCols));
+    return out;
+  }
+  return {
+    type: 'remove_section_right', removedCols,
+    forward() {
+      _restoreLevel(level, _cloneLevel(before));
+      level.tiles = trim(before.tiles);
+      if (before.tileRotations) level.tileRotations = trim(before.tileRotations);
+      if (before.tileFlips) level.tileFlips = trim(before.tileFlips);
+      level.cols = newCols;
+      notify();
+    },
+    inverse() { _restoreLevel(level, _cloneLevel(before)); notify(); },
+  };
+}
