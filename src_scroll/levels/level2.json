@@ -1808,36 +1808,29 @@
     "x": 64,
     "y": 322
   },
-  "decorations": [
-    {
-      "src": "assets/tilesets/purple_city/props/pipe_elbow.png",
-      "x": 224,
-      "y": 298,
-      "w": 38,
-      "h": 54
-    },
-    {
-      "src": "assets/tilesets/purple_city/props/pipe_elbow.png",
-      "x": 2784,
-      "y": 234,
-      "w": 38,
-      "h": 54
-    }
-  ],
+  "decorations": [],
   "sources": [
     {
-      "id": "A1",
       "x": 224,
       "y": 324,
+      "label": "LAMP",
       "charge": 4,
-      "label": "GEN-A"
+      "kind": "prop",
+      "sprite": "assets/objects/night-city-props/streetlight/",
+      "frames": 8,
+      "artW": 192,
+      "artH": 192
     },
     {
-      "id": "E1",
-      "x": 2784,
+      "x": 1024,
       "y": 260,
-      "charge": 6,
-      "label": "GEN-B"
+      "label": "LAMP",
+      "charge": 4,
+      "kind": "prop",
+      "sprite": "assets/objects/night-city-props/streetlight/",
+      "frames": 8,
+      "artW": 192,
+      "artH": 192
     }
   ],
   "gates": [
