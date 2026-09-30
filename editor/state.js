@@ -357,7 +357,7 @@ export const state = {
   camera: { x: 0, y: 0, zoom: 1 },   // worldâ†’screen offset & scale
 
   // Filters
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -497,7 +497,7 @@ export function manifestCategories() {
 // Background-category assets are excluded here â€” they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Hand-authored spawn assets stay available even when random generation
@@ -535,6 +535,7 @@ export function filteredManifestItems() {
     // test, not an isSpawnAsset exemption — an explicit filter must still filter, otherwise
     // every spawn asset would leak into every pack filter.
     if (electricOnly     && !(it.tags && it.tags.indexOf('electric') >= 0))     return false;
+    if (neonRiseOnly     && !(it.tags && it.tags.indexOf('neon_rise_dressing') >= 0)) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -567,6 +568,7 @@ export function setBlueRooftopOnly(v)      { state.filter.blueRooftopOnly = !!v;
 export function setHvacOnly(v)             { state.filter.hvacOnly = !!v; notify(); }
 export function setNightCityRailOnly(v)    { state.filter.nightCityRailOnly = !!v; notify(); }
 export function setElectricOnly(v)       { state.filter.electricOnly = !!v; notify(); }
+export function setNeonRiseOnly(v)       { state.filter.neonRiseOnly = !!v; notify(); }
 // Set the level's background pack key (null = no background).
 // Marks the level dirty so save picks up the change.
 export function setLevelBackground(packKey) {

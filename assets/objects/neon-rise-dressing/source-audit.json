@@ -1,0 +1,177 @@
+{
+  "purpose": "non-colliding decoration, no level edits",
+  "sources": {
+    "roof": "generated rooftop prop sheet",
+    "facade": "generated facade prop sheet"
+  },
+  "assets": [
+    {
+      "name": "lightning-billboard",
+      "source": "roof",
+      "cut": [
+        0,
+        0,
+        815,
+        745
+      ],
+      "subjectBounds": [
+        71,
+        149,
+        815,
+        724
+      ],
+      "worldSize": [
+        224,
+        192
+      ],
+      "path": "assets/objects/neon-rise-dressing/lightning-billboard.png"
+    },
+    {
+      "name": "vertical-glyph-sign",
+      "source": "roof",
+      "cut": [
+        815,
+        0,
+        1278,
+        745
+      ],
+      "subjectBounds": [
+        0,
+        56,
+        296,
+        724
+      ],
+      "worldSize": [
+        96,
+        192
+      ],
+      "path": "assets/objects/neon-rise-dressing/vertical-glyph-sign.png"
+    },
+    {
+      "name": "amber-service-lamp",
+      "source": "roof",
+      "cut": [
+        0,
+        745,
+        670,
+        1230
+      ],
+      "subjectBounds": [
+        83,
+        81,
+        621,
+        303
+      ],
+      "worldSize": [
+        160,
+        96
+      ],
+      "path": "assets/objects/neon-rise-dressing/amber-service-lamp.png"
+    },
+    {
+      "name": "antenna-utility-cluster",
+      "source": "roof",
+      "cut": [
+        670,
+        745,
+        1278,
+        1230
+      ],
+      "subjectBounds": [
+        17,
+        27,
+        568,
+        451
+      ],
+      "worldSize": [
+        144,
+        112
+      ],
+      "path": "assets/objects/neon-rise-dressing/antenna-utility-cluster.png"
+    },
+    {
+      "name": "cyan-magenta-graffiti",
+      "source": "facade",
+      "cut": [
+        0,
+        0,
+        1030,
+        500
+      ],
+      "subjectBounds": [
+        68,
+        89,
+        1008,
+        477
+      ],
+      "worldSize": [
+        320,
+        144
+      ],
+      "path": "assets/objects/neon-rise-dressing/cyan-magenta-graffiti.png"
+    },
+    {
+      "name": "service-vent-panel",
+      "source": "facade",
+      "cut": [
+        1030,
+        0,
+        1774,
+        500
+      ],
+      "subjectBounds": [
+        23,
+        147,
+        672,
+        437
+      ],
+      "worldSize": [
+        176,
+        112
+      ],
+      "path": "assets/objects/neon-rise-dressing/service-vent-panel.png"
+    },
+    {
+      "name": "lit-conduit-pipe",
+      "source": "facade",
+      "cut": [
+        0,
+        500,
+        1010,
+        887
+      ],
+      "subjectBounds": [
+        89,
+        20,
+        970,
+        335
+      ],
+      "worldSize": [
+        224,
+        96
+      ],
+      "path": "assets/objects/neon-rise-dressing/lit-conduit-pipe.png"
+    },
+    {
+      "name": "chainlink-railing",
+      "source": "facade",
+      "cut": [
+        1010,
+        500,
+        1774,
+        887
+      ],
+      "subjectBounds": [
+        18,
+        61,
+        690,
+        311
+      ],
+      "worldSize": [
+        208,
+        96
+      ],
+      "path": "assets/objects/neon-rise-dressing/chainlink-railing.png"
+    }
+  ]
+}
