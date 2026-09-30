@@ -1,5 +1,11 @@
 # Chief review of Aki verticality delivery 0050312
 
+## Chief browser acceptance addendum — 2026-09-30
+
+Using a disposable local server on port 8767 (a separate browser storage origin), Chief loaded the current canonical Builder with committed Level 1 and did not save or alter any campaign file. In the Level inspector, ADD SECTION ABOVE with 2 rows reported `20 rows x 100 cols`; ADD SECTION RIGHT with 3 columns reported `20 rows x 103 cols`. The Builder showed local divergence from committed JSON. Two Undo actions returned the visible editor checksum to the original `3367A23D`; two Redo actions restored the expanded checksum `DBF1D19B`. Builder TEST opened a local game tab. Its console identified `localStorage['overcharge.testLevel']` as an **unsaved editor preview** and reported `cols=103`, `tiles.length=2060` (20 rows), `checksum=DBF1D19B`.
+
+This verifies the controls, reversible expansion, and TEST source/geometry in a browser. It does **not** yet verify manual spawn relocation, descent, checkpoint/death/respawn, save/export/reload, or collision and camera behavior in the taller level. Those remain for the isolated traversal fixture and should not be called complete from this check alone. The movement metrics harness repair at 42f0719 and its real-Level results are separate from this browser check.
+
 2026-09-29: reviewed AKI_VERTICALITY_DELIVERY.md and the section action/UI diff. The implementation is on agent/aki-editor, not canonical Pages yet. Do not claim deployed or browser-tested completion.
 
 ## Finish this delivery first
