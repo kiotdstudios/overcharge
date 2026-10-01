@@ -49,6 +49,7 @@ export class Player {
     this._t          = 0;
     this._absorbFx   = 0;   // absorption arc timer
     this._dischargeFx = 0;  // discharge arc timer
+    this._energyGlowFx = 0; // AKI_17: one-shot local glow when energy ACTUALLY arrives
     this._hurtFlash  = 0;   // flash duration on damage
     this._facingRight = true;
     this.dead        = false;  // true = hit with no charge + no pips → game over
@@ -92,6 +93,7 @@ export class Player {
     this._hurtFlash      = Math.max(0, this._hurtFlash      - dt);
     this._absorbFx       = Math.max(0, this._absorbFx       - dt);
     this._dischargeFx    = Math.max(0, this._dischargeFx    - dt);
+    this._energyGlowFx   = Math.max(0, this._energyGlowFx   - dt);
     this._attackCooldown = Math.max(0, this._attackCooldown - dt);
     this._attackFx       = Math.max(0, this._attackFx       - dt);
     this._pipBankFx      = Math.max(0, this._pipBankFx      - dt);
@@ -207,6 +209,10 @@ export class Player {
         }
       }
     }
+    // AKI_17: fires only on real transfer, never on a refused/zero accept — "no charge
+    // gained means no transfer burst" (order text). Covers every giveEnergy() caller:
+    // absorb drain, pickups, future sources — one place, same authority block.
+    if (accepted > 1e-9) this._energyGlowFx = 0.25;
     return accepted;
   }
   // ── BANK (chest reward) ───────────────────────────────────────────
@@ -230,6 +236,7 @@ export class Player {
     if (this.bankedPips >= MAX_BANKED_PIPS) return false;
     this.bankedPips++;
     this._pipBankFx = 0.5;        // same rack flash as a bar-overflow bank
+    this._energyGlowFx = 0.4;     // AKI_17: pip bank is a bigger gain than a bar tick
     return true;
   }
 
@@ -1010,6 +1017,24 @@ export class Player {
         this.cx, this.cy,
         this.nearEnemy.cx, this.nearEnemy.cy,
         '#ffffff', t);
+    }
+
+    // AKI_17: local glow at the player when energy actually arrives (absorb tick or pip
+    // bank — see giveEnergy()/bankPip()). One-shot per transfer, not repeating, so it is
+    // already reduced-motion-safe in cadence; reduced motion just caps peak alpha/blur so
+    // it reads as a steady soft pulse rather than a hot flash.
+    if (this._energyGlowFx > 0) {
+      const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const life = Math.min(1, this._energyGlowFx / 0.25);
+      const r     = (this.w + this.h) * 0.9;
+      const peak  = reducedMotion ? 0.28 : 0.4;
+      ctx.save();
+      const glow = ctx.createRadialGradient(this.cx, this.cy, 2, this.cx, this.cy, r);
+      glow.addColorStop(0, `rgba(140,220,255,${(peak * life).toFixed(3)})`);
+      glow.addColorStop(1, 'rgba(140,220,255,0)');
+      ctx.fillStyle = glow;
+      ctx.fillRect(this.cx - r, this.cy - r, r * 2, r * 2);
+      ctx.restore();
     }
 
     // Sprite: centered horizontally on hitbox; feet row (y=78 in 92px frame) pinned to hitbox bottom

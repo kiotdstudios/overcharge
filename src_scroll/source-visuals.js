@@ -101,3 +101,46 @@ export function drawHvac(ctx, source) {
   ctx.fillStyle = '#8da4ac'; ctx.fillRect(b.dX + 51, b.dY + 36, 2, 4);
   ctx.restore();
 }
+
+// drawSourceReaction() — AKI_17: shared "being drained" + "ran dry" feedback for every
+// source kind (generic/generator, hvac, prop). Reads only _absorbT (existing per-tick
+// "being absorbed" tell, set in ElectricalSource.drain) and _dryFlash (new one-shot timer
+// set exactly on the active→drained transition) — never mutates source state, never touches
+// charge/drained/position. Readable against the Night City Rail background: modest radii,
+// no full-screen flash, no shake. Reduced-motion collapses the pulse to a steady low glow
+// and the dry-flash ring to a flat low-alpha ring instead of animating outward.
+export function drawSourceReaction(ctx, source, reducedMotion = false) {
+  const absorbing = (source._absorbT || 0) > 0;
+  const dryFlash  = source._dryFlash || 0;
+  if (!absorbing && dryFlash <= 0) return;
+  const b  = sourceBox(source);
+  const cx = b.dX + b.dW / 2, cy = b.dY + b.dH / 2;
+
+  if (absorbing) {
+    const pulse = reducedMotion ? 0.35 : 0.35 + 0.25 * Math.sin((source._t || 0) * 18);
+    const r     = Math.max(b.dW, b.dH) * 0.75;
+    ctx.save();
+    const glow = ctx.createRadialGradient(cx, cy, 2, cx, cy, r);
+    glow.addColorStop(0, `rgba(140,220,255,${(0.5 * pulse).toFixed(3)})`);
+    glow.addColorStop(1, 'rgba(140,220,255,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(cx - r, cy - r, r * 2, r * 2);
+    ctx.restore();
+  }
+
+  if (dryFlash > 0) {
+    // 0.5s one-shot "settled" ring at the moment the source ran dry.
+    const life = Math.min(1, dryFlash / 0.5);
+    const r    = Math.max(b.dW, b.dH) * (reducedMotion ? 0.55 : 0.55 + 0.5 * (1 - life));
+    ctx.save();
+    ctx.globalAlpha  = reducedMotion ? 0.5 * life : 0.8 * life;
+    ctx.strokeStyle  = '#ffb347';
+    ctx.lineWidth    = 2;
+    ctx.shadowBlur   = reducedMotion ? 0 : 10;
+    ctx.shadowColor  = '#ffb347';
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+}

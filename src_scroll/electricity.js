@@ -1,7 +1,7 @@
 // Electrical objects: sources, gates, switches, pickups
 import { ABSORB_RADIUS, INTERACT_RADIUS, PICKUP_GRAVITY, PICKUP_LIFETIME, TILE } from './constants.js';
 import { drawSparks, drawGlowRect, drawText } from './render.js';
-import { drawHvac, sourceBox } from './source-visuals.js';
+import { drawHvac, sourceBox, drawSourceReaction } from './source-visuals.js';
 
 function dist(ax, ay, bx, by) {
   const dx = ax - bx, dy = ay - by;
@@ -31,6 +31,7 @@ export class ElectricalSource {
     this.artW   = artW;
     this.artH   = artH;
     this._absorbT = 0;   // seconds left on the "being drained right now" tell
+    this._dryFlash = 0;  // AKI_17: one-shot "ran dry" settle timer, set in drain()
     this.onDepletedGate = onDepletedGate;
     this.charge = Number.isFinite(charge) ? Math.max(0, charge) : 0;
     this.max    = this.charge;
@@ -65,6 +66,7 @@ export class ElectricalSource {
   update(dt) {
     this._t += dt;
     if (this._absorbT > 0) this._absorbT = Math.max(0, this._absorbT - dt);
+    if (this._dryFlash > 0) this._dryFlash = Math.max(0, this._dryFlash - dt);
     // Fan: ramp speed toward target (1 = active, 0 = drained), spin phase
     this._fanSpeed = Math.max(0, this._fanSpeed + ((this.drained ? 0 : 1) - this._fanSpeed) * Math.min(1, dt * 2));
     this._fanPhase = (this._fanPhase + this._fanSpeed * dt * 4) % (Math.PI * 2);
@@ -110,7 +112,14 @@ export class ElectricalSource {
     if (this.drained) return 0;
     const actual = Math.min(this.charge, amount);
     this.charge -= actual;
-    if (this.charge <= 0) { this.charge = 0; this.drained = true; }
+    if (this.charge <= 0) {
+      this.charge = 0;
+      this.drained = true;
+      // AKI_17: this branch only runs once per source — drain() returns 0 immediately
+      // ("if (this.drained) return 0;" above) once drained is already true, so reaching
+      // here means this tick is the exact moment the source ran dry.
+      this._dryFlash = 0.5;
+    }
     // Mark "being absorbed right now" so prop art can show Aki's absorbing frames (f2-5).
     // A short timer rather than a flag because drain() is called per-frame while E is held:
     // a bare flag would need clearing from somewhere that knows when absorption STOPPED, and
@@ -144,9 +153,12 @@ export class ElectricalSource {
     }
   }
   draw(ctx) {
+    // AKI_17: reaction glow/dry-flash is identical geometry-driven feedback across all
+    // three source kinds, computed once per draw() call.
+    const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
     // HVAC uses its own art module; generator uses sprite animation below.
-    if (this.kind === 'hvac') { drawHvac(ctx, this); return; }
-    if (this.kind === 'prop') { this._drawProp(ctx); return; }
+    if (this.kind === 'hvac') { drawHvac(ctx, this); drawSourceReaction(ctx, this, reducedMotion); return; }
+    if (this.kind === 'prop') { this._drawProp(ctx); drawSourceReaction(ctx, this, reducedMotion); return; }
     const t  = this._t;
     // Pick sprite: frame 0 when drained, animated frames 1-8 when active
     const fi  = this.drained ? 0 : Math.floor(this._frame) % 9;
@@ -182,7 +194,7 @@ export class ElectricalSource {
       }
     }
 
-
+    drawSourceReaction(ctx, this, reducedMotion);
   }
 }
 
@@ -341,6 +353,7 @@ export class PowerGate {
     this._frame     = 0;
     this._fps       = 8;
     this._reactT    = 0;
+    this._playerReady = false;  // AKI_17: player carries enough usableEnergy to fully charge this gate, computed in update(dt, player)
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -477,11 +490,16 @@ export class PowerGate {
     return { y, aboveY: above, belowY: below, box: sb, flipped: y === below };
   }
 
-  update(dt) {
+  update(dt, player) {
     this._t += dt;
     if (this.open) this._openAge += dt;
     this._pipFlash = Math.max(0, this._pipFlash - dt);
     this._reactT   = Math.max(0, this._reactT   - dt);
+    // AKI_17: passive "enough charge to leave" readiness — does not touch required,
+    // charged, open, position or collision. player is optional (tests/tools may call
+    // update(dt) with no player) so this degrades to false rather than throwing.
+    this._playerReady = !!player && !this.open && !this.blockOnly &&
+      (player.usableEnergy ?? 0) >= (this.required - this.charged) - 1e-9;
 
     // ── D9: timed expiry ──────────────────────────────────────────────
     // Runs BEFORE the isDormant check below, so the frame a timed gate expires
@@ -728,6 +746,24 @@ export class PowerGate {
       ctx.drawImage(this._imgClosed, dX, dY, spriteW, spriteH);
     }
     ctx.restore();
+
+    // AKI_17: steady ambient readiness glow — distinct from the _reactT "charging" flash,
+    // fires only while the player is carrying enough usableEnergy to fully charge this gate
+    // and it has not opened yet. Does not touch required/charged/open/position/collision.
+    // Reduced motion drops the breathing sine to a flat value so the cue is a steady low
+    // outline instead of a pulse.
+    if (this._playerReady && !dormant) {
+      const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+      const breathe = reducedMotion ? 0.5 : 0.5 + 0.3 * Math.sin(this._t * 3.2);
+      ctx.save();
+      ctx.globalAlpha  = 0.55 * breathe;
+      ctx.strokeStyle  = '#8cf0ff';
+      ctx.lineWidth    = 2;
+      ctx.shadowBlur   = reducedMotion ? 0 : 8;
+      ctx.shadowColor  = '#8cf0ff';
+      ctx.strokeRect(dX + 1, dY + 1, spriteW - 2, spriteH - 2);
+      ctx.restore();
+    }
 
     // Charge progress is communicated by the SPRITE ROWS (dormant -> idle ->
     // charging) plus the numeric ⚡ readout below. The old vertical purple strip

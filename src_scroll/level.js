@@ -143,7 +143,7 @@ export class Level {
     // the same frame the player sees it touch.
     for (const cr   of this.crates)   cr.update(dt, this);
     for (const ch   of this.chests)   ch.update(dt);
-    for (const gate of this.gates)    gate.update(dt);
+    for (const gate of this.gates)    gate.update(dt, player);
     for (const sw   of this.switches) sw.update(dt);
     for (const p    of this.pickups)  p.update(dt, this);
     for (const cp   of this.checkpoints) cp.update(dt);
