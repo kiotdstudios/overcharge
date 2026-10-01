@@ -10,3 +10,4 @@ rows add `Measure: {friction that should stop recurring}`.
 2026-09-28 · Level1 invisible floors / restored dead end · resolved after Chief clarified background traversal, by separating building art from terrain. Verified full-route physics and browser feet on visible roof. Measure: no repeated toggle of facade collision to fix an unconfirmed route requirement.
 
 2026-09-29 — Rooftop Measure recurred: new facade blocked the lower route; source art was mistaken for intended solidity. Deploy-key publishing Measure did not recur.
+2026-10-01 - GitHub write blocker Measure recurred: SSH host-key verification failed on the Chief checkout and HTTPS/connector writes also failed, leaving three commits local.
