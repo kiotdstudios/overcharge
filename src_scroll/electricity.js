@@ -752,7 +752,10 @@ export class PowerGate {
     // and it has not opened yet. Does not touch required/charged/open/position/collision.
     // Reduced motion drops the breathing sine to a flat value so the cue is a steady low
     // outline instead of a pulse.
-    if (this._playerReady && !dormant) {
+    // A fully uncharged gate is normally dormant; it still needs this outline
+    // when the player carries enough energy, or the readiness cue is invisible
+    // at the moment it would be most useful.
+    if (this._playerReady) {
       const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const breathe = reducedMotion ? 0.5 : 0.5 + 0.3 * Math.sin(this._t * 3.2);
       ctx.save();

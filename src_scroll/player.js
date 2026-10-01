@@ -785,7 +785,11 @@ export class Player {
       this.dischargeTarget  = target;
       this.chargeViaCrate   = viaCrate;
       this._dischargeFx     = 0.15;
-      target.receive(frameSpend);
+      const opened = target.receive(frameSpend);
+      // A direct final charge should complete an exit while the player is still
+      // standing beside it. Crate-routed or remote openings keep the normal
+      // requirement to reach the portal.
+      if (opened && target.isExit && !viaCrate) target._justOpenedByPlayer = true;
       // A chest latches open the moment its cost is met (D4). Duck-typed: only Chest
       // defines tryOpen, so gates and switches are untouched. tryOpen() returns false
       // at MAX_BANKED_PIPS and refunds its own accumulation, so a full-reserve player
@@ -994,7 +998,7 @@ export class Player {
       drawLightningArc(ctx,
         this.absorbTarget.cx, this.absorbTarget.cy,
         this.cx, this.cy,
-        '#ffe040', t);
+        '#cc44ff', t);
     }
 
     // Discharge arc: player → device

@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><title>Level complete preview</title>
+<style>html,body{margin:0;background:#07090f;display:grid;place-items:center;height:100%;}canvas{width:min(100vw,1000px);image-rendering:pixelated}</style>
+<canvas id="preview" width="800" height="578"></canvas>
+<script type="module">
+import { drawLevelComplete } from '../src_scroll/ui.js';
+const canvas=document.getElementById('preview'), ctx=canvas.getContext('2d');
+let start=performance.now();
+function frame(now){drawLevelComplete(ctx,{number:1,name:'NEON RISE'},Math.max(0.7,(now-start)/1000),(now-start)/1000);requestAnimationFrame(frame)}
+requestAnimationFrame(frame);
+</script>

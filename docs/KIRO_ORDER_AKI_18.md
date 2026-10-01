@@ -1,0 +1,9 @@
+# Aki next task: move background layers vertically in the Builder
+
+Chief is dressing Level 1 and much of the Night City Rail backdrop sits behind the rooftop platforms. Add a clear Builder control that lets Chief move **background artwork** up or down, with an immediate visual preview. This is the next Aki task after the AKI_17 power-reaction delivery.
+
+Work from the current `origin/agent/orcha-gameplay` baseline. Do not replace Level 1, its archive, the new pipe assets, or unsaved Builder edits. Your `agent/aki-editor` branch contains unrelated older level/editor changes; merge carefully and send only the relevant background-positioning changes for selective integration.
+
+Implement a vertical offset in level data for the Night City Rail backdrop, ideally independently for distant skyline, midground skyline, elevated track/train, and front skyline. Put controls in the Builder's Background section with named layers, pixel values, small step buttons, a reset-to-default action, and undo/redo. The Builder canvas preview, TEST mode, saved/exported JSON, and normal game must use the same offset values. Existing levels without offsets must look exactly as before. A negative offset should move the selected layer **up**; explain that in the UI. Keep horizontal parallax and camera behavior intact.
+
+This is visual positioning only: do not move terrain, collision, spawn, gate, props, sources, or the camera. Do not quietly change canonical `src_scroll/levels/level1.json`; Chief will choose offsets after previewing. Test a representative tall rooftop section at negative, zero, and positive offsets, then save/reload and test in-game. Verify train and track remain aligned when moved together, and that an individual skyline can move without altering the others. Check both Builder TEST and normal game, including the level's vertical camera movement. Report which checks were browser-verified versus headless, and give Chief the commit on `agent/aki-editor`.

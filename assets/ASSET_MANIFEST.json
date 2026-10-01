@@ -1723,6 +1723,39 @@
       "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
     },
     {
+      "id": "night_city_pipe_short",
+      "name": "Night City pipe - short",
+      "path": "assets/objects/night-city-props/pipes/pipe-short.png",
+      "category": "decoration",
+      "tags": ["neon_rise_dressing", "night_city_props", "pipe", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 64,
+      "frame_count": 1,
+      "notes": "Placeable visual dressing. No collision or power logic."
+    },
+    {
+      "id": "night_city_pipe_elbow",
+      "name": "Night City pipe - elbow",
+      "path": "assets/objects/night-city-props/pipes/pipe-elbow.png",
+      "category": "decoration",
+      "tags": ["neon_rise_dressing", "night_city_props", "pipe", "scenery", "noncolliding"],
+      "frame_width": 256,
+      "frame_height": 96,
+      "frame_count": 1,
+      "notes": "Placeable visual dressing. No collision or power logic."
+    },
+    {
+      "id": "night_city_pipe_branch",
+      "name": "Night City pipe - branch",
+      "path": "assets/objects/night-city-props/pipes/pipe-branch.png",
+      "category": "decoration",
+      "tags": ["neon_rise_dressing", "night_city_props", "pipe", "scenery", "noncolliding"],
+      "frame_width": 384,
+      "frame_height": 104,
+      "frame_count": 1,
+      "notes": "Placeable visual dressing. No collision or power logic."
+    },
+    {
       "id": "neon_rise_chainlink_railing",
       "name": "Neon Rise · chainlink railing",
       "path": "assets/objects/neon-rise-dressing/chainlink-railing.png",

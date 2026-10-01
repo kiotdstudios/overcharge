@@ -512,29 +512,76 @@ function _drawProgressBar(ctx, player, level) {
 
 // ── Level complete overlay ────────────────────
 export function drawLevelComplete(ctx, level, timer, t) {
-  const alpha = Math.min(1, timer * 2);
+  const w = viewW();
+  const panelW = Math.min(720, w - 36);
+  const x = (w - panelW) / 2;
+  const y = 98;
+  const panelH = 374;
+  const alpha = Math.min(1, timer * 3);
+  const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const pulse = reducedMotion ? 0.65 : 0.65 + 0.35 * Math.sin(timer * 5);
   ctx.save();
   ctx.globalAlpha = alpha;
-  ctx.fillStyle   = 'rgba(5,8,15,0.75)';
-  ctx.fillRect(0, 0, viewW(), 450);
+  ctx.fillStyle = 'rgba(3,5,14,0.9)';
+  ctx.fillRect(0, 0, w, H);
+  const wash = ctx.createLinearGradient(0, y, 0, y + panelH);
+  wash.addColorStop(0, '#101330');
+  wash.addColorStop(0.55, '#111028');
+  wash.addColorStop(1, '#090e20');
+  ctx.fillStyle = wash;
+  ctx.fillRect(x, y, panelW, panelH);
+  ctx.strokeStyle = '#5b3b91';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x + 1, y + 1, panelW - 2, panelH - 2);
 
-  // Title
-  ctx.shadowBlur  = 24;
+  // A charged circuit around the card, with deterministic short lightning
+  // branches. The reduced-motion version keeps the circuit lit without motion.
+  const circuitY = y + 111;
+  ctx.strokeStyle = '#44ddff';
   ctx.shadowColor = '#44ddff';
-  ctx.fillStyle   = '#44ddff';
-  ctx.font        = 'bold 42px monospace';
-  ctx.textAlign   = 'center';
-  ctx.fillText('CIRCUIT CLOSED', viewW() / 2, 180);
-
-  ctx.shadowBlur  = 12;
-  ctx.shadowColor = '#8ab4d4';
-  ctx.fillStyle   = '#8ab4d4';
-  ctx.font        = '18px monospace';
-  ctx.fillText(`Level ${level.number} — ${level.name}`, viewW() / 2, 220);
-
-  ctx.fillStyle   = '#556677';
-  ctx.font        = '13px monospace';
-  ctx.fillText('[SPACE] to continue', viewW() / 2, 265);
+  ctx.shadowBlur = reducedMotion ? 0 : 12 + 9 * pulse;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + 22, circuitY);
+  ctx.lineTo(x + panelW - 22, circuitY);
+  ctx.stroke();
+  for (let side = 0; side < 2; side++) {
+    const bx = side ? x + panelW - 28 : x + 28;
+    ctx.fillStyle = side ? '#cc44ff' : '#44ddff';
+    ctx.fillRect(bx - 8, circuitY - 8, 16, 16);
+    if (!reducedMotion) {
+      ctx.strokeStyle = side ? '#cc44ff' : '#8cf0ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(bx, circuitY);
+      for (let i = 1; i <= 5; i++) {
+        const sx = bx + (side ? -1 : 1) * i * 12;
+        const sy = circuitY - i * 14 + Math.sin(timer * 13 + i * 2.1 + side) * 7;
+        ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+    }
+  }
+  ctx.shadowBlur = 0;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#aebddd';
+  ctx.font = 'bold 14px monospace';
+  ctx.fillText('CIRCUIT CLOSED  //  POWER RESTORED', w / 2, y + 49, panelW - 28);
+  ctx.shadowColor = '#cc44ff';
+  ctx.shadowBlur = reducedMotion ? 0 : 22 * pulse;
+  ctx.fillStyle = '#efe5ff';
+  ctx.font = `bold ${Math.min(53, Math.max(25, panelW / 13))}px monospace`;
+  ctx.fillText('LEVEL COMPLETE', w / 2, y + 200, panelW - 24);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = '#7de6ff';
+  ctx.font = 'bold 20px monospace';
+  ctx.fillText(`LV ${level.number}  //  ${level.name}`, w / 2, y + 249, panelW - 30);
+  ctx.fillStyle = '#586b90';
+  ctx.fillRect(x + 48, y + 281, panelW - 96, 2);
+  ctx.fillStyle = '#cbaaff';
+  ctx.font = '14px monospace';
+  ctx.globalAlpha = alpha * (reducedMotion ? 1 : 0.72 + 0.28 * Math.sin(timer * 4));
+  ctx.fillText('[SPACE / ENTER] CONTINUE', w / 2, y + 333, panelW - 24);
   ctx.restore();
 }
 
