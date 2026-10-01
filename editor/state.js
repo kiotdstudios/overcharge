@@ -556,6 +556,27 @@ export function currentLevelBackground() {
   return (state.level && state.level.background) || null;
 }
 
+// AKI_18: named background parallax layers that accept a vertical pixel
+// offset, matching the layer keys in src_scroll/background.js. Label text
+// shown in the Builder's Background section; order here is bottom-to-top
+// (matches the DOM stacking order background.js builds).
+export const BG_OFFSET_LAYERS = [
+  { key: 'sky',   label: 'Distant skyline' },
+  { key: 'mid',   label: 'Midground skyline' },
+  { key: 'track', label: 'Elevated track / train' },
+  { key: 'front', label: 'Front skyline' },
+];
+
+// Returns the active level's background offsets, one entry per
+// BG_OFFSET_LAYERS key, defaulting missing/absent keys to 0 so levels saved
+// before this feature existed render identically to before.
+export function currentBackgroundOffsets() {
+  const o = (state.level && state.level.backgroundOffsets) || {};
+  const out = {};
+  for (const { key } of BG_OFFSET_LAYERS) out[key] = o[key] || 0;
+  return out;
+}
+
 // â”€â”€ Setters (call notify() automatically) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function setTool(t)              { state.tool = t; notify(); }
 export function setSelectedAsset(item)  { state.selectedAsset = item; notify(); }

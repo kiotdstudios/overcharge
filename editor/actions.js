@@ -354,6 +354,32 @@ export function setPlayerStart(level, x, y) {
   };
 }
 
+// ── SetBackgroundOffsetAction ───────────────────────────────────────────────
+// AKI_18: vertical pixel offset for one named background parallax layer
+// ('sky' | 'mid' | 'track' | 'front' — see src_scroll/background.js). Stored
+// in level.backgroundOffsets, an optional object; levels without it (or
+// without a given key) default to 0, so pre-existing levels render exactly
+// as before. Negative moves the layer UP (documented in the Builder UI, not
+// just here) because screen-space Y grows downward.
+export function setBackgroundOffset(level, key, value) {
+  if (!level) return null;
+  const old = (level.backgroundOffsets && level.backgroundOffsets[key]) || 0;
+  if (old === value) return null;
+  return {
+    type: 'set_background_offset',
+    forward() {
+      if (!level.backgroundOffsets) level.backgroundOffsets = {};
+      level.backgroundOffsets[key] = value;
+      notify();
+    },
+    inverse() {
+      if (!level.backgroundOffsets) level.backgroundOffsets = {};
+      level.backgroundOffsets[key] = old;
+      notify();
+    },
+  };
+}
+
 // ── FIX ALL GRAMMAR: DELETED — CHIEF RULING 2026-09-19 04:37 ────────────────
 // fixAllGrammar() swept the level promoting fill-on-top to a hash-chosen edge and
 // demoting buried edges back to fill. The rule it enforced was a misreading of

@@ -52,6 +52,12 @@ let _vp           = { s: 1, vw: 800, vh: 450 };
 // _trainLayerX: train image-left x in layer-local viewport-pixels (before parallax offset)
 let _trainLayerX  = -IMG_W; // start off-screen left
 
+// AKI_18: per-layer vertical pixel offset (named by key, see export
+// BG_OFFSET_LAYERS in editor/state.js). Negative moves a layer UP on
+// screen. Defaults to {} == all zero, so levels saved before this
+// feature existed render exactly as before.
+let _offsets = { sky: 0, mid: 0, track: 0, front: 0 };
+
 // ─── DOM helpers ───────────────────────────────────────────────────────────
 function el(tag = 'div', styles = {}, parent = null) {
   const e = document.createElement(tag);
@@ -220,10 +226,13 @@ function tickTrain(dt) {
 
   _trainCtx.clearRect(0, 0, vw, vh);
   _trainCtx.imageSmoothingEnabled = false;
+  // Track and train share the 'track' offset so they stay visually aligned
+  // when Chief moves the elevated-track layer (AKI_18 requirement).
+  const trackOffsetY = _offsets.track || 0;
   _trainCtx.drawImage(
     _trainImg,
     Math.round(drawX),
-    0,
+    Math.round(trackOffsetY),
     Math.round(IMG_W * scale),
     vh,
   );
@@ -238,8 +247,9 @@ function tickTrain(dt) {
  * Creates all parallax layers and inserts the container before the canvas.
  * Call once when the game starts.
  */
-export function init(levelWidth = 3200) {
+export function init(levelWidth = 3200, offsets = null) {
   injectStyles();
+  _offsets = { sky: 0, mid: 0, track: 0, front: 0, ...(offsets || {}) };
 
   // Clean up any previous instance (e.g. level restart)
   if (_container) { _container.remove(); _container = null; }
@@ -272,21 +282,21 @@ export function init(levelWidth = 3200) {
                         width:`${skyLw}px`, height:'100%', willChange:'transform' }, _container);
   buildImageLayer(skyEl, '01-sky.png', skyLw, v);
   buildLightning(skyEl, skyLw);
-  _layers.push({ el: skyEl, factor: FACTOR_SKY });
+  _layers.push({ el: skyEl, factor: FACTOR_SKY, key: 'sky' });
 
   // ── Layer 2: Midground skyline ───────────────────────────────────────
   const midLw = calcLayerW(FACTOR_MID, maxCamX, v);
   const midEl  = div({ position:'absolute', top:'0', left:'0',
                         width:`${midLw}px`, height:'100%', willChange:'transform' }, _container);
   buildImageLayer(midEl, '03-midground-skyline.png', midLw, v);
-  _layers.push({ el: midEl, factor: FACTOR_MID });
+  _layers.push({ el: midEl, factor: FACTOR_MID, key: 'mid' });
 
   // ── Layer 3: Elevated track ───────────────────────────────────────────────
   const trkLw = calcLayerW(FACTOR_TRACK, maxCamX, v);
   const trkEl  = div({ position:'absolute', top:'0', left:'0',
                         width:`${trkLw}px`, height:'100%', willChange:'transform' }, _container);
   buildImageLayer(trkEl, '04-elevated-track.png', trkLw, v);
-  _layers.push({ el: trkEl, factor: FACTOR_TRACK });
+  _layers.push({ el: trkEl, factor: FACTOR_TRACK, key: 'track' });
 
   // ── Layer 3: Train (viewport canvas, sits above track in DOM order) ───────
   buildTrainCanvas(v);
@@ -296,7 +306,7 @@ export function init(levelWidth = 3200) {
   const fntEl  = div({ position:'absolute', top:'0', left:'0',
                         width:`${fntLw}px`, height:'100%', willChange:'transform' }, _container);
   buildImageLayer(fntEl, '06-dark-front-skyline.png', fntLw, v);
-  _layers.push({ el: fntEl, factor: FACTOR_FRONT });
+  _layers.push({ el: fntEl, factor: FACTOR_FRONT, key: 'front' });
 
   // ── Rain canvas (top of stack) ────────────────────────────────────────────
   const rc = el('canvas', {
@@ -333,7 +343,20 @@ export function update(cameraX) {
   _vp = vp();
   const { s } = _vp;
   for (const layer of _layers) {
-    const offset = (cameraX * layer.factor * s) | 0;
-    layer.el.style.transform = `translate3d(${-offset}px,0,0)`;
+    const offset  = (cameraX * layer.factor * s) | 0;
+    const offsetY = _offsets[layer.key] || 0;
+    layer.el.style.transform = `translate3d(${-offset}px,${offsetY}px,0)`;
   }
+}
+
+/**
+ * setOffsets(offsets)
+ * Merge new per-layer vertical offsets into the running instance and
+ * re-apply immediately (no re-init) — used by the Builder for a live
+ * preview while Chief drags a step button. Game boot never needs this;
+ * init(levelWidth, offsets) covers normal play.
+ */
+export function setOffsets(offsets) {
+  _offsets = { ..._offsets, ...(offsets || {}) };
+  update(_cameraX);
 }

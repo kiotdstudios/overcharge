@@ -8,6 +8,7 @@ import {
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid, tileSupportsStanding,
   getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
+  BG_OFFSET_LAYERS, currentBackgroundOffsets,
   DEFAULT_SECTION_ROWS, DEFAULT_SECTION_COLS, MAX_LEVEL_ROWS,
 } from './state.js';
 import { render } from './renderer.js';
@@ -1922,17 +1923,74 @@ subscribe(() => _refreshSelectedProps());
 subscribe(() => _refreshBgInspector());
 
 // ── §7 Background inspector ────────────────────────────────────────────────
+const _BG_BASE = 'assets/bg/night-city-rail/night-city-rail-v1/';
 const _BG_PACK_INFO = {
   'night-city-rail': {
-    img:  'assets/bg/night-city-rail/night-city-rail-v1/01-sky.png',
+    img:  _BG_BASE + '01-sky.png',
     desc: 'Night City Rail — 4 parallax layers: sky, track, train, front skyline',
+    // AKI_18: source image per offset-able layer, used only for the Builder's
+    // approximate stacked preview. src_scroll/background.js owns the real
+    // filenames/factors at runtime — this list exists purely for the thumbnail.
+    layers: {
+      sky:   _BG_BASE + '01-sky.png',
+      mid:   _BG_BASE + '03-midground-skyline.png',
+      track: _BG_BASE + '04-elevated-track.png',
+      front: _BG_BASE + '06-dark-front-skyline.png',
+    },
   },
 };
+
+// AKI_18: preview-box height in CSS px (matches #tp-bg-stack in editor.html)
+// divided by the game's logical height — converts a level-space pixel
+// offset into a proportional shift inside the small stacked preview.
+const _BG_STACK_H = 90;
+const _BG_GAME_H  = 450;
+
+function _bgOffsetRowsHtml() {
+  return BG_OFFSET_LAYERS.map(({ key, label }) => `
+    <div class="tp-bg-offset-row" data-layer="${key}">
+      <span class="tp-bg-offset-label">${label}</span>
+      <button type="button" class="tp-bg-offset-step" data-layer="${key}" data-delta="-8">−8</button>
+      <input type="number" class="tp-bg-offset-input" data-layer="${key}" step="1">
+      <button type="button" class="tp-bg-offset-step" data-layer="${key}" data-delta="8">+8</button>
+    </div>`).join('');
+}
+
+function _applyBackgroundOffset(key, value) {
+  const n = Math.round(Number(value) || 0);
+  const action = Actions.setBackgroundOffset(state.level, key, n);
+  if (action) History.apply(action);
+  else _refreshBgInspector(); // value unchanged (e.g. re-typed same number) — resync inputs
+}
+
+function _wireBgOffsetControls() {
+  const rows = document.getElementById('tp-bg-offset-rows');
+  if (!rows) return;
+  rows.innerHTML = _bgOffsetRowsHtml();
+  rows.querySelectorAll('.tp-bg-offset-input').forEach(inp => {
+    inp.addEventListener('change', () => _applyBackgroundOffset(inp.dataset.layer, inp.value));
+  });
+  rows.querySelectorAll('.tp-bg-offset-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.layer;
+      const cur = currentBackgroundOffsets()[key] || 0;
+      _applyBackgroundOffset(key, cur + Number(btn.dataset.delta));
+    });
+  });
+  document.getElementById('btn-bg-offsets-reset')?.addEventListener('click', () => {
+    for (const { key } of BG_OFFSET_LAYERS) {
+      const action = Actions.setBackgroundOffset(state.level, key, 0);
+      if (action) History.apply(action);
+    }
+  });
+}
+
 function _refreshBgInspector() {
   if (!tpBgSelect || !tpBgImg || !tpBgDesc) return;
   const active = currentLevelBackground();
   tpBgSelect.value = active || '';
   const info = active ? _BG_PACK_INFO[active] : null;
+  const offsetsBox = document.getElementById('tp-bg-offsets');
   if (info) {
     tpBgImg.src = info.img;
     tpBgImg.style.display = 'block';
@@ -1942,10 +2000,25 @@ function _refreshBgInspector() {
     tpBgImg.style.display = 'none';
     tpBgDesc.textContent = 'No background — solid dark fill at runtime.';
   }
+  if (!offsetsBox) return;
+  if (!info) { offsetsBox.style.display = 'none'; return; }
+  offsetsBox.style.display = 'block';
+  const offsets = currentBackgroundOffsets();
+  const scale = _BG_STACK_H / _BG_GAME_H;
+  for (const { key } of BG_OFFSET_LAYERS) {
+    const img = document.getElementById('tp-bg-layer-' + key);
+    if (img) {
+      img.src = info.layers[key] || '';
+      img.style.transform = `translateY(${(offsets[key] || 0) * scale}px)`;
+    }
+    const inp = document.querySelector(`.tp-bg-offset-input[data-layer="${key}"]`);
+    if (inp && document.activeElement !== inp) inp.value = offsets[key] || 0;
+  }
 }
 if (tpBgSelect) {
   tpBgSelect.addEventListener('change', () => setLevelBackground(tpBgSelect.value || null));
 }
+_wireBgOffsetControls();
 
 // ── Tools Panel: collapsible sections ──────────────────────────────
 document.querySelectorAll('.tp-hdr').forEach(hdr => {

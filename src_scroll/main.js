@@ -627,7 +627,9 @@ async function _bootAsync() {
   const bgKind = LEVEL_DEFS[0] && LEVEL_DEFS[0].background;
   if (bgKind) {
     const _bgW = ((LEVEL_DEFS[0] && LEVEL_DEFS[0].cols) || 100) * 32;
-    bgInit(_bgW);
+    // AKI_18: per-layer vertical offsets travel with the level JSON
+    // (backgroundOffsets, optional) so Builder/TEST/normal game all agree.
+    bgInit(_bgW, LEVEL_DEFS[0].backgroundOffsets);
     console.info(`[game] parallax background ENABLED by level data (background="${bgKind}")`);
   } else {
     console.info('[game] parallax background OFF — level JSON declares no "background" field');
