@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import { Player, Level, held, step } from './support/headless.mjs';
 
 const base = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json', 'utf8'));
-const route = JSON.parse(fs.readFileSync('_dev/fixtures/level1-high-low.json', 'utf8'));
+const route = JSON.parse(fs.readFileSync('previews/level1-high-low.json', 'utf8'));
 assert.deepEqual(route.gates, base.gates, 'gate and charge rule unchanged');
 assert.deepEqual(route.sources, base.sources, 'source economy unchanged');
 assert.deepEqual(route.playerStart, base.playerStart, 'spawn unchanged');

@@ -11,7 +11,7 @@ The new support cells are one-way value `2`, paired with existing blue rooftop a
 
 ## Review in the Builder
 
-Use a disposable local Builder tab, especially if another tab has unsaved edits. Under **Level → Import level**, choose `_dev/fixtures/level1-high-low.json`. The Builder should mark it **dirty / unsaved**. Pan to columns 44–66 near the existing gate and use **TEST** to play the imported state. Do not press SAVE: this is a design preview, not a replacement for the campaign file. Reload the tab to return to the committed level.
+Use a disposable local Builder tab, especially if another tab has unsaved edits. Under **Level → Import level**, choose `previews/level1-high-low.json`. The Builder should mark it **dirty / unsaved**. Pan to columns 44–66 near the existing gate and use **TEST** to play the imported state. Do not press SAVE: this is a design preview, not a replacement for the campaign file. Reload the tab to return to the committed level.
 
 The Builder's upload validator previously assumed every file had exactly 14 rows and rejected even the current 18-row Level 1. This preview includes a fix that accepts complete variable-height grids through the existing 54-row cap; upload and snapshot recovery share that validator.
 

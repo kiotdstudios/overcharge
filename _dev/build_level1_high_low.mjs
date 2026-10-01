@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const source = 'src_scroll/levels/level1.json';
-const target = '_dev/fixtures/level1-high-low.json';
+const target = 'previews/level1-high-low.json';
 const level = JSON.parse(fs.readFileSync(source, 'utf8'));
 const originalGate = JSON.stringify(level.gates);
 const originalSources = JSON.stringify(level.sources);
@@ -42,6 +42,6 @@ for (const { row, first, last, id } of ledges) {
 assert.equal(JSON.stringify(level.gates), originalGate);
 assert.equal(JSON.stringify(level.sources), originalSources);
 assert.equal(JSON.stringify(level.playerStart), originalSpawn);
-fs.mkdirSync('_dev/fixtures', { recursive: true });
+fs.mkdirSync('previews', { recursive: true });
 fs.writeFileSync(target, JSON.stringify(level, null, 2) + '\n');
 console.log(`${target}: ${level.cols} x ${level.tiles.length / level.cols}, ${ledges.length} one-way ledges`);
