@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>OVERCHARGE — Electric City Palette</title>
+<style>
+    :root{--bg:#0a0a0a;--fg:#ffffff;--fire:#ff6b00;}
+    *{box-sizing:border-box;}
+    body{margin:0;background:var(--bg);color:var(--fg);font-family:'Bahnschrift','Oswald',Impact,'Arial Narrow',sans-serif;}
+    .scanlines{position:fixed;inset:0;pointer-events:none;z-index:50;
+      background:repeating-linear-gradient(to bottom,rgba(255,255,255,0.03) 0px,rgba(255,255,255,0.03) 1px,transparent 2px,transparent 4px);}
+    header{padding:40px 32px 20px;border-bottom:2px solid var(--fire);}
+    h1{font-size:2.6rem;letter-spacing:2px;margin:0 0 6px;text-transform:uppercase;
+      text-shadow:2px 0 #00eaff,-2px 0 #ff00c8,0 0 18px rgba(255,107,0,.6);animation:glitch 4s infinite;}
+    @keyframes glitch{0%,96%,100%{text-shadow:2px 0 #00eaff,-2px 0 #ff00c8,0 0 18px rgba(255,107,0,.6);}
+      97%{text-shadow:-3px 0 #00eaff,3px 0 #ff00c8;} 98%{text-shadow:4px 0 #00eaff,-4px 0 #ff00c8;}}
+    .sub{color:#aaa;font-size:.95rem;max-width:900px;line-height:1.5;}
+    main{padding:24px 32px 60px;max-width:1200px;margin:0 auto;}
+    h2{color:var(--fire);text-transform:uppercase;letter-spacing:1.5px;border-bottom:1px solid #333;padding-bottom:6px;margin-top:40px;}
+    .note{color:#888;font-size:.82rem;margin:4px 0 14px;}
+    .note code{color:#ccc;background:#1a1a1a;padding:2px 5px;border-radius:3px;}
+    .row{display:flex;flex-wrap:wrap;gap:10px;}
+    .swatch{width:140px;height:84px;border-radius:6px;display:flex;flex-direction:column;
+      justify-content:flex-end;padding:8px;cursor:pointer;border:1px solid rgba(255,255,255,.15);
+      transition:transform .12s ease,box-shadow .12s ease;position:relative;}
+    .swatch:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 6px 18px rgba(0,0,0,.5);}
+    .swatch .hex{font-weight:700;font-size:.9rem;letter-spacing:.5px;}
+    .swatch .role{font-size:.68rem;opacity:.85;text-transform:uppercase;}
+    .prop-card{display:flex;gap:16px;align-items:flex-start;background:#111;border:1px solid #262626;
+      border-radius:8px;padding:14px;margin-bottom:16px;}
+    .thumb{width:88px;height:88px;object-fit:contain;background:#000;border-radius:6px;
+      image-rendering:pixelated;flex-shrink:0;}
+    .prop-meta h3{margin:0 0 4px;color:#fff;font-size:1.05rem;}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--fire);color:#000;font-weight:700;
+      padding:10px 18px;border-radius:4px;opacity:0;transform:translateY(10px);
+      transition:opacity .2s,transform .2s;z-index:100;}
+    .toast.show{opacity:1;transform:translateY(0);}
+    footer{color:#555;font-size:.75rem;padding:20px 32px 40px;border-top:1px solid #222;}
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<header>
+  <h1>OVERCHARGE // Electric City Palette</h1>
+  <p class="sub">Colors sampled directly from shipped OVERCHARGE prop art — no invented cyberpunk guesses.
+  Core electrical gameplay props first (generator, gate, switch, fence, HVAC source), then complementary
+  night-city/neon-rise dressing, live gameplay charge/HUD colors, and the fixed KIOTD brand constants.
+  Click any swatch to copy its hex.</p>
+</header>
+<main>
+  <h2>Core Electrical Props <span style="color:#888;font-size:.7rem;">(assets/ASSET_MANIFEST.json — electrical category)</span></h2>
+  <p class="note">Sampled from actual visible, non-transparent pixels of each shipped sprite via median-cut quantization (6 dominant colors each).</p>
+  
+    <div class="prop-card">
+      <img class="thumb" src="data:image/png;base64,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" alt="Generator">
+      <div class="prop-meta">
+        <h3>Generator</h3>
+        <p class="note">Puzzle-critical power source; always-on energy generator prop<br><code>assets/sprites/generator 1/frame_000.png</code></p>
+        <div class="row"><div class="swatch" style="background:#010103;color:#fff" data-hex="#010103" title="Generator — assets/sprites/generator 1/frame_000.png">
+      <span class="hex">#010103</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#5c5a5b;color:#fff" data-hex="#5c5a5b" title="Generator — assets/sprites/generator 1/frame_000.png">
+      <span class="hex">#5c5a5b</span><span class="role">steel shadow</span>
+    </div><div class="swatch" style="background:#41454b;color:#fff" data-hex="#41454b" title="Generator — assets/sprites/generator 1/frame_000.png">
+      <span class="hex">#41454b</span><span class="role">steel shadow</span>
+    </div><div class="swatch" style="background:#2e2c30;color:#fff" data-hex="#2e2c30" title="Generator — assets/sprites/generator 1/frame_000.png">
+      <span class="hex">#2e2c30</span><span class="role">steel shadow</span>
+    </div><div class="swatch" style="background:#d9bf8e;color:#111" data-hex="#d9bf8e" title="Generator — assets/sprites/generator 1/frame_000.png">
+      <span class="hex">#d9bf8e</span><span class="role">amber warning</span>
+    </div><div class="swatch" style="background:#847a71;color:#fff" data-hex="#847a71" title="Generator — assets/sprites/generator 1/frame_000.png">
+      <span class="hex">#847a71</span><span class="role">steel</span>
+    </div></div>
+      </div>
+    </div>
+    <div class="prop-card">
+      <img class="thumb" src="data:image/png;base64,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" alt="Electric Gate">
+      <div class="prop-meta">
+        <h3>Electric Gate</h3>
+        <p class="note">Charged barrier gate, closed/locked state<br><code>assets/objects/gate_closed.png</code></p>
+        <div class="row"><div class="swatch" style="background:#15133c;color:#fff" data-hex="#15133c" title="Electric Gate — assets/objects/gate_closed.png">
+      <span class="hex">#15133c</span><span class="role">navy shadow</span>
+    </div><div class="swatch" style="background:#190938;color:#fff" data-hex="#190938" title="Electric Gate — assets/objects/gate_closed.png">
+      <span class="hex">#190938</span><span class="role">violet neon</span>
+    </div><div class="swatch" style="background:#0f0a2c;color:#fff" data-hex="#0f0a2c" title="Electric Gate — assets/objects/gate_closed.png">
+      <span class="hex">#0f0a2c</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#400763;color:#fff" data-hex="#400763" title="Electric Gate — assets/objects/gate_closed.png">
+      <span class="hex">#400763</span><span class="role">violet neon</span>
+    </div><div class="swatch" style="background:#0c0321;color:#fff" data-hex="#0c0321" title="Electric Gate — assets/objects/gate_closed.png">
+      <span class="hex">#0c0321</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#574d80;color:#fff" data-hex="#574d80" title="Electric Gate — assets/objects/gate_closed.png">
+      <span class="hex">#574d80</span><span class="role">navy shadow</span>
+    </div></div>
+      </div>
+    </div>
+    <div class="prop-card">
+      <img class="thumb" src="data:image/png;base64,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" alt="Wall Switch">
+      <div class="prop-meta">
+        <h3>Wall Switch</h3>
+        <p class="note">Player-activated circuit switch, unpowered thumbnail state<br><code>assets/objects/wall_switch/switch_off.png</code></p>
+        <div class="row"><div class="swatch" style="background:#959da4;color:#111" data-hex="#959da4" title="Wall Switch — assets/objects/wall_switch/switch_off.png">
+      <span class="hex">#959da4</span><span class="role">steel</span>
+    </div><div class="swatch" style="background:#151719;color:#fff" data-hex="#151719" title="Wall Switch — assets/objects/wall_switch/switch_off.png">
+      <span class="hex">#151719</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#4d565b;color:#fff" data-hex="#4d565b" title="Wall Switch — assets/objects/wall_switch/switch_off.png">
+      <span class="hex">#4d565b</span><span class="role">steel shadow</span>
+    </div><div class="swatch" style="background:#7c8288;color:#fff" data-hex="#7c8288" title="Wall Switch — assets/objects/wall_switch/switch_off.png">
+      <span class="hex">#7c8288</span><span class="role">steel</span>
+    </div><div class="swatch" style="background:#33383e;color:#fff" data-hex="#33383e" title="Wall Switch — assets/objects/wall_switch/switch_off.png">
+      <span class="hex">#33383e</span><span class="role">steel shadow</span>
+    </div><div class="swatch" style="background:#c1cdd6;color:#111" data-hex="#c1cdd6" title="Wall Switch — assets/objects/wall_switch/switch_off.png">
+      <span class="hex">#c1cdd6</span><span class="role">navy shadow</span>
+    </div></div>
+      </div>
+    </div>
+    <div class="prop-card">
+      <img class="thumb" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAADFElEQVR4nO2azU8TURTFzxuGpg6lbSZdkah8JIYSyoKkCwxh0Y2RjeGvcKdbNUZduHDh1oUbd5ggGxfujCbGRI0QEkEpGpsYE43BtqhBKLT0uiCveR2onQ4DvEnvbzVffb1zet+be+YWYBiGYRiGYZgawhAkDEHHHYcftHwv6sVBF8HNvRhHF46etL0AptsL1RSiKonDCcc7XuNrKsDo8BB9+b6KSDyBK31x3P70A6W/69TTe6bhZ6oVAlFlNzBhwjBb06ta+f/S4xxvp1zGyod5PLpwHgBw8cVbAoC1X4WWvhdA44VDrqZmyNJyYTRDFskYk6k0AR4XdH4KtBm+CPCm8DHQmVIHT4ED8ny1EGjROAPaDV8EKFE5sJlyYAGevluhsOjUrjT2TKN5E43ZFLIi2r4nkFWgMATZdsJ1JdjUC6THM5RbXgQATGcmcHl+GflCngYGkgCA7NKckKWnJLs0J4ZGxkjW7DvlMrJLcwIAhkfPkrqfTKVJCBNEldoxiTznZHnx9Z7Pql7gxuefAEC+ewFZb7c+6uGjZsCp/kH2AsARPQaD/AQAfBAgLDpFqboWaBHq4CnQZvguwM0nC4HOGp4CXrj+4HFghfJFALOr249h9KDVKXDt7n1tf30397LHxQlDkGwsqNvRmE0bmyUAQGV7Qzv3F43ZVCpvI9wZgtlhoFjMi0b3ouLaDEXiCdzpi+PSy0VYXd10un8Q0oiohkU2RADUjjuNTjKVJtUcAcD7hVfCeW5oZIxU4wOgzkSpcX77msP0uQkAu2aotLVFm5vrzZVz0ihtQlaEzJClbWNEbdz0nOxlMwSwGXIFmyEnPAXaDN8FuDXzLNBZw1PAC1fvPQysUL4I0HHC8mMYPWh1CuhshbkS9KMzJLHtBFV2qgCAP7+Lezo46v5+3SLVGMlrpNlRjU6zTlEjM5TLZWvbkXAYxWLem2N1qpYez1A0ZpNtJ2h2arLObOiEMATNTk3S7NQkpccztS6Ret71QPtty7aY7m5QjZHXAC6Fm9P2AtTelx13IMeBjn/6ZhjmaPkH9XqiWFJCVMYAAAAASUVORK5CYII=" alt="Electric Fence">
+      <div class="prop-meta">
+        <h3>Electric Fence</h3>
+        <p class="note">Live/charged electric fence hazard, first active loop frame<br><code>assets/objects/fence/frame_001.png</code></p>
+        <div class="row"><div class="swatch" style="background:#010201;color:#fff" data-hex="#010201" title="Electric Fence — assets/objects/fence/frame_001.png">
+      <span class="hex">#010201</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#292d35;color:#fff" data-hex="#292d35" title="Electric Fence — assets/objects/fence/frame_001.png">
+      <span class="hex">#292d35</span><span class="role">steel shadow</span>
+    </div><div class="swatch" style="background:#0e0f12;color:#fff" data-hex="#0e0f12" title="Electric Fence — assets/objects/fence/frame_001.png">
+      <span class="hex">#0e0f12</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#2c323a;color:#fff" data-hex="#2c323a" title="Electric Fence — assets/objects/fence/frame_001.png">
+      <span class="hex">#2c323a</span><span class="role">steel shadow</span>
+    </div><div class="swatch" style="background:#2a2e39;color:#fff" data-hex="#2a2e39" title="Electric Fence — assets/objects/fence/frame_001.png">
+      <span class="hex">#2a2e39</span><span class="role">navy shadow</span>
+    </div><div class="swatch" style="background:#9d8a8b;color:#111" data-hex="#9d8a8b" title="Electric Fence — assets/objects/fence/frame_001.png">
+      <span class="hex">#9d8a8b</span><span class="role">steel</span>
+    </div></div>
+      </div>
+    </div>
+    <div class="prop-card">
+      <img class="thumb" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAAaCAYAAAA5WTUBAAAB60lEQVR4nLVVTU+DQBB9Q90mipFqjAdj9WTixcSf4f/34lXrSU0ELR5s2TEzCysB+iFsX9KysMvu482bGTq/vmesQJZ96jVJjvy4iWX+gfj4CkOwJ3/vbzOAR+1ZAsAyP9fBiAsUso5I58z40C+df7/2InB4cOZIQDfWAQBHZpE9+YUmudRrQW45KCrX/uEnfexFAp5EDXFeIF2+1B9hkT1jsneBPFamnRhPbtAXLRLp8gXTyS1m6YN/Vt0bXLpQVHEKqgQ5eRfZTG/lQDlY8DX/8IREEZNMWwQCKUGdGwuBNrpDEsATDDBvQaDiQTtSgiLNApF8pSc0FBZgec2G9gQD7EIiWVAnIJB7zY41ew1Xgrn8MkZ+QDA09SYVmOQCuZJcjeFKsC1DIj/2B3sTcneBCqpE8bPGhGtgxnE4JUbjk1rZloF8dR1VKPgvk2iHFROqeM35FbnKE7Sr3kH+9PKAjgZWesWJ1S5uAbIDfuONDUxJukzaWRdNNzUwFM4zjao5XAn6ZwOjqFW5AyhB/2hgYlILRmAloohgGxzWN7AmhQBKsPpy2wZWIXB2sJXOaNVsGxuYz9TA2RGBYdWcxeYGtqKHDFbCysa6b+QqNrvQuBtRqJzT+lCauJEeg5UwZr/3V1SIT+96v/sL8nkK96e+/xsAAAAASUVORK5CYII=" alt="Powered HVAC">
+      <div class="prop-meta">
+        <h3>Powered HVAC</h3>
+        <p class="note">Rooftop HVAC unit wired as an ElectricalSource (charge:4)<br><code>assets/tilesets/purple_rooftop/props/hvac_a.png</code></p>
+        <div class="row"><div class="swatch" style="background:#061232;color:#fff" data-hex="#061232" title="Powered HVAC — assets/tilesets/purple_rooftop/props/hvac_a.png">
+      <span class="hex">#061232</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#081030;color:#fff" data-hex="#081030" title="Powered HVAC — assets/tilesets/purple_rooftop/props/hvac_a.png">
+      <span class="hex">#081030</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#00020a;color:#fff" data-hex="#00020a" title="Powered HVAC — assets/tilesets/purple_rooftop/props/hvac_a.png">
+      <span class="hex">#00020a</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#111c43;color:#fff" data-hex="#111c43" title="Powered HVAC — assets/tilesets/purple_rooftop/props/hvac_a.png">
+      <span class="hex">#111c43</span><span class="role">navy shadow</span>
+    </div><div class="swatch" style="background:#010111;color:#fff" data-hex="#010111" title="Powered HVAC — assets/tilesets/purple_rooftop/props/hvac_a.png">
+      <span class="hex">#010111</span><span class="role">dark base</span>
+    </div><div class="swatch" style="background:#080b2a;color:#fff" data-hex="#080b2a" title="Powered HVAC — assets/tilesets/purple_rooftop/props/hvac_a.png">
+      <span class="hex">#080b2a</span><span class="role">dark base</span>
+    </div></div>
+      </div>
+    </div>
+  
+    <section class="group">
+      <h2>Base / Night City</h2>
+      <p class="note">sprite background tones -- assets/objects/night-city-props/*</p>
+      <div class="row"><div class="swatch" style="background:#03010c;color:#fff" data-hex="#03010c" title="Base / Night City — sprite background tones -- assets/objects/night-city-props/*">
+      <span class="hex">#03010c</span><span class="role">void black</span>
+    </div><div class="swatch" style="background:#0c0d22;color:#fff" data-hex="#0c0d22" title="Base / Night City — sprite background tones -- assets/objects/night-city-props/*">
+      <span class="hex">#0c0d22</span><span class="role">deep navy</span>
+    </div><div class="swatch" style="background:#131430;color:#fff" data-hex="#131430" title="Base / Night City — sprite background tones -- assets/objects/night-city-props/*">
+      <span class="hex">#131430</span><span class="role">panel navy</span>
+    </div><div class="swatch" style="background:#222047;color:#fff" data-hex="#222047" title="Base / Night City — sprite background tones -- assets/objects/night-city-props/*">
+      <span class="hex">#222047</span><span class="role">indigo shadow</span>
+    </div><div class="swatch" style="background:#3d3d6d;color:#fff" data-hex="#3d3d6d" title="Base / Night City — sprite background tones -- assets/objects/night-city-props/*">
+      <span class="hex">#3d3d6d</span><span class="role">steel indigo</span>
+    </div><div class="swatch" style="background:#868fc9;color:#111" data-hex="#868fc9" title="Base / Night City — sprite background tones -- assets/objects/night-city-props/*">
+      <span class="hex">#868fc9</span><span class="role">cool highlight</span>
+    </div></div>
+    </section>
+    <section class="group">
+      <h2>Neon Signage</h2>
+      <p class="note">lightning-billboard.png, vertical-glyph-sign.png</p>
+      <div class="row"><div class="swatch" style="background:#c102a5;color:#fff" data-hex="#c102a5" title="Neon Signage — lightning-billboard.png, vertical-glyph-sign.png">
+      <span class="hex">#c102a5</span><span class="role">magenta sign</span>
+    </div><div class="swatch" style="background:#b710ec;color:#111" data-hex="#b710ec" title="Neon Signage — lightning-billboard.png, vertical-glyph-sign.png">
+      <span class="hex">#b710ec</span><span class="role">violet glow</span>
+    </div><div class="swatch" style="background:#2055eb;color:#fff" data-hex="#2055eb" title="Neon Signage — lightning-billboard.png, vertical-glyph-sign.png">
+      <span class="hex">#2055eb</span><span class="role">signal blue</span>
+    </div><div class="swatch" style="background:#04a0f5;color:#111" data-hex="#04a0f5" title="Neon Signage — lightning-billboard.png, vertical-glyph-sign.png">
+      <span class="hex">#04a0f5</span><span class="role">cyan accent</span>
+    </div><div class="swatch" style="background:#568bd7;color:#111" data-hex="#568bd7" title="Neon Signage — lightning-billboard.png, vertical-glyph-sign.png">
+      <span class="hex">#568bd7</span><span class="role">glyph blue</span>
+    </div><div class="swatch" style="background:#680677;color:#fff" data-hex="#680677" title="Neon Signage — lightning-billboard.png, vertical-glyph-sign.png">
+      <span class="hex">#680677</span><span class="role">deep magenta</span>
+    </div></div>
+    </section>
+    <section class="group">
+      <h2>Utility Amber</h2>
+      <p class="note">amber-service-lamp.png, lit-conduit-pipe.png</p>
+      <div class="row"><div class="swatch" style="background:#da9b3e;color:#111" data-hex="#da9b3e" title="Utility Amber — amber-service-lamp.png, lit-conduit-pipe.png">
+      <span class="hex">#da9b3e</span><span class="role">amber lamp</span>
+    </div><div class="swatch" style="background:#553057;color:#fff" data-hex="#553057" title="Utility Amber — amber-service-lamp.png, lit-conduit-pipe.png">
+      <span class="hex">#553057</span><span class="role">dusk violet</span>
+    </div><div class="swatch" style="background:#34193e;color:#fff" data-hex="#34193e" title="Utility Amber — amber-service-lamp.png, lit-conduit-pipe.png">
+      <span class="hex">#34193e</span><span class="role">shadow plum</span>
+    </div><div class="swatch" style="background:#79646f;color:#fff" data-hex="#79646f" title="Utility Amber — amber-service-lamp.png, lit-conduit-pipe.png">
+      <span class="hex">#79646f</span><span class="role">conduit grey</span>
+    </div><div class="swatch" style="background:#3e2a63;color:#fff" data-hex="#3e2a63" title="Utility Amber — amber-service-lamp.png, lit-conduit-pipe.png">
+      <span class="hex">#3e2a63</span><span class="role">conduit violet</span>
+    </div></div>
+    </section>
+    <section class="group">
+      <h2>Charge / Electricity (gameplay)</h2>
+      <p class="note">src_scroll/electricity.js -- the actual charge-bolt and absorb colors</p>
+      <div class="row"><div class="swatch" style="background:#cc44ff;color:#111" data-hex="#cc44ff" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#cc44ff</span><span class="role">charge bolt violet</span>
+    </div><div class="swatch" style="background:#44ff88;color:#111" data-hex="#44ff88" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#44ff88</span><span class="role">absorb green</span>
+    </div><div class="swatch" style="background:#ffcc00;color:#111" data-hex="#ffcc00" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#ffcc00</span><span class="role">spark gold</span>
+    </div><div class="swatch" style="background:#ff8800;color:#fff" data-hex="#ff8800" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#ff8800</span><span class="role">spark orange</span>
+    </div><div class="swatch" style="background:#ff4444;color:#fff" data-hex="#ff4444" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#ff4444</span><span class="role">discharge red</span>
+    </div><div class="swatch" style="background:#66ccff;color:#111" data-hex="#66ccff" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#66ccff</span><span class="role">arc cyan</span>
+    </div><div class="swatch" style="background:#44ffcc;color:#111" data-hex="#44ffcc" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#44ffcc</span><span class="role">arc teal</span>
+    </div><div class="swatch" style="background:#ffe040;color:#111" data-hex="#ffe040" title="Charge / Electricity (gameplay) — src_scroll/electricity.js -- the actual charge-bolt and absorb colors">
+      <span class="hex">#ffe040</span><span class="role">flash yellow</span>
+    </div></div>
+    </section>
+    <section class="group">
+      <h2>Energy HUD (gameplay)</h2>
+      <p class="note">src_scroll/energy-hud.js -- the actual meter colors</p>
+      <div class="row"><div class="swatch" style="background:#9951d0;color:#111" data-hex="#9951d0" title="Energy HUD (gameplay) — src_scroll/energy-hud.js -- the actual meter colors">
+      <span class="hex">#9951d0</span><span class="role">meter violet</span>
+    </div><div class="swatch" style="background:#71b3c2;color:#111" data-hex="#71b3c2" title="Energy HUD (gameplay) — src_scroll/energy-hud.js -- the actual meter colors">
+      <span class="hex">#71b3c2</span><span class="role">meter cyan</span>
+    </div><div class="swatch" style="background:#aff9ff;color:#111" data-hex="#aff9ff" title="Energy HUD (gameplay) — src_scroll/energy-hud.js -- the actual meter colors">
+      <span class="hex">#aff9ff</span><span class="role">meter highlight</span>
+    </div><div class="swatch" style="background:#ac75ef;color:#111" data-hex="#ac75ef" title="Energy HUD (gameplay) — src_scroll/energy-hud.js -- the actual meter colors">
+      <span class="hex">#ac75ef</span><span class="role">meter fill</span>
+    </div><div class="swatch" style="background:#8c7caa;color:#111" data-hex="#8c7caa" title="Energy HUD (gameplay) — src_scroll/energy-hud.js -- the actual meter colors">
+      <span class="hex">#8c7caa</span><span class="role">meter dim</span>
+    </div><div class="swatch" style="background:#d9b5ff;color:#111" data-hex="#d9b5ff" title="Energy HUD (gameplay) — src_scroll/energy-hud.js -- the actual meter colors">
+      <span class="hex">#d9b5ff</span><span class="role">meter pale</span>
+    </div><div class="swatch" style="background:#0b0819;color:#fff" data-hex="#0b0819" title="Energy HUD (gameplay) — src_scroll/energy-hud.js -- the actual meter colors">
+      <span class="hex">#0b0819</span><span class="role">meter bg</span>
+    </div></div>
+    </section>
+    <section class="group">
+      <h2>KIOTD Brand</h2>
+      <p class="note">studio brand constants, not sampled -- always exact</p>
+      <div class="row"><div class="swatch" style="background:#0a0a0a;color:#fff" data-hex="#0a0a0a" title="KIOTD Brand — studio brand constants, not sampled -- always exact">
+      <span class="hex">#0a0a0a</span><span class="role">KIOTD background</span>
+    </div><div class="swatch" style="background:#ffffff;color:#111" data-hex="#ffffff" title="KIOTD Brand — studio brand constants, not sampled -- always exact">
+      <span class="hex">#ffffff</span><span class="role">KIOTD text</span>
+    </div><div class="swatch" style="background:#ff6b00;color:#fff" data-hex="#ff6b00" title="KIOTD Brand — studio brand constants, not sampled -- always exact">
+      <span class="hex">#ff6b00</span><span class="role">KIOTD fire orange</span>
+    </div></div>
+    </section>
+</main>
+<footer>Generated for Chief — OVERCHARGE KIRO_ORDER_AKI_16. All hex values sampled from real asset pixels or copied from gameplay source files (src_scroll/electricity.js, energy-hud.js, render.js), plus fixed KIOTD brand constants.</footer>
+<div id="toast" class="toast"></div>
+<script>
+    document.querySelectorAll('.swatch').forEach(function(el){
+      el.addEventListener('click', function(){
+        var hex = el.getAttribute('data-hex');
+        if(navigator.clipboard){ navigator.clipboard.writeText(hex); }
+        var t = document.getElementById('toast');
+        t.textContent = 'Copied ' + hex;
+        t.classList.add('show');
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1200);
+      });
+    });
+</script>
+</body>
+</html>
