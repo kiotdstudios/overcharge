@@ -1,28 +1,60 @@
 {
   "_schema": "overcharge-agent-board@1",
   "_note": "DERIVED from git by _kiro/agent_board.mjs. Do not hand-edit.",
-  "generated": "2026-09-18 00:25Z",
+  "generated": "2026-10-01 02:15Z",
   "live": {
     "branch": "agent/orcha-gameplay",
-    "head": "737b4e5",
-    "date": "2026-09-17",
-    "subject": "ORDER ORCHA 10: PUSH NOW - countermand my own one-commit instruction. Orcha is 52 behind with 0 unmerged; Chief is playtesting a build with every defect still in it and re-reporting fixed bugs. New rule: push when green, not when finished",
-    "lastGate": "2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed"
+    "head": "f805eef",
+    "date": "2026-09-30",
+    "subject": "docs: use Aki order filenames for pending handoffs",
+    "lastGate": "2026-09-17 — QA GATE: ORCHA O5.1–O5.3 **PASS, MERGED** (`aa6ba34`) — the playtest fixes are finally live"
   },
   "agents": [
     {
       "name": "Aki",
       "lane": "Builder / editor / assets",
       "branch": "agent/aki-editor",
-      "head": "7a04c9e",
-      "date": "2026-09-17",
-      "subject": "A7.4: fix wall switch charge bar — move above sprite (o.y-42 vs o.y-9), no dark fill at 0%; 660/0 + boot smoke clean",
-      "behind": 12,
+      "head": "0136d53",
+      "date": "2026-09-29",
+      "subject": "Merge origin/agent/orcha-gameplay (ebe83b8) into agent/aki-editor",
+      "behind": 18,
       "unmerged": 0,
       "state": "IDLE / needs sync",
-      "detail": "12 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
-      "newestDirective": "docs/KIRO_ORDER_AKI_07.md",
+      "detail": "18 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "newestDirective": "docs/KIRO_ORDER_AKI_15.md",
       "openDirectives": [
+        {
+          "file": "docs/KIRO_ORDER_AKI_15.md",
+          "when": "2026-09-30"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_16.md",
+          "when": "2026-09-30"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_14.md",
+          "when": "2026-09-19"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_13.md",
+          "when": "2026-09-19"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_12.md",
+          "when": "2026-09-19"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_11.md",
+          "when": "2026-09-19"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_10.md",
+          "when": "2026-09-18"
+        },
+        {
+          "file": "docs/KIRO_ORDER_AKI_08.md",
+          "when": "2026-09-17"
+        },
         {
           "file": "docs/KIRO_ORDER_AKI_07.md",
           "when": "2026-09-17"
@@ -67,15 +99,47 @@
       "name": "Orcha",
       "lane": "Runtime / gameplay / test suites",
       "branch": "agent/orcha-dev",
-      "head": "aa6ba34",
-      "date": "2026-09-17",
-      "subject": "O5.1-O5.3: gate geometry + label anchors + visualState (669/0)",
-      "behind": 0,
-      "unmerged": 1,
-      "state": "DELIVERED — awaiting Kiro gate",
-      "detail": "1 commit(s) awaiting gate",
-      "newestDirective": "docs/KIRO_ORDER_ORCHA_10.md",
+      "head": "a3d7a16",
+      "date": "2026-09-19",
+      "subject": "Merge remote-tracking branch 'origin/agent/orcha-gameplay' into agent/orcha-dev",
+      "behind": 155,
+      "unmerged": 0,
+      "state": "IDLE / needs sync",
+      "detail": "155 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay",
+      "newestDirective": "docs/KIRO_ORDER_ORCHA_18.md",
       "openDirectives": [
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_18.md",
+          "when": "2026-09-18"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_17.md",
+          "when": "2026-09-18"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_16.md",
+          "when": "2026-09-18"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_15.md",
+          "when": "2026-09-18"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_14.md",
+          "when": "2026-09-17"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_13.md",
+          "when": "2026-09-17"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_12.md",
+          "when": "2026-09-17"
+        },
+        {
+          "file": "docs/KIRO_ORDER_ORCHA_11.md",
+          "when": "2026-09-17"
+        },
         {
           "file": "docs/KIRO_ORDER_ORCHA_10.md",
           "when": "2026-09-17"
@@ -121,22 +185,12 @@
           "when": "2026-09-13"
         }
       ],
-      "reportFiled": true,
-      "reportPaths": [
-        "ORCHA_STATUS.md"
-      ],
+      "reportFiled": null,
+      "reportPaths": [],
       "reportOffCanonical": [],
       "canonicalStatusFile": "ORCHA_STATUS.md",
       "duplicateStatusFiles": null,
-      "filesChanged": [
-        ".gitignore",
-        "ORCHA_STATUS.md",
-        "_dev/crate_timed.mjs",
-        "_dev/energy_authority.mjs",
-        "_dev/fence_switch.mjs",
-        "src_scroll/electricity.js",
-        "src_scroll/ui.js"
-      ]
+      "filesChanged": []
     }
   ]
 }

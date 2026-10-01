@@ -3,16 +3,16 @@
 **DERIVED FILE — do not hand-edit.** Regenerate with `node _kiro/agent_board.mjs --write`.
 Every value here comes from git, so it cannot drift from reality. Owned by Kiro.
 
-_Generated 2026-09-18 00:25Z_
+_Generated 2026-10-01 02:15Z_
 
 ## Live line — the only thing GitHub Pages serves
 
 | | |
 |---|---|
 | Branch | `agent/orcha-gameplay` |
-| Head | `737b4e5` (2026-09-17) |
-| Last commit | ORDER ORCHA 10: PUSH NOW - countermand my own one-commit instruction. Orcha is 52 behind with 0 unmerged; Chief is playtesting a build with every defect still in it and re-reporting fixed bugs. New rule: push when green, not when finished |
-| Last gate | 2026-09-17 — QA GATE: AKI A5 + ORCHA Q5/Q7 — both merged, one real hole closed |
+| Head | `f805eef` (2026-09-30) |
+| Last commit | docs: use Aki order filenames for pending handoffs |
+| Last gate | 2026-09-17 — QA GATE: ORCHA O5.1–O5.3 **PASS, MERGED** (`aa6ba34`) — the playtest fixes are finally live |
 | Game | https://kiotdstudios.github.io/overcharge/index.html |
 | Builder | https://kiotdstudios.github.io/overcharge/editor.html |
 
@@ -23,49 +23,40 @@ from it; work is pushed to your own branch.
 
 | Agent | Branch | Head | State | Newest directive | Report filed |
 |---|---|---|---|---|---|
-| Aki | `agent/aki-editor` | `7a04c9e` | IDLE / needs sync | `KIRO_ORDER_AKI_07.md` | — |
-| Orcha | `agent/orcha-dev` | `aa6ba34` | DELIVERED — awaiting Kiro gate | `KIRO_ORDER_ORCHA_10.md` | yes |
+| Aki | `agent/aki-editor` | `0136d53` | IDLE / needs sync | `KIRO_ORDER_AKI_15.md` | — |
+| Orcha | `agent/orcha-dev` | `a3d7a16` | IDLE / needs sync | `KIRO_ORDER_ORCHA_18.md` | — |
 
 ### Aki — Builder / editor / assets
 
-- **Branch:** `agent/aki-editor` at `7a04c9e` (2026-09-17)
-- **Last commit:** A7.4: fix wall switch charge bar — move above sprite (o.y-42 vs o.y-9), no dark fill at 0%; 660/0 + boot smoke clean
-- **State:** IDLE / needs sync — 12 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
-- **Newest directive:** `docs/KIRO_ORDER_AKI_07.md` (2026-09-17)
-- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_AKI_07.md`
+- **Branch:** `agent/aki-editor` at `0136d53` (2026-09-29)
+- **Last commit:** Merge origin/agent/orcha-gameplay (ebe83b8) into agent/aki-editor
+- **State:** IDLE / needs sync — 18 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
+- **Newest directive:** `docs/KIRO_ORDER_AKI_15.md` (2026-09-30)
+- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_AKI_15.md`
 - **All open directives for you (newest first):**
-    - `docs/KIRO_ORDER_AKI_07.md` — 2026-09-17
-    - `docs/KIRO_ORDER_AKI_06.md` — 2026-09-17
-    - `docs/KIRO_ORDER_AKI_05.md` — 2026-09-17
-    - `docs/KIRO_ORDER_AKI_04.md` — 2026-09-17
-    - `docs/KIRO_REVIEW_AKI_SKILLS_01.md` — 2026-09-17
-    - `docs/KIRO_ORDER_AKI_03.md` — 2026-09-17
-    - _…and 2 older_
+    - `docs/KIRO_ORDER_AKI_15.md` — 2026-09-30
+    - `docs/KIRO_ORDER_AKI_16.md` — 2026-09-30
+    - `docs/KIRO_ORDER_AKI_14.md` — 2026-09-19
+    - `docs/KIRO_ORDER_AKI_13.md` — 2026-09-19
+    - `docs/KIRO_ORDER_AKI_12.md` — 2026-09-19
+    - `docs/KIRO_ORDER_AKI_11.md` — 2026-09-19
+    - _…and 10 older_
 
 ### Orcha — Runtime / gameplay / test suites
 
-- **Branch:** `agent/orcha-dev` at `aa6ba34` (2026-09-17)
-- **Last commit:** O5.1-O5.3: gate geometry + label anchors + visualState (669/0)
-- **State:** DELIVERED — awaiting Kiro gate — 1 commit(s) awaiting gate
-- **Newest directive:** `docs/KIRO_ORDER_ORCHA_10.md` (2026-09-17)
-- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_ORCHA_10.md`
+- **Branch:** `agent/orcha-dev` at `a3d7a16` (2026-09-19)
+- **Last commit:** Merge remote-tracking branch 'origin/agent/orcha-gameplay' into agent/orcha-dev
+- **State:** IDLE / needs sync — 155 commit(s) behind live — run: git fetch origin && git merge origin/agent/orcha-gameplay
+- **Newest directive:** `docs/KIRO_ORDER_ORCHA_18.md` (2026-09-18)
+- **Read it with:** `git show origin/agent/orcha-gameplay:docs/KIRO_ORDER_ORCHA_18.md`
 - **All open directives for you (newest first):**
-    - `docs/KIRO_ORDER_ORCHA_10.md` — 2026-09-17
-    - `docs/KIRO_ORDER_ORCHA_09.md` — 2026-09-17
-    - `docs/KIRO_ORDER_ORCHA_08.md` — 2026-09-17
-    - `docs/KIRO_ORDER_ORCHA_07.md` — 2026-09-17
-    - `docs/KIRO_ORDER_ORCHA_06.md` — 2026-09-17
-    - `docs/KIRO_ORDER_ORCHA_05.md` — 2026-09-17
-    - _…and 5 older_
-- **Report filed this delivery:** yes (ORCHA_STATUS.md)
-- **Files changed vs live (7):**
-    - `.gitignore`
-    - `ORCHA_STATUS.md`
-    - `_dev/crate_timed.mjs`
-    - `_dev/energy_authority.mjs`
-    - `_dev/fence_switch.mjs`
-    - `src_scroll/electricity.js`
-    - `src_scroll/ui.js`
+    - `docs/KIRO_ORDER_ORCHA_18.md` — 2026-09-18
+    - `docs/KIRO_ORDER_ORCHA_17.md` — 2026-09-18
+    - `docs/KIRO_ORDER_ORCHA_16.md` — 2026-09-18
+    - `docs/KIRO_ORDER_ORCHA_15.md` — 2026-09-18
+    - `docs/KIRO_ORDER_ORCHA_14.md` — 2026-09-17
+    - `docs/KIRO_ORDER_ORCHA_13.md` — 2026-09-17
+    - _…and 13 older_
 
 ## How to use this board
 
