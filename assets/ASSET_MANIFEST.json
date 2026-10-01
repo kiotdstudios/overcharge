@@ -1756,6 +1756,39 @@
       "notes": "Placeable visual dressing. No collision or power logic."
     },
     {
+      "id": "night_city_pipe_short_unlit",
+      "name": "Night City pipe - short (unlit)",
+      "path": "assets/objects/night-city-props/pipes/pipe-short-unlit.png",
+      "category": "decoration",
+      "tags": ["neon_rise_dressing", "night_city_props", "pipe", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 64,
+      "frame_count": 1,
+      "notes": "Unlit visual dressing. No collision or power logic."
+    },
+    {
+      "id": "night_city_pipe_elbow_unlit",
+      "name": "Night City pipe - elbow (unlit)",
+      "path": "assets/objects/night-city-props/pipes/pipe-elbow-unlit.png",
+      "category": "decoration",
+      "tags": ["neon_rise_dressing", "night_city_props", "pipe", "scenery", "noncolliding"],
+      "frame_width": 256,
+      "frame_height": 96,
+      "frame_count": 1,
+      "notes": "Unlit visual dressing. No collision or power logic."
+    },
+    {
+      "id": "night_city_pipe_branch_unlit",
+      "name": "Night City pipe - branch (unlit)",
+      "path": "assets/objects/night-city-props/pipes/pipe-branch-unlit.png",
+      "category": "decoration",
+      "tags": ["neon_rise_dressing", "night_city_props", "pipe", "scenery", "noncolliding"],
+      "frame_width": 384,
+      "frame_height": 104,
+      "frame_count": 1,
+      "notes": "Unlit visual dressing. No collision or power logic."
+    },
+    {
       "id": "neon_rise_chainlink_railing",
       "name": "Neon Rise · chainlink railing",
       "path": "assets/objects/neon-rise-dressing/chainlink-railing.png",
