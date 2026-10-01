@@ -73,9 +73,16 @@ assert(!!a1, 'action produced when value changes from the implicit 0 default');
 Hist.apply(a1);
 assert(St.state.level.backgroundOffsets.sky === 16, 'forward() wrote the new value');
 assert(Hist.undo(), 'undo() succeeds');
-assert((St.state.level.backgroundOffsets.sky || 0) === 0, 'inverse() restored the pre-change value (0)');
+assert((St.state.level.backgroundOffsets?.sky || 0) === 0, 'inverse() restored the pre-change value (0)');
+assert(!Object.prototype.hasOwnProperty.call(St.state.level, 'backgroundOffsets'), 'undo restores the absent optional field exactly');
 assert(Hist.redo(), 'redo() succeeds');
 assert(St.state.level.backgroundOffsets.sky === 16, 'redo() re-applied forward()');
+
+let aZero = Act.setBackgroundOffset(St.state.level, 'sky', 0);
+Hist.apply(aZero);
+assert(!Object.prototype.hasOwnProperty.call(St.state.level, 'backgroundOffsets'), 'reset to zero removes the optional field');
+assert(Hist.undo(), 'undoing zero reset succeeds');
+assert(St.state.level.backgroundOffsets.sky === 16, 'undoing zero reset restores the prior nonzero offset');
 
 let a2 = Act.setBackgroundOffset(St.state.level, 'sky', 16);
 assert(a2 === null, 'no-op action (same value) returns null — nothing pushed to history');

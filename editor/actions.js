@@ -363,18 +363,31 @@ export function setPlayerStart(level, x, y) {
 // just here) because screen-space Y grows downward.
 export function setBackgroundOffset(level, key, value) {
   if (!level) return null;
+  const hadOffsets = Object.prototype.hasOwnProperty.call(level, 'backgroundOffsets');
+  const hadKey = !!level.backgroundOffsets && Object.prototype.hasOwnProperty.call(level.backgroundOffsets, key);
   const old = (level.backgroundOffsets && level.backgroundOffsets[key]) || 0;
   if (old === value) return null;
   return {
     type: 'set_background_offset',
     forward() {
-      if (!level.backgroundOffsets) level.backgroundOffsets = {};
-      level.backgroundOffsets[key] = value;
+      if (value === 0) {
+        if (level.backgroundOffsets) {
+          delete level.backgroundOffsets[key];
+          if (Object.keys(level.backgroundOffsets).length === 0) delete level.backgroundOffsets;
+        }
+      } else {
+        if (!level.backgroundOffsets) level.backgroundOffsets = {};
+        level.backgroundOffsets[key] = value;
+      }
       notify();
     },
     inverse() {
-      if (!level.backgroundOffsets) level.backgroundOffsets = {};
-      level.backgroundOffsets[key] = old;
+      if (!hadOffsets) delete level.backgroundOffsets;
+      else {
+        if (!level.backgroundOffsets) level.backgroundOffsets = {};
+        if (hadKey) level.backgroundOffsets[key] = old;
+        else delete level.backgroundOffsets[key];
+      }
       notify();
     },
   };

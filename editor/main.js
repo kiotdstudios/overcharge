@@ -254,8 +254,19 @@ function _applyFlip() {
 btnFlip?.addEventListener('click', () => _applyFlip());
 
 // ── Level workflow wiring ─────────────────────────────────────────────────
-btnUndo?.addEventListener('click', () => History.undo());
-btnRedo?.addEventListener('click', () => History.redo());
+function syncDirtyAfterHistory() {
+  if (!_committedChecksum || !state.level || _isLocalOnly()) return;
+  try {
+    if (levelChecksum(state.level) === _committedChecksum) {
+      state.dirty = false;
+      notify();
+    }
+  } catch {}
+}
+function undoLevelEdit() { if (History.undo()) syncDirtyAfterHistory(); }
+function redoLevelEdit() { if (History.redo()) syncDirtyAfterHistory(); }
+btnUndo?.addEventListener('click', undoLevelEdit);
+btnRedo?.addEventListener('click', redoLevelEdit);
 
 // (FIX ALL grammar button removed — Chief ruling 2026-09-19: rule deleted)
 btnNew?.addEventListener('click', async () => {
@@ -1000,10 +1011,10 @@ window.addEventListener('keydown', async (e) => {
 
   if (ctrl) {
     if (e.key === 'z' || e.key === 'Z') {
-      if (shift) { e.preventDefault(); History.redo(); return; }
-      e.preventDefault(); History.undo(); return;
+      if (shift) { e.preventDefault(); redoLevelEdit(); return; }
+      e.preventDefault(); undoLevelEdit(); return;
     }
-    if (e.key === 'y' || e.key === 'Y') { e.preventDefault(); History.redo(); return; }
+    if (e.key === 'y' || e.key === 'Y') { e.preventDefault(); redoLevelEdit(); return; }
     if (e.key === 'c' || e.key === 'C') { e.preventDefault(); Clipboard.copy(); return; }
     if (e.key === 'x' || e.key === 'X') { e.preventDefault(); Clipboard.cut(); return; }
     if (e.key === 'v' || e.key === 'V') { e.preventDefault(); Clipboard.paste(); return; }
