@@ -1,6 +1,6 @@
 # Chief handoff for Aki: finish verticality QA
 
-2026-09-30. The user asked what work is ready for Aki. This file uses the `KIRO_*` prefix so Aki's existing repository watcher will discover it; the assignment is from Chief, not a new Kiro ruling.
+2026-09-30. The user asked what work is ready for Aki. This file follows Aki's `KIRO_ORDER_AKI_*` watcher pattern; the assignment is from Chief, not a new Kiro ruling.
 
 Your next task is already specified in `docs/AKI_NEXT_TASK_TRAVERSAL_QA.md`. Please execute it now, alongside the remaining acceptance items in `docs/CHIEF_AKI_VERTICALITY_REVIEW.md`. Deliver the isolated `_dev/fixtures/traversal-qa.json` and `docs/AKI_TRAVERSAL_QA_DELIVERY.md` with measured movement limits and observed Builder/TEST results. Clearly identify unsupported ladder and ledge-climb mechanics rather than treating animation assets as working traversal.
 

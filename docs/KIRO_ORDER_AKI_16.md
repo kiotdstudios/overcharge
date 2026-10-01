@@ -1,6 +1,6 @@
 # Chief handoff for Aki: electric city prop palette
 
-2026-09-30. Chief asks you to make a color palette HTML from OVERCHARGE's electric city props and put it on his Desktop. This `KIRO_*` filename is solely for your existing watcher; the request is from Chief.
+2026-09-30. Chief asks you to make a color palette HTML from OVERCHARGE's electric city props and put it on his Desktop. This file follows Aki's `KIRO_ORDER_AKI_*` watcher pattern; the request is from Chief.
 
 After the current traversal QA fixture, create a self-contained `OVERCHARGE_Electric_City_Palette.html` that opens locally without a server. Derive swatches from actual visible pixels in the existing game props, not an invented cyberpunk palette. Start with the electrical entries in `assets/ASSET_MANIFEST.json` (generator, electric gate, wall switch, electric fence, powered HVAC), and use relevant `assets/objects/night-city-props/` and `assets/objects/neon-rise-dressing/` pieces for complementary city accents. Avoid transparent/background pixels when sampling. Show each color's hex value, role (dark base, steel, cyan energy, violet neon, amber warning, etc.), and which source asset it came from. Include a compact preview of the source props and a copy-hex control if practical.
 
