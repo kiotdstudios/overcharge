@@ -1,0 +1,21 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OVERCHARGE — Level Complete Preview</title>
+<style>
+  html,body{margin:0;min-height:100%;background:#07090f;display:grid;place-items:center}
+  canvas{display:block;width:min(100vw,1000px);height:auto;image-rendering:pixelated}
+</style>
+<canvas id="preview" width="800" height="578" aria-label="Animated level completion screen"></canvas>
+<script type="module">
+import { drawLevelComplete } from './src_scroll/ui.js?v=e012187cab0d7b4d';
+const canvas = document.getElementById('preview');
+const ctx = canvas.getContext('2d');
+const start = performance.now();
+function frame(now) {
+  const t = (now - start) / 1000;
+  drawLevelComplete(ctx, { number: 1, name: 'NEON RISE' }, Math.max(0.7, t), t);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
