@@ -25,6 +25,7 @@ import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
 import { facadeAction } from './facade.js';
+import { validateLevelShape } from './level-shape.js';
 
 mountWorkspace();
 document.getElementById('btn-landable-facade')?.addEventListener('click', () => {
@@ -1323,13 +1324,7 @@ const btnUpload   = document.getElementById('btn-upload');
 const uploadInput = document.getElementById('upload-input');
 
 function _validateLevelShape(obj) {
-  if (!obj || typeof obj !== 'object')          return 'not an object';
-  if (typeof obj.cols !== 'number' || obj.cols < 1) return 'missing/invalid cols';
-  if (!Array.isArray(obj.tiles))                return 'missing tiles array';
-  const expected = obj.cols * 14;
-  if (obj.tiles.length !== expected)            return `tiles length ${obj.tiles.length} ≠ cols*14 (${expected})`;
-  if (!obj.playerStart || typeof obj.playerStart.x !== 'number' || typeof obj.playerStart.y !== 'number') return 'missing playerStart {x,y}';
-  return null;
+  return validateLevelShape(obj, MAX_LEVEL_ROWS);
 }
 
 function _normalizeUploadedLevel(obj) {
