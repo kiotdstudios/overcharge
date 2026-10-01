@@ -1326,8 +1326,18 @@ function _validateLevelShape(obj) {
   if (!obj || typeof obj !== 'object')          return 'not an object';
   if (typeof obj.cols !== 'number' || obj.cols < 1) return 'missing/invalid cols';
   if (!Array.isArray(obj.tiles))                return 'missing tiles array';
-  const expected = obj.cols * 14;
-  if (obj.tiles.length !== expected)            return `tiles length ${obj.tiles.length} ≠ cols*14 (${expected})`;
+  // Row count is NOT fixed — src_scroll/level.js derives it as
+  // tiles.length/cols (capped at MAX_ROWS=54, see src_scroll/constants.js).
+  // All 5 shipped campaign levels are 18 rows, not 14; this check used to
+  // hardcode cols*14 and silently rejected every taller/shorter level
+  // (including this QA fixture's 20 rows) with no visible error the user
+  // was likely to notice. Validate shape, not a specific height.
+  const MAX_ROWS = 54;
+  if (obj.tiles.length === 0 || obj.tiles.length % obj.cols !== 0)
+    return `tiles length ${obj.tiles.length} is not a positive multiple of cols (${obj.cols})`;
+  const rows = obj.tiles.length / obj.cols;
+  if (rows > MAX_ROWS)
+    return `${rows} rows exceeds MAX_ROWS (${MAX_ROWS})`;
   if (!obj.playerStart || typeof obj.playerStart.x !== 'number' || typeof obj.playerStart.y !== 'number') return 'missing playerStart {x,y}';
   return null;
 }
