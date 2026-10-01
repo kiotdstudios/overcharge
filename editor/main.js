@@ -25,6 +25,7 @@ import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
 import { facadeAction } from './facade.js';
+import { validateLevelShape } from './level-shape.js';
 
 mountWorkspace();
 document.getElementById('btn-landable-facade')?.addEventListener('click', () => {
@@ -1051,8 +1052,8 @@ window.addEventListener('keydown', async (e) => {
   if (e.key === ']') { e.preventDefault(); _applyLayerOp(shift ? 'bring-to-front' : 'bring-forward'); }
   if (e.key === '[') { e.preventDefault(); _applyLayerOp(shift ? 'send-to-back'  : 'send-backward'); }
   // Rotate — R = 90° CW, Shift+R = 90° CCW
-  if (e.key === 'r' || e.key === 'R') { e.preventDefault(); _applyRotate(shift ? -90 : 90); }
-    if (e.key === 'f' || e.key === 'F') { e.preventDefault(); _applyFlip(); }
+  if (!ctrl && (e.key === 'r' || e.key === 'R')) { e.preventDefault(); _applyRotate(shift ? -90 : 90); }
+    if (!ctrl && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); _applyFlip(); }
 });
 
 // beforeunload — warn on unsaved changes (Ctrl+R, tab close, etc.)
@@ -1323,23 +1324,7 @@ const btnUpload   = document.getElementById('btn-upload');
 const uploadInput = document.getElementById('upload-input');
 
 function _validateLevelShape(obj) {
-  if (!obj || typeof obj !== 'object')          return 'not an object';
-  if (typeof obj.cols !== 'number' || obj.cols < 1) return 'missing/invalid cols';
-  if (!Array.isArray(obj.tiles))                return 'missing tiles array';
-  // Row count is NOT fixed — src_scroll/level.js derives it as
-  // tiles.length/cols (capped at MAX_ROWS=54, see src_scroll/constants.js).
-  // All 5 shipped campaign levels are 18 rows, not 14; this check used to
-  // hardcode cols*14 and silently rejected every taller/shorter level
-  // (including this QA fixture's 20 rows) with no visible error the user
-  // was likely to notice. Validate shape, not a specific height.
-  const MAX_ROWS = 54;
-  if (obj.tiles.length === 0 || obj.tiles.length % obj.cols !== 0)
-    return `tiles length ${obj.tiles.length} is not a positive multiple of cols (${obj.cols})`;
-  const rows = obj.tiles.length / obj.cols;
-  if (rows > MAX_ROWS)
-    return `${rows} rows exceeds MAX_ROWS (${MAX_ROWS})`;
-  if (!obj.playerStart || typeof obj.playerStart.x !== 'number' || typeof obj.playerStart.y !== 'number') return 'missing playerStart {x,y}';
-  return null;
+  return validateLevelShape(obj, MAX_LEVEL_ROWS);
 }
 
 function _normalizeUploadedLevel(obj) {
