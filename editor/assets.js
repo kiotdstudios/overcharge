@@ -9,7 +9,7 @@ import {
   manifestCategories, filteredManifestItems, filteredBackgroundItems,
   currentLevelBackground,
   setFilterCategory, setFilterSearch, setSelectedAsset,
-  setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly, setElectricOnly, setNeonRiseOnly,
+  setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly, setElectricOnly, setNeonRiseOnly, setPipeOnly,
   setLevelBackground,
   setTool,
 } from './state.js';
@@ -97,6 +97,7 @@ export function mountAssetBrowser(container) {
     { id: 'ab-hvac-only',           label: 'HVAC',             color: '#aec', getter: () => !!state.filter.hvacOnly,          setter: setHvacOnly           },
     { id: 'ab-electric-only',       label: 'Electric',         color: '#ff6', getter: () => !!state.filter.electricOnly,     setter: setElectricOnly       },
     { id: 'ab-neon-rise-only',      label: 'Neon Rise',        color: '#f6b', getter: () => !!state.filter.neonRiseOnly,    setter: setNeonRiseOnly       },
+    { id: 'ab-pipe-only',           label: 'Pipes',            color: '#9cf', getter: () => !!state.filter.pipeOnly,        setter: setPipeOnly           },
     { id: 'ab-enemies', label: 'Enemies', color: '#f79', getter: () => state.filter.category === 'enemy', setter: v => setFilterCategory(v ? 'enemy' : 'all') },
   ];
 
@@ -114,7 +115,7 @@ export function mountAssetBrowser(container) {
       // leave a stale pack/category restriction hiding the requested assets.
       Object.assign(state.filter, { category: 'all', purpleCityOnly: false,
         purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false,
-        nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false });
+        nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false });
       cfg.setter(checked);
     });
     filterCheckboxes.push({box, cfg});
@@ -134,7 +135,7 @@ export function mountAssetBrowser(container) {
   clear.className = 'ab-clear';
   clear.textContent = 'Clear filters';
   clear.addEventListener('click', () => {
-    Object.assign(state.filter, { category: 'all', purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, electricOnly: false, purpleCityOnly: false, nightCityRailOnly: false, neonRiseOnly: false });
+    Object.assign(state.filter, { category: 'all', purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, electricOnly: false, purpleCityOnly: false, nightCityRailOnly: false, neonRiseOnly: false, pipeOnly: false });
     searchInput.value = '';
     setFilterSearch('');
   });
