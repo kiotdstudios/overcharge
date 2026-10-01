@@ -3300,6 +3300,87 @@
       "w": 32,
       "h": 32,
       "snap": 32
+    },
+    {
+      "id": "nr_l1_antenna-west",
+      "src": "assets/objects/neon-rise-dressing/antenna-utility-cluster.png",
+      "x": 616,
+      "y": 368,
+      "w": 104,
+      "h": 80,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_billboard-center",
+      "src": "assets/objects/neon-rise-dressing/lightning-billboard.png",
+      "x": 1176,
+      "y": 208,
+      "w": 168,
+      "h": 144,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_glyph-center",
+      "src": "assets/objects/neon-rise-dressing/vertical-glyph-sign.png",
+      "x": 1352,
+      "y": 224,
+      "w": 64,
+      "h": 128,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_antenna-east",
+      "src": "assets/objects/neon-rise-dressing/antenna-utility-cluster.png",
+      "x": 2832,
+      "y": 400,
+      "w": 104,
+      "h": 80,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_blue-graffiti",
+      "src": "assets/objects/neon-rise-dressing/cyan-magenta-graffiti.png",
+      "x": 1608,
+      "y": 400,
+      "w": 208,
+      "h": 94,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_blue-vent",
+      "src": "assets/objects/neon-rise-dressing/service-vent-panel.png",
+      "x": 1888,
+      "y": 412,
+      "w": 104,
+      "h": 66,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_blue-conduit",
+      "src": "assets/objects/neon-rise-dressing/lit-conduit-pipe.png",
+      "x": 1856,
+      "y": 462,
+      "w": 128,
+      "h": 55,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_purple-graffiti",
+      "src": "assets/objects/neon-rise-dressing/cyan-magenta-graffiti.png",
+      "x": 2184,
+      "y": 402,
+      "w": 184,
+      "h": 83,
+      "snap": 1
+    },
+    {
+      "id": "nr_l1_purple-lamp",
+      "src": "assets/objects/neon-rise-dressing/amber-service-lamp.png",
+      "x": 2360,
+      "y": 398,
+      "w": 80,
+      "h": 48,
+      "snap": 1
     }
   ],
   "sources": [

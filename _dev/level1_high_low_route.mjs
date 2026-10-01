@@ -2,12 +2,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { Player, Level, held, step } from './support/headless.mjs';
 
-const base = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json', 'utf8'));
-const route = JSON.parse(fs.readFileSync('previews/level1-high-low.json', 'utf8'));
+const base = JSON.parse(fs.readFileSync('previews/level1-high-low.json', 'utf8'));
+const route = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json', 'utf8'));
 assert.deepEqual(route.gates, base.gates, 'gate and charge rule unchanged');
 assert.deepEqual(route.sources, base.sources, 'source economy unchanged');
 assert.deepEqual(route.playerStart, base.playerStart, 'spawn unchanged');
-assert.equal(route.tiles.length, base.tiles.length, 'no level resize');
+assert.deepEqual(route.tiles, base.tiles, 'rooftop dressing cannot alter route collision');
+assert.deepEqual(route.checkpoints, base.checkpoints, 'checkpoint unchanged');
+assert.deepEqual(route.enemies, base.enemies, 'enemies unchanged');
+assert.ok(route.decorations.length >= base.decorations.length, 'added art is decorative only');
 
 const level = new Level({ ...route, enemies: [] });
 for (const [row, first, last] of [[11,47,48],[14,54,56],[12,58,60]]) {
