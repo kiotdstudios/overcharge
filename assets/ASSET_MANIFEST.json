@@ -1906,6 +1906,74 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Warehouse right end-cap panel (4x8 tiles), employee door, trash can, fencing. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_store_left",
+      "name": "Night City convenience store - left end-cap",
+      "path": "assets/objects/night-city-buildings/convenience_store/store_left.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "convenience_store",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Convenience store left end-cap panel (6x8 tiles). Place left-to-right: left, vending_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_store_vending_bay",
+      "name": "Night City convenience store - vending machine bay",
+      "path": "assets/objects/night-city-buildings/convenience_store/store_vending_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "convenience_store",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Convenience store panel (5x8 tiles), three vending machines against the wall. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_store_front_bay",
+      "name": "Night City convenience store - storefront bay",
+      "path": "assets/objects/night-city-buildings/convenience_store/store_front_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "convenience_store",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Convenience store panel (5x8 tiles), glass display window, 'MART' neon sign, OPEN sign, door. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_store_right",
+      "name": "Night City convenience store - right end-cap",
+      "path": "assets/objects/night-city-buildings/convenience_store/store_right.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "convenience_store",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Convenience store right end-cap panel (4x8 tiles), camera, billboard/poster, water tank sliver. Placeable visual dressing only. No collision, power, light, or switch logic."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -2196,5 +2264,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 86
+  "count": 90
 }

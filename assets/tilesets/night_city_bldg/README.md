@@ -1,5 +1,9 @@
 # night_city_bldg tileset
 
+**Not part of the modular warehouse/storefront building system** (`assets/objects/night-city-buildings/`).
+This is a separate, earlier set of flat 16x16 abstract wall-panel tiles - keep
+these two asset families apart; do not tag or group them together.
+
 16x16 building-wall tiles generated with PixelLab `create_tiles_pro`, styled from the
 existing `assets/objects/night-city-props/` palette (same dark-base/cyan/violet/amber
 hex values already catalogued in `docs/OVERCHARGE_Electric_City_Palette.html`), matching
