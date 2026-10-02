@@ -58,6 +58,11 @@ let _trainLayerX  = -IMG_W; // start off-screen left
 // feature existed render exactly as before.
 let _offsets = { sky: 0, mid: 0, track: 0, front: 0 };
 
+// Per-layer visibility (named by key, same set as _offsets). Hiding
+// 'track' also hides the train canvas further down — they're one visual
+// unit, same coupling the vertical offset uses.
+let _hidden = { sky: false, mid: false, track: false, front: false };
+
 // ─── DOM helpers ───────────────────────────────────────────────────────────
 function el(tag = 'div', styles = {}, parent = null) {
   const e = document.createElement(tag);
@@ -208,6 +213,7 @@ function tickLightning(dt) {
 // ══════════════════════════════════════════════════════════════════════════════
 function tickTrain(dt) {
   if (!_trainCtx || !_trainImg?.complete) return;
+  if (_hidden.track) { _trainCtx.clearRect(0, 0, _vp.vw, _vp.vh); return; }
   const { vw, vh, s } = _vp;
   const scale       = vh / IMG_H;               // px per source-px
   const trackOffset = _cameraX * FACTOR_TRACK * s; // viewport-px the track layer has shifted
@@ -247,9 +253,10 @@ function tickTrain(dt) {
  * Creates all parallax layers and inserts the container before the canvas.
  * Call once when the game starts.
  */
-export function init(levelWidth = 3200, offsets = null) {
+export function init(levelWidth = 3200, offsets = null, hidden = null) {
   injectStyles();
   _offsets = { sky: 0, mid: 0, track: 0, front: 0, ...(offsets || {}) };
+  _hidden  = { sky: false, mid: false, track: false, front: false, ...(hidden || {}) };
 
   // Clean up any previous instance (e.g. level restart)
   if (_container) { _container.remove(); _container = null; }
@@ -346,6 +353,7 @@ export function update(cameraX) {
     const offset  = (cameraX * layer.factor * s) | 0;
     const offsetY = _offsets[layer.key] || 0;
     layer.el.style.transform = `translate3d(${-offset}px,${offsetY}px,0)`;
+    layer.el.style.display   = _hidden[layer.key] ? 'none' : '';
   }
 }
 
@@ -358,5 +366,16 @@ export function update(cameraX) {
  */
 export function setOffsets(offsets) {
   _offsets = { ..._offsets, ...(offsets || {}) };
+  update(_cameraX);
+}
+
+/**
+ * setHidden(hidden)
+ * Merge new per-layer visibility flags into the running instance and
+ * re-apply immediately (no re-init) — same live-preview use as
+ * setOffsets(). Hiding 'track' also hides the train on the next tick.
+ */
+export function setHidden(hidden) {
+  _hidden = { ..._hidden, ...(hidden || {}) };
   update(_cameraX);
 }

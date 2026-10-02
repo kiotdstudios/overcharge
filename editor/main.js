@@ -8,7 +8,7 @@ import {
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid, tileSupportsStanding,
   getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
-  BG_OFFSET_LAYERS, currentBackgroundOffsets,
+  BG_OFFSET_LAYERS, currentBackgroundOffsets, currentBackgroundLayersHidden,
   DEFAULT_SECTION_ROWS, DEFAULT_SECTION_COLS, MAX_LEVEL_ROWS,
 } from './state.js';
 import { render } from './renderer.js';
@@ -1960,6 +1960,9 @@ const _BG_GAME_H  = 450;
 function _bgOffsetRowsHtml() {
   return BG_OFFSET_LAYERS.map(({ key, label }) => `
     <div class="tp-bg-offset-row" data-layer="${key}">
+      <label class="tp-bg-hide-label" title="Hide this layer">
+        <input type="checkbox" class="tp-bg-hide-input" data-layer="${key}">
+      </label>
       <span class="tp-bg-offset-label">${label}</span>
       <button type="button" class="tp-bg-offset-step" data-layer="${key}" data-delta="-8">−8</button>
       <input type="number" class="tp-bg-offset-input" data-layer="${key}" step="1">
@@ -1972,6 +1975,12 @@ function _applyBackgroundOffset(key, value) {
   const action = Actions.setBackgroundOffset(state.level, key, n);
   if (action) History.apply(action);
   else _refreshBgInspector(); // value unchanged (e.g. re-typed same number) — resync inputs
+}
+
+function _applyBackgroundLayerHidden(key, hidden) {
+  const action = Actions.setBackgroundLayerHidden(state.level, key, hidden);
+  if (action) History.apply(action);
+  else _refreshBgInspector(); // no-op (checkbox already matched state) — resync
 }
 
 function _wireBgOffsetControls() {
@@ -1987,6 +1996,9 @@ function _wireBgOffsetControls() {
       const cur = currentBackgroundOffsets()[key] || 0;
       _applyBackgroundOffset(key, cur + Number(btn.dataset.delta));
     });
+  });
+  rows.querySelectorAll('.tp-bg-hide-input').forEach(box => {
+    box.addEventListener('change', () => _applyBackgroundLayerHidden(box.dataset.layer, box.checked));
   });
   document.getElementById('btn-bg-offsets-reset')?.addEventListener('click', () => {
     for (const { key } of BG_OFFSET_LAYERS) {
@@ -2015,15 +2027,19 @@ function _refreshBgInspector() {
   if (!info) { offsetsBox.style.display = 'none'; return; }
   offsetsBox.style.display = 'block';
   const offsets = currentBackgroundOffsets();
+  const hiddenMap = currentBackgroundLayersHidden();
   const scale = _BG_STACK_H / _BG_GAME_H;
   for (const { key } of BG_OFFSET_LAYERS) {
     const img = document.getElementById('tp-bg-layer-' + key);
     if (img) {
       img.src = info.layers[key] || '';
       img.style.transform = `translateY(${(offsets[key] || 0) * scale}px)`;
+      img.style.display   = hiddenMap[key] ? 'none' : '';
     }
     const inp = document.querySelector(`.tp-bg-offset-input[data-layer="${key}"]`);
     if (inp && document.activeElement !== inp) inp.value = offsets[key] || 0;
+    const box = document.querySelector(`.tp-bg-hide-input[data-layer="${key}"]`);
+    if (box) box.checked = !!hiddenMap[key];
   }
 }
 if (tpBgSelect) {

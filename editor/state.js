@@ -580,6 +580,16 @@ export function currentBackgroundOffsets() {
   return out;
 }
 
+// Returns the active level's per-layer hide flags, one entry per
+// BG_OFFSET_LAYERS key, defaulting missing/absent keys to false (visible)
+// so levels saved before this feature existed show every layer as before.
+export function currentBackgroundLayersHidden() {
+  const o = (state.level && state.level.backgroundLayersHidden) || {};
+  const out = {};
+  for (const { key } of BG_OFFSET_LAYERS) out[key] = !!o[key];
+  return out;
+}
+
 // â”€â”€ Setters (call notify() automatically) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 export function setTool(t)              { state.tool = t; notify(); }
 export function setSelectedAsset(item)  { state.selectedAsset = item; notify(); }

@@ -393,6 +393,46 @@ export function setBackgroundOffset(level, key, value) {
   };
 }
 
+// ── SetBackgroundLayerHiddenAction ──────────────────────────────────────────
+// Per-layer visibility toggle beside the vertical-offset controls (same 4
+// named layers as BG_OFFSET_LAYERS). Stored in level.backgroundLayersHidden,
+// an optional object; missing/absent keys default to visible (false), so
+// pre-existing levels keep showing every layer exactly as before. Hiding
+// 'track' also hides the train canvas (src_scroll/background.js) — they are
+// one visual unit, same coupling AKI_18 used for the offset.
+export function setBackgroundLayerHidden(level, key, hidden) {
+  if (!level) return null;
+  const hadMap = Object.prototype.hasOwnProperty.call(level, 'backgroundLayersHidden');
+  const hadKey = !!level.backgroundLayersHidden && Object.prototype.hasOwnProperty.call(level.backgroundLayersHidden, key);
+  const old = !!(level.backgroundLayersHidden && level.backgroundLayersHidden[key]);
+  const next = !!hidden;
+  if (old === next) return null;
+  return {
+    type: 'set_background_layer_hidden',
+    forward() {
+      if (!next) {
+        if (level.backgroundLayersHidden) {
+          delete level.backgroundLayersHidden[key];
+          if (Object.keys(level.backgroundLayersHidden).length === 0) delete level.backgroundLayersHidden;
+        }
+      } else {
+        if (!level.backgroundLayersHidden) level.backgroundLayersHidden = {};
+        level.backgroundLayersHidden[key] = true;
+      }
+      notify();
+    },
+    inverse() {
+      if (!hadMap) delete level.backgroundLayersHidden;
+      else {
+        if (!level.backgroundLayersHidden) level.backgroundLayersHidden = {};
+        if (hadKey) level.backgroundLayersHidden[key] = old;
+        else delete level.backgroundLayersHidden[key];
+      }
+      notify();
+    },
+  };
+}
+
 // ── FIX ALL GRAMMAR: DELETED — CHIEF RULING 2026-09-19 04:37 ────────────────
 // fixAllGrammar() swept the level promoting fill-on-top to a hash-chosen edge and
 // demoting buried edges back to fill. The rule it enforced was a misreading of
