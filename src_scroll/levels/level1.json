@@ -3285,24 +3285,24 @@
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 347,
-      "y": 205,
+      "x": 341,
+      "y": 206,
       "w": 128,
       "h": 256,
       "snap": 1
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 468,
-      "y": 239,
+      "x": 441,
+      "y": 206,
       "w": 128,
       "h": 256,
       "snap": 1
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 565,
-      "y": 239,
+      "x": 539,
+      "y": 206,
       "w": 128,
       "h": 256,
       "snap": 1
@@ -3310,7 +3310,7 @@
     {
       "src": "assets/objects/night-city-buildings/convenience_store/store_blank_wall.png",
       "x": -17,
-      "y": 248,
+      "y": 238,
       "w": 160,
       "h": 256,
       "snap": 1
@@ -3318,7 +3318,7 @@
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
       "x": 113,
-      "y": 234,
+      "y": 237,
       "w": 128,
       "h": 256,
       "snap": 1
@@ -3326,7 +3326,7 @@
     {
       "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top3.png",
       "x": 211,
-      "y": 232,
+      "y": 237,
       "w": 160,
       "h": 256,
       "snap": 1
