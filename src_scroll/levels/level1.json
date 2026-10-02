@@ -3285,8 +3285,8 @@
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 370,
-      "y": 239,
+      "x": 347,
+      "y": 205,
       "w": 128,
       "h": 256,
       "snap": 1
@@ -3317,8 +3317,8 @@
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 111,
-      "y": 271,
+      "x": 113,
+      "y": 234,
       "w": 128,
       "h": 256,
       "snap": 1
@@ -3335,7 +3335,7 @@
   "sources": [
     {
       "id": "src_4",
-      "x": 224,
+      "x": 320,
       "y": 452,
       "charge": 4,
       "label": "LAMP",
