@@ -5148,5 +5148,11 @@
     0,
     0,
     0
-  ]
+  ],
+  "backgroundOffsets": {
+    "mid": -120,
+    "front": -80,
+    "sky": -8,
+    "track": -48
+  }
 }
