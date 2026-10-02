@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OVERCHARGE LAB</title>
+<!-- Distinct tab identity: strong cyan/teal flask, deliberately unlike the Game and
+     Builder favicons so three open tabs are told apart at a glance. Inline data URI,
+     so no existing favicon file is touched or overwritten. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23032a33'/%3E%3Cpath d='M13 5h6v7l5 11a3 3 0 0 1-2.7 4.3H10.7A3 3 0 0 1 8 23l5-11z' fill='none' stroke='%2300e5d0' stroke-width='2.2'/%3E%3Cpath d='M10.2 20h11.6l1.4 3.2A2 2 0 0 1 21.4 26H10.6a2 2 0 0 1-1.8-2.8z' fill='%2300e5d0'/%3E%3Ccircle cx='16' cy='23' r='1.4' fill='%23032a33'/%3E%3C/svg%3E">
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#07131a;color:#dff6f7;font:14px 'Segoe UI',sans-serif}
+header{padding:14px 22px;display:flex;align-items:center;gap:16px;border-bottom:1px solid #12404a;background:#0a1d26}
+header a{color:#00e5d0;text-decoration:none;font-size:13px}
+header a:hover{text-decoration:underline}
+h1{font:600 20px Bahnschrift,'Segoe UI',sans-serif;margin:0;letter-spacing:1px}
+h1 em{color:#00e5d0;font-style:normal}
+.tag{margin-left:auto;font-size:11px;color:#6fa7b0;letter-spacing:1.5px;text-transform:uppercase}
+main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;max-width:1340px;margin:auto;padding:18px}
+canvas{width:100%;aspect-ratio:16/9;display:block;background:#050d12;border:1px solid #12404a;border-radius:8px;image-rendering:pixelated}
+h2{font-size:12px;margin:0 0 8px;letter-spacing:1.4px;text-transform:uppercase;color:#00e5d0}
+aside section{background:#0a1d26;border:1px solid #12404a;border-radius:8px;padding:12px;margin-bottom:12px}
+#hud{font:12px/1.65 Consolas,monospace;color:#9fe8e0}
+#hud b{color:#fff;font-weight:600}
+#hud .warn{color:#ffd166}
+.grp{margin-bottom:10px}
+.grp h3{font:600 10px 'Segoe UI';margin:0 0 5px;color:#6fa7b0;letter-spacing:1.2px;text-transform:uppercase}
+.states{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+button{font:inherit;background:#0e2d38;color:#dff6f7;border:1px solid #1b5664;border-radius:4px;padding:6px 7px;cursor:pointer;font-size:11px}
+button:hover{background:#15404f}
+button[aria-pressed=true]{border-color:#00e5d0;background:#0b4a4a;color:#7ffff0}
+button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.legend{font:12px/1.9 Consolas,monospace;color:#8fc8cd}
+.legend kbd{display:inline-block;min-width:46px;padding:1px 5px;margin-right:7px;background:#0e2d38;border:1px solid #1b5664;border-radius:3px;color:#7ffff0;text-align:center}
+.note{font-size:11px;color:#6fa7b0;line-height:1.6;margin:8px 0 0}
+.pill{display:inline-block;font:10px Consolas,monospace;padding:2px 6px;border-radius:3px;border:1px solid #82683e;background:#2a2417;color:#f4d39a}
+@media(max-width:980px){main{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <a href="editor.html">‹ Builder</a>
+  <a href="hero-lab.html">‹ Hero Lab</a>
+  <a href="index.html">‹ Game</a>
+  <h1>OVERCHARGE <em>LAB</em></h1>
+  <span class="tag">Playable animation sandbox · disposable</span>
+</header>
+<main>
+  <div>
+    <canvas id="lab" width="960" height="540" aria-label="Playable animation test room"></canvas>
+    <aside style="margin-top:12px">
+      <section>
+        <h2>Controls</h2>
+        <div class="legend">
+          <div><kbd>A / D</kbd> move — idle ↔ walk, facing</div>
+          <div><kbd>Shift</kbd> run — walk ↔ run transition</div>
+          <div><kbd>Space</kbd> jump — jump, fall, landing</div>
+          <div><kbd>J</kbd> energy strike &nbsp; <kbd>K</kbd> projectile cast</div>
+          <div><kbd>E</kbd> absorb &nbsp; <kbd>F</kbd> discharge</div>
+          <div><kbd>H</kbd> hurt &nbsp; <kbd>R</kbd> reset player</div>
+        </div>
+        <p class="note">Keyboard gameplay is the primary test path. Click the canvas first if keys do nothing.</p>
+      </section>
+    </aside>
+  </div>
+  <aside>
+    <section>
+      <h2>Live diagnostics</h2>
+      <div id="hud">starting…</div>
+    </section>
+    <section>
+      <h2>Animation override</h2>
+      <div class="row" style="margin-bottom:8px">
+        <button id="ov-off" type="button" aria-pressed="true">Gameplay</button>
+        <button id="ov-replay" type="button">Replay</button>
+        <button id="ov-play" type="button">Pause</button>
+      </div>
+      <div id="override-groups"></div>
+      <p class="note">Override forces a state for inspection and freezes movement. Traversal states are
+        <span class="pill">assets only</span> — no mechanic exists for them in production.</p>
+    </section>
+    <section>
+      <h2>Scope</h2>
+      <p class="note">Separate disposable sandbox. Hero Lab, the Builder, level JSON and the live game are
+        untouched and do not depend on this page. Deleting it affects nothing.</p>
+    </section>
+  </aside>
+</main>
+<script type="module" src="editor/overcharge-lab.js?v=1"></script>
+</body>
+</html>
