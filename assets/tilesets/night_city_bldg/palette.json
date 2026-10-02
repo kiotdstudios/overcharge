@@ -1,0 +1,9 @@
+{
+  "source": "assets/objects/night-city-props/ + docs/OVERCHARGE_Electric_City_Palette.html",
+  "colors": {
+    "dark_base": ["#03010c", "#0c0d22", "#151632"],
+    "cyan_energy": ["#00eaff", "#71b3c2"],
+    "violet_neon": ["#9951d0", "#cc44ff"],
+    "amber_warning": ["#ffcc00", "#ff6b00"]
+  }
+}
