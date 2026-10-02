@@ -21,10 +21,10 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Single direction (no dir subfolder). 9 frames: frame_000.png–frame_008.png. Path template uses {n} — editor expands to zero-padded 3-digit frame index. Drawn at 64x64 world units, sprite centred horizontally above 28x28 hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") — URL-encodes to %20 on HTTP. Recommend renaming to \"generator_1\" (coord with Orcha).",
+      "notes": "Single direction (no dir subfolder). 9 frames: frame_000.png\u2013frame_008.png. Path template uses {n} \u2014 editor expands to zero-padded 3-digit frame index. Drawn at 64x64 world units, sprite centred horizontally above 28x28 hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") \u2014 URL-encodes to %20 on HTTP. Recommend renaming to \"generator_1\" (coord with Orcha).",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 requires scripted placement by level designer"
       }
     },
     {
@@ -43,10 +43,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Palette entry for the gate object (ONE entry — Chief ruling). Sprite: 64x128, drawn bottom-aligned. Runtime state files gate_electric_spritesheet.png, gate_electric_open.png, gate_electric_dead.png are NOT palette entries — they are wired in electricity.js. Do not add them to this manifest.",
+      "notes": "Palette entry for the gate object (ONE entry \u2014 Chief ruling). Sprite: 64x128, drawn bottom-aligned. Runtime state files gate_electric_spritesheet.png, gate_electric_open.png, gate_electric_dead.png are NOT palette entries \u2014 they are wired in electricity.js. Do not add them to this manifest.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — linked to generator/switches by ID"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 linked to generator/switches by ID"
       }
     },
     {
@@ -64,7 +64,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. mid_a — medium purple rooftop, avg RGB (40,24,69). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. mid_a \u2014 medium purple rooftop, avg RGB (40,24,69). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px \u2014 all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -92,7 +92,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. mid_b — darker mid variant, avg RGB (29,20,49). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. mid_b \u2014 darker mid variant, avg RGB (29,20,49). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px \u2014 all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -120,7 +120,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. mid_c — medium-dark rooftop, avg RGB (34,26,72). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. mid_c \u2014 medium-dark rooftop, avg RGB (34,26,72). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px \u2014 all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -148,7 +148,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. purple_a — brighter purple, partial (219/256), edge tile. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. purple_a \u2014 brighter purple, partial (219/256), edge tile. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px \u2014 all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": false,
         "roles": [
@@ -159,7 +159,7 @@
         "layer": "midground",
         "density": "dense",
         "stackable": true,
-        "ineligible_reason": "Retired edge tile — removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
+        "ineligible_reason": "Retired edge tile \u2014 removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
       }
     },
     {
@@ -177,7 +177,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. accent_a — accent tile from alternate sheet region, avg RGB (20,21,50). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. accent_a \u2014 accent tile from alternate sheet region, avg RGB (20,21,50). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px \u2014 all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": false,
         "roles": [
@@ -188,7 +188,7 @@
         "layer": "midground",
         "density": "dense",
         "stackable": true,
-        "ineligible_reason": "Retired edge tile — removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
+        "ineligible_reason": "Retired edge tile \u2014 removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
       }
     },
     {
@@ -207,7 +207,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r2 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -236,7 +236,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r2 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -265,7 +265,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r2 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r2 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -294,7 +294,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -323,7 +323,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -352,7 +352,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -381,7 +381,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c4. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c4. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -410,7 +410,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c5. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c5. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -439,7 +439,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c6. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r3 c6. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -468,7 +468,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -497,7 +497,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -526,7 +526,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -555,7 +555,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c4. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c4. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -584,7 +584,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c5. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c5. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -613,7 +613,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c6. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c6. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -642,7 +642,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c11. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c11. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -671,7 +671,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c12. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c12. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -700,7 +700,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c13. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset \u2014 rooftop building section r4 c13. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -729,10 +729,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Palette entry for the wall switch object (ONE entry per device — ORDER AKI 06). Art: switch_off.png (unpowered state — reads as not-yet-activated, correct thumbnail for a freshly placed switch). Hitbox 22×22, sprite 56×56 drawn centred on hitbox cx, bottom-aligned to hitbox bottom. Runtime states (switch_on, destroyed, burn_anim) are in _runtime_state_sprites[], not here.",
+      "notes": "Palette entry for the wall switch object (ONE entry per device \u2014 ORDER AKI 06). Art: switch_off.png (unpowered state \u2014 reads as not-yet-activated, correct thumbnail for a freshly placed switch). Hitbox 22\u00d722, sprite 56\u00d756 drawn centred on hitbox cx, bottom-aligned to hitbox bottom. Runtime states (switch_on, destroyed, burn_anim) are in _runtime_state_sprites[], not here.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 requires scripted placement by level designer"
       }
     },
     {
@@ -752,10 +752,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Palette entry for the electric fence object (ONE entry per device — ORDER AKI 06). Art: frame_001.png (first real frame of the live loop — reads as active/charged; frame_000 excluded, byte-identical to fence_dead.png). Default spawn: w:32, h:128, blockOnly:true, required:1. Runtime states (fence_dead, fence_live_anim) are in _runtime_state_sprites[], not here.",
+      "notes": "Palette entry for the electric fence object (ONE entry per device \u2014 ORDER AKI 06). Art: frame_001.png (first real frame of the live loop \u2014 reads as active/charged; frame_000 excluded, byte-identical to fence_dead.png). Default spawn: w:32, h:128, blockOnly:true, required:1. Runtime states (fence_dead, fence_live_anim) are in _runtime_state_sprites[], not here.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 requires scripted placement by level designer"
       }
     },
     {
@@ -774,10 +774,10 @@
       "directions": null,
       "loop": false,
       "spawnsKind": "player-start",
-      "notes": "Palette entry for the player spawn point. Clicking this in the asset panel enters spawn-placement mode — sets pendingSpawn:{kind:'player-start'}. Exactly one per level; placement calls Actions.setPlayerStart, never adds a second. Art: idle east frame_000 at runtime anchor (spriteX = ps.x - 36, spriteY = ps.y - 48).",
+      "notes": "Palette entry for the player spawn point. Clicking this in the asset panel enters spawn-placement mode \u2014 sets pendingSpawn:{kind:'player-start'}. Exactly one per level; placement calls Actions.setPlayerStart, never adds a second. Art: idle east frame_000 at runtime anchor (spriteX = ps.x - 36, spriteY = ps.y - 48).",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
+        "ineligible_reason": "Player spawn \u2014 exactly one per level, placed via spawn mode not decoration"
       }
     },
     {
@@ -804,7 +804,7 @@
       "notes": "Flying replacement for legacy drone. 64x64 rendered art, feet anchor (192,360) in 384x384 frame. Collider 40x36. Eight animation frames; only this palette entry is placeable.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
+        "ineligible_reason": "Enemy placement \u2014 requires designer intent for patrol range and position"
       },
       "name": "Sky Sentry"
     },
@@ -825,10 +825,10 @@
       "directions": null,
       "loop": false,
       "spawnsKind": "chest",
-      "notes": "Palette entry for the chest object. Clicking enters spawn mode — sets pendingSpawn:{kind:'chest'}. Art: closed.png (128x128 canvas, 104x104 content, botPad=12). Hitbox is content box 104x104. Default cost:2, reward:10 (Chief-ratified full pip). State frames (open_empty.png, opening/frame_000..008) are in _runtime_state_sprites[], NOT here — Chief must never be able to place an already-opened chest.",
+      "notes": "Palette entry for the chest object. Clicking enters spawn mode \u2014 sets pendingSpawn:{kind:'chest'}. Art: closed.png (128x128 canvas, 104x104 content, botPad=12). Hitbox is content box 104x104. Default cost:2, reward:10 (Chief-ratified full pip). State frames (open_empty.png, opening/frame_000..008) are in _runtime_state_sprites[], NOT here \u2014 Chief must never be able to place an already-opened chest.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical reward object — requires designer placement"
+        "ineligible_reason": "Puzzle-critical reward object \u2014 requires designer placement"
       }
     },
     {
@@ -1024,7 +1024,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "notes": "Retired rooftop tile \u2014 removed from asset bank by Chief 2026-09-20.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Retired by Chief 2026-09-20"
@@ -1046,7 +1046,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "notes": "Retired rooftop tile \u2014 removed from asset bank by Chief 2026-09-20.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Retired by Chief 2026-09-20"
@@ -1068,7 +1068,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "notes": "Retired rooftop tile \u2014 removed from asset bank by Chief 2026-09-20.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Retired by Chief 2026-09-20"
@@ -1086,7 +1086,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — sky layer. Factor 0.03. Tiles horizontally at 1672px period."
+      "notes": "Night City Rail \u2014 sky layer. Factor 0.03. Tiles horizontally at 1672px period."
     },
     {
       "id": "bg_ncr_track",
@@ -1100,7 +1100,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — elevated track layer. Factor 0.35. Track top at y=661 source-px."
+      "notes": "Night City Rail \u2014 elevated track layer. Factor 0.35. Track top at y=661 source-px."
     },
     {
       "id": "bg_ncr_train",
@@ -1114,7 +1114,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — train canvas layer. Moves at 95px/s. Opaque box [561,536,1124,661]."
+      "notes": "Night City Rail \u2014 train canvas layer. Moves at 95px/s. Opaque box [561,536,1124,661]."
     },
     {
       "id": "bg_ncr_front_skyline",
@@ -1128,7 +1128,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — dark front buildings/rooftops. Factor 0.45. Hard alpha only."
+      "notes": "Night City Rail \u2014 dark front buildings/rooftops. Factor 0.45. Hard alpha only."
     },
     {
       "id": "source_hvac",
@@ -1149,10 +1149,10 @@
       "directions": null,
       "loop": false,
       "spawnsKind": "source-hvac",
-      "notes": "Palette entry for the HVAC powered source. Clicking enters spawn mode — sets pendingSpawn:{kind:'source-hvac'}. Places an ElectricalSource with kind:'hvac', charge:4. Art: hvac_a.png (66x52) anchored so unit base lands on the tile floor. Fan animation driven by _fanSpeed/_fanPhase in electricity.js. Appears under the HVAC quick-filter in the asset browser.",
+      "notes": "Palette entry for the HVAC powered source. Clicking enters spawn mode \u2014 sets pendingSpawn:{kind:'source-hvac'}. Places an ElectricalSource with kind:'hvac', charge:4. Art: hvac_a.png (66x52) anchored so unit base lands on the tile floor. Fan animation driven by _fanSpeed/_fanPhase in electricity.js. Appears under the HVAC quick-filter in the asset browser.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object \u2014 requires scripted placement by level designer"
       }
     },
     {
@@ -1613,13 +1613,13 @@
       "notes": "Grounded patrol with plasma burst. 64x64 rendered art, feet anchor (192,360) in 384x384 frame. Collider 38x34. Only this palette entry is placeable.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
+        "ineligible_reason": "Enemy placement \u2014 requires designer intent for patrol range and position"
       },
       "name": "Wheel Drone"
     },
     {
       "id": "neon_rise_lightning_billboard",
-      "name": "Neon Rise · lightning billboard",
+      "name": "Neon Rise \u00b7 lightning billboard",
       "path": "assets/objects/neon-rise-dressing/lightning-billboard.png",
       "category": "decoration",
       "tags": [
@@ -1634,7 +1634,7 @@
     },
     {
       "id": "neon_rise_vertical_glyph_sign",
-      "name": "Neon Rise · vertical glyph sign",
+      "name": "Neon Rise \u00b7 vertical glyph sign",
       "path": "assets/objects/neon-rise-dressing/vertical-glyph-sign.png",
       "category": "decoration",
       "tags": [
@@ -1649,7 +1649,7 @@
     },
     {
       "id": "neon_rise_amber_service_lamp",
-      "name": "Neon Rise · amber service lamp",
+      "name": "Neon Rise \u00b7 amber service lamp",
       "path": "assets/objects/neon-rise-dressing/amber-service-lamp.png",
       "category": "decoration",
       "tags": [
@@ -1664,7 +1664,7 @@
     },
     {
       "id": "neon_rise_antenna_utility_cluster",
-      "name": "Neon Rise · antenna utility cluster",
+      "name": "Neon Rise \u00b7 antenna utility cluster",
       "path": "assets/objects/neon-rise-dressing/antenna-utility-cluster.png",
       "category": "decoration",
       "tags": [
@@ -1679,7 +1679,7 @@
     },
     {
       "id": "neon_rise_cyan_magenta_graffiti",
-      "name": "Neon Rise · cyan magenta graffiti",
+      "name": "Neon Rise \u00b7 cyan magenta graffiti",
       "path": "assets/objects/neon-rise-dressing/cyan-magenta-graffiti.png",
       "category": "decoration",
       "tags": [
@@ -1694,7 +1694,7 @@
     },
     {
       "id": "neon_rise_service_vent_panel",
-      "name": "Neon Rise · service vent panel",
+      "name": "Neon Rise \u00b7 service vent panel",
       "path": "assets/objects/neon-rise-dressing/service-vent-panel.png",
       "category": "decoration",
       "tags": [
@@ -1709,7 +1709,7 @@
     },
     {
       "id": "neon_rise_lit_conduit_pipe",
-      "name": "Neon Rise · lit conduit pipe",
+      "name": "Neon Rise \u00b7 lit conduit pipe",
       "path": "assets/objects/neon-rise-dressing/lit-conduit-pipe.png",
       "category": "decoration",
       "tags": [
@@ -1826,7 +1826,7 @@
     },
     {
       "id": "neon_rise_chainlink_railing",
-      "name": "Neon Rise · chainlink railing",
+      "name": "Neon Rise \u00b7 chainlink railing",
       "path": "assets/objects/neon-rise-dressing/chainlink-railing.png",
       "category": "decoration",
       "tags": [
@@ -1974,9 +1974,230 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Convenience store right end-cap panel (4x8 tiles), camera, billboard/poster, water tank sliver. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_top1",
+      "name": "Night City abandoned apartment - top floor window bay 1",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top1.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment top-floor window bay panel (5x8 tiles), weathered boarded/broken windows above a storefront. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_top2",
+      "name": "Night City abandoned apartment - top floor window bay 2",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top2.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment top-floor window bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_top3",
+      "name": "Night City abandoned apartment - top floor window bay 3",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top3.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment top-floor window bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_top4",
+      "name": "Night City abandoned apartment - top floor window bay 4",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top4.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment top-floor window bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_bot1",
+      "name": "Night City abandoned apartment - ground floor storefront bay 1",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_bot1.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment ground-floor storefront bay panel (5x8 tiles), boarded-up/derelict storefront below the apartment. Pair with a top panel above. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_bot2",
+      "name": "Night City abandoned apartment - ground floor storefront bay 2",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_bot2.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment ground-floor storefront bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_bot3",
+      "name": "Night City abandoned apartment - ground floor storefront bay 3",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_bot3.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment ground-floor storefront bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_abandoned_bot4",
+      "name": "Night City abandoned apartment - ground floor storefront bay 4",
+      "path": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_bot4.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "abandoned",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Abandoned apartment ground-floor storefront bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_filler_wall_01",
+      "name": "Night City filler wall - bare",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "filler_wall",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare weathered brick with grime, no extra elements. Used to fill gaps between building modules. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_filler_wall_02",
+      "name": "Night City filler wall - trash can",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "filler_wall",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a trash can at the base. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_filler_wall_04",
+      "name": "Night City filler wall - graffiti tag",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "filler_wall",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a graffiti tag. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_store_blank_wall",
+      "name": "Night City convenience store - blank wall bay",
+      "path": "assets/objects/night-city-buildings/convenience_store/store_blank_wall.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "convenience_store",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Convenience store panel (5x8 tiles), plain wall variant with no vending machines, alternative to store_vending_bay. Placeable visual dressing only. No collision, power, light, or switch logic."
+    },
+    {
+      "id": "building_nc_filler_wall_03",
+      "name": "Night City filler wall - traffic cone",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_03.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "filler_wall",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a traffic cone at the base. Placeable visual dressing only. No collision, power, light, or switch logic."
     }
   ],
-  "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
+  "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable \u2014 they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible \u2014 that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
   "_runtime_state_sprites": [
     {
       "id": "wall_switch_off",
@@ -1995,10 +2216,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — default switch, uncharged/unfired state. 56x56, drawn centred on hitbox cx, bottom-aligned to hitbox bottom (dX=x-17, dY=y-34). NOT a palette entry. Wired in editor/renderer.js _drawSwitches.",
+      "notes": "Runtime state sprite \u2014 default switch, uncharged/unfired state. 56x56, drawn centred on hitbox cx, bottom-aligned to hitbox bottom (dX=x-17, dY=y-34). NOT a palette entry. Wired in editor/renderer.js _drawSwitches.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js and editor renderer, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite \u2014 wired in electricity.js and editor renderer, not palette-placeable"
       }
     },
     {
@@ -2019,10 +2240,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — wall switch, powered/live state. 56x56, same anchor as switch_off. NOT a palette entry.",
+      "notes": "Runtime state sprite \u2014 wall switch, powered/live state. 56x56, same anchor as switch_off. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js and editor renderer, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite \u2014 wired in electricity.js and editor renderer, not palette-placeable"
       }
     },
     {
@@ -2042,10 +2263,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — wall switch settled end state after overcharge/burn. frame_000.png is byte-identical to this file — animate only frames 001-008. NOT a palette entry.",
+      "notes": "Runtime state sprite \u2014 wall switch settled end state after overcharge/burn. frame_000.png is byte-identical to this file \u2014 animate only frames 001-008. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite \u2014 wired in electricity.js, not palette-placeable"
       }
     },
     {
@@ -2066,10 +2287,10 @@
       "fps": 12,
       "directions": null,
       "loop": false,
-      "notes": "Burn/destroy animation for wall switch. 8 frames: frame_001..frame_008 (SKIP frame_000 — byte-identical to switch_destroyed.png). NOT a palette entry.",
+      "notes": "Burn/destroy animation for wall switch. 8 frames: frame_001..frame_008 (SKIP frame_000 \u2014 byte-identical to switch_destroyed.png). NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime animation — wired in electricity.js Switch._drawWall, not palette-placeable"
+        "ineligible_reason": "Runtime animation \u2014 wired in electricity.js Switch._drawWall, not palette-placeable"
       }
     },
     {
@@ -2091,10 +2312,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — fence in shorted/dead/passable state. 64x64, tiled to cover gate hitbox. frame_000.png is byte-identical to this file — do not use frame_000 in the live animation. NOT a palette entry.",
+      "notes": "Runtime state sprite \u2014 fence in shorted/dead/passable state. 64x64, tiled to cover gate hitbox. frame_000.png is byte-identical to this file \u2014 do not use frame_000 in the live animation. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js PowerGate._drawFence, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite \u2014 wired in electricity.js PowerGate._drawFence, not palette-placeable"
       }
     },
     {
@@ -2117,16 +2338,16 @@
       "fps": 10,
       "directions": null,
       "loop": true,
-      "notes": "Live/blocking fence animation. 8 frames: frame_001..frame_008 (SKIP frame_000 — byte-identical to fence_dead.png). Tiled 64x64 to cover gate hitbox. NOT a palette entry.",
+      "notes": "Live/blocking fence animation. 8 frames: frame_001..frame_008 (SKIP frame_000 \u2014 byte-identical to fence_dead.png). Tiled 64x64 to cover gate hitbox. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime animation — wired in electricity.js PowerGate._drawFence, not palette-placeable"
+        "ineligible_reason": "Runtime animation \u2014 wired in electricity.js PowerGate._drawFence, not palette-placeable"
       }
     },
     {
       "id": "chest_open_empty",
       "src": "assets/objects/chest/open_empty.png",
-      "notes": "Final resting state after chest reward is taken. Runtime-only — not placeable."
+      "notes": "Final resting state after chest reward is taken. Runtime-only \u2014 not placeable."
     },
     {
       "id": "chest_opening_frame_000",
@@ -2264,5 +2485,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 90
+  "count": 103
 }
