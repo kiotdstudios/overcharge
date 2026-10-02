@@ -1151,8 +1151,8 @@
     43,
     59,
     0,
-    2,
-    2,
+    0,
+    0,
     0,
     0,
     0,
@@ -3230,24 +3230,6 @@
       "flipX": false
     },
     {
-      "id": "route_high_entry_47",
-      "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
-      "x": 1504,
-      "y": 352,
-      "w": 32,
-      "h": 32,
-      "snap": 32
-    },
-    {
-      "id": "route_high_entry_48",
-      "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r04_c13.png",
-      "x": 1536,
-      "y": 352,
-      "w": 32,
-      "h": 32,
-      "snap": 32
-    },
-    {
       "id": "route_low_return_1_54",
       "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "x": 1728,
@@ -3311,75 +3293,11 @@
       "snap": 1
     },
     {
-      "id": "nr_l1_billboard-center",
-      "src": "assets/objects/neon-rise-dressing/lightning-billboard.png",
-      "x": 1176,
-      "y": 208,
-      "w": 168,
-      "h": 144,
-      "snap": 1
-    },
-    {
-      "id": "nr_l1_glyph-center",
-      "src": "assets/objects/neon-rise-dressing/vertical-glyph-sign.png",
-      "x": 1352,
-      "y": 224,
-      "w": 64,
-      "h": 128,
-      "snap": 1
-    },
-    {
-      "id": "nr_l1_antenna-east",
-      "src": "assets/objects/neon-rise-dressing/antenna-utility-cluster.png",
-      "x": 2832,
-      "y": 400,
-      "w": 104,
-      "h": 80,
-      "snap": 1
-    },
-    {
-      "id": "nr_l1_blue-graffiti",
-      "src": "assets/objects/neon-rise-dressing/cyan-magenta-graffiti.png",
-      "x": 1608,
-      "y": 400,
-      "w": 208,
-      "h": 94,
-      "snap": 1
-    },
-    {
-      "id": "nr_l1_blue-vent",
-      "src": "assets/objects/neon-rise-dressing/service-vent-panel.png",
-      "x": 1888,
-      "y": 412,
-      "w": 104,
-      "h": 66,
-      "snap": 1
-    },
-    {
-      "id": "nr_l1_blue-conduit",
-      "src": "assets/objects/neon-rise-dressing/lit-conduit-pipe.png",
-      "x": 1856,
-      "y": 462,
-      "w": 128,
-      "h": 55,
-      "snap": 1
-    },
-    {
-      "id": "nr_l1_purple-graffiti",
-      "src": "assets/objects/neon-rise-dressing/cyan-magenta-graffiti.png",
-      "x": 2184,
-      "y": 402,
-      "w": 184,
-      "h": 83,
-      "snap": 1
-    },
-    {
-      "id": "nr_l1_purple-lamp",
-      "src": "assets/objects/neon-rise-dressing/amber-service-lamp.png",
-      "x": 2360,
-      "y": 398,
-      "w": 80,
-      "h": 48,
+      "src": "assets/objects/night-city-props/pipes/pipe-short-unlit.png",
+      "x": 246,
+      "y": 505,
+      "w": 160,
+      "h": 64,
       "snap": 1
     }
   ],
