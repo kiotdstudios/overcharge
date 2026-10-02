@@ -1818,7 +1818,8 @@
       "frame_width": 192,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Warehouse left end-cap panel (6x8 tiles). Place left-to-right: left, open_bay, closed_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Warehouse left end-cap panel (6x8 tiles). Place left-to-right: left, open_bay, closed_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_warehouse_open_bay",
@@ -1835,7 +1836,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Warehouse open garage bay panel (5x8 tiles), door raised, forklift/crates interior visible. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Warehouse open garage bay panel (5x8 tiles), door raised, forklift/crates interior visible. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_warehouse_closed_bay",
@@ -1852,7 +1854,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Warehouse closed garage bay panel (5x8 tiles), door shut, '02' stencil. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Warehouse closed garage bay panel (5x8 tiles), door shut, '02' stencil. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_warehouse_right",
@@ -1869,7 +1872,8 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Warehouse right end-cap panel (4x8 tiles), employee door, trash can, fencing. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Warehouse right end-cap panel (4x8 tiles), employee door, trash can, fencing. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_store_left",
@@ -1886,7 +1890,8 @@
       "frame_width": 192,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store left end-cap panel (6x8 tiles). Place left-to-right: left, vending_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Convenience store left end-cap panel (6x8 tiles). Place left-to-right: left, vending_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_store_vending_bay",
@@ -1903,7 +1908,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store panel (5x8 tiles), three vending machines against the wall. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Convenience store panel (5x8 tiles), three vending machines against the wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_store_front_bay",
@@ -1920,7 +1926,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store panel (5x8 tiles), glass display window, 'MART' neon sign, OPEN sign, door. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Convenience store panel (5x8 tiles), glass display window, 'MART' neon sign, OPEN sign, door. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_store_right",
@@ -1937,7 +1944,8 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store right end-cap panel (4x8 tiles), camera, billboard/poster, water tank sliver. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Convenience store right end-cap panel (4x8 tiles), camera, billboard/poster, water tank sliver. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_top1",
@@ -1954,7 +1962,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment top-floor window bay panel (5x8 tiles), weathered boarded/broken windows above a storefront. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment top-floor window bay panel (5x8 tiles), weathered boarded/broken windows above a storefront. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_top2",
@@ -1971,7 +1980,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment top-floor window bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment top-floor window bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_top3",
@@ -1988,7 +1998,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment top-floor window bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment top-floor window bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_top4",
@@ -2005,7 +2016,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment top-floor window bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment top-floor window bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_bot1",
@@ -2022,7 +2034,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment ground-floor storefront bay panel (5x8 tiles), boarded-up/derelict storefront below the apartment. Pair with a top panel above. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment ground-floor storefront bay panel (5x8 tiles), boarded-up/derelict storefront below the apartment. Pair with a top panel above. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_bot2",
@@ -2039,7 +2052,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment ground-floor storefront bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment ground-floor storefront bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_bot3",
@@ -2056,7 +2070,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment ground-floor storefront bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment ground-floor storefront bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_abandoned_bot4",
@@ -2073,7 +2088,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Abandoned apartment ground-floor storefront bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Abandoned apartment ground-floor storefront bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_filler_wall_01",
@@ -2090,7 +2106,8 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare weathered brick with grime, no extra elements. Used to fill gaps between building modules. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare weathered brick with grime, no extra elements. Used to fill gaps between building modules. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_filler_wall_02",
@@ -2107,7 +2124,8 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a trash can at the base. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a trash can at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_filler_wall_04",
@@ -2124,7 +2142,8 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a graffiti tag. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a graffiti tag. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_store_blank_wall",
@@ -2141,7 +2160,8 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store panel (5x8 tiles), plain wall variant with no vending machines, alternative to store_vending_bay. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Convenience store panel (5x8 tiles), plain wall variant with no vending machines, alternative to store_vending_bay. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_filler_wall_03",
@@ -2158,7 +2178,8 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a traffic cone at the base. Placeable visual dressing only. No collision, power, light, or switch logic."
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a traffic cone at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall"
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable \u2014 they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible \u2014 that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
