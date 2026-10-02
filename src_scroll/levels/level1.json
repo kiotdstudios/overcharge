@@ -1806,7 +1806,7 @@
     47
   ],
   "playerStart": {
-    "x": 96,
+    "x": 128,
     "y": 450
   },
   "decorations": [
@@ -3306,12 +3306,36 @@
       "w": 128,
       "h": 256,
       "snap": 1
+    },
+    {
+      "src": "assets/objects/night-city-buildings/convenience_store/store_blank_wall.png",
+      "x": -17,
+      "y": 248,
+      "w": 160,
+      "h": 256,
+      "snap": 1
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "x": 111,
+      "y": 271,
+      "w": 128,
+      "h": 256,
+      "snap": 1
+    },
+    {
+      "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top3.png",
+      "x": 211,
+      "y": 232,
+      "w": 160,
+      "h": 256,
+      "snap": 1
     }
   ],
   "sources": [
     {
       "id": "src_4",
-      "x": 256,
+      "x": 224,
       "y": 452,
       "charge": 4,
       "label": "LAMP",
