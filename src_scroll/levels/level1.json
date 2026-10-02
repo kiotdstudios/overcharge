@@ -3284,20 +3284,11 @@
       "snap": 32
     },
     {
-      "id": "nr_l1_antenna-west",
-      "src": "assets/objects/neon-rise-dressing/antenna-utility-cluster.png",
-      "x": 616,
-      "y": 368,
-      "w": 104,
-      "h": 80,
-      "snap": 1
-    },
-    {
-      "src": "assets/objects/night-city-props/pipes/pipe-short-unlit.png",
-      "x": 246,
-      "y": 505,
-      "w": 160,
-      "h": 64,
+      "src": "assets/objects/neon-rise-dressing/chainlink-railing.png",
+      "x": 523,
+      "y": 353,
+      "w": 208,
+      "h": 96,
       "snap": 1
     }
   ],
@@ -3326,7 +3317,7 @@
       "artH": 192
     },
     {
-      "x": 544,
+      "x": 576,
       "y": 420,
       "label": "HVAC",
       "charge": 4,
