@@ -377,13 +377,6 @@ export class MovingPlatform {
     ctx.fillStyle = '#1a2a3a';
     ctx.fillRect(this.x,               this.y + 3, 6, this.h - 3);
     ctx.fillRect(this.x + this.w - 6,  this.y + 3, 6, this.h - 3);
-    // Glow under platform
-    ctx.save();
-    ctx.shadowBlur  = 10;
-    ctx.shadowColor = '#44aadd';
-    ctx.fillStyle   = 'rgba(68,170,221,0.15)';
-    ctx.fillRect(this.x, this.y, this.w, this.h);
-    ctx.restore();
   }
 }
 
