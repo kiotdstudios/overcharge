@@ -1416,7 +1416,7 @@
     0,
     0,
     0,
-    42,
+    57,
     43,
     43,
     43,
@@ -1515,8 +1515,8 @@
     43,
     43,
     43,
-    44,
-    54,
+    43,
+    43,
     49,
     49,
     49,
@@ -1615,8 +1615,8 @@
     46,
     46,
     46,
-    47,
-    54,
+    46,
+    46,
     49,
     49,
     49,
@@ -1715,8 +1715,8 @@
     46,
     46,
     46,
-    47,
-    54,
+    46,
+    46,
     49,
     49,
     49,
@@ -3284,11 +3284,27 @@
       "snap": 32
     },
     {
-      "src": "assets/objects/neon-rise-dressing/chainlink-railing.png",
-      "x": 523,
-      "y": 353,
-      "w": 208,
-      "h": 96,
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "x": 370,
+      "y": 239,
+      "w": 128,
+      "h": 256,
+      "snap": 1
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "x": 468,
+      "y": 239,
+      "w": 128,
+      "h": 256,
+      "snap": 1
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "x": 565,
+      "y": 239,
+      "w": 128,
+      "h": 256,
       "snap": 1
     }
   ],
@@ -3317,7 +3333,7 @@
       "artH": 192
     },
     {
-      "x": 576,
+      "x": 544,
       "y": 420,
       "label": "HVAC",
       "charge": 4,
