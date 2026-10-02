@@ -15,7 +15,7 @@ import { sourceBox } from '../src_scroll/source-visuals.js';
 // that's selected. Tools (select tool, delete, copy/paste) read and write it.
 // Selection is transient (not saved with level). Cleared on level load.
 
-import { state, notify, TILE_SIZE, levelRows, worldToScreen } from './state.js';
+import { state, notify, TILE_SIZE, levelRows, worldToScreen, assetVisualBox } from './state.js';
 
 // Move-handle visual geometry (screen-space, constant across zoom).
 export const MOVE_HANDLE_RADIUS = 6;   // dot radius in screen px (visual)
@@ -212,7 +212,17 @@ const MIN_CLICK_TARGET = 28;
 // Returns tight VISUAL bounds. Do not use for click hit-testing.
 export function boundingRect(kind, ref) {
   if (!ref) return null;
-  if (kind === 'decoration') return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
+  // Decorations: many of these PNGs carry large transparent padding inside
+  // their canvas (PixelLab draws art at inconsistent margins) â€” using the
+  // full ref.w/ref.h here made the yellow selection box, and the click
+  // target under objectAt(), balloon way past the visible sprite. Shrink to
+  // the asset's precomputed trim box (see assetVisualBox in state.js) when
+  // one exists; untrimmed assets (art already fills the canvas) fall back
+  // to the full footprint unchanged.
+  if (kind === 'decoration') {
+    const box = assetVisualBox(ref.src, ref.w, ref.h);
+    return { x: ref.x + box.x, y: ref.y + box.y, w: box.w, h: box.h };
+  }
   if (kind === 'gate')       return { x: ref.x, y: ref.y, w: ref.w, h: ref.h };
   // Source: the runtime HITBOX is 28×28 at x,y, but the generator SPRITE is 64×64
   // drawn at (x-18, y-34) — see renderer.js::_drawSources. The box wraps what you

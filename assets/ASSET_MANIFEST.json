@@ -1463,7 +1463,13 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Fuse box. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px."
+      "notes": "Fuse box. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px.",
+      "trim": {
+        "x": 0.0991,
+        "y": 0.0653,
+        "w": 0.8131,
+        "h": 0.8649
+      }
     },
     {
       "id": "prop_ncp_neon_sign",
@@ -1485,7 +1491,13 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Neon sign. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px."
+      "notes": "Neon sign. States: powered(f0-1), absorbing(f2-5), drained(f6). 96x96px.",
+      "trim": {
+        "x": 0.1239,
+        "y": 0.1532,
+        "w": 0.7815,
+        "h": 0.6847
+      }
     },
     {
       "id": "prop_ncp_security_camera",
@@ -1507,7 +1519,13 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Security camera. States: powered(f0-1), absorbing(f2-5), drained(f6). 64x64px."
+      "notes": "Security camera. States: powered(f0-1), absorbing(f2-5), drained(f6). 64x64px.",
+      "trim": {
+        "x": 0.1441,
+        "y": 0.2815,
+        "w": 0.7185,
+        "h": 0.5135
+      }
     },
     {
       "id": "prop_ncp_streetlight",
@@ -1529,7 +1547,13 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Street lamp. States: powered(f0-1), absorbing(f2-5), drained(f6). 192x192px."
+      "notes": "Street lamp. States: powered(f0-1), absorbing(f2-5), drained(f6). 192x192px.",
+      "trim": {
+        "x": 0.268,
+        "y": 0.045,
+        "w": 0.5473,
+        "h": 0.9302
+      }
     },
     {
       "id": "prop_ncp_vending_machine",
@@ -1551,7 +1575,13 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Vending machine. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px."
+      "notes": "Vending machine. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px.",
+      "trim": {
+        "x": 0.2072,
+        "y": 0.1081,
+        "w": 0.5743,
+        "h": 0.8041
+      }
     },
     {
       "id": "wheel_drone",
@@ -1819,7 +1849,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Warehouse left end-cap panel (6x8 tiles). Place left-to-right: left, open_bay, closed_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.2083,
+        "y": 0.1797,
+        "w": 0.4948,
+        "h": 0.7617
+      }
     },
     {
       "id": "building_nc_warehouse_open_bay",
@@ -1837,7 +1873,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Warehouse open garage bay panel (5x8 tiles), door raised, forklift/crates interior visible. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1,
+        "y": 0.3516,
+        "w": 0.7812,
+        "h": 0.5898
+      }
     },
     {
       "id": "building_nc_warehouse_closed_bay",
@@ -1855,7 +1897,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Warehouse closed garage bay panel (5x8 tiles), door shut, '02' stencil. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0063,
+        "y": 0.0664,
+        "w": 0.9625,
+        "h": 0.875
+      }
     },
     {
       "id": "building_nc_warehouse_right",
@@ -1873,7 +1921,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Warehouse right end-cap panel (4x8 tiles), employee door, trash can, fencing. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1172,
+        "y": 0.2227,
+        "w": 0.7656,
+        "h": 0.7188
+      }
     },
     {
       "id": "building_nc_store_left",
@@ -1891,7 +1945,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Convenience store left end-cap panel (6x8 tiles). Place left-to-right: left, vending_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1198,
+        "y": 0.0742,
+        "w": 0.6979,
+        "h": 0.8672
+      }
     },
     {
       "id": "building_nc_store_vending_bay",
@@ -1909,7 +1969,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Convenience store panel (5x8 tiles), three vending machines against the wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0875,
+        "y": 0.2383,
+        "w": 0.8187,
+        "h": 0.7031
+      }
     },
     {
       "id": "building_nc_store_front_bay",
@@ -1927,7 +1993,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Convenience store panel (5x8 tiles), glass display window, 'MART' neon sign, OPEN sign, door. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0875,
+        "y": 0.3398,
+        "w": 0.7875,
+        "h": 0.6016
+      }
     },
     {
       "id": "building_nc_store_right",
@@ -1945,7 +2017,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Convenience store right end-cap panel (4x8 tiles), camera, billboard/poster, water tank sliver. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1719,
+        "y": 0.1367,
+        "w": 0.6953,
+        "h": 0.8047
+      }
     },
     {
       "id": "building_nc_abandoned_top1",
@@ -1963,7 +2041,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment top-floor window bay panel (5x8 tiles), weathered boarded/broken windows above a storefront. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1437,
+        "y": 0.1797,
+        "w": 0.7063,
+        "h": 0.7617
+      }
     },
     {
       "id": "building_nc_abandoned_top2",
@@ -1981,7 +2065,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment top-floor window bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1375,
+        "y": 0.1641,
+        "w": 0.7125,
+        "h": 0.7773
+      }
     },
     {
       "id": "building_nc_abandoned_top3",
@@ -1999,7 +2089,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment top-floor window bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0625,
+        "y": 0.043,
+        "w": 0.9062,
+        "h": 0.8984
+      }
     },
     {
       "id": "building_nc_abandoned_top4",
@@ -2017,7 +2113,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment top-floor window bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1562,
+        "y": 0.2188,
+        "w": 0.5875,
+        "h": 0.7227
+      }
     },
     {
       "id": "building_nc_abandoned_bot1",
@@ -2035,7 +2137,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment ground-floor storefront bay panel (5x8 tiles), boarded-up/derelict storefront below the apartment. Pair with a top panel above. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0875,
+        "y": 0.1289,
+        "w": 0.8187,
+        "h": 0.8125
+      }
     },
     {
       "id": "building_nc_abandoned_bot2",
@@ -2053,7 +2161,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment ground-floor storefront bay panel variant 2 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1187,
+        "y": 0.4258,
+        "w": 0.7562,
+        "h": 0.5156
+      }
     },
     {
       "id": "building_nc_abandoned_bot3",
@@ -2071,7 +2185,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment ground-floor storefront bay panel variant 3 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0813,
+        "y": 0.0664,
+        "w": 0.8375,
+        "h": 0.875
+      }
     },
     {
       "id": "building_nc_abandoned_bot4",
@@ -2089,7 +2209,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Abandoned apartment ground-floor storefront bay panel variant 4 (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.175,
+        "y": 0.3047,
+        "w": 0.6188,
+        "h": 0.6367
+      }
     },
     {
       "id": "building_nc_filler_wall_01",
@@ -2107,7 +2233,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare weathered brick with grime, no extra elements. Used to fill gaps between building modules. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1016,
+        "y": 0.3047,
+        "w": 0.7891,
+        "h": 0.6367
+      }
     },
     {
       "id": "building_nc_filler_wall_02",
@@ -2125,7 +2257,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a trash can at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1094,
+        "y": 0.3086,
+        "w": 0.7812,
+        "h": 0.6328
+      }
     },
     {
       "id": "building_nc_filler_wall_04",
@@ -2143,7 +2281,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a graffiti tag. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1094,
+        "y": 0.3086,
+        "w": 0.7891,
+        "h": 0.6328
+      }
     },
     {
       "id": "building_nc_store_blank_wall",
@@ -2161,7 +2305,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Convenience store panel (5x8 tiles), plain wall variant with no vending machines, alternative to store_vending_bay. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0938,
+        "y": 0.1172,
+        "w": 0.8063,
+        "h": 0.8242
+      }
     },
     {
       "id": "building_nc_filler_wall_03",
@@ -2179,7 +2329,13 @@
       "frame_height": 256,
       "frame_count": 1,
       "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a traffic cone at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.1094,
+        "y": 0.3047,
+        "w": 0.7812,
+        "h": 0.6367
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable \u2014 they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible \u2014 that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",

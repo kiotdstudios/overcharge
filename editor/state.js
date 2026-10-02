@@ -456,8 +456,26 @@ function _normalizeManifestEntry(a) {
     height:      a.frame_height || a.height || 32,
     tags:        a.tags || [],
     isAnimation: isAnimation,
+    // Fractional (0..1) alpha-content box relative to the source PNG's own
+    // pixel dimensions â€” see assetVisualBox() below. Absent on assets whose
+    // art already fills its canvas edge-to-edge (no trim needed).
+    trim:        a.trim || null,
     raw:         a,
   };
+}
+
+// Resolve a decoration's TIGHT visual box in world units, from its manifest
+// trim fraction. Falls back to the full placed w/h when the asset has no
+// trim (already tight) or isn't found (unknown src â€” never shrink to zero).
+// `src` is the decoration's stored asset path; w/h are its PLACED dims
+// (what decoDimensions resolved at placement time, i.e. ref.w/ref.h).
+export function assetVisualBox(src, w, h) {
+  const item = state.manifest && Array.isArray(state.manifest.items)
+    ? state.manifest.items.find(it => it.path === src)
+    : null;
+  const t = item && item.trim;
+  if (!t) return { x: 0, y: 0, w, h };
+  return { x: t.x * w, y: t.y * h, w: t.w * w, h: t.h * h };
 }
 
 export async function loadLevel(url) {

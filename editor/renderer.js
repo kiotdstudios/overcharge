@@ -262,8 +262,11 @@ export function render(ctx, canvas) {
       ctx.setLineDash([]);
     };
 
-    // Decorations
-    for (const d of state.selection.decorations) drawOutline({ x: d.x, y: d.y, w: d.w, h: d.h });
+    // Decorations â€” route through Selection.boundingRect so the outline
+    // matches the trimmed hit box exactly (see selection.js). Used to draw
+    // the raw full-canvas d.w/d.h, which is why the yellow box used to
+    // balloon way past sprites with transparent padding baked in.
+    for (const d of state.selection.decorations) drawOutline(Selection.boundingRect('decoration', d));
 
     // Gameplay markers — geometry comes from selection.js::boundingRect, which
     // is the SINGLE SOURCE OF TRUTH for what each object's box is.
