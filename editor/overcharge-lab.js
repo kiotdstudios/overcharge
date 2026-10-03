@@ -100,7 +100,18 @@ const setTile = (c, r, v) => {
 const SPAWN = { x: 3 * TILE, y: 11 * TILE };
 
 // ── State ────────────────────────────────────────────────────────────────────
-const sprite = new PlayerSprites({});
+// WHICH SPRITE PACK. Chief asked which sheets the lab is showing, and the answer is worth
+// stating in code because three generations exist:
+//
+//   assets/sprites/hero-v3/        16 states, 8 frames each  <- what BOTH labs render
+//   assets/sprites/hero-gait-v4/   revised walk + run only   <- opt-in with ?gait=4
+//   assets/sprites/walking|running|jumping|idle_2.0   <- what the GAME still renders,
+//                                                        through src_scroll/sprites.js
+//
+// So the lab is NOT showing the same character the game draws. hero-v3 is the newer pack
+// built for the animator migration, and that migration has not shipped to production.
+const useGait4 = new URLSearchParams(location.search).get('gait') === '4';
+const sprite = new PlayerSprites({ gaitRoot: useGait4 ? 'assets/sprites/hero-gait-v4' : null });
 const canvas = document.getElementById('lab');
 const ctx    = canvas.getContext('2d');
 
@@ -412,6 +423,7 @@ function drawHud() {
     ['RENDER',   `${fps.toFixed(0)} fps`],
     ['LEDGE',    p.ledge ? (p.climbing ? '<span class="warn">climbing</span>'
                                        : '<span class="warn">hanging — ↑/W climb, ↓/S drop</span>') : 'no'],
+    ['PACK',     useGait4 ? '<span class="warn">hero-gait-v4</span> walk/run' : 'hero-v3'],
     ['TILE EDIT', editMode ? '<span class="warn">ON — click to paint</span>' : 'off'],
     ['HITBOX',   showHitbox ? '<span class="warn">shown (B)</span>' : 'hidden'],
   ];
@@ -478,9 +490,53 @@ function syncEdit() {
   btnEdit.setAttribute('aria-pressed', String(editMode));
   canvas.style.cursor = editMode ? 'crosshair' : 'default';
 }
+// ── Saving the room ──────────────────────────────────────────────────────────
+// Chief: "if i make edits to the tiles it needs to save so make a save button".
+//
+// Saved to localStorage, NOT to a level file. The lab is a disposable sandbox and must
+// never gain a write path into `src_scroll/levels/` — that is Chief's data and the one
+// thing in this project that cannot be regenerated. A saved lab room is a scratch pad
+// that lives in this browser.
+const SAVE_KEY = 'overcharge.lab.room.v1';
+const status = document.getElementById('te-status');
+function say(msg, warn = false) {
+  status.innerHTML = warn ? `<span style="color:#ffd166">${msg}</span>` : msg;
+  clearTimeout(say._t);
+  say._t = setTimeout(() => { status.textContent = ''; }, 4000);
+}
+
+function saveRoom() {
+  try {
+    // Store as a compact run of 0/1 plus the dimensions, so a room saved before a layout
+    // change is REJECTED on load rather than silently misread into the wrong shape.
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ cols: COLS, rows: ROWS, tiles: Array.from(grid) }));
+    const n = grid.reduce((a, v) => a + v, 0);
+    say(`Saved — ${n} tiles. Reloads automatically next visit.`);
+  } catch (e) { say('Save failed: ' + e.message, true); }
+}
+function loadRoom(quiet = false) {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) { if (!quiet) say('Nothing saved yet.', true); return false; }
+    const d = JSON.parse(raw);
+    if (d.cols !== COLS || d.rows !== ROWS || !Array.isArray(d.tiles) || d.tiles.length !== COLS * ROWS) {
+      if (!quiet) say('Saved room does not match the current layout — ignored.', true);
+      return false;
+    }
+    grid = new Uint8Array(d.tiles);
+    if (!quiet) say('Loaded your saved room.');
+    return true;
+  } catch (e) { if (!quiet) say('Load failed: ' + e.message, true); return false; }
+}
+
 btnEdit.addEventListener('click', () => { editMode = !editMode; syncEdit(); canvas.focus(); });
 btnSwatch.addEventListener('click', () => { editMode = true; syncEdit(); canvas.focus(); });
-btnRestore.addEventListener('click', () => { restoreRoom(); canvas.focus(); });
+btnRestore.addEventListener('click', () => { restoreRoom(); say('Back to the built-in room (your save is untouched).'); canvas.focus(); });
+document.getElementById('te-save').addEventListener('click', () => { saveRoom(); canvas.focus(); });
+document.getElementById('te-load').addEventListener('click', () => { loadRoom(); canvas.focus(); });
+document.getElementById('te-clear').addEventListener('click', () => {
+  localStorage.removeItem(SAVE_KEY); say('Saved room deleted.'); canvas.focus();
+});
 // The specific thing Chief asked for: fall in a pit, one click, floor appears under you.
 btnFillRow.addEventListener('click', () => {
   const r = Math.min(ROWS - 1, Math.floor((p.y + PLAYER_H + 1) / TILE));
@@ -544,4 +600,7 @@ window.__lab = {
 };
 
 syncEdit();
+// Auto-restore a saved room on boot, quietly. Chief asked for edits to persist, and
+// having to press Load every visit is not persistence.
+if (loadRoom(true)) say('Loaded your saved room.');
 requestAnimationFrame(frame);

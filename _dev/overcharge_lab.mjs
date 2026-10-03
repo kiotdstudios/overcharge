@@ -223,6 +223,45 @@ ok(Math.abs(climbed.after.y - (LIP.r * 32 - 30)) < 2, 'lands exactly on the lip 
    `y=${climbed.after.y.toFixed(0)} expected ${LIP.r * 32 - 30}`);
 
 ok(await page.locator('#te-toggle').count() === 1, 'tile edit panel exists');
+
+// ── saving the room ──
+console.log('\n[ save / load the room ]');
+await page.evaluate(() => window.__lab.restoreRoom());
+const before = await page.evaluate(() => window.__lab.solidAt(2, 5));
+await page.evaluate(() => { window.__lab.setTile(2, 5, 1); window.__lab.setTile(3, 5, 1); });
+ok(!before && await page.evaluate(() => window.__lab.solidAt(2, 5)), 'a tile can be painted');
+
+await page.locator('#te-save').click(); await page.waitForTimeout(200);
+ok(/Saved/.test(await page.locator('#te-status').innerText()), 'Save reports success',
+   (await page.locator('#te-status').innerText()).slice(0, 60));
+ok(await page.evaluate(() => !!localStorage.getItem('overcharge.lab.room.v1')), 'the room is in localStorage');
+
+// Restore must NOT wipe the save — that distinction matters or a stray click loses work.
+await page.locator('#te-restore').click(); await page.waitForTimeout(150);
+ok(!(await page.evaluate(() => window.__lab.solidAt(2, 5))), 'Restore room returns the built-in layout');
+ok(await page.evaluate(() => !!localStorage.getItem('overcharge.lab.room.v1')), 'Restore does NOT delete the save');
+
+await page.locator('#te-load').click(); await page.waitForTimeout(200);
+ok(await page.evaluate(() => window.__lab.solidAt(2, 5)), 'Load brings the painted tiles back');
+
+// It has to survive a reload, or it is not saving.
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok(await page.evaluate(() => window.__lab.solidAt(2, 5)), 'the saved room auto-loads after a page reload');
+
+await page.locator('#te-clear').click(); await page.waitForTimeout(150);
+ok(await page.evaluate(() => !localStorage.getItem('overcharge.lab.room.v1')), 'Clear saved removes it');
+
+// A save from a different room shape must be refused, not misread into the wrong geometry.
+await page.evaluate(() => localStorage.setItem('overcharge.lab.room.v1',
+  JSON.stringify({ cols: 5, rows: 5, tiles: new Array(25).fill(1) })));
+await page.locator('#te-load').click(); await page.waitForTimeout(200);
+ok(/does not match/.test(await page.locator('#te-status').innerText()),
+   'a save from a different layout is REJECTED, not misread',
+   (await page.locator('#te-status').innerText()).slice(0, 70));
+await page.evaluate(() => localStorage.removeItem('overcharge.lab.room.v1'));
+
+console.log('\n[ sprite pack ]');
+ok(/PACK\s+hero-v3/.test(await hud()), 'default pack is hero-v3', (await hud()).match(/PACK[^A-Z]*/)?.[0] ?? '');
 ok(/TILE EDIT\s+off/.test(await hud()), 'tile edit starts off, so a focus click never paints');
 
 // Chief's exact scenario: fall in the pit, get out without resetting.

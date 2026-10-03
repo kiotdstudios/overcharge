@@ -84,11 +84,18 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
           <button id="te-fillrow" class="mini" type="button">Floor under me</button>
           <button id="te-restore" class="mini" type="button">Restore room</button>
         </div>
+        <div class="row" style="margin-bottom:7px">
+          <button id="te-save" class="mini" type="button">💾 Save room</button>
+          <button id="te-load" class="mini" type="button">Load saved</button>
+          <button id="te-clear" class="mini" type="button">Clear saved</button>
+        </div>
+        <div id="te-status" class="note" style="min-height:14px"></div>
         <p class="note">Turn edit on, then <b>left-click to place</b> a tile and <b>right-click to erase</b>.
           Drag to paint a run. Movement keys keep working, so you can build a step and climb straight out of
           a pit instead of resetting.</p>
-        <p class="note">Edits are <b>in-memory only</b> — they never touch a level file. Reload or
-          <i>Restore room</i> puts it back.</p>
+        <p class="note"><b>Save room</b> keeps your layout in this browser and reloads it automatically next
+          visit. It never touches a level file — the lab is a sandbox, so a saved room only exists here.
+          <i>Restore room</i> returns to the built-in layout without deleting your save.</p>
       </section>
 
       <section>
@@ -110,6 +117,15 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
         <span class="pill">assets only</span> — no mechanic exists for them in production.</p>
     </section>
     <section>
+      <h2>Sprite pack</h2>
+      <p class="note">Showing <b>hero-v3</b> — 16 states, the pack built for the animator migration.
+        <b>The game still draws a different, older set</b> (<code>walking</code>, <code>running</code>,
+        <code>jumping</code>, <code>idle_2.0</code>) through <code>src_scroll/sprites.js</code>. That
+        migration has not shipped.</p>
+      <p class="note"><a href="?gait=4" style="color:#00e5d0">Compare revised walk/run →</a> &nbsp;
+        <a href="?" style="color:#6fa7b0">back to hero-v3</a></p>
+    </section>
+    <section>
       <h2>Scope</h2>
       <p class="note">Separate disposable sandbox. Hero Lab, the Builder, level JSON and the live game are
         untouched and do not depend on this page. Deleting it affects nothing.</p>
@@ -120,6 +136,6 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
      minutes and the CDN can hold it longer, so without a new query string the browser has
      no reason to refetch — which is why the hitbox box appeared "still there" after it had
      already been fixed and deployed. -->
-<script type="module" src="editor/overcharge-lab.js?v=4"></script>
+<script type="module" src="editor/overcharge-lab.js?v=5"></script>
 </body>
 </html>
