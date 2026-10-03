@@ -1944,19 +1944,19 @@
       "frame_width": 192,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store left end-cap panel (6x8 tiles). Place left-to-right: left, vending_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Convenience store left end-cap panel (6x8 tiles). Place left-to-right: left, wall_bay, front_bay, right. Plain wall, no camera/decorations - those are separate placeable night-city-props. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.1354,
-        "y": 0.0898,
-        "w": 0.7292,
-        "h": 0.75
+        "x": 0.0469,
+        "y": 0.2148,
+        "w": 0.9062,
+        "h": 0.5742
       }
     },
     {
-      "id": "building_nc_store_vending_bay",
-      "name": "Night City convenience store - vending machine bay",
-      "path": "assets/objects/night-city-buildings/convenience_store/store_vending_bay.png",
+      "id": "building_nc_store_wall_bay",
+      "name": "Night City convenience store - plain wall bay",
+      "path": "assets/objects/night-city-buildings/convenience_store/store_wall_bay.png",
       "category": "decoration",
       "tags": [
         "night_city_props",
@@ -1968,13 +1968,13 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store panel (5x8 tiles), three vending machines against the wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Convenience store panel (5x8 tiles), plain wall, no camera/vending machines/decorations - those are separate placeable night-city-props. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.0812,
-        "y": 0.2461,
-        "w": 0.7125,
-        "h": 0.5
+        "x": 0.1188,
+        "y": 0.1953,
+        "w": 0.75,
+        "h": 0.6055
       }
     },
     {
@@ -1992,13 +1992,13 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store panel (5x8 tiles), glass display window, 'MART' neon sign, OPEN sign, door. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Convenience store panel (5x8 tiles), glass display window, '24/7 MART' neon sign, OPEN sign, door - the storefront identity panel. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.0812,
-        "y": 0.2773,
-        "w": 0.7875,
-        "h": 0.4648
+        "x": 0.0,
+        "y": 0.1953,
+        "w": 0.8812,
+        "h": 0.6055
       }
     },
     {
@@ -2016,13 +2016,13 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Convenience store right end-cap panel (4x8 tiles), camera, billboard/poster, water tank sliver. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Convenience store right end-cap panel (4x8 tiles). Plain wall, no camera/poster/tank - those are separate placeable night-city-props. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.0547,
-        "y": 0.1367,
-        "w": 0.8906,
-        "h": 0.6719
+        "x": 0.125,
+        "y": 0.2422,
+        "w": 0.7422,
+        "h": 0.5039
       }
     },
     {
@@ -2287,30 +2287,6 @@
         "y": 0.3086,
         "w": 0.7891,
         "h": 0.6328
-      }
-    },
-    {
-      "id": "building_nc_store_blank_wall",
-      "name": "Night City convenience store - blank wall bay",
-      "path": "assets/objects/night-city-buildings/convenience_store/store_blank_wall.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "convenience_store",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 160,
-      "frame_height": 256,
-      "frame_count": 1,
-      "notes": "Convenience store panel (5x8 tiles), plain wall variant with no vending machines, alternative to store_vending_bay. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall",
-      "trim": {
-        "x": 0.1125,
-        "y": 0.1914,
-        "w": 0.75,
-        "h": 0.6055
       }
     },
     {
@@ -2626,5 +2602,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 103
+  "count": 102
 }
