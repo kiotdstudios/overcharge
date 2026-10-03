@@ -1,3 +1,36 @@
+# AKI STATUS — 2026-10-02
+
+## Delivery: 4 per-family wall-filler strips (Chief request, not a Kiro order) + ORDER AKI 15 ack
+
+**Branch:** agent/aki-editor -> pushed to origin/agent/orcha-gameplay
+**HEAD:** f39d457
+
+### Wall-filler strips — COMPLETE
+
+Chief rejected stretching the 21 `nc_building_wall` panels to a uniform height; asked for new filler
+art instead. Generated 4 PixelLab strips, one per sub-family, sized to each familys modal panel width
+and max content-height gap: `filler_warehouse_metal.png` (160x80), `filler_store_brick.png` (160x76),
+`filler_abandoned_concrete.png` (160x100), `filler_generic.png` (128x68). Registered in
+ASSET_MANIFEST.json with `family: "nc_building_wall"` so they magnetically snap to existing panels in
+the Builder (103 -> 107 assets). No `trim` key — fully opaque, fill their canvas edge to edge.
+
+**Not yet done (open question for Chief):** these are placeable/snappable by hand only. No automatic
+per-panel compositing to hit an exact uniform height yet — that is new editor/build logic, not shipped.
+Also: filler widths are each familys modal width, so they wont line up exactly with every panel in
+that family (e.g. warehouse panels are 192/160/160/128 wide; the 160 filler fits 2 of 4 exactly).
+
+**Verify:** 2342 passed, 89 failed (baseline, no change). Could not browser-verify snap behavior.
+
+### ORDER AKI 15 — RECEIVED, STARTING
+
+Read `docs/KIRO_ORDER_AKI_15.md` + `docs/KIRO_WORLD_BUILD_PLAN_LEVEL1.md`. Lane is ART; Kiro is doing
+the animation-schema runtime work (frames[]/fps on decorations, ambient actors). Per the order: do not
+produce more animated props until that lands — starting on the unblocked §2 static-art priority
+instead, highest impact first: **2a, sky-band building upper-storeys** (vertical wall sections with
+windows, tileable, same family-tag snap system), then 2b window variants, 2c rooflines/silhouette.
+
+
+
 # AKI STATUS — 2026-09-19
 
 ## Delivery: AKI 12 + AKI 13 — Tile Grammar + Save/Publish Path
