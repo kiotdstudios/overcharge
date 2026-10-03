@@ -501,17 +501,24 @@ function _drawSources(ctx, arr) {
   }
 }
 
-// Gate: render the 64×128 gate sprite (gate_closed.png, no transparent rows).
+// Gate: render the SAME art the runtime uses — assets/objects/gate/rest.png,
+// cropped to its measured content box (GEOMETRY.md: cols 17..110, rows 10..114,
+// 94x105) and drawn 1:1, exactly like PowerGate.spriteBox()/draw() in
+// src_scroll/electricity.js. The old gate_closed.png (64x128, uncropped, no
+// relation to the re-cut pack) was replaced 2026-10-03: Chief flagged the
+// Builder's exit gate as not matching the in-game sprite — it was drawing a
+// pre-ORCHA-03 asset the runtime stopped using entirely.
 // Sprite anchor: horizontally centred on hitbox, bottom aligned to hitbox bottom.
-// Type-specific colour tint overlaid on the sprite so GATE/EXIT/BARRIER are
-// visually distinct despite sharing the same art.
+// Gate type is conveyed by the badge + label below the sprite, not by a colour
+// wash on the art (removed 2026-09-12, see history above).
 //   GATE    → cyan  (#44ccff)
 //   EXIT    → magenta (#ff44ff) — the gate that ends the level
 //   BARRIER → orange (#ff8800) — switch-only, player cannot charge directly
+const GATE_SRC_X = 17, GATE_SRC_Y = 10, GATE_SRC_W = 94, GATE_SRC_H = 105;
 function _drawGates(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
-  const SPRITE_W = 64, SPRITE_H = 128;
+  const SPRITE_W = GATE_SRC_W, SPRITE_H = GATE_SRC_H;   // 94x105, matches runtime spriteBox()
   for (const g of arr) {
     // ── Fence branch: style:"fence" blockOnly gate draws live fence art (64x64 tiles).
     // Anchor/tiling copied from electricity.js PowerGate._drawFence — see FENCE_CANVAS
@@ -572,15 +579,18 @@ function _drawGates(ctx, arr) {
     const sw = SPRITE_W * z, sh = SPRITE_H * z;
     const color = g.isExit ? MARKER.exitGate : (g.blockOnly ? MARKER.barrier : MARKER.gate);
 
-    const img = getImage('assets/objects/gate_closed.png');
+    // rest.png is the runtime's neutral/base pose — same file PowerGate falls
+    // back to and the one it draws for the OPEN flash. The Builder is a static
+    // preview, so there is no idle/charging animation to pick between; rest is
+    // the correct single frame to show.
+    const img = getImage('assets/objects/gate/rest.png');
     ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      // Sprite only. The 0.28-alpha colour wash that used to sit on top of this
-      // was removed 2026-09-12 (Chief: "gate on builder has this purple film
-      // over it") — it obscured the art the Builder exists to preview. Gate TYPE
-      // is still unambiguous from the badge + label drawn below in this function
-      // ("EXIT · GATE" / "GATE · BARRIER") and from the selection outline.
-      ctx.drawImage(img, sp.x, sp.y, sw, sh);
+      // Cropped draw, no colour wash (removed 2026-09-12, Chief: "gate on
+      // builder has this purple film over it"). Gate TYPE is unambiguous from
+      // the badge + label drawn below ("EXIT · GATE" / "GATE · BARRIER") and
+      // from the selection outline.
+      ctx.drawImage(img, GATE_SRC_X, GATE_SRC_Y, GATE_SRC_W, GATE_SRC_H, sp.x, sp.y, sw, sh);
     } else {
       // Hatched fallback (image is loading — getImage already wired the repaint)
       const hp = worldToScreen(g.x, g.y);
