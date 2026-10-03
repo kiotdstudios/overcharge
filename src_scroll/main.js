@@ -9,6 +9,7 @@ import * as Input from './input.js';
 import { clear } from './render.js';
 import { Level }  from './level.js';
 import { init as bgInit, update as bgUpdate } from './background.js';
+import { loadDecoAnimations } from './deco-anim.js';
 import { Player } from './player.js';
 import { drawHUD, drawWorldPrompts, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
@@ -623,6 +624,13 @@ async function _bootAsync() {
         + '\n[ prev   ] next  \u2014 ?level=N to jump');
     }
   }
+
+  // Decoration animation data comes from assets/ASSET_MANIFEST.json and must be
+  // resolved BEFORE any Level is constructed, because the Level constructor is where a
+  // decoration decides whether it has frames. Awaited, but failure-tolerant: if the
+  // manifest cannot be read, deco-anim logs and every decoration stays static, which is
+  // exactly the behaviour that shipped before animation existed.
+  await loadDecoAnimations();
 
   const bgKind = LEVEL_DEFS[0] && LEVEL_DEFS[0].background;
   if (bgKind) {

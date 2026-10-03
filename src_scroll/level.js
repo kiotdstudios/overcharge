@@ -5,6 +5,7 @@ import { tileIsSolid } from './terrain-policy.js';
 import { ElectricalSource, PowerGate, Switch } from './electricity.js';
 import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
+import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
 
 export class Level {
   constructor(def) {
@@ -65,13 +66,33 @@ export class Level {
     this.chests      = (def.chests      || []).map(d => new Chest(d));
     this.pickups  = [];
 
-    // Background decoration sprites (buildings, props) drawn behind tiles
+    // Background decoration sprites (buildings, props) drawn behind tiles.
+    //
+    // ANIMATION: if the asset manifest records frame_count > 1 for this src's folder,
+    // the decoration plays. Static assets take the identical path they always did —
+    // one Image, no frames array — so every level authored before this is unchanged.
+    // Explicit `frames`/`fps` on the decoration override the manifest for one-offs.
     this.decorations = (def.decorations || []).map(d => {
       const img = new Image();
       img.src = d.src;
       // Preserve rotation ({0,90,180,270} deg) so TEST mode renders
       // decorations exactly as authored in the editor.
-      return { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0, flipX: !!d.flipX };
+      const dec = { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0, flipX: !!d.flipX };
+
+      if (Array.isArray(d.frames) && d.frames.length > 1) {
+        dec.frames = d.frames.map(src => { const i = new Image(); i.src = src; return i; });
+        dec.fps    = Number(d.fps) > 0 ? Number(d.fps) : 8;
+        dec.loop   = d.loop !== false;
+      } else {
+        const anim = animationFor(d.src);
+        if (anim) {
+          dec.frames = framesFor(anim);
+          dec.fps    = Number(d.fps) > 0 ? Number(d.fps) : anim.fps;
+          dec.loop   = d.loop !== undefined ? d.loop !== false : anim.loop;
+        }
+      }
+      if (dec.frames) dec.phase = phaseFor(d.x, d.y, dec.frames.length);
+      return dec;
     });
 
     this.playerStart = def.playerStart || { x: 48, y: 354 };
@@ -285,11 +306,15 @@ export class Level {
   draw(ctx, t) {
     // 1. Background decorations (buildings, props) — behind everything
     for (const dec of this.decorations) {
-      if (!(dec.img.complete && dec.img.naturalWidth > 0)) continue;
+      // An animated decoration picks its frame from elapsed time; a static one is
+      // exactly the image it always was. frameAt() returns dec.img when there are no
+      // frames, so the static path is byte-identical to the previous behaviour.
+      const img = dec.frames ? frameAt(dec, t) : dec.img;
+      if (!(img && img.complete && img.naturalWidth > 0)) continue;
       const rot  = dec.rotation || 0;
       const flip = !!dec.flipX;
       if (rot === 0 && !flip) {
-        ctx.drawImage(dec.img, dec.x, dec.y, dec.w, dec.h);
+        ctx.drawImage(img, dec.x, dec.y, dec.w, dec.h);
       } else {
         // Rotation swaps the visual bbox — source draw dims are h,w when
         // rotation is 90/270 (matches editor rotate action's bbox swap).
@@ -304,7 +329,7 @@ export class Level {
         ctx.translate(dec.x + dec.w / 2, dec.y + dec.h / 2);
         if (flip) ctx.scale(-1, 1);
         ctx.rotate(rot * Math.PI / 180);
-        ctx.drawImage(dec.img, -srcW / 2, -srcH / 2, srcW, srcH);
+        ctx.drawImage(img, -srcW / 2, -srcH / 2, srcW, srcH);
         ctx.restore();
       }
     }

@@ -108,10 +108,16 @@ function reset() {
 // The production Input module already owns keydown/keyup, arrow-scroll prevention and
 // the clear-on-blur that stops a stuck sprint. Nothing to add here except preventing
 // the page scrolling on the keys it does not already guard.
-addEventListener('keydown', e => {
-  if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName)) return;
-  if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR'].includes(e.code)) e.preventDefault();
-}, { passive: false });
+// Guarded so the module can be IMPORTED outside a browser. `_dev/module_parse.mjs`
+// imports every module in Node to prove none of them is syntactically dead, and a
+// bare top-level addEventListener throws there. hero-lab.js has the same problem for
+// the same reason; no need to add a third.
+if (typeof window !== 'undefined') {
+  window.addEventListener('keydown', e => {
+    if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName)) return;
+    if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR'].includes(e.code)) e.preventDefault();
+  }, { passive: false });
+}
 
 // One-shots are read as EDGES from Input.pressed() inside step(), not latched here.
 // The previous build latched them on its own keydown handler, which is what let a tap
