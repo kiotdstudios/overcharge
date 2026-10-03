@@ -3343,6 +3343,42 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/convenience_store/store_right.png",
+      "x": 1925,
+      "y": 77,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/convenience_store/store_front_bay.png",
+      "x": 1812,
+      "y": 77,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/convenience_store/store_vending_bay.png",
+      "x": 1683,
+      "y": 77,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/convenience_store/store_left.png",
+      "x": 1551,
+      "y": 77,
+      "w": 192,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
     }
   ],
   "sources": [
@@ -3377,22 +3413,22 @@
       "kind": "hvac"
     },
     {
-      "x": 1344,
-      "y": 324,
-      "label": "NEON",
+      "x": 2048,
+      "y": 292,
+      "label": "VEND",
       "charge": 4,
       "kind": "prop",
-      "sprite": "assets/objects/night-city-props/neon-sign/",
+      "sprite": "assets/objects/night-city-props/vending-machine/",
       "frames": 8,
-      "artW": 96,
-      "artH": 96
+      "artW": 128,
+      "artH": 128
     }
   ],
   "gates": [
     {
       "id": "gate_1",
-      "x": 1984,
-      "y": 256,
+      "x": 2176,
+      "y": 320,
       "w": 32,
       "h": 64,
       "label": "GATE",
