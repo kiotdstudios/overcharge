@@ -94,8 +94,11 @@ const setTile = (c, r, v) => {
   if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return false;
   if (grid[r*COLS + c] === v) return false;
   grid[r*COLS + c] = v;
+  markDirty();            // the level list shows * so an unsaved edit is never invisible
   return true;
 };
+// Defined before the level system exists during module init, so keep it indirect.
+let markDirty = () => {};
 
 const SPAWN = { x: 3 * TILE, y: 11 * TILE };
 
@@ -490,53 +493,177 @@ function syncEdit() {
   btnEdit.setAttribute('aria-pressed', String(editMode));
   canvas.style.cursor = editMode ? 'crosshair' : 'default';
 }
-// ── Saving the room ──────────────────────────────────────────────────────────
-// Chief: "if i make edits to the tiles it needs to save so make a save button".
+// ── LAB LEVEL SYSTEM ─────────────────────────────────────────────────────────
+// Chief: "this LAB needs its own seprate level system".
 //
-// Saved to localStorage, NOT to a level file. The lab is a disposable sandbox and must
-// never gain a write path into `src_scroll/levels/` — that is Chief's data and the one
-// thing in this project that cannot be regenerated. A saved lab room is a scratch pad
-// that lives in this browser.
-const SAVE_KEY = 'overcharge.lab.room.v1';
+// Deliberately NOT the game's level system. These are named rooms with their own tiles
+// and spawn, stored in localStorage and exportable as JSON. Nothing here can read or
+// write `src_scroll/levels/` — the lab must never gain a path into Chief's level data,
+// which is the one thing in this project that cannot be regenerated. Keeping the two
+// systems apart is the point, not a limitation.
+//
+// Fixed 30x17 geometry for v1 so every lab level fits the canvas exactly; a stored level
+// whose shape does not match is refused rather than misread.
+const LV_KEY = 'overcharge.lab.levels.v1';
 const status = document.getElementById('te-status');
 function say(msg, warn = false) {
   status.innerHTML = warn ? `<span style="color:#ffd166">${msg}</span>` : msg;
   clearTimeout(say._t);
-  say._t = setTimeout(() => { status.textContent = ''; }, 4000);
+  say._t = setTimeout(() => { status.textContent = ''; }, 5000);
 }
 
-function saveRoom() {
-  try {
-    // Store as a compact run of 0/1 plus the dimensions, so a room saved before a layout
-    // change is REJECTED on load rather than silently misread into the wrong shape.
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ cols: COLS, rows: ROWS, tiles: Array.from(grid) }));
-    const n = grid.reduce((a, v) => a + v, 0);
-    say(`Saved — ${n} tiles. Reloads automatically next visit.`);
-  } catch (e) { say('Save failed: ' + e.message, true); }
+let levels = [];        // [{ id, name, cols, rows, tiles:number[], spawn:{x,y} }]
+let activeId = null;
+let dirty = false;      // unsaved tile edits, shown as * in the list
+
+const templateTiles = () => { const g = new Uint8Array(COLS * ROWS);
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (ROOM[r][c] === '#') g[r*COLS+c] = 1;
+  return Array.from(g); };
+
+// A brand new level gets a floor, not a void. An empty room drops the player forever and
+// the first thing anyone would do is paint a floor anyway.
+function blankTiles() {
+  const g = new Uint8Array(COLS * ROWS);
+  for (let c = 0; c < COLS; c++) { g[(ROWS-1)*COLS + c] = 1; g[(ROWS-2)*COLS + c] = 1; }
+  return Array.from(g);
 }
-function loadRoom(quiet = false) {
+
+const newId = () => 'lv_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const active = () => levels.find(l => l.id === activeId) || null;
+
+function persist() {
+  try { localStorage.setItem(LV_KEY, JSON.stringify({ activeId, levels })); return true; }
+  catch (e) { say('Could not save: ' + e.message, true); return false; }
+}
+
+function loadAll() {
   try {
-    const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) { if (!quiet) say('Nothing saved yet.', true); return false; }
-    const d = JSON.parse(raw);
-    if (d.cols !== COLS || d.rows !== ROWS || !Array.isArray(d.tiles) || d.tiles.length !== COLS * ROWS) {
-      if (!quiet) say('Saved room does not match the current layout — ignored.', true);
-      return false;
+    const raw = localStorage.getItem(LV_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (Array.isArray(d.levels)) {
+        levels = d.levels.filter(l => l && l.cols === COLS && l.rows === ROWS
+                                   && Array.isArray(l.tiles) && l.tiles.length === COLS * ROWS);
+        const dropped = d.levels.length - levels.length;
+        if (dropped > 0) say(`${dropped} saved level(s) had a different shape and were skipped.`, true);
+        activeId = levels.some(l => l.id === d.activeId) ? d.activeId : (levels[0]?.id ?? null);
+      }
     }
-    grid = new Uint8Array(d.tiles);
-    if (!quiet) say('Loaded your saved room.');
-    return true;
-  } catch (e) { if (!quiet) say('Load failed: ' + e.message, true); return false; }
+  } catch (e) { say('Saved levels unreadable — starting fresh.', true); levels = []; }
+
+  if (levels.length === 0) {
+    levels = [{ id: newId(), name: 'Test Room', cols: COLS, rows: ROWS,
+                tiles: templateTiles(), spawn: { x: SPAWN.x, y: SPAWN.y } }];
+    activeId = levels[0].id;
+    persist();
+  }
 }
+
+function applyActive() {
+  const l = active(); if (!l) return;
+  grid = new Uint8Array(l.tiles);
+  SPAWN.x = l.spawn.x; SPAWN.y = l.spawn.y;
+  reset();
+  dirty = false;
+  renderList();
+}
+
+function renderList() {
+  const sel = document.getElementById('lv-select');
+  sel.replaceChildren();
+  for (const l of levels) {
+    const o = document.createElement('option');
+    o.value = l.id;
+    o.textContent = (l.id === activeId && dirty ? '* ' : '') + l.name;
+    sel.append(o);
+  }
+  sel.value = activeId ?? '';
+}
+
+function saveActive() {
+  const l = active(); if (!l) return;
+  l.tiles = Array.from(grid);
+  if (persist()) { dirty = false; renderList(); say(`Saved "${l.name}" — ${grid.reduce((a,v)=>a+v,0)} tiles.`); }
+}
+
+document.getElementById('lv-select').addEventListener('change', e => {
+  if (dirty && !confirm('This level has unsaved edits. Switch anyway?')) { renderList(); return; }
+  activeId = e.target.value; persist(); applyActive(); canvas.focus();
+});
+document.getElementById('lv-save').addEventListener('click', () => { saveActive(); canvas.focus(); });
+document.getElementById('lv-new').addEventListener('click', () => {
+  const name = prompt('New lab level name:', 'Room ' + (levels.length + 1));
+  if (!name) return;
+  levels.push({ id: newId(), name, cols: COLS, rows: ROWS, tiles: blankTiles(),
+                spawn: { x: 3 * TILE, y: (ROWS - 4) * TILE } });
+  activeId = levels[levels.length - 1].id; persist(); applyActive();
+  say(`Created "${name}" with a floor to stand on.`); canvas.focus();
+});
+document.getElementById('lv-dup').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  const name = prompt('Duplicate as:', l.name + ' copy'); if (!name) return;
+  levels.push({ id: newId(), name, cols: COLS, rows: ROWS,
+                tiles: Array.from(grid), spawn: { ...l.spawn } });
+  activeId = levels[levels.length - 1].id; persist(); applyActive();
+  say(`Duplicated to "${name}".`); canvas.focus();
+});
+document.getElementById('lv-rename').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  const name = prompt('Rename to:', l.name); if (!name) return;
+  l.name = name; persist(); renderList(); say('Renamed.'); canvas.focus();
+});
+document.getElementById('lv-del').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  if (levels.length === 1) { say('That is the only lab level — make another first.', true); return; }
+  if (!confirm(`Delete "${l.name}"? This cannot be undone.`)) return;
+  levels = levels.filter(x => x.id !== l.id);
+  activeId = levels[0].id; persist(); applyActive(); say(`Deleted "${l.name}".`); canvas.focus();
+});
+document.getElementById('lv-spawn').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  l.spawn = { x: Math.round(p.x / TILE) * TILE, y: Math.round(p.y / TILE) * TILE };
+  SPAWN.x = l.spawn.x; SPAWN.y = l.spawn.y;
+  persist(); say(`Spawn set to (${l.spawn.x}, ${l.spawn.y}) — R returns here.`); canvas.focus();
+});
+document.getElementById('lv-reset-room').addEventListener('click', () => {
+  if (!confirm('Replace this level\'s tiles with the built-in template?')) return;
+  grid = new Uint8Array(templateTiles()); dirty = true; renderList();
+  say('Template loaded — press 💾 to keep it.'); canvas.focus();
+});
+
+// Export / import so a lab level can leave this browser. JSON only, and import validates
+// shape before touching anything.
+document.getElementById('lv-export').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  const payload = { _schema: 'overcharge-lab-level@1', ...l, tiles: Array.from(grid) };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = l.name.replace(/[^\w.-]+/g, '_') + '.lab.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  say('Exported ' + a.download);
+});
+document.getElementById('lv-import').addEventListener('click', () => {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.addEventListener('change', async () => {
+    const f = inp.files?.[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (d.cols !== COLS || d.rows !== ROWS || !Array.isArray(d.tiles) || d.tiles.length !== COLS * ROWS)
+        return say('That file is not a lab level of this shape — ignored.', true);
+      levels.push({ id: newId(), name: d.name || f.name.replace(/\.lab\.json$/, ''),
+                    cols: COLS, rows: ROWS, tiles: d.tiles.map(v => v ? 1 : 0),
+                    spawn: d.spawn && Number.isFinite(d.spawn.x) ? d.spawn : { x: 3*TILE, y: (ROWS-4)*TILE } });
+      activeId = levels[levels.length - 1].id; persist(); applyActive();
+      say(`Imported "${levels[levels.length-1].name}".`);
+    } catch (e) { say('Import failed: ' + e.message, true); }
+  });
+  inp.click();
+});
 
 btnEdit.addEventListener('click', () => { editMode = !editMode; syncEdit(); canvas.focus(); });
 btnSwatch.addEventListener('click', () => { editMode = true; syncEdit(); canvas.focus(); });
-btnRestore.addEventListener('click', () => { restoreRoom(); say('Back to the built-in room (your save is untouched).'); canvas.focus(); });
-document.getElementById('te-save').addEventListener('click', () => { saveRoom(); canvas.focus(); });
-document.getElementById('te-load').addEventListener('click', () => { loadRoom(); canvas.focus(); });
-document.getElementById('te-clear').addEventListener('click', () => {
-  localStorage.removeItem(SAVE_KEY); say('Saved room deleted.'); canvas.focus();
-});
 // The specific thing Chief asked for: fall in a pit, one click, floor appears under you.
 btnFillRow.addEventListener('click', () => {
   const r = Math.min(ROWS - 1, Math.floor((p.y + PLAYER_H + 1) / TILE));
@@ -585,6 +712,13 @@ window.__lab = {
   findLedge,
   setTile, solidAt, restoreRoom,
   TILE, PLAYER_W, PLAYER_H,
+  // lab level system, for tests
+  levels: () => levels.map(l => ({ id: l.id, name: l.name })),
+  activeId: () => activeId,
+  isDirty: () => dirty,
+  saveActive, applyActive,
+  switchTo: (id) => { activeId = id; persist(); applyActive(); },
+  spawn: () => ({ ...SPAWN }),
   state: () => ({ state: sprite.state, ledge: p.ledge, climbing: p.climbing,
                   x: p.x, y: p.y, vy: p.vy, grounded: p.grounded }),
   // Put the body beside a lip and let the real step() decide. No teleport-into-hanging:
@@ -599,8 +733,14 @@ window.__lab = {
   },
 };
 
+markDirty = () => { if (!dirty) { dirty = true; renderList(); } };
+
 syncEdit();
-// Auto-restore a saved room on boot, quietly. Chief asked for edits to persist, and
-// having to press Load every visit is not persistence.
-if (loadRoom(true)) say('Loaded your saved room.');
+loadAll();
+applyActive();
+window.addEventListener('beforeunload', e => {
+  // Losing a room you spent time on because you closed the tab is exactly the kind of
+  // silent data loss this project has already paid for twice.
+  if (dirty) { e.preventDefault(); e.returnValue = ''; }
+});
 requestAnimationFrame(frame);

@@ -224,41 +224,72 @@ ok(Math.abs(climbed.after.y - (LIP.r * 32 - 30)) < 2, 'lands exactly on the lip 
 
 ok(await page.locator('#te-toggle').count() === 1, 'tile edit panel exists');
 
-// ── saving the room ──
-console.log('\n[ save / load the room ]');
-await page.evaluate(() => window.__lab.restoreRoom());
-const before = await page.evaluate(() => window.__lab.solidAt(2, 5));
-await page.evaluate(() => { window.__lab.setTile(2, 5, 1); window.__lab.setTile(3, 5, 1); });
-ok(!before && await page.evaluate(() => window.__lab.solidAt(2, 5)), 'a tile can be painted');
+// ── lab level system ──
+console.log('\n[ lab level system ]');
+const LK = 'overcharge.lab.levels.v1';
+ok((await page.evaluate(() => window.__lab.levels())).length >= 1, 'starts with a lab level',
+   JSON.stringify(await page.evaluate(() => window.__lab.levels())));
+ok(await page.evaluate(() => !!localStorage.getItem('overcharge.lab.levels.v1')), 'levels persist to localStorage');
 
-await page.locator('#te-save').click(); await page.waitForTimeout(200);
-ok(/Saved/.test(await page.locator('#te-status').innerText()), 'Save reports success',
+// painting marks the level dirty, so an unsaved edit is never invisible
+await page.evaluate(() => window.__lab.setTile(2, 5, 1));
+ok(await page.evaluate(() => window.__lab.isDirty()), 'painting marks the level unsaved');
+ok(/^\*/.test(await page.locator('#lv-select option:checked').innerText()),
+   'the level list shows * while unsaved', await page.locator('#lv-select option:checked').innerText());
+
+await page.locator('#lv-save').click(); await page.waitForTimeout(250);
+ok(!(await page.evaluate(() => window.__lab.isDirty())), 'saving clears the unsaved marker');
+ok(/Saved/.test(await page.locator('#te-status').innerText()), 'save reports success',
    (await page.locator('#te-status').innerText()).slice(0, 60));
-ok(await page.evaluate(() => !!localStorage.getItem('overcharge.lab.room.v1')), 'the room is in localStorage');
 
-// Restore must NOT wipe the save — that distinction matters or a stray click loses work.
-await page.locator('#te-restore').click(); await page.waitForTimeout(150);
-ok(!(await page.evaluate(() => window.__lab.solidAt(2, 5))), 'Restore room returns the built-in layout');
-ok(await page.evaluate(() => !!localStorage.getItem('overcharge.lab.room.v1')), 'Restore does NOT delete the save');
-
-await page.locator('#te-load').click(); await page.waitForTimeout(200);
-ok(await page.evaluate(() => window.__lab.solidAt(2, 5)), 'Load brings the painted tiles back');
-
-// It has to survive a reload, or it is not saving.
+// survives a reload — otherwise it is not a level system
 await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
-ok(await page.evaluate(() => window.__lab.solidAt(2, 5)), 'the saved room auto-loads after a page reload');
+ok(await page.evaluate(() => window.__lab.solidAt(2, 5)), 'the saved level reloads with the page');
 
-await page.locator('#te-clear').click(); await page.waitForTimeout(150);
-ok(await page.evaluate(() => !localStorage.getItem('overcharge.lab.room.v1')), 'Clear saved removes it');
+// a second level, independent tiles
+const n0 = (await page.evaluate(() => window.__lab.levels())).length;
+await page.evaluate(() => {
+  const L = window.__lab;
+  const raw = JSON.parse(localStorage.getItem('overcharge.lab.levels.v1'));
+  raw.levels.push({ id: 'lv_test2', name: 'Second', cols: 30, rows: 17,
+                    tiles: new Array(30 * 17).fill(0), spawn: { x: 96, y: 416 } });
+  localStorage.setItem('overcharge.lab.levels.v1', JSON.stringify(raw));
+});
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok((await page.evaluate(() => window.__lab.levels())).length === n0 + 1, 'a second lab level appears in the list');
 
-// A save from a different room shape must be refused, not misread into the wrong geometry.
-await page.evaluate(() => localStorage.setItem('overcharge.lab.room.v1',
-  JSON.stringify({ cols: 5, rows: 5, tiles: new Array(25).fill(1) })));
-await page.locator('#te-load').click(); await page.waitForTimeout(200);
-ok(/does not match/.test(await page.locator('#te-status').innerText()),
-   'a save from a different layout is REJECTED, not misread',
-   (await page.locator('#te-status').innerText()).slice(0, 70));
-await page.evaluate(() => localStorage.removeItem('overcharge.lab.room.v1'));
+await page.evaluate(() => window.__lab.switchTo('lv_test2')); await page.waitForTimeout(300);
+ok(!(await page.evaluate(() => window.__lab.solidAt(2, 5))), 'switching levels swaps the tiles');
+ok((await page.evaluate(() => window.__lab.activeId())) === 'lv_test2', 'the active level follows the switch');
+
+// spawn travels with the level
+ok((await page.evaluate(() => window.__lab.spawn())).y === 416, 'each level carries its own spawn',
+   JSON.stringify(await page.evaluate(() => window.__lab.spawn())));
+
+// a stored level of the wrong shape must be refused, not misread into bad geometry
+await page.evaluate(() => {
+  const raw = JSON.parse(localStorage.getItem('overcharge.lab.levels.v1'));
+  raw.levels.push({ id: 'lv_bad', name: 'WrongShape', cols: 5, rows: 5, tiles: new Array(25).fill(1), spawn: { x: 0, y: 0 } });
+  localStorage.setItem('overcharge.lab.levels.v1', JSON.stringify(raw));
+});
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok(!(await page.evaluate(() => window.__lab.levels())).some(l => l.id === 'lv_bad'),
+   'a stored level with the wrong shape is REJECTED, not misread');
+
+// The lab must never be able to touch the game's levels. Strip comments first — the
+// source DISCUSSES src_scroll/levels at length to explain why it stays away from it, and
+// an assertion that cannot tell a comment from a call is worthless.
+const srcRaw = fs.readFileSync(path.join(repo, 'editor/overcharge-lab.js'), 'utf8');
+const src = srcRaw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+ok(!/src_scroll\/levels/.test(src), 'no CODE path references src_scroll/levels');
+ok(!/from ['"][^'"]*persistence|showDirectoryPicker|getFileHandle|createWritable/.test(src),
+   'the lab imports no file-write path — it cannot reach a level file');
+ok(/localStorage/.test(src), 'persistence is localStorage only');
+
+await page.evaluate(() => localStorage.removeItem('overcharge.lab.levels.v1'));
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok((await page.evaluate(() => window.__lab.levels())).length === 1,
+   'clearing storage reseeds a single default level rather than an empty list');
 
 console.log('\n[ sprite pack ]');
 ok(/PACK\s+hero-v3/.test(await hud()), 'default pack is hero-v3', (await hud()).match(/PACK[^A-Z]*/)?.[0] ?? '');
@@ -282,8 +313,7 @@ ok((await field('GROUNDED')) === 'yes',
 
 await page.locator('#te-toggle').click(); await page.waitForTimeout(140);
 ok(/TILE EDIT\s+ON/.test(await hud()), 'Edit toggles ON');
-await page.locator('#te-restore').click(); await page.waitForTimeout(200);
-ok(true, 'Restore room runs clean');
+await page.locator('#lv-reset-room').count().then(n => ok(n === 1, 'Reset-to-template button exists'));
 
 ok(errors.length === 0, 'no console errors', errors.slice(0,3).join(' | ') || 'clean');
 ok(failed.length === 0, 'no failed requests', [...new Set(failed)].slice(0,3).join(' | ') || 'clean');
