@@ -342,6 +342,53 @@ export function preloadManifestImages() {
   })));
 }
 
+// ── Pixel-perfect decoration hit-testing ─────────────────────────────────
+// The trim box (assetVisualBox above) tightens the CLICK/SELECTION rect to
+// the sprite's content bounding box, but a non-convex sprite (e.g. a thin
+// lamp pole under a wide curved head) still has genuinely transparent gaps
+// INSIDE that rectangle, to the left/right of the pole, where whatever is
+// drawn behind it (another decoration, a wall) should win the click instead.
+// A rectangle can never fix this â€” only reading the actual pixel can.
+// Lazy per-path cache: draw the already-loading <img> to an offscreen
+// canvas once, read its alpha channel, keep it around. Fails OPEN (treats
+// the pixel as opaque) whenever alpha data isn't available â€” image not
+// loaded yet, headless test runner (document.createElement('canvas') has
+// no real getContext), or a CORS-tainted canvas â€” so this can only make
+// clicking MORE accurate, never break clicking outright.
+const _alphaCache = new Map();
+function _alphaDataFor(path) {
+  if (_alphaCache.has(path)) return _alphaCache.get(path);
+  let result = null;
+  try {
+    const img = getCachedImage(path);
+    if (img && img.complete && img.naturalWidth > 0) {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      const ctx = canvas.getContext && canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        result = { data, w: canvas.width, h: canvas.height };
+      }
+    }
+  } catch { /* CORS-tainted canvas, or asset not actually an image â€” fail open */ }
+  _alphaCache.set(path, result);
+  return result;
+}
+
+// `u`,`v` are fractional (0..1) coords within the decoration's full PLACED
+// box (ref.w/ref.h â€” same space hitRect/assetVisualBox work in, NOT the
+// trimmed sub-box). Returns false only when alpha data is available AND the
+// pixel there is transparent; true otherwise (opaque, or data unavailable).
+export function isOpaqueAt(path, u, v) {
+  const info = _alphaDataFor(path);
+  if (!info) return true;
+  const px = Math.floor(u * info.w), py = Math.floor(v * info.h);
+  if (px < 0 || py < 0 || px >= info.w || py >= info.h) return false;
+  return info.data[(py * info.w + px) * 4 + 3] > 24;
+}
+
 export const state = {
   // Loaded data
   manifest:     null,   // full asset manifest json (see MANIFEST.md)

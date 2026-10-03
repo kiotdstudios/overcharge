@@ -15,7 +15,7 @@ import { sourceBox } from '../src_scroll/source-visuals.js';
 // that's selected. Tools (select tool, delete, copy/paste) read and write it.
 // Selection is transient (not saved with level). Cleared on level load.
 
-import { state, notify, TILE_SIZE, levelRows, worldToScreen, assetVisualBox } from './state.js';
+import { state, notify, TILE_SIZE, levelRows, worldToScreen, assetVisualBox, isOpaqueAt } from './state.js';
 
 // Move-handle visual geometry (screen-space, constant across zoom).
 export const MOVE_HANDLE_RADIUS = 6;   // dot radius in screen px (visual)
@@ -310,12 +310,24 @@ export function objectAt(worldX, worldY) {
     }
   }
 
-  // Decorations next (they sit on top of terrain visually)
+  // Decorations next (they sit on top of terrain visually). The trimmed
+  // hitRect is still a rectangle, but non-convex art (e.g. a thin lamp
+  // pole under a wide curved head) leaves genuinely transparent gaps
+  // inside that rectangle. A click landing in one of those gaps must fall
+  // through to whatever is drawn beneath (another decoration, then
+  // terrain) rather than grabbing this decoration just because the click
+  // was inside its bounding box (Chief: too easy to grab the lamp when
+  // aiming for the wall behind it).
   if (Array.isArray(L.decorations)) {
     for (let i = L.decorations.length - 1; i >= 0; i--) {
       const d = L.decorations[i];
       const rect = hitRect('decoration', d);
-      if (rect && _hits(rect, worldX, worldY)) return { kind: 'decoration', ref: d };
+      if (rect && _hits(rect, worldX, worldY)) {
+        const u = d.w ? (worldX - d.x) / d.w : 0.5;
+        const v = d.h ? (worldY - d.y) / d.h : 0.5;
+        if (isOpaqueAt(d.src, u, v)) return { kind: 'decoration', ref: d };
+        // transparent pixel at this exact spot — keep searching lower z-order
+      }
     }
   }
 
