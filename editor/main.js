@@ -253,6 +253,26 @@ function _applyFlip() {
 }
 btnFlip?.addEventListener('click', () => _applyFlip());
 
+// ── Arrow-key nudge ───────────────────────────────────────────────────────
+// Moves every selected object (decorations + gameplay markers + playerStart —
+// anything selectedRefs() returns) by one step per press. Plain arrow = 1px
+// fine control; Shift+arrow = TILE_SIZE (32px), matching the gameplay snap
+// grid so a nudge can re-align something that drifted off-grid. Multiple
+// selected objects move together as one undo entry via makeComposite, same
+// pattern as the mouse-drag move commit in tools.js.
+function _applyNudge(dx, dy) {
+  const refs = Selection.selectedRefs();
+  if (refs.length === 0) return false;
+  const actions = [];
+  for (const { ref } of refs) {
+    const a = Actions.moveObject(ref, dx, dy);
+    if (a) actions.push(a);
+  }
+  if (actions.length === 0) return false;
+  History.apply(actions.length === 1 ? actions[0] : History.makeComposite(actions, 'nudge'));
+  return true;
+}
+
 // ── Level workflow wiring ─────────────────────────────────────────────────
 function syncDirtyAfterHistory() {
   if (!_committedChecksum || !state.level || _isLocalOnly()) return;
@@ -1066,6 +1086,12 @@ window.addEventListener('keydown', async (e) => {
   // Rotate — R = 90° CW, Shift+R = 90° CCW
   if (!ctrl && (e.key === 'r' || e.key === 'R')) { e.preventDefault(); _applyRotate(shift ? -90 : 90); }
     if (!ctrl && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); _applyFlip(); }
+  if (!ctrl && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    const step = shift ? TILE_SIZE : 1;
+    const dx = e.key === 'ArrowLeft' ? -step : e.key === 'ArrowRight' ? step : 0;
+    const dy = e.key === 'ArrowUp'   ? -step : e.key === 'ArrowDown'  ? step : 0;
+    if (_applyNudge(dx, dy)) e.preventDefault();
+  }
 });
 
 // beforeunload — warn on unsaved changes (Ctrl+R, tab close, etc.)
