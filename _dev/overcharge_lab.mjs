@@ -222,6 +222,21 @@ ok(climbed.after.ledge === null, 'ledge state is released after the climb');
 ok(Math.abs(climbed.after.y - (LIP.r * 32 - 30)) < 2, 'lands exactly on the lip surface',
    `y=${climbed.after.y.toFixed(0)} expected ${LIP.r * 32 - 30}`);
 
+// THE POSE MUST READ RIGHT. drawHeroFrame is foot-anchored, so the hands' screen position
+// is feet minus HERO_DRAW*(496-69)/512. The first build hung the body with its head below
+// the lip, putting the hands 42.7px ABOVE it — the character reached into empty air. This
+// pins the hands to the lip so that cannot regress silently.
+const pose = await page.evaluate(async ({ c, r }) => {
+  const L = window.__lab;
+  L.placeBeside(c, r, 1);
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  const s = L.state();
+  return { handY: s.y + L.PLAYER_H - (80 * (496 - 69) / 512), lipY: r * 32, bodyY: s.y };
+}, LIP);
+ok(Math.abs(pose.handY - pose.lipY) < 2, 'the hands land ON the lip, not above it',
+   `hands y=${pose.handY.toFixed(1)} lip y=${pose.lipY}`);
+ok(pose.bodyY > pose.lipY, 'the body hangs BELOW the lip', `body y=${pose.bodyY.toFixed(1)}`);
+
 ok(await page.locator('#te-toggle').count() === 1, 'tile edit panel exists');
 
 // ── lab level system ──

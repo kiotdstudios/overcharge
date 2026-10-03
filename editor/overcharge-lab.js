@@ -36,7 +36,22 @@ const HURT_TIME  = 0.45;
 // production; `hero-sprites.js` already accepts `status.traversal`, which is the only
 // hook used.
 const LEDGE_REACH = 10;    // px in front of the body that counts as touching a wall
-const LEDGE_HANG  = 6;     // px the head sits below the ledge lip while hanging
+
+// WHERE THE BODY HANGS, derived from the art instead of guessed.
+//
+// Chief: "either the animation needs to be different or this climbing mechanic needs to be
+// improved." The animation was fine; the placement was wrong. `drawHeroFrame` anchors on
+// the FEET and scales the whole 512px canvas, and ledge-climb frame 0 has its content top
+// (the raised hands) at source row 69. So the hands land
+//   HERO_DRAW * (496 - 69) / 512 = 66.7px
+// above the feet. The first version hung the body with its head 6px BELOW the lip, which
+// put the hands 42.7px ABOVE it — the character reached into empty air a tile and a third
+// over the ledge, which is exactly what it looked like.
+//
+// Hanging correctly means HANDS ON THE LIP and the body below it.
+const LEDGE_FRAME0_TOP = 69;                                   // measured, hero-v3 ledge-climb
+const HAND_ABOVE_FEET  = HERO_DRAW * (496 - LEDGE_FRAME0_TOP) / 512;
+const LEDGE_HANG_Y     = HAND_ABOVE_FEET - PLAYER_H;           // body top, relative to the lip
 // An attack must LATCH, not be read from the held key. A quick tap fires keydown and
 // keyup inside one frame, so clearing the flag on keyup meant the animator never saw a
 // rising edge and the strike silently never played. Caught by the smoke test tapping J.
@@ -253,24 +268,34 @@ function step(dt) {
   // ── LEDGE: hanging or climbing short-circuits normal movement ──────────────
   if (p.ledge) {
     const { c, r } = p.ledge;
+    const lipY   = r * TILE;
+    const hangY  = lipY + LEDGE_HANG_Y;        // hands on the lip, body below
+    const standY = lipY - PLAYER_H;            // final: stood on top of the lip
+    const hangX  = p.ledge.dir > 0 ? c * TILE - PLAYER_W : (c + 1) * TILE;
     p.vx = 0; p.vy = 0;                        // no gravity while attached
-    p.x = p.ledge.dir > 0 ? c * TILE - PLAYER_W : (c + 1) * TILE;
-    p.y = r * TILE - LEDGE_HANG;
     p.facingRight = p.ledge.dir > 0;
 
     if (p.climbing) {
-      // The clip drives the climb. When it finishes, the player is standing on the lip —
-      // position is committed ONCE here rather than interpolated, so the landing can never
-      // disagree with collision.
       sprite.update(dt, false, p.facingRight, false, false, false, false, 0, 0, false,
         { traversal: 'ledge-climb' });
+      // TRAVEL with the clip rather than snapping at the end. The first version held the
+      // body at the hang spot for all 8 frames and teleported it on the last one, so the
+      // character mimed a climb on the spot and then jumped. Now position follows the
+      // clip's progress, and x eases in only over the second half — a real mantle is
+      // "pull up, then over", not a diagonal slide.
+      const prog = Math.min(1, (sprite._current._frame + 1) / sprite._current.frames.length);
+      p.y = hangY + (standY - hangY) * prog;
+      const xProg = Math.max(0, (prog - 0.5) * 2);
+      p.x = hangX + (c * TILE - hangX) * xProg;
       if (sprite._current.done) {
-        p.x = c * TILE;                        // pull up onto the tile itself
-        p.y = r * TILE - PLAYER_H;
+        p.x = c * TILE; p.y = standY;          // commit the exact final cell
         p.ledge = null; p.climbing = false; p.grounded = true;
       }
       return;
     }
+
+    p.x = hangX;
+    p.y = hangY;
 
     // Hanging. Up/W climbs, Down/S drops, and letting go restores normal fall.
     if (Input.pressedAny(...JUMP)) {
