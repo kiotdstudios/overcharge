@@ -1811,8 +1811,8 @@
   },
   "decorations": [
     {
-      "src": "assets/objects/night-city-buildings/warehouse/warehouse_right.png",
-      "x": 1221,
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
+      "x": 1320,
       "y": 110,
       "w": 128,
       "h": 256,
@@ -3376,6 +3376,24 @@
       "x": 1551,
       "y": 77,
       "w": 192,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "x": 1224,
+      "y": 110,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "x": 1418,
+      "y": 110,
+      "w": 128,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
