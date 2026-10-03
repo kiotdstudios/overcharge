@@ -1612,117 +1612,11 @@
       "name": "Wheel Drone"
     },
     {
-      "id": "neon_rise_lightning_billboard",
-      "name": "Neon Rise · lightning billboard",
-      "path": "assets/objects/neon-rise-dressing/lightning-billboard.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 224,
-      "frame_height": 192,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
-    },
-    {
-      "id": "neon_rise_vertical_glyph_sign",
-      "name": "Neon Rise · vertical glyph sign",
-      "path": "assets/objects/neon-rise-dressing/vertical-glyph-sign.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 96,
-      "frame_height": 192,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
-    },
-    {
-      "id": "neon_rise_amber_service_lamp",
-      "name": "Neon Rise · amber service lamp",
-      "path": "assets/objects/neon-rise-dressing/amber-service-lamp.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 160,
-      "frame_height": 96,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
-    },
-    {
-      "id": "neon_rise_antenna_utility_cluster",
-      "name": "Neon Rise · antenna utility cluster",
-      "path": "assets/objects/neon-rise-dressing/antenna-utility-cluster.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 144,
-      "frame_height": 112,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
-    },
-    {
-      "id": "neon_rise_cyan_magenta_graffiti",
-      "name": "Neon Rise · cyan magenta graffiti",
-      "path": "assets/objects/neon-rise-dressing/cyan-magenta-graffiti.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 320,
-      "frame_height": 144,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
-    },
-    {
-      "id": "neon_rise_service_vent_panel",
-      "name": "Neon Rise · service vent panel",
-      "path": "assets/objects/neon-rise-dressing/service-vent-panel.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 176,
-      "frame_height": 112,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
-    },
-    {
-      "id": "neon_rise_lit_conduit_pipe",
-      "name": "Neon Rise · lit conduit pipe",
-      "path": "assets/objects/neon-rise-dressing/lit-conduit-pipe.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 224,
-      "frame_height": 96,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
-    },
-    {
       "id": "night_city_pipe_short",
       "name": "Night City pipe - short",
       "path": "assets/objects/night-city-props/pipes/pipe-short.png",
       "category": "decoration",
       "tags": [
-        "neon_rise_dressing",
         "night_city_props",
         "pipe",
         "scenery",
@@ -1739,7 +1633,6 @@
       "path": "assets/objects/night-city-props/pipes/pipe-elbow.png",
       "category": "decoration",
       "tags": [
-        "neon_rise_dressing",
         "night_city_props",
         "pipe",
         "scenery",
@@ -1756,7 +1649,6 @@
       "path": "assets/objects/night-city-props/pipes/pipe-branch.png",
       "category": "decoration",
       "tags": [
-        "neon_rise_dressing",
         "night_city_props",
         "pipe",
         "scenery",
@@ -1773,7 +1665,6 @@
       "path": "assets/objects/night-city-props/pipes/pipe-short-unlit.png",
       "category": "decoration",
       "tags": [
-        "neon_rise_dressing",
         "night_city_props",
         "pipe",
         "scenery",
@@ -1790,7 +1681,6 @@
       "path": "assets/objects/night-city-props/pipes/pipe-elbow-unlit.png",
       "category": "decoration",
       "tags": [
-        "neon_rise_dressing",
         "night_city_props",
         "pipe",
         "scenery",
@@ -1807,7 +1697,6 @@
       "path": "assets/objects/night-city-props/pipes/pipe-branch-unlit.png",
       "category": "decoration",
       "tags": [
-        "neon_rise_dressing",
         "night_city_props",
         "pipe",
         "scenery",
@@ -1817,21 +1706,6 @@
       "frame_height": 104,
       "frame_count": 1,
       "notes": "Unlit visual dressing. No collision or power logic."
-    },
-    {
-      "id": "neon_rise_chainlink_railing",
-      "name": "Neon Rise · chainlink railing",
-      "path": "assets/objects/neon-rise-dressing/chainlink-railing.png",
-      "category": "decoration",
-      "tags": [
-        "neon_rise_dressing",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 208,
-      "frame_height": 96,
-      "frame_count": 1,
-      "notes": "Placeable visual dressing only. No collision, power, light, or switch logic. Move/resize in Builder as needed."
     },
     {
       "id": "building_nc_warehouse_left",

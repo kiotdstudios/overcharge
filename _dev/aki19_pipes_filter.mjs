@@ -66,10 +66,24 @@ assert(!electricItems.some(it => it.tags.indexOf('pipe') >= 0 && it.tags.indexOf
   'Electric filter does not leak plain pipe-only items in');
 St.setElectricOnly(false);
 
+// The neon-rise dressing pack was REMOVED at Chief's instruction. Six pipe entries had
+// been double-tagged `neon_rise_dressing`, which is the only reason they ever appeared
+// under this filter — the original assertion here was measuring that double-tag, not a
+// real relationship. Deleting the pack by tag would therefore have taken the pipes with
+// it; they were removed by path instead and the stray tag stripped.
+//
+// New truth: the Neon Rise filter matches nothing, and the pipes are unaffected.
 St.setNeonRiseOnly(true);
 const neonItems = St.filteredManifestItems();
-assert(neonItems.length >= 6, 'Neon Rise filter (shared tag with pipes) still includes the pipe set', String(neonItems.length));
+assert(neonItems.length === 0, 'Neon Rise filter returns nothing — the pack is removed', String(neonItems.length));
 St.setNeonRiseOnly(false);
+
+St.setPipeOnly(true);
+const pipesAfter = St.filteredManifestItems();
+assert(pipesAfter.length >= 6, 'the 6 pipes SURVIVED the neon-rise removal', String(pipesAfter.length));
+assert(!pipesAfter.some(it => (it.tags || []).indexOf('neon_rise_dressing') >= 0),
+  'no pipe still carries the stray neon_rise_dressing tag');
+St.setPipeOnly(false);
 
 section('state.filter defaults — pipeOnly starts false, matches every other quick-filter default');
 St.setPipeOnly(false);
