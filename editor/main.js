@@ -1670,8 +1670,19 @@ function _doSpawn(e, canvas) {
     const a = state.pendingSpawn.asset || {};
     // "assets/objects/night-city-props/streetlight/00.png" -> ".../streetlight/"
     const dir = String(a.path || '').replace(/[^/]*$/, '');
+    // CHIEF 2026-09-27: "i cant move the neon sign up; its like its locked to this one
+    // spot". It was. Every source-prop ran through _groundAt(), which pins an object to
+    // the nearest surface — right for a streetlight or a vending machine, which stand on
+    // pavement, and wrong for a sign, a fuse box or a camera, which bolt to a wall.
+    //
+    // Data-driven off `mount` in ASSET_MANIFEST.json, not a hardcoded id list here, so
+    // Aki can ship a new wall prop without touching editor code. The flag is COPIED INTO
+    // the level object because the runtime never reads the manifest, and because the
+    // grounding assertions need to know this one is allowed to float.
+    const wallMounted = a.mount === 'wall';
     obj = {
-      x: _snapGrid(wx), y: _groundAt(_snapGrid(wx) + 14, wy, 28),
+      x: _snapGrid(wx),
+      y: wallMounted ? _snapGrid(wy) : _groundAt(_snapGrid(wx) + 14, wy, 28),
       label: _propLabel(a.id),
       charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
       kind: 'prop',
@@ -1680,6 +1691,7 @@ function _doSpawn(e, canvas) {
       artW:   a.frame_width  || 64,
       artH:   a.frame_height || 64,
     };
+    if (wallMounted) obj.mount = 'wall';
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'switch') {
     obj = { id: 'sw_' + Date.now(), x: _snapGrid(wx), y: _snapGrid(wy), required: 1, linkedId: null, label: '' };

@@ -24,7 +24,7 @@ import { GRAVITY, JUMP_FORCE, PLAYER_SPEED, PLAYER_W, PLAYER_H, TILE } from '../
 // production's `Input` exactly: same key codes, same held/pressed edge semantics.
 import * as Input from '../src_scroll/input.js';
 // Deco animation playback is the SAME stateless module production uses for animated
-// decorations \u2014 reused read-only here so a placed vending machine or neon sign plays
+// decorations — reused read-only here so a placed vending machine or neon sign plays
 // its real powered/absorbing/drained cycle, not a frozen frame 0.
 import { loadDecoAnimations, animationFor, framesFor, phaseFor, frameAt } from '../src_scroll/deco-anim.js';
 
@@ -33,6 +33,29 @@ const HERO_DRAW  = 80;     // game-scale display, same as Hero Lab's 80px previe
 const COYOTE     = 0.10;   // lab-only convenience so jump tests are not frame-perfect
 const JUMP_BUF   = 0.12;
 const HURT_TIME  = 0.45;
+// ── Ledge grab, LAB ONLY ─────────────────────────────────────────────────────
+// Chief asked for the ledge mechanic in the lab. `ledge-climb` art exists (8 frames,
+// 10fps, non-looping) and production has NO mechanic for it — the lab is where that gets
+// prototyped before anything is proposed for the game. Nothing here is wired into
+// production; `hero-sprites.js` already accepts `status.traversal`, which is the only
+// hook used.
+const LEDGE_REACH = 10;    // px in front of the body that counts as touching a wall
+
+// WHERE THE BODY HANGS, derived from the art instead of guessed.
+//
+// Chief: "either the animation needs to be different or this climbing mechanic needs to be
+// improved." The animation was fine; the placement was wrong. `drawHeroFrame` anchors on
+// the FEET and scales the whole 512px canvas, and ledge-climb frame 0 has its content top
+// (the raised hands) at source row 69. So the hands land
+//   HERO_DRAW * (496 - 69) / 512 = 66.7px
+// above the feet. The first version hung the body with its head 6px BELOW the lip, which
+// put the hands 42.7px ABOVE it — the character reached into empty air a tile and a third
+// over the ledge, which is exactly what it looked like.
+//
+// Hanging correctly means HANDS ON THE LIP and the body below it.
+const LEDGE_FRAME0_TOP = 69;                                   // measured, hero-v3 ledge-climb
+const HAND_ABOVE_FEET  = HERO_DRAW * (496 - LEDGE_FRAME0_TOP) / 512;
+const LEDGE_HANG_Y     = HAND_ABOVE_FEET - PLAYER_H;           // body top, relative to the lip
 // An attack must LATCH, not be read from the held key. A quick tap fires keydown and
 // keyup inside one frame, so clearing the flag on keyup meant the animator never saw a
 // rising edge and the strike silently never played. Caught by the smoke test tapping J.
@@ -55,10 +78,10 @@ const ROOM = [
   '..............................',
   '.....................####.....',   // high ledge — the safe drop is off its left edge
   '.....................#..#.....',
-  '..........####.......#..#.....',   // low raised platform for jump/landing
-  '..............................',
-  '..............................',
-  '..............................',
+  '..........####.......#..#.....',   // low platform — jump/landing AND the ledge-grab
+  '..............................',   // test: its left lip at col 10 is catchable, which
+  '......................#.......',   // keeps the corridor clear. An earlier version added
+  '......................#.......',   // a 5-tall wall here and it blocked the whole level.
   '####################....######',   // flat baseline, with a gap to fall into
   '####################....######',
   '####################....######',
@@ -66,12 +89,51 @@ const ROOM = [
   '##############################',
 ];
 const COLS = ROOM[0].length, ROWS = ROOM.length;
-const solidAt = (c, r) => (c < 0 || c >= COLS || r < 0 || r >= ROWS) ? (r >= ROWS ? false : true) : ROOM[r][c] === '#';
+
+// MUTABLE copy of the ASCII map. Chief: "this doesnt let me out of the hole if i fall in
+// and i keep having to reset so i wanna be able to do some quick edits". The room needs to
+// be editable at runtime, so the strings above are the pristine template and this grid is
+// what collision and rendering actually read.
+//
+// IN MEMORY ONLY. Nothing here can reach a level file — the lab has no save path and never
+// imports the editor's persistence layer. Reload restores the template.
+let grid = null;
+function restoreRoom() {
+  grid = new Uint8Array(COLS * ROWS);
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (ROOM[r][c] === '#') grid[r*COLS + c] = 1;
+}
+restoreRoom();
+
+// Out of bounds: solid at the sides and ceiling so the player cannot leave the room, open
+// below so a fall still reads as a fall.
+const solidAt = (c, r) => (c < 0 || c >= COLS || r < 0) ? true
+                        : (r >= ROWS) ? false
+                        : grid[r*COLS + c] === 1;
+const setTile = (c, r, v) => {
+  if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return false;
+  if (grid[r*COLS + c] === v) return false;
+  grid[r*COLS + c] = v;
+  markDirty();            // the level list shows * so an unsaved edit is never invisible
+  return true;
+};
+// Defined before the level system exists during module init, so keep it indirect.
+let markDirty = () => {};
 
 const SPAWN = { x: 3 * TILE, y: 11 * TILE };
 
 // ── State ────────────────────────────────────────────────────────────────────
-const sprite = new PlayerSprites({});
+// WHICH SPRITE PACK. Chief asked which sheets the lab is showing, and the answer is worth
+// stating in code because three generations exist:
+//
+//   assets/sprites/hero-v3/        16 states, 8 frames each  <- what BOTH labs render
+//   assets/sprites/hero-gait-v4/   revised walk + run only   <- opt-in with ?gait=4
+//   assets/sprites/walking|running|jumping|idle_2.0   <- what the GAME still renders,
+//                                                        through src_scroll/sprites.js
+//
+// So the lab is NOT showing the same character the game draws. hero-v3 is the newer pack
+// built for the animator migration, and that migration has not shipped to production.
+const useGait4 = new URLSearchParams(location.search).get('gait') === '4';
+const sprite = new PlayerSprites({ gaitRoot: useGait4 ? 'assets/sprites/hero-gait-v4' : null });
 const canvas = document.getElementById('lab');
 const ctx    = canvas.getContext('2d');
 
@@ -81,6 +143,8 @@ const p = {
   coyote: 0, jumpBuf: 0, hurtT: 0,
   absorbing: false, discharging: false,
   attackT: 0, projectile: false,
+  ledge: null,        // { c, r, dir } while hanging or climbing
+  climbing: false,    // the clip is playing; on its last frame the player lands on top
 };
 // PRODUCTION KEY MAP, read straight off player.js:
 //   move    heldAny ArrowLeft/KeyA  ·  ArrowRight/KeyD
@@ -95,10 +159,12 @@ const p = {
 // a melee trigger the energy-strike clip would be unreachable, and nothing damages the
 // player so hurt would never play.
 const LEFT = ['ArrowLeft','KeyA'], RIGHT = ['ArrowRight','KeyD'], JUMP = ['ArrowUp','KeyW'];
+let showHitbox = false;     // B toggles it; off so nothing overlays the character
 let override = null;        // forced state name, or null for gameplay
 let playing  = true;        // override playback
 let lastT    = null;
 let fps      = 0, fpsAcc = 0, fpsFrames = 0;
+let clockSec = 0;           // seconds elapsed, for placed-prop/enemy animation timing
 
 // ── Camera (lab-only, no production equivalent) ───────────────────────────────────
 // Production scrolls a fixed-scale viewport (camera.js). The lab instead zooms around
@@ -107,6 +173,20 @@ let fps      = 0, fpsAcc = 0, fpsFrames = 0;
 const ZOOM_MIN = 0.5, ZOOM_MAX = 3, ZOOM_STEP = 0.15;
 let zoom = 1;
 function setZoom(z) { zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); syncZoomLabel(); }
+function cameraOrigin() {
+  const cx = p.x + PLAYER_W / 2, cy = p.y + PLAYER_H / 2;
+  return { ox: canvas.width / 2 - cx * zoom, oy: canvas.height / 2 - cy * zoom };
+}
+// Screen (client px) -> world. Shared by tile-edit painting and prop placement so both
+// agree with what is actually drawn, instead of assuming a 1:1 canvas-to-world mapping
+// that only held true at zoom === 1.
+function screenToWorld(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = (clientX - rect.left) * (canvas.width / rect.width);
+  const sy = (clientY - rect.top) * (canvas.height / rect.height);
+  const { ox, oy } = cameraOrigin();
+  return { x: (sx - ox) / zoom, y: (sy - oy) / zoom };
+}
 
 // ── Placement (lab-only) ─────────────────────────────────────────────
 // Drop live instances of anything in ASSET_MANIFEST.json that actually animates, so a
@@ -115,7 +195,7 @@ function setZoom(z) { zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); syncZoom
 // asset shows up here with no code change — same philosophy as deco-anim.js.
 let placeable = { props: [], enemies: [] };   // filled by loadPlaceables()
 let armed     = null;                          // placeable entry currently armed to drop
-const placed  = [];                            // { kind:'prop'|'enemy', asset, x, y, w, h }
+const placed  = [];                            // { kind:'prop'|'enemy', asset, x, y }
 const droneFrameCache = new Map();             // type -> Image[8], loaded once, shared
 
 function droneFrames(type) {
@@ -155,6 +235,7 @@ function reset() {
     x: SPAWN.x, y: SPAWN.y, vx: 0, vy: 0, grounded: false, facingRight: true,
     coyote: 0, jumpBuf: 0, hurtT: 0,
     absorbing: false, discharging: false, attackT: 0, projectile: false,
+    ledge: null, climbing: false,
   });
 }
 
@@ -169,7 +250,7 @@ function reset() {
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', e => {
     if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName)) return;
-    if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR'].includes(e.code)) e.preventDefault();
+    if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR','KeyB'].includes(e.code)) e.preventDefault();
   }, { passive: false });
 }
 
@@ -206,17 +287,110 @@ function moveAxis(dx, dy) {
 }
 
 // ── Simulation ───────────────────────────────────────────────────────────────
+// Is there a grabbable lip in front of the player's head?
+// A ledge is a solid tile whose own top is OPEN — so the player's hands can clear it.
+// Searching a 2-row band around head height keeps the grab from being frame-perfect,
+// which is the difference between a mechanic that feels good and one that feels broken.
+function findLedge(facing) {
+  const frontX = facing > 0 ? p.x + PLAYER_W + LEDGE_REACH - 1 : p.x - LEDGE_REACH;
+  const c = Math.floor(frontX / TILE);
+
+  // THE FLOOR IS NOT A LEDGE, and this took two attempts to get right.
+  //
+  // Every floor tile is "solid with an open top", so the first version grabbed the ground
+  // on the way down from any jump. Excluding the player's own column was not enough
+  // either: the floor is CONTINUOUS, so the column beside the player is floor too — the
+  // player jumped at x=160, faced west, and hung off the baseline one tile to its left.
+  //
+  // The rule that actually separates the two cases: if there is ground under your feet you
+  // are LANDING, not hanging. A real ledge grab happens over empty space.
+  const colL = Math.floor(p.x / TILE);
+  const colR = Math.floor((p.x + PLAYER_W - 1) / TILE);
+  if (c >= colL && c <= colR) return null;                 // directly beneath = ground
+  const feetRow = Math.floor((p.y + PLAYER_H) / TILE);
+  if (solidAt(colL, feetRow) || solidAt(colR, feetRow)) return null;   // about to land
+
+  const headRow = Math.floor(p.y / TILE);
+  for (const r of [headRow, headRow + 1]) {
+    if (!solidAt(c, r)) continue;        // need a wall face here
+    if (solidAt(c, r - 1)) continue;     // ...whose top is open, or it is not a lip
+    // The body must STRADDLE the lip: feet below it, head at or above it. Anything else is
+    // either standing on top or nowhere near.
+    if (p.y + PLAYER_H <= r * TILE) continue;
+    if (p.y > r * TILE + TILE) continue;
+    return { c, r, dir: facing };
+  }
+  return null;
+}
+
 function step(dt) {
   const running = Input.heldAny('ShiftLeft', 'ShiftRight');
   const left = Input.heldAny(...LEFT), right = Input.heldAny(...RIGHT);
   const dir = (right ? 1 : 0) - (left ? 1 : 0);
+
+  // Escape hatches FIRST. The ledge block below short-circuits the rest of step(), and an
+  // earlier version put these after it — so while hanging, R did nothing and the player was
+  // stuck with no way out. That is the exact frustration the lab is meant to remove.
+  if (Input.pressed('KeyR')) { reset(); return; }
+  if (Input.pressed('KeyB')) showHitbox = !showHitbox;
+
+  // ── LEDGE: hanging or climbing short-circuits normal movement ──────────────
+  if (p.ledge) {
+    const { c, r } = p.ledge;
+    const lipY   = r * TILE;
+    const hangY  = lipY + LEDGE_HANG_Y;        // hands on the lip, body below
+    const standY = lipY - PLAYER_H;            // final: stood on top of the lip
+    const hangX  = p.ledge.dir > 0 ? c * TILE - PLAYER_W : (c + 1) * TILE;
+    p.vx = 0; p.vy = 0;                        // no gravity while attached
+    p.facingRight = p.ledge.dir > 0;
+
+    if (p.climbing) {
+      sprite.update(dt, false, p.facingRight, false, false, false, false, 0, 0, false,
+        { traversal: 'ledge-climb' });
+      // TRAVEL with the clip rather than snapping at the end. The first version held the
+      // body at the hang spot for all 8 frames and teleported it on the last one, so the
+      // character mimed a climb on the spot and then jumped. Now position follows the
+      // clip's progress, and x eases in only over the second half — a real mantle is
+      // "pull up, then over", not a diagonal slide.
+      const prog = Math.min(1, (sprite._current._frame + 1) / sprite._current.frames.length);
+      p.y = hangY + (standY - hangY) * prog;
+      const xProg = Math.max(0, (prog - 0.5) * 2);
+      p.x = hangX + (c * TILE - hangX) * xProg;
+      if (sprite._current.done) {
+        p.x = c * TILE; p.y = standY;          // commit the exact final cell
+        p.ledge = null; p.climbing = false; p.grounded = true;
+      }
+      return;
+    }
+
+    p.x = hangX;
+    p.y = hangY;
+
+    // Hanging. Up/W climbs, Down/S drops, and letting go restores normal fall.
+    if (Input.pressedAny(...JUMP)) {
+      p.climbing = true;
+      sprite.setState('ledge-climb', p.facingRight);
+      sprite._current.reset();
+      return;
+    }
+    if (Input.pressedAny('ArrowDown', 'KeyS')) {
+      p.ledge = null;
+      p.y += 2;                                // nudge clear so it cannot re-grab instantly
+      return;
+    }
+    // Hold the first frame while hanging — the clip is the CLIMB, not the hang.
+    sprite.setState('ledge-climb', p.facingRight);
+    sprite._current._frame = 0;
+    sprite._current._t = 0;
+    sprite._current.done = false;
+    return;
+  }
 
   p.absorbing   = Input.held('KeyE');
   p.discharging = Input.held('Space');     // production: hold Space to push charge out
   p.hurtT   = Math.max(0, p.hurtT - dt);
   p.attackT = Math.max(0, p.attackT - dt);
 
-  if (Input.pressed('KeyR')) reset();
   if (Input.pressed('KeyH')) p.hurtT = HURT_TIME;                       // lab-only
   if (Input.pressed('KeyJ')) { p.attackT = ATTACK_LATCH; p.projectile = false; } // lab-only melee
   if (Input.pressed('KeyK')) { p.attackT = ATTACK_LATCH; p.projectile = true;  } // production attack
@@ -238,6 +412,15 @@ function step(dt) {
   moveAxis(p.vx * dt, 0);
   moveAxis(0, p.vy * dt);
   if (!wasGrounded && p.grounded) p.vy = 0;
+
+  // Grab only while airborne and FALLING. Requiring vy > 0 means a jump arcs past a lip
+  // on the way up and catches it on the way down, which is what players expect — grabbing
+  // on the rise makes a jump feel like it is snagging on the scenery.
+  if (!p.grounded && p.vy > 0) {
+    const facing = dir !== 0 ? dir : (p.facingRight ? 1 : -1);
+    const hit = findLedge(facing);
+    if (hit) { p.ledge = hit; p.climbing = false; p.vy = 0; }
+  }
 
   // Fell out of the room — the pit is intentional, so recover rather than hang.
   if (p.y > ROWS * TILE + 120) reset();
@@ -305,30 +488,14 @@ syncOv();
 // ── Camera UI ───────────────────────────────────────────────────────────
 const zoomResetBtn = document.getElementById('zoom-reset');
 function syncZoomLabel() { zoomResetBtn.textContent = Math.round(zoom * 100) + '%'; }
-document.getElementById('zoom-out').addEventListener('click', () => setZoom(zoom - ZOOM_STEP));
-document.getElementById('zoom-in').addEventListener('click', () => setZoom(zoom + ZOOM_STEP));
-zoomResetBtn.addEventListener('click', () => setZoom(1));
+document.getElementById('zoom-out').addEventListener('click', () => { setZoom(zoom - ZOOM_STEP); canvas.focus(); });
+document.getElementById('zoom-in').addEventListener('click', () => { setZoom(zoom + ZOOM_STEP); canvas.focus(); });
+zoomResetBtn.addEventListener('click', () => { setZoom(1); canvas.focus(); });
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
   setZoom(zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP));
 }, { passive: false });
 syncZoomLabel();
-
-// Screen <-> world conversion for the current camera transform (zoom centred on the
-// player). Shared by click-to-place and click-to-remove so both agree with what is
-// actually drawn, instead of assuming a 1:1 canvas-to-world mapping that only held
-// true at zoom === 1.
-function cameraOrigin() {
-  const cx = p.x + PLAYER_W / 2, cy = p.y + PLAYER_H / 2;
-  return { ox: canvas.width / 2 - cx * zoom, oy: canvas.height / 2 - cy * zoom };
-}
-function screenToWorld(clientX, clientY) {
-  const rect = canvas.getBoundingClientRect();
-  const sx = (clientX - rect.left) * (canvas.width / rect.width);
-  const sy = (clientY - rect.top) * (canvas.height / rect.height);
-  const { ox, oy } = cameraOrigin();
-  return { x: (sx - ox) / zoom, y: (sy - oy) / zoom };
-}
 
 // ── Placement UI ─────────────────────────────────────────────────────
 const placementHost = document.getElementById('placement-groups');
@@ -359,12 +526,12 @@ function buildPlacementPanel() {
 function syncPlacement() {
   placeButtons.forEach(b => b.setAttribute('aria-pressed', String(!!armed && armed.asset === b._asset)));
 }
-document.getElementById('place-clear').addEventListener('click', () => { placed.length = 0; });
+document.getElementById('place-clear').addEventListener('click', () => { placed.length = 0; canvas.focus(); });
 loadPlaceables();
 
 // A placed prop/enemy's on-screen box, used for both drawing and hit-testing removal.
-// Props sit at native frame_width/frame_height, matching how the Builder places them
-// in a real level (editor/main.js, artW/artH defaults). Enemies draw at the fixed 64x64
+// Props sit at native frame_width/frame_height, matching how the Builder places them in
+// a real level (editor/main.js, artW/artH defaults). Enemies draw at the fixed 64x64
 // production renders them at (city-drones.js) regardless of their 384x384 source.
 function placedBox(inst) {
   const w = inst.kind === 'enemy' ? 64 : (inst.asset.frame_width || 64);
@@ -372,31 +539,13 @@ function placedBox(inst) {
   return { x: inst.x - w / 2, y: inst.y - h, w, h };   // click point = bottom-centre anchor
 }
 
-canvas.addEventListener('pointerdown', ev => {
-  canvas.focus();
-  const world = screenToWorld(ev.clientX, ev.clientY);
-  if (armed) {
-    placed.push({ kind: armed.kind, asset: armed.asset, x: world.x, y: world.y });
-    return;
-  }
-  // No stamp armed: a click on an existing instance removes it (topmost first).
-  for (let i = placed.length - 1; i >= 0; i--) {
-    const box = placedBox(placed[i]);
-    if (world.x >= box.x && world.x <= box.x + box.w && world.y >= box.y && world.y <= box.y + box.h) {
-      placed.splice(i, 1);
-      return;
-    }
-  }
-});
-
 function drawPlaced(t) {
   for (const inst of placed) {
     const box = placedBox(inst);
     let img = null;
     if (inst.kind === 'enemy') {
       const frames = droneFrames(inst.asset.spawnsKind || inst.asset.id);
-      const idx = Math.floor(t * 8) % 8;         // fixed idle cycle; the lab has no AI
-      img = frames[idx];
+      img = frames[Math.floor(t * 8) % 8];        // fixed idle cycle; the lab has no AI
     } else {
       const anim = animationFor(inst.asset.path);
       if (anim) {
@@ -409,11 +558,16 @@ function drawPlaced(t) {
   }
 }
 
-// ── Render ────────────────────────────────────────────────────────────────
-function drawRoom() {
+// ── Render ───────────────────────────────────────────────────────────────────
+// Full-canvas clear in IDENTITY space, before the zoom transform is applied, so the
+// background always covers the whole backing resolution regardless of camera position.
+function clearCanvas() {
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#050d12';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
 
+function drawRoom() {
   // Faint grid so pose alignment against tile boundaries is readable.
   ctx.strokeStyle = '#0d2630'; ctx.lineWidth = 1;
   for (let c = 0; c <= COLS; c++) { ctx.beginPath(); ctx.moveTo(c*TILE, 0); ctx.lineTo(c*TILE, ROWS*TILE); ctx.stroke(); }
@@ -442,14 +596,15 @@ function drawHud() {
     ['VEL',      `vx ${p.vx.toFixed(1)}  vy ${p.vy.toFixed(1)}`],
     ['GROUNDED', p.grounded ? 'yes' : '<span class="warn">no</span>'],
     ['RENDER',   `${fps.toFixed(0)} fps`],
-    ['ZOOM',     `${Math.round(zoom * 100)}%`],
-    ['PLACED',   `${placed.length} instance${placed.length === 1 ? '' : 's'}`],
+    ['LEDGE',    p.ledge ? (p.climbing ? '<span class="warn">climbing</span>'
+                                       : '<span class="warn">hanging — ↑/W climb, ↓/S drop</span>') : 'no'],
+    ['PACK',     useGait4 ? '<span class="warn">hero-gait-v4</span> walk/run' : 'hero-v3'],
+    ['TILE EDIT', editMode ? '<span class="warn">ON — click to paint</span>' : 'off'],
+    ['HITBOX',   showHitbox ? '<span class="warn">shown (B)</span>' : 'hidden'],
   ];
   document.getElementById('hud').innerHTML =
     rows.map(([k, v]) => `<b>${k.padEnd(9, ' ')}</b> ${v}`).join('<br>');
 }
-
-let clockSec = 0;   // seconds elapsed, the same unit deco-anim.js's frameAt() expects
 
 function frame(t) {
   const dt = lastT === null ? 0 : Math.min((t - lastT) / 1000, 0.1);
@@ -469,9 +624,7 @@ function frame(t) {
     step(dt);
   }
 
-  // Camera: zoom around the player. ctx.setTransform replaces the matrix outright,
-  // so every draw below (room, placed props/enemies, hero, hitbox) is affected and
-  // nothing needs its own per-call scale math.
+  clearCanvas();
   const { ox, oy } = cameraOrigin();
   ctx.setTransform(zoom, 0, 0, zoom, ox, oy);
 
@@ -479,12 +632,17 @@ function frame(t) {
   drawPlaced(clockSec);
   drawHeroFrame(ctx, sprite.currentFrame, p.x + PLAYER_W / 2, p.y + PLAYER_H, HERO_DRAW);
 
-  // Hitbox outline — the sprite draws at 80px while the body is 20x30, so without
-  // this the relationship between art and collision is invisible.
-  ctx.strokeStyle = 'rgba(0,229,208,.45)'; ctx.lineWidth = 1;
-  ctx.strokeRect(Math.round(p.x) + .5, Math.round(p.y) + .5, PLAYER_W - 1, PLAYER_H - 1);
+  // Hitbox outline. OFF by default — Chief: "remove the weird box on top of the
+  // charcter". The 20x30 body sits inside an 80px sprite, so the outline landed across
+  // the character's middle and read as a glitch rather than as information. Kept behind
+  // a key because the art-to-collision relationship is genuinely useful when something
+  // looks mis-anchored, but it is not something to stare at while testing movement.
+  if (showHitbox) {
+    ctx.strokeStyle = 'rgba(0,229,208,.45)'; ctx.lineWidth = 1;
+    ctx.strokeRect(Math.round(p.x) + .5, Math.round(p.y) + .5, PLAYER_W - 1, PLAYER_H - 1);
+  }
 
-  ctx.setTransform(1, 0, 0, 1, 0, 0);   // back to identity before the next frame's clear
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   drawHud();
   // MUST be last, exactly as production does it: this copies cur -> prev so that
   // Input.pressed() reports a true one-frame edge. Call it earlier and every
@@ -493,5 +651,290 @@ function frame(t) {
   requestAnimationFrame(frame);
 }
 
-canvas.tabIndex = 0;   // focus + placement handled by the pointerdown listener above
+// ── Tile edit ────────────────────────────────────────────────────────────────
+// Chief: "this doesnt let me out of the hole if i fall in and i keep having to reset so i
+// wanna be able to do some quick edits ... i dont need a full asset bank whatevrr this
+// teal tile is is fine". So: one brush, no palette. Left-click places, right-click erases,
+// drag paints a run, and movement keeps working so you can build a step and walk out.
+//
+// Strictly in memory. The lab has no save path and does not import the editor's
+// persistence layer, so nothing here can reach a level file.
+let editMode = false;
+let painting = 0;            // 0 none, 1 placing, -1 erasing
+
+const btnEdit    = document.getElementById('te-toggle');
+const btnSwatch  = document.getElementById('te-swatch');
+const btnFillRow = document.getElementById('te-fillrow');
+const btnRestore = document.getElementById('te-restore');
+
+function syncEdit() {
+  btnEdit.textContent = 'Edit: ' + (editMode ? 'ON' : 'OFF');
+  btnEdit.setAttribute('aria-pressed', String(editMode));
+  canvas.style.cursor = editMode ? 'crosshair' : 'default';
+}
+// ── LAB LEVEL SYSTEM ─────────────────────────────────────────────────────────
+// Chief: "this LAB needs its own seprate level system".
+//
+// Deliberately NOT the game's level system. These are named rooms with their own tiles
+// and spawn, stored in localStorage and exportable as JSON. Nothing here can read or
+// write `src_scroll/levels/` — the lab must never gain a path into Chief's level data,
+// which is the one thing in this project that cannot be regenerated. Keeping the two
+// systems apart is the point, not a limitation.
+//
+// Fixed 30x17 geometry for v1 so every lab level fits the canvas exactly; a stored level
+// whose shape does not match is refused rather than misread.
+const LV_KEY = 'overcharge.lab.levels.v1';
+const status = document.getElementById('te-status');
+function say(msg, warn = false) {
+  status.innerHTML = warn ? `<span style="color:#ffd166">${msg}</span>` : msg;
+  clearTimeout(say._t);
+  say._t = setTimeout(() => { status.textContent = ''; }, 5000);
+}
+
+let levels = [];        // [{ id, name, cols, rows, tiles:number[], spawn:{x,y} }]
+let activeId = null;
+let dirty = false;      // unsaved tile edits, shown as * in the list
+
+const templateTiles = () => { const g = new Uint8Array(COLS * ROWS);
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (ROOM[r][c] === '#') g[r*COLS+c] = 1;
+  return Array.from(g); };
+
+// A brand new level gets a floor, not a void. An empty room drops the player forever and
+// the first thing anyone would do is paint a floor anyway.
+function blankTiles() {
+  const g = new Uint8Array(COLS * ROWS);
+  for (let c = 0; c < COLS; c++) { g[(ROWS-1)*COLS + c] = 1; g[(ROWS-2)*COLS + c] = 1; }
+  return Array.from(g);
+}
+
+const newId = () => 'lv_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const active = () => levels.find(l => l.id === activeId) || null;
+
+function persist() {
+  try { localStorage.setItem(LV_KEY, JSON.stringify({ activeId, levels })); return true; }
+  catch (e) { say('Could not save: ' + e.message, true); return false; }
+}
+
+function loadAll() {
+  try {
+    const raw = localStorage.getItem(LV_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (Array.isArray(d.levels)) {
+        levels = d.levels.filter(l => l && l.cols === COLS && l.rows === ROWS
+                                   && Array.isArray(l.tiles) && l.tiles.length === COLS * ROWS);
+        const dropped = d.levels.length - levels.length;
+        if (dropped > 0) say(`${dropped} saved level(s) had a different shape and were skipped.`, true);
+        activeId = levels.some(l => l.id === d.activeId) ? d.activeId : (levels[0]?.id ?? null);
+      }
+    }
+  } catch (e) { say('Saved levels unreadable — starting fresh.', true); levels = []; }
+
+  if (levels.length === 0) {
+    levels = [{ id: newId(), name: 'Test Room', cols: COLS, rows: ROWS,
+                tiles: templateTiles(), spawn: { x: SPAWN.x, y: SPAWN.y } }];
+    activeId = levels[0].id;
+    persist();
+  }
+}
+
+function applyActive() {
+  const l = active(); if (!l) return;
+  grid = new Uint8Array(l.tiles);
+  SPAWN.x = l.spawn.x; SPAWN.y = l.spawn.y;
+  reset();
+  dirty = false;
+  renderList();
+}
+
+function renderList() {
+  const sel = document.getElementById('lv-select');
+  sel.replaceChildren();
+  for (const l of levels) {
+    const o = document.createElement('option');
+    o.value = l.id;
+    o.textContent = (l.id === activeId && dirty ? '* ' : '') + l.name;
+    sel.append(o);
+  }
+  sel.value = activeId ?? '';
+}
+
+function saveActive() {
+  const l = active(); if (!l) return;
+  l.tiles = Array.from(grid);
+  if (persist()) { dirty = false; renderList(); say(`Saved "${l.name}" — ${grid.reduce((a,v)=>a+v,0)} tiles.`); }
+}
+
+document.getElementById('lv-select').addEventListener('change', e => {
+  if (dirty && !confirm('This level has unsaved edits. Switch anyway?')) { renderList(); return; }
+  activeId = e.target.value; persist(); applyActive(); canvas.focus();
+});
+document.getElementById('lv-save').addEventListener('click', () => { saveActive(); canvas.focus(); });
+document.getElementById('lv-new').addEventListener('click', () => {
+  const name = prompt('New lab level name:', 'Room ' + (levels.length + 1));
+  if (!name) return;
+  levels.push({ id: newId(), name, cols: COLS, rows: ROWS, tiles: blankTiles(),
+                spawn: { x: 3 * TILE, y: (ROWS - 4) * TILE } });
+  activeId = levels[levels.length - 1].id; persist(); applyActive();
+  say(`Created "${name}" with a floor to stand on.`); canvas.focus();
+});
+document.getElementById('lv-dup').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  const name = prompt('Duplicate as:', l.name + ' copy'); if (!name) return;
+  levels.push({ id: newId(), name, cols: COLS, rows: ROWS,
+                tiles: Array.from(grid), spawn: { ...l.spawn } });
+  activeId = levels[levels.length - 1].id; persist(); applyActive();
+  say(`Duplicated to "${name}".`); canvas.focus();
+});
+document.getElementById('lv-rename').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  const name = prompt('Rename to:', l.name); if (!name) return;
+  l.name = name; persist(); renderList(); say('Renamed.'); canvas.focus();
+});
+document.getElementById('lv-del').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  if (levels.length === 1) { say('That is the only lab level — make another first.', true); return; }
+  if (!confirm(`Delete "${l.name}"? This cannot be undone.`)) return;
+  levels = levels.filter(x => x.id !== l.id);
+  activeId = levels[0].id; persist(); applyActive(); say(`Deleted "${l.name}".`); canvas.focus();
+});
+document.getElementById('lv-spawn').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  l.spawn = { x: Math.round(p.x / TILE) * TILE, y: Math.round(p.y / TILE) * TILE };
+  SPAWN.x = l.spawn.x; SPAWN.y = l.spawn.y;
+  persist(); say(`Spawn set to (${l.spawn.x}, ${l.spawn.y}) — R returns here.`); canvas.focus();
+});
+document.getElementById('lv-reset-room').addEventListener('click', () => {
+  if (!confirm('Replace this level\'s tiles with the built-in template?')) return;
+  grid = new Uint8Array(templateTiles()); dirty = true; renderList();
+  say('Template loaded — press 💾 to keep it.'); canvas.focus();
+});
+
+// Export / import so a lab level can leave this browser. JSON only, and import validates
+// shape before touching anything.
+document.getElementById('lv-export').addEventListener('click', () => {
+  const l = active(); if (!l) return;
+  const payload = { _schema: 'overcharge-lab-level@1', ...l, tiles: Array.from(grid) };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = l.name.replace(/[^\w.-]+/g, '_') + '.lab.json';
+  a.click(); URL.revokeObjectURL(a.href);
+  say('Exported ' + a.download);
+});
+document.getElementById('lv-import').addEventListener('click', () => {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.addEventListener('change', async () => {
+    const f = inp.files?.[0]; if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (d.cols !== COLS || d.rows !== ROWS || !Array.isArray(d.tiles) || d.tiles.length !== COLS * ROWS)
+        return say('That file is not a lab level of this shape — ignored.', true);
+      levels.push({ id: newId(), name: d.name || f.name.replace(/\.lab\.json$/, ''),
+                    cols: COLS, rows: ROWS, tiles: d.tiles.map(v => v ? 1 : 0),
+                    spawn: d.spawn && Number.isFinite(d.spawn.x) ? d.spawn : { x: 3*TILE, y: (ROWS-4)*TILE } });
+      activeId = levels[levels.length - 1].id; persist(); applyActive();
+      say(`Imported "${levels[levels.length-1].name}".`);
+    } catch (e) { say('Import failed: ' + e.message, true); }
+  });
+  inp.click();
+});
+
+btnEdit.addEventListener('click', () => { editMode = !editMode; syncEdit(); canvas.focus(); });
+btnSwatch.addEventListener('click', () => { editMode = true; syncEdit(); canvas.focus(); });
+// The specific thing Chief asked for: fall in a pit, one click, floor appears under you.
+btnFillRow.addEventListener('click', () => {
+  const r = Math.min(ROWS - 1, Math.floor((p.y + PLAYER_H + 1) / TILE));
+  const c = Math.floor((p.x + PLAYER_W / 2) / TILE);
+  for (let i = c - 2; i <= c + 2; i++) setTile(i, r, 1);
+  canvas.focus();
+});
+
+// Screen pixels -> grid cell, via the shared camera transform so painting stays
+// aligned with what is drawn at any zoom level (was a raw CSS-scale ratio before zoom
+// existed; that only held true at zoom === 1).
+function cellAt(ev) {
+  const { x, y } = screenToWorld(ev.clientX, ev.clientY);
+  return { c: Math.floor(x / TILE), r: Math.floor(y / TILE) };
+}
+
+canvas.tabIndex = 0;
+canvas.addEventListener('contextmenu', e => { if (editMode) e.preventDefault(); });
+canvas.addEventListener('pointerdown', e => {
+  canvas.focus();
+  if (editMode) {
+    e.preventDefault();
+    painting = e.button === 2 ? -1 : 1;
+    const { c, r } = cellAt(e);
+    setTile(c, r, painting === 1 ? 1 : 0);
+    canvas.setPointerCapture(e.pointerId);
+    return;
+  }
+  // Placement, tile-edit OFF only — armed button drops a new instance; otherwise a
+  // click on an existing instance removes it. Topmost (last-placed) wins the hit test.
+  const world = screenToWorld(e.clientX, e.clientY);
+  if (armed) {
+    placed.push({ kind: armed.kind, asset: armed.asset, x: world.x, y: world.y });
+    return;
+  }
+  for (let i = placed.length - 1; i >= 0; i--) {
+    const box = placedBox(placed[i]);
+    if (world.x >= box.x && world.x <= box.x + box.w && world.y >= box.y && world.y <= box.y + box.h) {
+      placed.splice(i, 1);
+      return;
+    }
+  }
+});
+canvas.addEventListener('pointermove', e => {
+  if (!editMode || !painting) return;
+  const { c, r } = cellAt(e);
+  setTile(c, r, painting === 1 ? 1 : 0);
+});
+const endPaint = () => { painting = 0; };
+canvas.addEventListener('pointerup', endPaint);
+canvas.addEventListener('pointercancel', endPaint);
+window.addEventListener('blur', endPaint);
+
+// Test handle. The lab is a dev page that nothing in the game imports, so exposing its
+// internals costs nothing and makes the ledge mechanic testable DETERMINISTICALLY.
+// Driving it through a 2.7s walk and a jump depended on rAF timing, which a throttled
+// headless browser does not deliver reliably — the mechanic was fine and the test was
+// flaky, which is the worst kind of red.
+window.__lab = {
+  player: p,
+  findLedge,
+  setTile, solidAt, restoreRoom,
+  TILE, PLAYER_W, PLAYER_H,
+  // lab level system, for tests
+  levels: () => levels.map(l => ({ id: l.id, name: l.name })),
+  activeId: () => activeId,
+  isDirty: () => dirty,
+  saveActive, applyActive,
+  switchTo: (id) => { activeId = id; persist(); applyActive(); },
+  spawn: () => ({ ...SPAWN }),
+  state: () => ({ state: sprite.state, ledge: p.ledge, climbing: p.climbing,
+                  x: p.x, y: p.y, vy: p.vy, grounded: p.grounded }),
+  // Put the body beside a lip and let the real step() decide. No teleport-into-hanging:
+  // the grab must be earned by the same code the player exercises.
+  placeBeside(c, r, dir = 1) {
+    p.ledge = null; p.climbing = false;
+    p.x = dir > 0 ? c * TILE - PLAYER_W : (c + 1) * TILE;
+    p.y = r * TILE - 4;
+    p.vx = 0; p.vy = 60;            // falling, which is when a grab is allowed
+    p.grounded = false;
+    p.facingRight = dir > 0;
+  },
+};
+
+markDirty = () => { if (!dirty) { dirty = true; renderList(); } };
+
+syncEdit();
+loadAll();
+applyActive();
+window.addEventListener('beforeunload', e => {
+  // Losing a room you spent time on because you closed the tab is exactly the kind of
+  // silent data loss this project has already paid for twice.
+  if (dirty) { e.preventDefault(); e.returnValue = ''; }
+});
 requestAnimationFrame(frame);

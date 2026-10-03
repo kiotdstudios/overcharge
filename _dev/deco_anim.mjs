@@ -89,7 +89,7 @@ ok(anim.loaded === anim.total, 'every frame actually downloads', `${anim.loaded}
 ok(anim.unique > 1, 'frameAt returns DIFFERENT frames as time advances', anim.seq ? anim.seq.join(' ') : '');
 ok(anim.sameArray, 'frame cache returns the same array — loaded once, shared by all instances');
 
-sec('existing levels are not disturbed');
+sec('existing levels are not disturbed (deco)');
 const live = await page.evaluate(() => {
   const logs = [];
   return fetch('src_scroll/levels/level1.json', { cache: 'no-store' }).then(r => r.json()).then(lv => ({

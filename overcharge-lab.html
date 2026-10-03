@@ -17,7 +17,13 @@ header a:hover{text-decoration:underline}
 h1{font:600 20px Bahnschrift,'Segoe UI',sans-serif;margin:0;letter-spacing:1px}
 h1 em{color:#00e5d0;font-style:normal}
 .tag{margin-left:auto;font-size:11px;color:#6fa7b0;letter-spacing:1.5px;text-transform:uppercase}
-main{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:18px;max-width:1340px;margin:auto;padding:18px}
+main{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:14px;max-width:1400px;margin:auto;padding:14px}
+.strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px}
+.strip section{margin:0}
+.swatch{width:26px;height:26px;border:2px solid #1b5664;border-radius:3px;background:#123240;position:relative;cursor:pointer;padding:0}
+.swatch::after{content:'';position:absolute;left:0;right:0;top:0;height:3px;background:#00e5d0}
+.swatch[aria-pressed=true]{border-color:#00e5d0;box-shadow:0 0 0 2px rgba(0,229,208,.25)}
+.mini{font-size:10px;padding:4px 6px}
 canvas{width:100%;aspect-ratio:16/9;display:block;background:#050d12;border:1px solid #12404a;border-radius:8px;image-rendering:pixelated}
 h2{font-size:12px;margin:0 0 8px;letter-spacing:1.4px;text-transform:uppercase;color:#00e5d0}
 aside section{background:#0a1d26;border:1px solid #12404a;border-radius:8px;padding:12px;margin-bottom:12px}
@@ -50,40 +56,78 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
 <main>
   <div>
     <canvas id="lab" width="960" height="540" aria-label="Playable animation test room"></canvas>
-    <aside style="margin-top:12px">
+
+    <div class="strip">
       <section>
         <h2>Controls</h2>
         <div class="legend">
-          <div><kbd>← →</kbd> or <kbd>A D</kbd> move — idle ↔ walk, facing</div>
-          <div><kbd>Shift</kbd> run — walk ↔ run transition</div>
-          <div><kbd>↑</kbd> or <kbd>W</kbd> jump — jump, fall, landing</div>
-          <div><kbd>K</kbd> attack — aimed cast (hold a direction to aim)</div>
-          <div><kbd>E</kbd> hold absorb &nbsp; <kbd>Space</kbd> hold charge</div>
-          <div><kbd>R</kbd> reset player</div>
+          <div><kbd>← →</kbd> or <kbd>A D</kbd> move</div>
+          <div><kbd>Shift</kbd> run</div>
+          <div><kbd>↑</kbd> or <kbd>W</kbd> jump</div>
+          <div><kbd>K</kbd> attack &nbsp; <kbd>J</kbd> melee</div>
+          <div><kbd>E</kbd> absorb &nbsp; <kbd>Space</kbd> charge</div>
+          <div><kbd>H</kbd> hurt &nbsp; <kbd>R</kbd> reset &nbsp; <kbd>B</kbd> hitbox</div>
+          <div><kbd>↓</kbd> or <kbd>S</kbd> drop from a ledge</div>
         </div>
-        <p class="note"><b>These are the real game controls</b>, read from <code>player.js</code> and driven
-          through production's own <code>input.js</code> — jump is <kbd>↑</kbd>/<kbd>W</kbd>, and
-          <kbd>Space</kbd> is charge, not jump.</p>
-        <p class="note">Lab-only additions, because the lab has no enemies and nothing damages you:
-          <kbd>J</kbd> melee energy-strike (production plays this when an enemy is in range) and
-          <kbd>H</kbd> hurt. Click the canvas first if keys do nothing.</p>
+        <p class="note"><b>Real game controls</b>, driven through production's own <code>input.js</code> —
+          jump is <kbd>↑</kbd>/<kbd>W</kbd>, <kbd>Space</kbd> is charge. <kbd>J</kbd> and <kbd>H</kbd> are
+          lab-only: nothing here fights you or hurts you.</p>
       </section>
-    </aside>
+
+      <section>
+        <h2>Lab levels</h2>
+        <div class="row" style="margin-bottom:6px">
+          <select id="lv-select" style="flex:1;min-width:0"></select>
+          <button id="lv-save" class="mini" type="button" title="Save this lab level">💾</button>
+        </div>
+        <div class="row" style="margin-bottom:6px">
+          <button id="lv-new" class="mini" type="button">+ New</button>
+          <button id="lv-dup" class="mini" type="button">Duplicate</button>
+          <button id="lv-rename" class="mini" type="button">Rename</button>
+          <button id="lv-del" class="mini" type="button">Delete</button>
+        </div>
+        <div class="row" style="margin-bottom:6px">
+          <button id="lv-spawn" class="mini" type="button">Set spawn here</button>
+          <button id="lv-reset-room" class="mini" type="button">Reset to template</button>
+        </div>
+        <div class="row" style="margin-bottom:6px">
+          <button id="lv-export" class="mini" type="button">⬇ Export</button>
+          <button id="lv-import" class="mini" type="button">⬆ Import</button>
+        </div>
+        <div id="te-status" class="note" style="min-height:14px"></div>
+        <p class="note"><b>Separate from the game's levels.</b> Lab levels live only in this browser and in
+          the files you export — nothing here can read or write <code>src_scroll/levels</code>.</p>
+      </section>
+
+      <section>
+        <h2>Tile edit</h2>
+        <div class="row" style="margin-bottom:7px">
+          <button id="te-toggle" type="button" aria-pressed="false">Edit: OFF</button>
+          <button id="te-swatch" class="swatch" type="button" aria-pressed="true" title="The only brush — solid floor tile"></button>
+          <button id="te-fillrow" class="mini" type="button">Floor under me</button>
+        </div>
+        <p class="note">Turn edit on, then <b>left-click to place</b> and <b>right-click to erase</b>. Drag to
+          paint a run. Movement keeps working, so you can build a step and climb out of a pit.</p>
+        <p class="note">Unsaved edits are marked <b>*</b> in the level list. Press <b>💾</b> to keep them.</p>
+      </section>
+
+      <section>
+        <h2>Camera</h2>
+        <div class="row">
+          <button id="zoom-out" type="button">− Zoom</button>
+          <button id="zoom-reset" type="button">100%</button>
+          <button id="zoom-in" type="button">+ Zoom</button>
+        </div>
+        <p class="note">Scroll wheel over the canvas also zooms. Centred on the player.</p>
+      </section>
+
+      <section>
+        <h2>Live diagnostics</h2>
+        <div id="hud">starting…</div>
+      </section>
+    </div>
   </div>
   <aside>
-    <section>
-      <h2>Live diagnostics</h2>
-      <div id="hud">starting…</div>
-    </section>
-    <section>
-      <h2>Camera</h2>
-      <div class="row">
-        <button id="zoom-out" type="button">&minus; Zoom</button>
-        <button id="zoom-reset" type="button">100%</button>
-        <button id="zoom-in" type="button">+ Zoom</button>
-      </div>
-      <p class="note">Scroll wheel over the canvas also zooms. Camera stays centred on the player.</p>
-    </section>
     <section>
       <h2>Animation override</h2>
       <div class="row" style="margin-bottom:8px">
@@ -102,8 +146,18 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
         <button id="place-clear" type="button">Clear placed</button>
       </div>
       <p class="note">Pulled live from <code>ASSET_MANIFEST.json</code> — every prop and enemy here plays
-        its real animation, not a frame-0 placeholder. Click a button to arm it, click the room to drop one,
-        click a placed instance to remove it. Enemies play their idle gait only; no AI runs in the lab.</p>
+        its real animation, not a frame-0 placeholder. Click a button to arm it, click the room to drop one
+        (tile edit must be OFF), click a placed instance to remove it. Enemies play their idle gait only; no
+        AI runs in the lab.</p>
+    </section>
+    <section>
+      <h2>Sprite pack</h2>
+      <p class="note">Showing <b>hero-v3</b> — 16 states, the pack built for the animator migration.
+        <b>The game still draws a different, older set</b> (<code>walking</code>, <code>running</code>,
+        <code>jumping</code>, <code>idle_2.0</code>) through <code>src_scroll/sprites.js</code>. That
+        migration has not shipped.</p>
+      <p class="note"><a href="?gait=4" style="color:#00e5d0">Compare revised walk/run →</a> &nbsp;
+        <a href="?" style="color:#6fa7b0">back to hero-v3</a></p>
     </section>
     <section>
       <h2>Scope</h2>
@@ -112,6 +166,10 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
     </section>
   </aside>
 </main>
-<script type="module" src="editor/overcharge-lab.js?v=2"></script>
+<!-- Bump this version on every change to this module. GitHub Pages caches JS for ~10
+     minutes and the CDN can hold it longer, so without a new query string the browser has
+     no reason to refetch — which is why the hitbox box appeared "still there" after it had
+     already been fixed and deployed. -->
+<script type="module" src="editor/overcharge-lab.js?v=8"></script>
 </body>
 </html>

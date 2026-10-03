@@ -336,6 +336,16 @@ console.log('\n[ Placement: grid alignment + grounding ]');
       check(Number.isFinite(obj.x) && obj.x % TILE === 0,
         `${filename}: ${label} x is 32px grid-aligned (x=${obj.x})`);
 
+      // WALL-MOUNTED props are SUPPOSED to float (Chief 2026-09-27: a neon sign, fuse box
+      // or camera bolts to a wall, it does not stand on the pavement). Grounding them is
+      // the defect that pinned the sign to one spot. They still have to be grid-aligned on
+      // both axes, which is asserted instead — so a wall prop is not simply unchecked.
+      if (obj.mount === 'wall') {
+        check(Number.isFinite(obj.y) && obj.y % TILE === 0,
+          `${filename}: ${label} is wall-mounted and grid-aligned on Y (y=${obj.y})`);
+        return;
+      }
+
       const surfaceY = surfaceUnder(obj.x, w, obj.y);
       if (surfaceY === null) {
         // Clearer, separate failure than a grounding mismatch — the object is

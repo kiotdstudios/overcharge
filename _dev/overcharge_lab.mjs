@@ -137,6 +137,199 @@ ok(forced === states.length, 'every state can be force-previewed', `${forced}/${
 await page.locator('#ov-off').click(); await page.waitForTimeout(200);
 ok(!(await hud()).includes('override'), 'returns to gameplay from override');
 
+// ── layout, hitbox default, tile edit ──
+console.log('\n[ layout and tile edit ]');
+const hudBox = await page.locator('#hud').boundingBox();
+const canvasBox = await page.locator('#lab').boundingBox();
+ok(hudBox.y > canvasBox.y + canvasBox.height - 5,
+   'live diagnostics sit BELOW the canvas',
+   `hud y=${Math.round(hudBox.y)}, canvas bottom=${Math.round(canvasBox.y + canvasBox.height)}`);
+
+ok(/HITBOX\s+hidden/.test(await hud()), 'hitbox overlay starts HIDDEN — no box drawn on the character');
+// tap(), not press(). Input.pressed() is a two-frame edge, so an instant down+up is
+// invisible to it. Worth noting the trap: with press() the "reveals" assertion failed and
+// the "hides it again" assertion then passed VACUOUSLY, because nothing had changed.
+await tap('KeyB'); await page.waitForTimeout(140);
+ok(/HITBOX\s+shown/.test(await hud()), 'B reveals it when wanted');
+await tap('KeyB'); await page.waitForTimeout(140);
+ok(/HITBOX\s+hidden/.test(await hud()), 'B hides it again');
+
+// ── ledge grab (LAB PROTOTYPE — production has no ledge mechanic) ──
+console.log('\n[ ledge grab ]');
+await tap('KeyR'); await page.waitForTimeout(150);
+ok(/LEDGE\s+no/.test(await hud()), 'not on a ledge at spawn');
+
+// Run RIGHT and jump: the player catches the first lip in its path. Sequence verified by
+// hand first — an earlier version of this test walked LEFT into a wall with no lip and
+// then reported a grab that was actually the floor edge.
+// Walk right to just short of the low platform's left edge (x=320), then jump: the lip at
+// col 10 is caught on the way down. Timing is derived, not guessed — PLAYER_SPEED is
+// 75px/s from x=96, so ~2.7s puts the body's right edge on the platform edge.
+async function grabALedge() {
+  await tap('KeyR'); await page.waitForTimeout(160);
+  await page.keyboard.down('ArrowRight'); await page.waitForTimeout(2700);
+  await page.keyboard.down('KeyW'); await page.waitForTimeout(90); await page.keyboard.up('KeyW');
+  // Poll rather than sleep a fixed time: the grab happens on the way DOWN, and a fixed
+  // wait either checks too early or after the player has fallen past.
+  for (let i = 0; i < 14; i++) {
+    await page.waitForTimeout(80);
+    if (/LEDGE\s+hanging/.test(await hud())) break;
+  }
+  await page.keyboard.up('ArrowRight');
+  await page.waitForTimeout(150);
+  return /LEDGE\s+hanging/.test(await hud());
+}
+
+// The low platform is rows 8, cols 10-13. Its left lip is (c=10, r=8).
+const LIP = { c: 10, r: 8 };
+
+const grab = await page.evaluate(async ({ c, r }) => {
+  const L = window.__lab;
+  L.placeBeside(c, r, 1);
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  return L.state();
+}, LIP);
+ok(!!grab.ledge, 'falling beside a lip catches it', JSON.stringify(grab.ledge));
+ok(grab.vy === 0, 'no gravity while hanging', 'vy=' + grab.vy);
+ok(grab.state === 'ledge-climb', 'hanging shows the ledge-climb art', grab.state);
+
+// A lip must NOT be grabbable from the column the body already occupies — that is the
+// floor, and grabbing it made the player hang off the baseline on every landing.
+const floorGrab = await page.evaluate(async () => {
+  const L = window.__lab;
+  L.player.ledge = null; L.player.climbing = false;
+  L.player.x = 96; L.player.y = 300; L.player.vy = 200; L.player.grounded = false;
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  return L.state();
+});
+ok(!floorGrab.ledge, 'the FLOOR is not grabbable — falling onto it lands, it does not hang',
+   floorGrab.ledge ? JSON.stringify(floorGrab.ledge) : 'landed/fell normally');
+
+// climb
+const climbed = await page.evaluate(async ({ c, r }) => {
+  const L = window.__lab;
+  L.placeBeside(c, r, 1);
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  const before = L.state();
+  L.player.climbing = true;                       // same flag the W press sets
+  for (let i = 0; i < 90; i++) await new Promise(res => requestAnimationFrame(res));
+  return { before, after: L.state() };
+}, LIP);
+ok(climbed.after.y < climbed.before.y - 10, 'the climb moves the player UP onto the lip',
+   `y ${climbed.before.y.toFixed(0)} -> ${climbed.after.y.toFixed(0)}`);
+ok(climbed.after.grounded === true, 'ends the climb standing on the ledge');
+ok(climbed.after.ledge === null, 'ledge state is released after the climb');
+ok(Math.abs(climbed.after.y - (LIP.r * 32 - 30)) < 2, 'lands exactly on the lip surface',
+   `y=${climbed.after.y.toFixed(0)} expected ${LIP.r * 32 - 30}`);
+
+// THE POSE MUST READ RIGHT. drawHeroFrame is foot-anchored, so the hands' screen position
+// is feet minus HERO_DRAW*(496-69)/512. The first build hung the body with its head below
+// the lip, putting the hands 42.7px ABOVE it — the character reached into empty air. This
+// pins the hands to the lip so that cannot regress silently.
+const pose = await page.evaluate(async ({ c, r }) => {
+  const L = window.__lab;
+  L.placeBeside(c, r, 1);
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  const s = L.state();
+  return { handY: s.y + L.PLAYER_H - (80 * (496 - 69) / 512), lipY: r * 32, bodyY: s.y };
+}, LIP);
+ok(Math.abs(pose.handY - pose.lipY) < 2, 'the hands land ON the lip, not above it',
+   `hands y=${pose.handY.toFixed(1)} lip y=${pose.lipY}`);
+ok(pose.bodyY > pose.lipY, 'the body hangs BELOW the lip', `body y=${pose.bodyY.toFixed(1)}`);
+
+ok(await page.locator('#te-toggle').count() === 1, 'tile edit panel exists');
+
+// ── lab level system ──
+console.log('\n[ lab level system ]');
+const LK = 'overcharge.lab.levels.v1';
+ok((await page.evaluate(() => window.__lab.levels())).length >= 1, 'starts with a lab level',
+   JSON.stringify(await page.evaluate(() => window.__lab.levels())));
+ok(await page.evaluate(() => !!localStorage.getItem('overcharge.lab.levels.v1')), 'levels persist to localStorage');
+
+// painting marks the level dirty, so an unsaved edit is never invisible
+await page.evaluate(() => window.__lab.setTile(2, 5, 1));
+ok(await page.evaluate(() => window.__lab.isDirty()), 'painting marks the level unsaved');
+ok(/^\*/.test(await page.locator('#lv-select option:checked').innerText()),
+   'the level list shows * while unsaved', await page.locator('#lv-select option:checked').innerText());
+
+await page.locator('#lv-save').click(); await page.waitForTimeout(250);
+ok(!(await page.evaluate(() => window.__lab.isDirty())), 'saving clears the unsaved marker');
+ok(/Saved/.test(await page.locator('#te-status').innerText()), 'save reports success',
+   (await page.locator('#te-status').innerText()).slice(0, 60));
+
+// survives a reload — otherwise it is not a level system
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok(await page.evaluate(() => window.__lab.solidAt(2, 5)), 'the saved level reloads with the page');
+
+// a second level, independent tiles
+const n0 = (await page.evaluate(() => window.__lab.levels())).length;
+await page.evaluate(() => {
+  const L = window.__lab;
+  const raw = JSON.parse(localStorage.getItem('overcharge.lab.levels.v1'));
+  raw.levels.push({ id: 'lv_test2', name: 'Second', cols: 30, rows: 17,
+                    tiles: new Array(30 * 17).fill(0), spawn: { x: 96, y: 416 } });
+  localStorage.setItem('overcharge.lab.levels.v1', JSON.stringify(raw));
+});
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok((await page.evaluate(() => window.__lab.levels())).length === n0 + 1, 'a second lab level appears in the list');
+
+await page.evaluate(() => window.__lab.switchTo('lv_test2')); await page.waitForTimeout(300);
+ok(!(await page.evaluate(() => window.__lab.solidAt(2, 5))), 'switching levels swaps the tiles');
+ok((await page.evaluate(() => window.__lab.activeId())) === 'lv_test2', 'the active level follows the switch');
+
+// spawn travels with the level
+ok((await page.evaluate(() => window.__lab.spawn())).y === 416, 'each level carries its own spawn',
+   JSON.stringify(await page.evaluate(() => window.__lab.spawn())));
+
+// a stored level of the wrong shape must be refused, not misread into bad geometry
+await page.evaluate(() => {
+  const raw = JSON.parse(localStorage.getItem('overcharge.lab.levels.v1'));
+  raw.levels.push({ id: 'lv_bad', name: 'WrongShape', cols: 5, rows: 5, tiles: new Array(25).fill(1), spawn: { x: 0, y: 0 } });
+  localStorage.setItem('overcharge.lab.levels.v1', JSON.stringify(raw));
+});
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok(!(await page.evaluate(() => window.__lab.levels())).some(l => l.id === 'lv_bad'),
+   'a stored level with the wrong shape is REJECTED, not misread');
+
+// The lab must never be able to touch the game's levels. Strip comments first — the
+// source DISCUSSES src_scroll/levels at length to explain why it stays away from it, and
+// an assertion that cannot tell a comment from a call is worthless.
+const srcRaw = fs.readFileSync(path.join(repo, 'editor/overcharge-lab.js'), 'utf8');
+const src = srcRaw.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+ok(!/src_scroll\/levels/.test(src), 'no CODE path references src_scroll/levels');
+ok(!/from ['"][^'"]*persistence|showDirectoryPicker|getFileHandle|createWritable/.test(src),
+   'the lab imports no file-write path — it cannot reach a level file');
+ok(/localStorage/.test(src), 'persistence is localStorage only');
+
+await page.evaluate(() => localStorage.removeItem('overcharge.lab.levels.v1'));
+await page.reload({ waitUntil: 'networkidle' }); await page.waitForTimeout(900);
+ok((await page.evaluate(() => window.__lab.levels())).length === 1,
+   'clearing storage reseeds a single default level rather than an empty list');
+
+console.log('\n[ sprite pack ]');
+ok(/PACK\s+hero-v3/.test(await hud()), 'default pack is hero-v3', (await hud()).match(/PACK[^A-Z]*/)?.[0] ?? '');
+ok(/TILE EDIT\s+off/.test(await hud()), 'tile edit starts off, so a focus click never paints');
+
+// Chief's exact scenario: fall in the pit, get out without resetting.
+// The pit is cols 20-23 = x 640-768. Walking takes 7+ seconds to reach it, so SPRINT —
+// an earlier version walked for 2.8s, never reached the pit, and the assertion passed
+// trivially because the player was simply still standing on the floor.
+await tap('KeyR'); await page.waitForTimeout(160);
+await page.keyboard.down('ShiftLeft');
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(4200);
+await page.keyboard.up('ArrowRight'); await page.keyboard.up('ShiftLeft');
+await page.waitForTimeout(900);
+ok((await field('GROUNDED')) === 'no' || parseFloat((await field('POS')).replace(/.*y\s*/, '')) > 400,
+   'sprinting right actually reaches the pit and falls in', await field('POS'));
+await page.locator('#te-fillrow').click(); await page.waitForTimeout(450);
+ok((await field('GROUNDED')) === 'yes',
+   'Floor-under-me gives ground to stand on after a fall — no reset needed',
+   'grounded=' + await field('GROUNDED'));
+
+await page.locator('#te-toggle').click(); await page.waitForTimeout(140);
+ok(/TILE EDIT\s+ON/.test(await hud()), 'Edit toggles ON');
+await page.locator('#lv-reset-room').count().then(n => ok(n === 1, 'Reset-to-template button exists'));
+
 ok(errors.length === 0, 'no console errors', errors.slice(0,3).join(' | ') || 'clean');
 ok(failed.length === 0, 'no failed requests', [...new Set(failed)].slice(0,3).join(' | ') || 'clean');
 
