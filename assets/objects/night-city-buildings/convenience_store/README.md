@@ -22,6 +22,24 @@ Same approach as the warehouse: PixelLab `create_image_pro_flash`, each panel
 using a cropped/downscaled copy of `assets/objects/night-city-props/
 vending-machine/00.png` as the `style_image` reference.
 
+## Rebuild (2026-10-02)
+All 5 panels regenerated against the same `vending-machine/00.png` style_image
+(same crop/downscale recipe as the warehouse) after the original batch drifted
+off-palette panel-to-panel - each panel had landed on a different base
+material/color temperature (dark navy metal, lighter gray brick, cyan glass,
+dark brick again), so the storefront read as 4-5 unrelated buildings bolted
+together rather than one connected wall. The rebuild prompts explicitly lock
+every panel to the same dark navy-indigo corrugated sheet metal and forbid
+magenta/pink accent lighting (the old front_bay MART sign and trim had
+drifted toward magenta - off the Night City Props reference palette, which is
+cyan/lavender/indigo only). `trim` values in the manifest were recomputed from
+the new arts actual content bounding boxes. Per standing rule: all lvl-1
+assets must match the Night City Props color palette
+(`assets/objects/night-city-props/`), confirmed via per-asset palette
+extraction (vending-machine, streetlight, neon-sign, fuse-box,
+security-camera) - deep indigo/near-black base (`#03010c`-`#232450`) with
+cyan/lavender glow accents (`#72bdce`, `#868fc8`, `#5e8baa`), no magenta/pink.
+
 ## Status
 Wired into `assets/ASSET_MANIFEST.json` as 5 placeable decoration items,
 tagged `building` (same tag-driven "Buildings" filter as the warehouse - no

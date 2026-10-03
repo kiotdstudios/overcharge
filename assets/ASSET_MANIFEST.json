@@ -1947,10 +1947,10 @@
       "notes": "Convenience store left end-cap panel (6x8 tiles). Place left-to-right: left, vending_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.1198,
-        "y": 0.0742,
-        "w": 0.6979,
-        "h": 0.8672
+        "x": 0.1354,
+        "y": 0.0898,
+        "w": 0.7292,
+        "h": 0.75
       }
     },
     {
@@ -1971,10 +1971,10 @@
       "notes": "Convenience store panel (5x8 tiles), three vending machines against the wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.0875,
-        "y": 0.2383,
-        "w": 0.8187,
-        "h": 0.7031
+        "x": 0.0812,
+        "y": 0.2461,
+        "w": 0.7125,
+        "h": 0.5
       }
     },
     {
@@ -1995,10 +1995,10 @@
       "notes": "Convenience store panel (5x8 tiles), glass display window, 'MART' neon sign, OPEN sign, door. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.0875,
-        "y": 0.3398,
+        "x": 0.0812,
+        "y": 0.2773,
         "w": 0.7875,
-        "h": 0.6016
+        "h": 0.4648
       }
     },
     {
@@ -2019,10 +2019,10 @@
       "notes": "Convenience store right end-cap panel (4x8 tiles), camera, billboard/poster, water tank sliver. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.1719,
+        "x": 0.0547,
         "y": 0.1367,
-        "w": 0.6953,
-        "h": 0.8047
+        "w": 0.8906,
+        "h": 0.6719
       }
     },
     {
@@ -2307,10 +2307,10 @@
       "notes": "Convenience store panel (5x8 tiles), plain wall variant with no vending machines, alternative to store_vending_bay. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.0938,
-        "y": 0.1172,
-        "w": 0.8063,
-        "h": 0.8242
+        "x": 0.1125,
+        "y": 0.1914,
+        "w": 0.75,
+        "h": 0.6055
       }
     },
     {
