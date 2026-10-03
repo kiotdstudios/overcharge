@@ -85,7 +85,19 @@ correct, kept through the stretch-revert.
 - Run `node _dev/run_all.mjs` and confirm the total matches the current baseline —
   no new regressions.
 
-## 6. Deliverables
+## 6. Reference images — mood only, never layout authority
+
+A reference screenshot (mood board, a different game's building, a Chief-supplied
+image) may be handed along with a generation request. It governs atmosphere only —
+general composition cues like 'glass window shows the interior' or 'sign hangs above
+the door' are fine to borrow. It does **not** govern palette (section 3 is law — a
+reference in the wrong palette gets its colors overridden, not copied) and it does
+**not** govern exact layout, panel proportions, prop placement, or sign geometry.
+This spec (sections 1-5) is law for every building family; a reference image is
+never grounds to deviate from it. If a reference and this spec conflict, this spec
+wins, every time, no exception.
+
+## 7. Deliverables
 
 - The 4 (or N, with sign-off) PNGs under `assets/objects/night-city-buildings/<family>/`.
 - Updated `assets/ASSET_MANIFEST.json` entries: `frame_width`/`frame_height`, `trim`,
