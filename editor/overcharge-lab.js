@@ -29,6 +29,14 @@ const HERO_DRAW  = 80;     // game-scale display, same as Hero Lab's 80px previe
 const COYOTE     = 0.10;   // lab-only convenience so jump tests are not frame-perfect
 const JUMP_BUF   = 0.12;
 const HURT_TIME  = 0.45;
+// ── Ledge grab, LAB ONLY ─────────────────────────────────────────────────────
+// Chief asked for the ledge mechanic in the lab. `ledge-climb` art exists (8 frames,
+// 10fps, non-looping) and production has NO mechanic for it — the lab is where that gets
+// prototyped before anything is proposed for the game. Nothing here is wired into
+// production; `hero-sprites.js` already accepts `status.traversal`, which is the only
+// hook used.
+const LEDGE_REACH = 10;    // px in front of the body that counts as touching a wall
+const LEDGE_HANG  = 6;     // px the head sits below the ledge lip while hanging
 // An attack must LATCH, not be read from the held key. A quick tap fires keydown and
 // keyup inside one frame, so clearing the flag on keyup meant the animator never saw a
 // rising edge and the strike silently never played. Caught by the smoke test tapping J.
@@ -51,10 +59,10 @@ const ROOM = [
   '..............................',
   '.....................####.....',   // high ledge — the safe drop is off its left edge
   '.....................#..#.....',
-  '..........####.......#..#.....',   // low raised platform for jump/landing
-  '..............................',
-  '..............................',
-  '..............................',
+  '..........####.......#..#.....',   // low platform — jump/landing AND the ledge-grab
+  '..............................',   // test: its left lip at col 10 is catchable, which
+  '......................#.......',   // keeps the corridor clear. An earlier version added
+  '......................#.......',   // a 5-tall wall here and it blocked the whole level.
   '####################....######',   // flat baseline, with a gap to fall into
   '####################....######',
   '####################....######',
@@ -102,6 +110,8 @@ const p = {
   coyote: 0, jumpBuf: 0, hurtT: 0,
   absorbing: false, discharging: false,
   attackT: 0, projectile: false,
+  ledge: null,        // { c, r, dir } while hanging or climbing
+  climbing: false,    // the clip is playing; on its last frame the player lands on top
 };
 // PRODUCTION KEY MAP, read straight off player.js:
 //   move    heldAny ArrowLeft/KeyA  ·  ArrowRight/KeyD
@@ -127,6 +137,7 @@ function reset() {
     x: SPAWN.x, y: SPAWN.y, vx: 0, vy: 0, grounded: false, facingRight: true,
     coyote: 0, jumpBuf: 0, hurtT: 0,
     absorbing: false, discharging: false, attackT: 0, projectile: false,
+    ledge: null, climbing: false,
   });
 }
 
@@ -178,18 +189,100 @@ function moveAxis(dx, dy) {
 }
 
 // ── Simulation ───────────────────────────────────────────────────────────────
+// Is there a grabbable lip in front of the player's head?
+// A ledge is a solid tile whose own top is OPEN — so the player's hands can clear it.
+// Searching a 2-row band around head height keeps the grab from being frame-perfect,
+// which is the difference between a mechanic that feels good and one that feels broken.
+function findLedge(facing) {
+  const frontX = facing > 0 ? p.x + PLAYER_W + LEDGE_REACH - 1 : p.x - LEDGE_REACH;
+  const c = Math.floor(frontX / TILE);
+
+  // THE FLOOR IS NOT A LEDGE, and this took two attempts to get right.
+  //
+  // Every floor tile is "solid with an open top", so the first version grabbed the ground
+  // on the way down from any jump. Excluding the player's own column was not enough
+  // either: the floor is CONTINUOUS, so the column beside the player is floor too — the
+  // player jumped at x=160, faced west, and hung off the baseline one tile to its left.
+  //
+  // The rule that actually separates the two cases: if there is ground under your feet you
+  // are LANDING, not hanging. A real ledge grab happens over empty space.
+  const colL = Math.floor(p.x / TILE);
+  const colR = Math.floor((p.x + PLAYER_W - 1) / TILE);
+  if (c >= colL && c <= colR) return null;                 // directly beneath = ground
+  const feetRow = Math.floor((p.y + PLAYER_H) / TILE);
+  if (solidAt(colL, feetRow) || solidAt(colR, feetRow)) return null;   // about to land
+
+  const headRow = Math.floor(p.y / TILE);
+  for (const r of [headRow, headRow + 1]) {
+    if (!solidAt(c, r)) continue;        // need a wall face here
+    if (solidAt(c, r - 1)) continue;     // ...whose top is open, or it is not a lip
+    // The body must STRADDLE the lip: feet below it, head at or above it. Anything else is
+    // either standing on top or nowhere near.
+    if (p.y + PLAYER_H <= r * TILE) continue;
+    if (p.y > r * TILE + TILE) continue;
+    return { c, r, dir: facing };
+  }
+  return null;
+}
+
 function step(dt) {
   const running = Input.heldAny('ShiftLeft', 'ShiftRight');
   const left = Input.heldAny(...LEFT), right = Input.heldAny(...RIGHT);
   const dir = (right ? 1 : 0) - (left ? 1 : 0);
+
+  // Escape hatches FIRST. The ledge block below short-circuits the rest of step(), and an
+  // earlier version put these after it — so while hanging, R did nothing and the player was
+  // stuck with no way out. That is the exact frustration the lab is meant to remove.
+  if (Input.pressed('KeyR')) { reset(); return; }
+  if (Input.pressed('KeyB')) showHitbox = !showHitbox;
+
+  // ── LEDGE: hanging or climbing short-circuits normal movement ──────────────
+  if (p.ledge) {
+    const { c, r } = p.ledge;
+    p.vx = 0; p.vy = 0;                        // no gravity while attached
+    p.x = p.ledge.dir > 0 ? c * TILE - PLAYER_W : (c + 1) * TILE;
+    p.y = r * TILE - LEDGE_HANG;
+    p.facingRight = p.ledge.dir > 0;
+
+    if (p.climbing) {
+      // The clip drives the climb. When it finishes, the player is standing on the lip —
+      // position is committed ONCE here rather than interpolated, so the landing can never
+      // disagree with collision.
+      sprite.update(dt, false, p.facingRight, false, false, false, false, 0, 0, false,
+        { traversal: 'ledge-climb' });
+      if (sprite._current.done) {
+        p.x = c * TILE;                        // pull up onto the tile itself
+        p.y = r * TILE - PLAYER_H;
+        p.ledge = null; p.climbing = false; p.grounded = true;
+      }
+      return;
+    }
+
+    // Hanging. Up/W climbs, Down/S drops, and letting go restores normal fall.
+    if (Input.pressedAny(...JUMP)) {
+      p.climbing = true;
+      sprite.setState('ledge-climb', p.facingRight);
+      sprite._current.reset();
+      return;
+    }
+    if (Input.pressedAny('ArrowDown', 'KeyS')) {
+      p.ledge = null;
+      p.y += 2;                                // nudge clear so it cannot re-grab instantly
+      return;
+    }
+    // Hold the first frame while hanging — the clip is the CLIMB, not the hang.
+    sprite.setState('ledge-climb', p.facingRight);
+    sprite._current._frame = 0;
+    sprite._current._t = 0;
+    sprite._current.done = false;
+    return;
+  }
 
   p.absorbing   = Input.held('KeyE');
   p.discharging = Input.held('Space');     // production: hold Space to push charge out
   p.hurtT   = Math.max(0, p.hurtT - dt);
   p.attackT = Math.max(0, p.attackT - dt);
 
-  if (Input.pressed('KeyR')) reset();
-  if (Input.pressed('KeyB')) showHitbox = !showHitbox;   // lab-only: hitbox overlay
   if (Input.pressed('KeyH')) p.hurtT = HURT_TIME;                       // lab-only
   if (Input.pressed('KeyJ')) { p.attackT = ATTACK_LATCH; p.projectile = false; } // lab-only melee
   if (Input.pressed('KeyK')) { p.attackT = ATTACK_LATCH; p.projectile = true;  } // production attack
@@ -211,6 +304,15 @@ function step(dt) {
   moveAxis(p.vx * dt, 0);
   moveAxis(0, p.vy * dt);
   if (!wasGrounded && p.grounded) p.vy = 0;
+
+  // Grab only while airborne and FALLING. Requiring vy > 0 means a jump arcs past a lip
+  // on the way up and catches it on the way down, which is what players expect — grabbing
+  // on the rise makes a jump feel like it is snagging on the scenery.
+  if (!p.grounded && p.vy > 0) {
+    const facing = dir !== 0 ? dir : (p.facingRight ? 1 : -1);
+    const hit = findLedge(facing);
+    if (hit) { p.ledge = hit; p.climbing = false; p.vy = 0; }
+  }
 
   // Fell out of the room — the pit is intentional, so recover rather than hang.
   if (p.y > ROWS * TILE + 120) reset();
@@ -308,6 +410,8 @@ function drawHud() {
     ['VEL',      `vx ${p.vx.toFixed(1)}  vy ${p.vy.toFixed(1)}`],
     ['GROUNDED', p.grounded ? 'yes' : '<span class="warn">no</span>'],
     ['RENDER',   `${fps.toFixed(0)} fps`],
+    ['LEDGE',    p.ledge ? (p.climbing ? '<span class="warn">climbing</span>'
+                                       : '<span class="warn">hanging — ↑/W climb, ↓/S drop</span>') : 'no'],
     ['TILE EDIT', editMode ? '<span class="warn">ON — click to paint</span>' : 'off'],
     ['HITBOX',   showHitbox ? '<span class="warn">shown (B)</span>' : 'hidden'],
   ];
@@ -414,6 +518,30 @@ const endPaint = () => { painting = 0; };
 canvas.addEventListener('pointerup', endPaint);
 canvas.addEventListener('pointercancel', endPaint);
 window.addEventListener('blur', endPaint);
+
+// Test handle. The lab is a dev page that nothing in the game imports, so exposing its
+// internals costs nothing and makes the ledge mechanic testable DETERMINISTICALLY.
+// Driving it through a 2.7s walk and a jump depended on rAF timing, which a throttled
+// headless browser does not deliver reliably — the mechanic was fine and the test was
+// flaky, which is the worst kind of red.
+window.__lab = {
+  player: p,
+  findLedge,
+  setTile, solidAt, restoreRoom,
+  TILE, PLAYER_W, PLAYER_H,
+  state: () => ({ state: sprite.state, ledge: p.ledge, climbing: p.climbing,
+                  x: p.x, y: p.y, vy: p.vy, grounded: p.grounded }),
+  // Put the body beside a lip and let the real step() decide. No teleport-into-hanging:
+  // the grab must be earned by the same code the player exercises.
+  placeBeside(c, r, dir = 1) {
+    p.ledge = null; p.climbing = false;
+    p.x = dir > 0 ? c * TILE - PLAYER_W : (c + 1) * TILE;
+    p.y = r * TILE - 4;
+    p.vx = 0; p.vy = 60;            // falling, which is when a grab is allowed
+    p.grounded = false;
+    p.facingRight = dir > 0;
+  },
+};
 
 syncEdit();
 requestAnimationFrame(frame);

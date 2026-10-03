@@ -154,13 +154,88 @@ ok(/HITBOX\s+shown/.test(await hud()), 'B reveals it when wanted');
 await tap('KeyB'); await page.waitForTimeout(140);
 ok(/HITBOX\s+hidden/.test(await hud()), 'B hides it again');
 
+// ── ledge grab (LAB PROTOTYPE — production has no ledge mechanic) ──
+console.log('\n[ ledge grab ]');
+await tap('KeyR'); await page.waitForTimeout(150);
+ok(/LEDGE\s+no/.test(await hud()), 'not on a ledge at spawn');
+
+// Run RIGHT and jump: the player catches the first lip in its path. Sequence verified by
+// hand first — an earlier version of this test walked LEFT into a wall with no lip and
+// then reported a grab that was actually the floor edge.
+// Walk right to just short of the low platform's left edge (x=320), then jump: the lip at
+// col 10 is caught on the way down. Timing is derived, not guessed — PLAYER_SPEED is
+// 75px/s from x=96, so ~2.7s puts the body's right edge on the platform edge.
+async function grabALedge() {
+  await tap('KeyR'); await page.waitForTimeout(160);
+  await page.keyboard.down('ArrowRight'); await page.waitForTimeout(2700);
+  await page.keyboard.down('KeyW'); await page.waitForTimeout(90); await page.keyboard.up('KeyW');
+  // Poll rather than sleep a fixed time: the grab happens on the way DOWN, and a fixed
+  // wait either checks too early or after the player has fallen past.
+  for (let i = 0; i < 14; i++) {
+    await page.waitForTimeout(80);
+    if (/LEDGE\s+hanging/.test(await hud())) break;
+  }
+  await page.keyboard.up('ArrowRight');
+  await page.waitForTimeout(150);
+  return /LEDGE\s+hanging/.test(await hud());
+}
+
+// The low platform is rows 8, cols 10-13. Its left lip is (c=10, r=8).
+const LIP = { c: 10, r: 8 };
+
+const grab = await page.evaluate(async ({ c, r }) => {
+  const L = window.__lab;
+  L.placeBeside(c, r, 1);
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  return L.state();
+}, LIP);
+ok(!!grab.ledge, 'falling beside a lip catches it', JSON.stringify(grab.ledge));
+ok(grab.vy === 0, 'no gravity while hanging', 'vy=' + grab.vy);
+ok(grab.state === 'ledge-climb', 'hanging shows the ledge-climb art', grab.state);
+
+// A lip must NOT be grabbable from the column the body already occupies — that is the
+// floor, and grabbing it made the player hang off the baseline on every landing.
+const floorGrab = await page.evaluate(async () => {
+  const L = window.__lab;
+  L.player.ledge = null; L.player.climbing = false;
+  L.player.x = 96; L.player.y = 300; L.player.vy = 200; L.player.grounded = false;
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  return L.state();
+});
+ok(!floorGrab.ledge, 'the FLOOR is not grabbable — falling onto it lands, it does not hang',
+   floorGrab.ledge ? JSON.stringify(floorGrab.ledge) : 'landed/fell normally');
+
+// climb
+const climbed = await page.evaluate(async ({ c, r }) => {
+  const L = window.__lab;
+  L.placeBeside(c, r, 1);
+  await new Promise(res => requestAnimationFrame(() => requestAnimationFrame(res)));
+  const before = L.state();
+  L.player.climbing = true;                       // same flag the W press sets
+  for (let i = 0; i < 90; i++) await new Promise(res => requestAnimationFrame(res));
+  return { before, after: L.state() };
+}, LIP);
+ok(climbed.after.y < climbed.before.y - 10, 'the climb moves the player UP onto the lip',
+   `y ${climbed.before.y.toFixed(0)} -> ${climbed.after.y.toFixed(0)}`);
+ok(climbed.after.grounded === true, 'ends the climb standing on the ledge');
+ok(climbed.after.ledge === null, 'ledge state is released after the climb');
+ok(Math.abs(climbed.after.y - (LIP.r * 32 - 30)) < 2, 'lands exactly on the lip surface',
+   `y=${climbed.after.y.toFixed(0)} expected ${LIP.r * 32 - 30}`);
+
 ok(await page.locator('#te-toggle').count() === 1, 'tile edit panel exists');
 ok(/TILE EDIT\s+off/.test(await hud()), 'tile edit starts off, so a focus click never paints');
 
 // Chief's exact scenario: fall in the pit, get out without resetting.
-await page.keyboard.press('KeyR'); await page.waitForTimeout(120);
-await page.keyboard.down('ArrowRight'); await page.waitForTimeout(2800); await page.keyboard.up('ArrowRight');
-await page.waitForTimeout(300);
+// The pit is cols 20-23 = x 640-768. Walking takes 7+ seconds to reach it, so SPRINT —
+// an earlier version walked for 2.8s, never reached the pit, and the assertion passed
+// trivially because the player was simply still standing on the floor.
+await tap('KeyR'); await page.waitForTimeout(160);
+await page.keyboard.down('ShiftLeft');
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(4200);
+await page.keyboard.up('ArrowRight'); await page.keyboard.up('ShiftLeft');
+await page.waitForTimeout(900);
+ok((await field('GROUNDED')) === 'no' || parseFloat((await field('POS')).replace(/.*y\s*/, '')) > 400,
+   'sprinting right actually reaches the pit and falls in', await field('POS'));
 await page.locator('#te-fillrow').click(); await page.waitForTimeout(450);
 ok((await field('GROUNDED')) === 'yes',
    'Floor-under-me gives ground to stand on after a fall — no reset needed',
