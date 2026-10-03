@@ -1811,42 +1811,6 @@
   },
   "decorations": [
     {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
-      "x": 1046,
-      "y": 63,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 947,
-      "y": 63,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/convenience_store/store_blank_wall.png",
-      "x": 818,
-      "y": 110,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/warehouse/warehouse_left.png",
-      "x": 214,
-      "y": 238,
-      "w": 192,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
       "id": "bg_exit_building_49_10",
       "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "x": 1568,
@@ -3320,14 +3284,6 @@
       "snap": 32
     },
     {
-      "src": "assets/objects/night-city-buildings/convenience_store/store_blank_wall.png",
-      "x": -17,
-      "y": 238,
-      "w": 160,
-      "h": 256,
-      "snap": 1
-    },
-    {
       "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top3.png",
       "x": 111,
       "y": 237,
@@ -3349,42 +3305,6 @@
       "x": 944,
       "y": 110,
       "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/convenience_store/store_right.png",
-      "x": 1925,
-      "y": 77,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/convenience_store/store_front_bay.png",
-      "x": 1812,
-      "y": 77,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/convenience_store/store_vending_bay.png",
-      "x": 1683,
-      "y": 77,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/convenience_store/store_left.png",
-      "x": 1551,
-      "y": 77,
-      "w": 192,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
@@ -3429,23 +3349,12 @@
       "label": "HVAC",
       "charge": 4,
       "kind": "hvac"
-    },
-    {
-      "x": 2048,
-      "y": 292,
-      "label": "VEND",
-      "charge": 4,
-      "kind": "prop",
-      "sprite": "assets/objects/night-city-props/vending-machine/",
-      "frames": 8,
-      "artW": 128,
-      "artH": 128
     }
   ],
   "gates": [
     {
       "id": "gate_1",
-      "x": 2176,
+      "x": 2240,
       "y": 320,
       "w": 32,
       "h": 64,
