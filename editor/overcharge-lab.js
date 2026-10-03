@@ -91,6 +91,7 @@ const p = {
 // a melee trigger the energy-strike clip would be unreachable, and nothing damages the
 // player so hurt would never play.
 const LEFT = ['ArrowLeft','KeyA'], RIGHT = ['ArrowRight','KeyD'], JUMP = ['ArrowUp','KeyW'];
+let showHitbox = false;     // B toggles it; off so nothing overlays the character
 let override = null;        // forced state name, or null for gameplay
 let playing  = true;        // override playback
 let lastT    = null;
@@ -115,7 +116,7 @@ function reset() {
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', e => {
     if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName)) return;
-    if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR'].includes(e.code)) e.preventDefault();
+    if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR','KeyB'].includes(e.code)) e.preventDefault();
   }, { passive: false });
 }
 
@@ -163,6 +164,7 @@ function step(dt) {
   p.attackT = Math.max(0, p.attackT - dt);
 
   if (Input.pressed('KeyR')) reset();
+  if (Input.pressed('KeyB')) showHitbox = !showHitbox;   // lab-only: hitbox overlay
   if (Input.pressed('KeyH')) p.hurtT = HURT_TIME;                       // lab-only
   if (Input.pressed('KeyJ')) { p.attackT = ATTACK_LATCH; p.projectile = false; } // lab-only melee
   if (Input.pressed('KeyK')) { p.attackT = ATTACK_LATCH; p.projectile = true;  } // production attack
@@ -306,10 +308,15 @@ function frame(t) {
   drawRoom();
   drawHeroFrame(ctx, sprite.currentFrame, p.x + PLAYER_W / 2, p.y + PLAYER_H, HERO_DRAW);
 
-  // Hitbox outline — the sprite draws at 80px while the body is 20x30, so without
-  // this the relationship between art and collision is invisible.
-  ctx.strokeStyle = 'rgba(0,229,208,.45)'; ctx.lineWidth = 1;
-  ctx.strokeRect(Math.round(p.x) + .5, Math.round(p.y) + .5, PLAYER_W - 1, PLAYER_H - 1);
+  // Hitbox outline. OFF by default — Chief: "remove the weird box on top of the
+  // charcter". The 20x30 body sits inside an 80px sprite, so the outline landed across
+  // the character's middle and read as a glitch rather than as information. Kept behind
+  // a key because the art-to-collision relationship is genuinely useful when something
+  // looks mis-anchored, but it is not something to stare at while testing movement.
+  if (showHitbox) {
+    ctx.strokeStyle = 'rgba(0,229,208,.45)'; ctx.lineWidth = 1;
+    ctx.strokeRect(Math.round(p.x) + .5, Math.round(p.y) + .5, PLAYER_W - 1, PLAYER_H - 1);
+  }
 
   drawHud();
   // MUST be last, exactly as production does it: this copies cur -> prev so that
