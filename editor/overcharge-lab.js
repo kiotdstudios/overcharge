@@ -14,7 +14,7 @@
 // to different numbers would validate animations against a jump the game does not have.
 // RUN_MULT is lab-local because production has no run state yet.
 
-import { PlayerSprites, HERO_STATES } from '../src_scroll/hero-sprites.js';
+import { PlayerSprites, HERO_STATES, HERO_PACKS } from '../src_scroll/hero-sprites.js';
 import { drawHeroFrame } from '../src_scroll/hero-render.js';
 import { GRAVITY, JUMP_FORCE, PLAYER_SPEED, PLAYER_W, PLAYER_H, TILE } from '../src_scroll/constants.js';
 // THE REAL INPUT MODULE, not a reimplementation. Chief: "i need this to have the real
@@ -53,9 +53,13 @@ const LEDGE_REACH = 10;    // px in front of the body that counts as touching a 
 // over the ledge, which is exactly what it looked like.
 //
 // Hanging correctly means HANDS ON THE LIP and the body below it.
-const LEDGE_FRAME0_TOP = 69;                                   // measured, hero-v3 ledge-climb
-const HAND_ABOVE_FEET  = HERO_DRAW * (496 - LEDGE_FRAME0_TOP) / 512;
-const LEDGE_HANG_Y     = HAND_ABOVE_FEET - PLAYER_H;           // body top, relative to the lip
+// Measured PER PACK, because the two packs have different canvases and
+// different hang frames. Both land in the same place to within half a pixel,
+// which is the check that v6's regenerated climb matches v3's geometry:
+//   hero-v3  (496 - 69) / 512  -> 66.72px above the feet
+//   hero-v6  (126 - 20) / 128  -> 66.25px above the feet
+// HAND_ABOVE_FEET and LEDGE_HANG_Y are derived below, once the pack is known.
+const LEDGE_FRAME0_TOP = { 'hero-v3': 69, 'hero-v6': 20 };
 // An attack must LATCH, not be read from the held key. A quick tap fires keydown and
 // keyup inside one frame, so clearing the flag on keyup meant the animator never saw a
 // rising edge and the strike silently never played. Caught by the smoke test tapping J.
@@ -123,17 +127,33 @@ const SPAWN = { x: 3 * TILE, y: 11 * TILE };
 
 // ── State ────────────────────────────────────────────────────────────────────
 // WHICH SPRITE PACK. Chief asked which sheets the lab is showing, and the answer is worth
-// stating in code because three generations exist:
+// stating in code because four generations now exist:
 //
-//   assets/sprites/hero-v3/        16 states, 8 frames each  <- what BOTH labs render
-//   assets/sprites/hero-gait-v4/   revised walk + run only   <- opt-in with ?gait=4
+//   assets/sprites/hero-v6/        16 states, 16 frames each <- DEFAULT here, tactical
+//   assets/sprites/hero-v3/        16 states, 8 frames each  <- opt-in with ?pack=v3
+//   assets/sprites/hero-gait-v4/   revised walk + run only   <- opt-in with ?gait=4 (v3 only)
 //   assets/sprites/walking|running|jumping|idle_2.0   <- what the GAME still renders,
 //                                                        through src_scroll/sprites.js
 //
-// So the lab is NOT showing the same character the game draws. hero-v3 is the newer pack
-// built for the animator migration, and that migration has not shipped to production.
-const useGait4 = new URLSearchParams(location.search).get('gait') === '4';
-const sprite = new PlayerSprites({ gaitRoot: useGait4 ? 'assets/sprites/hero-gait-v4' : null });
+// The lab STILL does not show the same character the game draws — that migration has not
+// shipped. hero-v6 is hero-v3's character restyled tactical with a teal chest emblem,
+// generated at hero-v3's TRUE 128px resolution (v3 is the same art upscaled 4x), so the
+// smaller canvas costs no detail.
+const qs = new URLSearchParams(location.search);
+const useGait4 = qs.get('gait') === '4';
+// ?gait=4 only ever replaced v3's walk/run, so asking for it implies the v3 pack.
+const HERO_PACK = (qs.get('pack') === 'v3' || useGait4) ? 'hero-v3' : 'hero-v6';
+const sprite = new PlayerSprites({
+  pack: HERO_PACK,
+  gaitRoot: useGait4 ? 'assets/sprites/hero-gait-v4' : null,
+});
+// Pack-dependent geometry, derived from the active pack's own numbers rather
+// than hardcoded, so swapping packs cannot silently move the character.
+const PACK_SPEC       = HERO_PACKS[HERO_PACK];
+const FOOT_ANCHOR     = PACK_SPEC.footAnchor / PACK_SPEC.cell;
+const HAND_ABOVE_FEET = HERO_DRAW *
+  (PACK_SPEC.footAnchor - LEDGE_FRAME0_TOP[HERO_PACK]) / PACK_SPEC.cell;
+const LEDGE_HANG_Y    = HAND_ABOVE_FEET - PLAYER_H;   // body top, relative to the lip
 const canvas = document.getElementById('lab');
 const ctx    = canvas.getContext('2d');
 
@@ -598,7 +618,10 @@ function drawHud() {
     ['RENDER',   `${fps.toFixed(0)} fps`],
     ['LEDGE',    p.ledge ? (p.climbing ? '<span class="warn">climbing</span>'
                                        : '<span class="warn">hanging — ↑/W climb, ↓/S drop</span>') : 'no'],
-    ['PACK',     useGait4 ? '<span class="warn">hero-gait-v4</span> walk/run' : 'hero-v3'],
+    ['PACK',     useGait4 ? '<span class="warn">hero-gait-v4</span> walk/run'
+                          : HERO_PACK === 'hero-v6'
+                            ? '<span class="warn">hero-v6</span> tactical, 16f'
+                            : 'hero-v3, 8f'],
     ['TILE EDIT', editMode ? '<span class="warn">ON — click to paint</span>' : 'off'],
     ['HITBOX',   showHitbox ? '<span class="warn">shown (B)</span>' : 'hidden'],
   ];
@@ -630,7 +653,7 @@ function frame(t) {
 
   drawRoom();
   drawPlaced(clockSec);
-  drawHeroFrame(ctx, sprite.currentFrame, p.x + PLAYER_W / 2, p.y + PLAYER_H, HERO_DRAW);
+  drawHeroFrame(ctx, sprite.currentFrame, p.x + PLAYER_W / 2, p.y + PLAYER_H, HERO_DRAW, FOOT_ANCHOR);
 
   // Hitbox outline. OFF by default — Chief: "remove the weird box on top of the
   // charcter". The 20x30 body sits inside an 80px sprite, so the outline landed across
