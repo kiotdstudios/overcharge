@@ -231,6 +231,16 @@ export function boundingRect(kind, ref) {
   // editor-only selection rect.
   if (kind === 'source') {
     const b = sourceBox(ref);
+    // Prop sources (streetlight, HVAC, camera, etc. - CHIEF 2026-09-26) draw
+    // their own full-size art via sourceBox, same as decorations draw their
+    // full placed footprint. Same trim fraction applies for the same reason:
+    // the art has transparent padding (and, for the streetlight, a thin
+    // pole under a wide head) that the selection box must not balloon to
+    // cover. Frame 00 stands in for all frames - they share one canvas size.
+    if (ref.kind === 'prop' && ref.sprite) {
+      const box = assetVisualBox(ref.sprite + '00.png', b.dW, b.dH);
+      return { x: b.dX + box.x, y: b.dY + box.y, w: box.w, h: box.h };
+    }
     return { x: b.dX, y: b.dY, w: b.dW, h: b.dH };
   }
   // Switch: 56x56 art (wall_switch/switch_off.png or switch_on.png) drawn centred on
@@ -305,8 +315,22 @@ export function objectAt(worldX, worldY) {
     ['chest',      L.chests      || []],
   ]) {
     for (let i = arr.length - 1; i >= 0; i--) {
-      const rect = hitRect(kind, arr[i]);
-      if (rect && _hits(rect, worldX, worldY)) return { kind, ref: arr[i] };
+      const ref = arr[i];
+      const rect = hitRect(kind, ref);
+      if (rect && _hits(rect, worldX, worldY)) {
+        // Prop sources share the decoration problem: a trimmed box is still
+        // a rectangle, and a thin-pole/wide-head sprite leaves transparent
+        // gaps inside it. Check the real pixel before claiming the click;
+        // a miss falls through to the next source, then gates/switches/etc,
+        // then decorations, then terrain - same chain as everything else.
+        if (kind === 'source' && ref.kind === 'prop' && ref.sprite) {
+          const b = sourceBox(ref);
+          const u = b.dW ? (worldX - b.dX) / b.dW : 0.5;
+          const v = b.dH ? (worldY - b.dY) / b.dH : 0.5;
+          if (!isOpaqueAt(ref.sprite + '00.png', u, v)) continue;
+        }
+        return { kind, ref };
+      }
     }
   }
 
