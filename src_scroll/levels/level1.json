@@ -1806,10 +1806,28 @@
     47
   ],
   "playerStart": {
-    "x": 128,
+    "x": 64,
     "y": 450
   },
   "decorations": [
+    {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_right.png",
+      "x": 1221,
+      "y": 110,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_left.png",
+      "x": 214,
+      "y": 238,
+      "w": 192,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
     {
       "id": "bg_exit_building_49_10",
       "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
@@ -3284,30 +3302,6 @@
       "snap": 32
     },
     {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 341,
-      "y": 206,
-      "w": 128,
-      "h": 256,
-      "snap": 1
-    },
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 441,
-      "y": 206,
-      "w": 128,
-      "h": 256,
-      "snap": 1
-    },
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 539,
-      "y": 206,
-      "w": 128,
-      "h": 256,
-      "snap": 1
-    },
-    {
       "src": "assets/objects/night-city-buildings/convenience_store/store_blank_wall.png",
       "x": -17,
       "y": 238,
@@ -3316,27 +3310,46 @@
       "snap": 1
     },
     {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 113,
-      "y": 237,
-      "w": 128,
-      "h": 256,
-      "snap": 1
-    },
-    {
       "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top3.png",
-      "x": 211,
+      "x": 111,
       "y": 237,
       "w": 160,
       "h": 256,
       "snap": 1
+    },
+    {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_closed_bay.png",
+      "x": 1084,
+      "y": 110,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_open_bay.png",
+      "x": 944,
+      "y": 110,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_left.png",
+      "x": 826,
+      "y": 110,
+      "w": 192,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
     }
   ],
   "sources": [
     {
       "id": "src_4",
-      "x": 320,
-      "y": 452,
+      "x": 416,
+      "y": 420,
       "charge": 4,
       "label": "LAMP",
       "kind": "prop",
@@ -3346,8 +3359,8 @@
       "artH": 192
     },
     {
-      "x": 1024,
-      "y": 324,
+      "x": 1600,
+      "y": 292,
       "label": "LAMP",
       "charge": 4,
       "kind": "prop",
@@ -3362,6 +3375,17 @@
       "label": "HVAC",
       "charge": 4,
       "kind": "hvac"
+    },
+    {
+      "x": 1344,
+      "y": 324,
+      "label": "NEON",
+      "charge": 4,
+      "kind": "prop",
+      "sprite": "assets/objects/night-city-props/neon-sign/",
+      "frames": 8,
+      "artW": 96,
+      "artH": 96
     }
   ],
   "gates": [
@@ -3380,8 +3404,8 @@
   "checkpoints": [
     {
       "id": "CP1",
-      "x": 1248,
-      "y": 352,
+      "x": 800,
+      "y": 384,
       "label": "CP"
     }
   ],
