@@ -1983,3 +1983,31 @@ He took the bug as his own without being asked — *"that's my bug and a bad one
 the game was dead"* — and correctly identified it as the same shape as testing vision at the drone's own
 height. He also **reordered his own queue to file the chest semantics first**, ahead of his own work,
 because it is the only thing unblocking Aki. That is the right call and he made it unprompted.
+
+## 2026-09-20 — sprite provenance audit — the lab and the game render two different characters
+Chief asked whether the run animation in use is the one in the PixelLab creator. Answering it properly meant querying the API rather than guessing from filenames, so I enumerated all 18 characters and every animation group on the account and compared the frames to the repo.
+
+### The answer
+The **game's** run (`assets/sprites/running/`) **is** the creator's run. The **lab's** run (`assets/sprites/hero-v3/run/`) is not from PixelLab at all. Those are two different characters and Chief has been testing the one the game does not draw.
+
+### Proven, not inferred
+- The creator's `running` animation on hero `c6503f8e…` is `running-8-frames`, 8 frames, east + west — the only generation in the account with that shape. Two commits on the record explain the byte difference: `11d7ea2` regenerated it as an 8-frame template, `6a16572` normalized it to a 64px character height.
+- Pixel comparison (minimal PNG decoder, cropped to opaque bounding box) confirms exactly that and nothing more: all 8 repo frames are exactly 64px tall where PixelLab's vary 60–62, each 1–3px larger, same silhouettes in the same order.
+- Control: `assets/sprites/walking/east` is **9/9 byte-identical** to the creator's `walking`. The download path does not re-encode, so only run was ever touched.
+- `hero-v3` is 512×512 cells — twice PixelLab's 256px ceiling — and its README says it was made with built-in imagegen. Its `ledge-climb`, `wall-slide`, `grapple` and ladder states exist on no PixelLab character in the account.
+
+### No newer run exists
+The only other run in the account is `Running` (`v3:running`), which is **older** than the one in use and has **no east direction**. There is nothing undownloaded to pick up.
+
+### What this costs us
+The ledge work I delivered last round is measured against hero-v3 art (`LEDGE_FRAME0_TOP = 69`, `HAND_ABOVE_FEET = 66.7px`). The game renders the PixelLab packs, which have no ledge-climb frames. Moving ledge grab into the game needs a Chief decision: migrate the game to hero-v3, or generate a ledge-climb for the PixelLab hero and re-measure. Account has 1,557 of 2,000 generations left, so either is affordable.
+
+### Files changed
+- `docs/KIRO_SPRITE_PROVENANCE_AUDIT.md` (new — full tables and method)
+- `KIRO_STATUS.md`
+
+### Note on my own gating
+No test in any of the 47 suites would have caught this. The lab and the game each render a pack that loads fine; nothing asserts they render the *same* pack. I am not adding a test for it yet because the right assertion depends on which way Chief decides.
+
+### Chief/TD decision required
+Migrate the game to hero-v3, or keep the PixelLab character and generate a ledge-climb for it. Document ready for Chief to read: `docs/KIRO_SPRITE_PROVENANCE_AUDIT.md`.
