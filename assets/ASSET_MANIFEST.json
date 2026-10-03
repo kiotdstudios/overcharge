@@ -2336,82 +2336,6 @@
         "w": 0.7812,
         "h": 0.6367
       }
-    },
-    {
-      "id": "building_nc_filler_warehouse_metal",
-      "name": "Night City wall filler - warehouse metal",
-      "path": "assets/objects/night-city-buildings/wall_fillers/filler_warehouse_metal.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "filler_wall",
-        "scenery",
-        "noncolliding",
-        "wall_filler_strip"
-      ],
-      "frame_width": 160,
-      "frame_height": 80,
-      "frame_count": 1,
-      "notes": "Plain corrugated-metal body-filler strip matching the warehouse wall family's palette and ridge texture. Stack it under a warehouse panel (snaps via family tag) to pad up to a uniform wall height without stretching the panel's own art. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
-    },
-    {
-      "id": "building_nc_filler_store_brick",
-      "name": "Night City wall filler - store brick",
-      "path": "assets/objects/night-city-buildings/wall_fillers/filler_store_brick.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "filler_wall",
-        "scenery",
-        "noncolliding",
-        "wall_filler_strip"
-      ],
-      "frame_width": 160,
-      "frame_height": 76,
-      "frame_count": 1,
-      "notes": "Plain brick body-filler strip matching the convenience-store wall family's palette and brick-course texture. Stack it under a store panel (snaps via family tag) to pad up to a uniform wall height without stretching the panel's own art. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
-    },
-    {
-      "id": "building_nc_filler_abandoned_concrete",
-      "name": "Night City wall filler - abandoned concrete",
-      "path": "assets/objects/night-city-buildings/wall_fillers/filler_abandoned_concrete.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "filler_wall",
-        "scenery",
-        "noncolliding",
-        "wall_filler_strip"
-      ],
-      "frame_width": 160,
-      "frame_height": 100,
-      "frame_count": 1,
-      "notes": "Plain weathered-concrete body-filler strip matching the abandoned-apartment wall family's palette and crack/grime texture. Stack it under an abandoned panel (snaps via family tag) to pad up to a uniform wall height without stretching the panel's own art. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
-    },
-    {
-      "id": "building_nc_filler_generic",
-      "name": "Night City wall filler - generic",
-      "path": "assets/objects/night-city-buildings/wall_fillers/filler_generic.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "filler_wall",
-        "scenery",
-        "noncolliding",
-        "wall_filler_strip"
-      ],
-      "frame_width": 128,
-      "frame_height": 68,
-      "frame_count": 1,
-      "notes": "Plain corrugated-metal body-filler strip matching the generic filler_wall family's palette and texture. Stack it under a filler_wall panel (snaps via family tag) to pad up to a uniform wall height without stretching the panel's own art. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall"
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -2702,5 +2626,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 107
+  "count": 103
 }
