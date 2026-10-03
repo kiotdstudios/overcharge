@@ -54,14 +54,19 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
       <section>
         <h2>Controls</h2>
         <div class="legend">
-          <div><kbd>A / D</kbd> move — idle ↔ walk, facing</div>
+          <div><kbd>← →</kbd> or <kbd>A D</kbd> move — idle ↔ walk, facing</div>
           <div><kbd>Shift</kbd> run — walk ↔ run transition</div>
-          <div><kbd>Space</kbd> jump — jump, fall, landing</div>
-          <div><kbd>J</kbd> energy strike &nbsp; <kbd>K</kbd> projectile cast</div>
-          <div><kbd>E</kbd> absorb &nbsp; <kbd>F</kbd> discharge</div>
-          <div><kbd>H</kbd> hurt &nbsp; <kbd>R</kbd> reset player</div>
+          <div><kbd>↑</kbd> or <kbd>W</kbd> jump — jump, fall, landing</div>
+          <div><kbd>K</kbd> attack — aimed cast (hold a direction to aim)</div>
+          <div><kbd>E</kbd> hold absorb &nbsp; <kbd>Space</kbd> hold charge</div>
+          <div><kbd>R</kbd> reset player</div>
         </div>
-        <p class="note">Keyboard gameplay is the primary test path. Click the canvas first if keys do nothing.</p>
+        <p class="note"><b>These are the real game controls</b>, read from <code>player.js</code> and driven
+          through production's own <code>input.js</code> — jump is <kbd>↑</kbd>/<kbd>W</kbd>, and
+          <kbd>Space</kbd> is charge, not jump.</p>
+        <p class="note">Lab-only additions, because the lab has no enemies and nothing damages you:
+          <kbd>J</kbd> melee energy-strike (production plays this when an enemy is in range) and
+          <kbd>H</kbd> hurt. Click the canvas first if keys do nothing.</p>
       </section>
     </aside>
   </div>

@@ -32,6 +32,15 @@ page.on('pageerror', e => errors.push(e.message.split('\n')[0]));
 page.on('console', m => { if (m.type() === 'error') errors.push(m.text()); });
 page.on('response', r => { if (r.status() >= 400) failed.push(`${r.status()} ${r.url().split('/').pop()}`); });
 
+
+// Holds a key across at least one animation frame. Input.pressed() is a two-frame edge
+// (cur && !prev), so an instantaneous down+up is invisible to it — that is a property of
+// production's input model, not a lab defect, and a human tap always spans ~3-6 frames.
+async function tap(key, hold = 90) {
+  await page.keyboard.down(key);
+  await page.waitForTimeout(hold);
+  await page.keyboard.up(key);
+}
 const hud = async () => (await page.locator('#hud').innerText()).replace(/\s+/g, ' ');
 const field = async (k) => { const t = await hud(); const m = t.match(new RegExp(k + '\\s+([^A-Z]+?)(?=[A-Z]{3}|$)')); return m ? m[1].trim() : ''; };
 
@@ -61,49 +70,55 @@ await page.locator('#lab').click();
 ok((await field('STATE')).startsWith('idle'), 'starts idle', await field('STATE'));
 ok((await field('GROUNDED')) === 'yes', 'spawns grounded on the baseline');
 
-await page.keyboard.down('d'); await page.waitForTimeout(350);
-ok((await field('STATE')).startsWith('walk'), 'D walks', await field('STATE'));
-ok((await field('FACING')).includes('east'), 'D faces east');
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(350);
+ok((await field('STATE')).startsWith('walk'), 'ArrowRight walks', await field('STATE'));
+ok((await field('FACING')).includes('east'), 'ArrowRight faces east');
 const xWalk = parseFloat(await field('POS').then(s => s.replace(/x\s*/, '')));
 
 await page.keyboard.down('Shift'); await page.waitForTimeout(400);
-ok((await field('STATE')).startsWith('run'), 'Shift+D runs', await field('STATE'));
+ok((await field('STATE')).startsWith('run'), 'Shift+ArrowRight runs', await field('STATE'));
 const vRun = Math.abs(parseFloat((await field('VEL')).replace(/vx\s*/, '')));
 ok(vRun > 100, 'run is faster than walk', 'vx ' + vRun.toFixed(0));
-await page.keyboard.up('Shift'); await page.keyboard.up('d');
+await page.keyboard.up('Shift'); await page.keyboard.up('ArrowRight');
 
-await page.keyboard.down('a'); await page.waitForTimeout(320);
-ok((await field('FACING')).includes('west'), 'A faces west', await field('FACING'));
-await page.keyboard.up('a');
+await page.keyboard.down('KeyA'); await page.waitForTimeout(320);
+ok((await field('FACING')).includes('west'), 'KeyA faces west (WASD still works)', await field('FACING'));
+await page.keyboard.up('KeyA');
 await page.waitForTimeout(260);
 ok((await field('STATE')).startsWith('idle'), 'returns to idle when keys released', await field('STATE'));
 
 // ── jump ──
-await page.keyboard.press('Space'); await page.waitForTimeout(160);
-ok((await field('STATE')).startsWith('jump'), 'Space jumps', await field('STATE'));
+await tap('KeyW'); await page.waitForTimeout(70);
+ok((await field('STATE')).startsWith('jump'), 'W jumps (production key)', await field('STATE'));
 ok((await field('GROUNDED')) === 'no', 'airborne during jump');
 await page.waitForTimeout(1400);
 ok((await field('GROUNDED')) === 'yes', 'lands again', await field('GROUNDED'));
 ok((await field('STATE')).startsWith('idle'), 'returns to idle after landing', await field('STATE'));
 
+// Space must NOT jump — it is charge. This is the exact regression Chief hit.
+await page.waitForTimeout(250);
+const beforeSpace = await field('GROUNDED');
+await tap('Space', 120); await page.waitForTimeout(60);
+ok(beforeSpace === 'yes' && (await field('GROUNDED')) === 'yes', 'Space does NOT jump (it is charge)');
+
 // ── one-shots must not corrupt movement ──
-for (const [key, want] of [['j','energy-strike'], ['k','projectile-cast'], ['h','hurt']]) {
-  await page.keyboard.press(key); await page.waitForTimeout(130);
-  ok((await field('STATE')).startsWith(want), `${key.toUpperCase()} triggers ${want}`, await field('STATE'));
+for (const [key, want] of [['KeyJ','energy-strike'], ['KeyK','projectile-cast'], ['KeyH','hurt']]) {
+  await tap(key); await page.waitForTimeout(60);
+  ok((await field('STATE')).startsWith(want), `${key} triggers ${want}`, await field('STATE'));
   await page.waitForTimeout(1500);
 }
 ok((await field('STATE')).startsWith('idle'), 'movement state is intact after one-shots', await field('STATE'));
 
-for (const [key, want] of [['e','absorb'], ['f','discharge']]) {
+for (const [key, want] of [['KeyE','absorb'], ['Space','discharge']]) {
   await page.keyboard.down(key); await page.waitForTimeout(200);
-  ok((await field('STATE')).startsWith(want), `${key.toUpperCase()} holds ${want}`, await field('STATE'));
+  ok((await field('STATE')).startsWith(want), `${key} holds ${want}`, await field('STATE'));
   await page.keyboard.up(key); await page.waitForTimeout(150);
 }
 
 // ── reset ──
-await page.keyboard.down('d'); await page.waitForTimeout(500); await page.keyboard.up('d');
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(500); await page.keyboard.up('ArrowRight');
 const moved = parseFloat((await field('POS')).replace(/x\s*/, ''));
-await page.keyboard.press('r'); await page.waitForTimeout(150);
+await tap('KeyR'); await page.waitForTimeout(80);
 const after = parseFloat((await field('POS')).replace(/x\s*/, ''));
 ok(after < moved, 'R resets to the start', `${moved.toFixed(0)} -> ${after.toFixed(0)}`);
 

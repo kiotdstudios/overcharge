@@ -17,6 +17,12 @@
 import { PlayerSprites, HERO_STATES } from '../src_scroll/hero-sprites.js';
 import { drawHeroFrame } from '../src_scroll/hero-render.js';
 import { GRAVITY, JUMP_FORCE, PLAYER_SPEED, PLAYER_W, PLAYER_H, TILE } from '../src_scroll/constants.js';
+// THE REAL INPUT MODULE, not a reimplementation. Chief: "i need this to have the real
+// actual game controls". The original build followed the order's control table (A/D,
+// Space to jump) which CONTRADICTS the shipped game — Space is CHARGE and jump is W or
+// ArrowUp. Hand-rolled key handling is how that drift happened, so the lab now shares
+// production's `Input` exactly: same key codes, same held/pressed edge semantics.
+import * as Input from '../src_scroll/input.js';
 
 const RUN_MULT   = 2.1;    // lab-only: production has no run state to match
 const HERO_DRAW  = 80;     // game-scale display, same as Hero Lab's 80px preview
@@ -72,7 +78,19 @@ const p = {
   absorbing: false, discharging: false,
   attackT: 0, projectile: false,
 };
-const keys = new Set();
+// PRODUCTION KEY MAP, read straight off player.js:
+//   move    heldAny ArrowLeft/KeyA  ·  ArrowRight/KeyD
+//   jump    pressedAny ArrowUp/KeyW          <- NOT Space
+//   run     heldAny ShiftLeft/ShiftRight
+//   drop    pressedAny ArrowDown/KeyS when grounded
+//   absorb  held KeyE
+//   charge  held Space                        <- shows the discharge animation
+//   attack  pressed KeyK  — melee if an enemy is near, otherwise an aimed bolt
+//   reset   KeyR
+// KeyJ and KeyH are LAB-ONLY, flagged in the legend: the lab has no enemies, so without
+// a melee trigger the energy-strike clip would be unreachable, and nothing damages the
+// player so hurt would never play.
+const LEFT = ['ArrowLeft','KeyA'], RIGHT = ['ArrowRight','KeyD'], JUMP = ['ArrowUp','KeyW'];
 let override = null;        // forced state name, or null for gameplay
 let playing  = true;        // override playback
 let lastT    = null;
@@ -87,26 +105,17 @@ function reset() {
 }
 
 // ── Input ────────────────────────────────────────────────────────────────────
-// Keydown is where one-shots fire. The attack is latched for ATTACK_LATCH seconds so a
-// tap survives to the next frame; the animator's own `attackStart` edge then triggers
-// the one-shot and holds it until the clip finishes, so the latch expiring mid-swing is
-// harmless. Holding the key does not retrigger, because the latch only re-arms on a
-// fresh keydown.
+// The production Input module already owns keydown/keyup, arrow-scroll prevention and
+// the clear-on-blur that stops a stuck sprint. Nothing to add here except preventing
+// the page scrolling on the keys it does not already guard.
 addEventListener('keydown', e => {
-  if (['INPUT','SELECT','TEXTAREA'].includes(e.target.tagName)) return;
-  const k = e.key.toLowerCase();
-  if (k === ' ' || e.code === 'Space') { e.preventDefault(); p.jumpBuf = JUMP_BUF; }
-  if (['a','d','e','f','h','j','k','r'].includes(k)) e.preventDefault();
-  keys.add(k);
-  if (e.repeat) return;                       // held key must not re-arm the latch
-  if (k === 'r') reset();
-  if (k === 'h') p.hurtT = HURT_TIME;
-  if (k === 'j') { p.attackT = ATTACK_LATCH; p.projectile = false; }
-  if (k === 'k') { p.attackT = ATTACK_LATCH; p.projectile = true;  }
+  if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName)) return;
+  if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR'].includes(e.code)) e.preventDefault();
 }, { passive: false });
 
-addEventListener('keyup', e => keys.delete(e.key.toLowerCase()));
-addEventListener('blur', () => keys.clear());
+// One-shots are read as EDGES from Input.pressed() inside step(), not latched here.
+// The previous build latched them on its own keydown handler, which is what let a tap
+// get lost. Input's two-frame snapshot makes the edge survive to exactly one step().
 
 // ── Collision ────────────────────────────────────────────────────────────────
 // Axis-separated AABB against the tile grid. Simple on purpose (order §6) — this is
@@ -138,14 +147,20 @@ function moveAxis(dx, dy) {
 
 // ── Simulation ───────────────────────────────────────────────────────────────
 function step(dt) {
-  const running = keys.has('shift') || keys.has('arrowshift');
-  const left = keys.has('a'), right = keys.has('d');
+  const running = Input.heldAny('ShiftLeft', 'ShiftRight');
+  const left = Input.heldAny(...LEFT), right = Input.heldAny(...RIGHT);
   const dir = (right ? 1 : 0) - (left ? 1 : 0);
 
-  p.absorbing   = keys.has('e');
-  p.discharging = keys.has('f');
+  p.absorbing   = Input.held('KeyE');
+  p.discharging = Input.held('Space');     // production: hold Space to push charge out
   p.hurtT   = Math.max(0, p.hurtT - dt);
   p.attackT = Math.max(0, p.attackT - dt);
+
+  if (Input.pressed('KeyR')) reset();
+  if (Input.pressed('KeyH')) p.hurtT = HURT_TIME;                       // lab-only
+  if (Input.pressed('KeyJ')) { p.attackT = ATTACK_LATCH; p.projectile = false; } // lab-only melee
+  if (Input.pressed('KeyK')) { p.attackT = ATTACK_LATCH; p.projectile = true;  } // production attack
+  if (Input.pressedAny(...JUMP)) p.jumpBuf = JUMP_BUF;
 
   const speed = PLAYER_SPEED * (running ? RUN_MULT : 1);
   p.vx = dir * speed;
@@ -273,9 +288,9 @@ function frame(t) {
 
   if (override) {
     // Inspection mode: freeze the body, drive the animator directly. Facing still
-    // follows A/D so east/west can be compared without leaving override.
-    if (keys.has('a')) p.facingRight = false;
-    if (keys.has('d')) p.facingRight = true;
+    // follows the move keys so east/west can be compared without leaving override.
+    if (Input.heldAny(...LEFT))  p.facingRight = false;
+    if (Input.heldAny(...RIGHT)) p.facingRight = true;
     sprite.setState(override, p.facingRight);
     if (playing) sprite._current.update(dt);
   } else {
@@ -291,6 +306,10 @@ function frame(t) {
   ctx.strokeRect(Math.round(p.x) + .5, Math.round(p.y) + .5, PLAYER_W - 1, PLAYER_H - 1);
 
   drawHud();
+  // MUST be last, exactly as production does it: this copies cur -> prev so that
+  // Input.pressed() reports a true one-frame edge. Call it earlier and every
+  // pressed() read in the same frame returns false.
+  Input.update();
   requestAnimationFrame(frame);
 }
 
