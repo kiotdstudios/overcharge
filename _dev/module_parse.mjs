@@ -39,9 +39,32 @@ const _el = () => new Proxy({
   addEventListener(){}, removeEventListener(){}, remove(){}, focus(){}, blur(){}, click(){},
   getBoundingClientRect:()=>({left:0,top:0,width:800,height:600,right:800,bottom:600}),
   querySelector:()=>_el(), querySelectorAll:()=>[], closest:()=>null, insertAdjacentHTML(){},
+  // ChildNode insertion methods. editor/workspace.js:14 does
+  // `toolbar.querySelector('h1').after(levelNav)`, which is a real DOM API — without these
+  // the catch-all below handed back an element proxy instead of a callable and this guard
+  // reported main.js as failing to import when it is perfectly fine in a browser.
+  // A FALSE NEGATIVE is not a harmless one: this suite exists to be believed, and three
+  // permanent red marks are how a real break gets waved through.
+  after(){}, before(){}, replaceWith(){}, append(){}, prepend(){},
+  insertBefore(){}, insertAdjacentElement(){}, cloneNode:()=>_el(),
+  replaceChildren(){}, replaceChild(){}, contains:()=>false, hasAttribute:()=>false,
+  getAttribute:()=>null, scrollIntoView(){}, setSelectionRange(){}, select(){},
 }, { get:(t,k)=> (k in t ? t[k] : (typeof k === 'string' && /^on/.test(k) ? null : _el())),
      set:()=>true });
 globalThis.fetch=async()=>({ok:false,status:404,text:async()=>'',json:async()=>({})});
+// `location` is a BARE global in the browser, not only window.location. hero-lab.js and
+// overcharge-lab.js both read `location.search` for their ?gait= switch, so without this the
+// guard failed them on a shim gap rather than on anything wrong with the code.
+globalThis.location = window.location;
+// Observer APIs the lab pages and main.js construct at module scope. Stubs, not polyfills:
+// this suite only answers "does the module graph load", and a no-op observer is enough to get
+// past construction. The browser smoke is what proves they actually behave.
+globalThis.ResizeObserver   = class { observe(){} unobserve(){} disconnect(){} };
+globalThis.MutationObserver = class { observe(){} disconnect(){} takeRecords(){ return []; } };
+globalThis.IntersectionObserver = class { observe(){} unobserve(){} disconnect(){} };
+globalThis.matchMedia = globalThis.matchMedia || (() => ({ matches:false, addEventListener(){}, removeEventListener(){}, addListener(){}, removeListener(){} }));
+globalThis.requestAnimationFrame = globalThis.requestAnimationFrame || (() => 0);
+globalThis.cancelAnimationFrame  = globalThis.cancelAnimationFrame  || (() => {});
 
 import fs from 'node:fs';
 import path from 'node:path';
