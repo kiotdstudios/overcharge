@@ -62,7 +62,32 @@ const ROOM = [
   '##############################',
 ];
 const COLS = ROOM[0].length, ROWS = ROOM.length;
-const solidAt = (c, r) => (c < 0 || c >= COLS || r < 0 || r >= ROWS) ? (r >= ROWS ? false : true) : ROOM[r][c] === '#';
+
+// MUTABLE copy of the ASCII map. Chief: "this doesnt let me out of the hole if i fall in
+// and i keep having to reset so i wanna be able to do some quick edits". The room needs to
+// be editable at runtime, so the strings above are the pristine template and this grid is
+// what collision and rendering actually read.
+//
+// IN MEMORY ONLY. Nothing here can reach a level file — the lab has no save path and never
+// imports the editor's persistence layer. Reload restores the template.
+let grid = null;
+function restoreRoom() {
+  grid = new Uint8Array(COLS * ROWS);
+  for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) if (ROOM[r][c] === '#') grid[r*COLS + c] = 1;
+}
+restoreRoom();
+
+// Out of bounds: solid at the sides and ceiling so the player cannot leave the room, open
+// below so a fall still reads as a fall.
+const solidAt = (c, r) => (c < 0 || c >= COLS || r < 0) ? true
+                        : (r >= ROWS) ? false
+                        : grid[r*COLS + c] === 1;
+const setTile = (c, r, v) => {
+  if (c < 0 || c >= COLS || r < 0 || r >= ROWS) return false;
+  if (grid[r*COLS + c] === v) return false;
+  grid[r*COLS + c] = v;
+  return true;
+};
 
 const SPAWN = { x: 3 * TILE, y: 11 * TILE };
 
@@ -283,6 +308,8 @@ function drawHud() {
     ['VEL',      `vx ${p.vx.toFixed(1)}  vy ${p.vy.toFixed(1)}`],
     ['GROUNDED', p.grounded ? 'yes' : '<span class="warn">no</span>'],
     ['RENDER',   `${fps.toFixed(0)} fps`],
+    ['TILE EDIT', editMode ? '<span class="warn">ON — click to paint</span>' : 'off'],
+    ['HITBOX',   showHitbox ? '<span class="warn">shown (B)</span>' : 'hidden'],
   ];
   document.getElementById('hud').innerHTML =
     rows.map(([k, v]) => `<b>${k.padEnd(9, ' ')}</b> ${v}`).join('<br>');
@@ -326,6 +353,67 @@ function frame(t) {
   requestAnimationFrame(frame);
 }
 
+// ── Tile edit ────────────────────────────────────────────────────────────────
+// Chief: "this doesnt let me out of the hole if i fall in and i keep having to reset so i
+// wanna be able to do some quick edits ... i dont need a full asset bank whatevrr this
+// teal tile is is fine". So: one brush, no palette. Left-click places, right-click erases,
+// drag paints a run, and movement keeps working so you can build a step and walk out.
+//
+// Strictly in memory. The lab has no save path and does not import the editor's
+// persistence layer, so nothing here can reach a level file.
+let editMode = false;
+let painting = 0;            // 0 none, 1 placing, -1 erasing
+
+const btnEdit    = document.getElementById('te-toggle');
+const btnSwatch  = document.getElementById('te-swatch');
+const btnFillRow = document.getElementById('te-fillrow');
+const btnRestore = document.getElementById('te-restore');
+
+function syncEdit() {
+  btnEdit.textContent = 'Edit: ' + (editMode ? 'ON' : 'OFF');
+  btnEdit.setAttribute('aria-pressed', String(editMode));
+  canvas.style.cursor = editMode ? 'crosshair' : 'default';
+}
+btnEdit.addEventListener('click', () => { editMode = !editMode; syncEdit(); canvas.focus(); });
+btnSwatch.addEventListener('click', () => { editMode = true; syncEdit(); canvas.focus(); });
+btnRestore.addEventListener('click', () => { restoreRoom(); canvas.focus(); });
+// The specific thing Chief asked for: fall in a pit, one click, floor appears under you.
+btnFillRow.addEventListener('click', () => {
+  const r = Math.min(ROWS - 1, Math.floor((p.y + PLAYER_H + 1) / TILE));
+  const c = Math.floor((p.x + PLAYER_W / 2) / TILE);
+  for (let i = c - 2; i <= c + 2; i++) setTile(i, r, 1);
+  canvas.focus();
+});
+
+// Canvas pixels -> grid cell. The canvas is CSS-scaled, so the backing resolution and the
+// on-screen size differ; without this ratio the painted cell drifts from the cursor.
+function cellAt(ev) {
+  const b = canvas.getBoundingClientRect();
+  const x = (ev.clientX - b.left) * (canvas.width  / b.width);
+  const y = (ev.clientY - b.top ) * (canvas.height / b.height);
+  return { c: Math.floor(x / TILE), r: Math.floor(y / TILE) };
+}
+
 canvas.tabIndex = 0;
-canvas.addEventListener('pointerdown', () => canvas.focus());
+canvas.addEventListener('contextmenu', e => { if (editMode) e.preventDefault(); });
+canvas.addEventListener('pointerdown', e => {
+  canvas.focus();
+  if (!editMode) return;
+  e.preventDefault();
+  painting = e.button === 2 ? -1 : 1;
+  const { c, r } = cellAt(e);
+  setTile(c, r, painting === 1 ? 1 : 0);
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove', e => {
+  if (!editMode || !painting) return;
+  const { c, r } = cellAt(e);
+  setTile(c, r, painting === 1 ? 1 : 0);
+});
+const endPaint = () => { painting = 0; };
+canvas.addEventListener('pointerup', endPaint);
+canvas.addEventListener('pointercancel', endPaint);
+window.addEventListener('blur', endPaint);
+
+syncEdit();
 requestAnimationFrame(frame);

@@ -137,6 +137,40 @@ ok(forced === states.length, 'every state can be force-previewed', `${forced}/${
 await page.locator('#ov-off').click(); await page.waitForTimeout(200);
 ok(!(await hud()).includes('override'), 'returns to gameplay from override');
 
+// ── layout, hitbox default, tile edit ──
+console.log('\n[ layout and tile edit ]');
+const hudBox = await page.locator('#hud').boundingBox();
+const canvasBox = await page.locator('#lab').boundingBox();
+ok(hudBox.y > canvasBox.y + canvasBox.height - 5,
+   'live diagnostics sit BELOW the canvas',
+   `hud y=${Math.round(hudBox.y)}, canvas bottom=${Math.round(canvasBox.y + canvasBox.height)}`);
+
+ok(/HITBOX\s+hidden/.test(await hud()), 'hitbox overlay starts HIDDEN — no box drawn on the character');
+// tap(), not press(). Input.pressed() is a two-frame edge, so an instant down+up is
+// invisible to it. Worth noting the trap: with press() the "reveals" assertion failed and
+// the "hides it again" assertion then passed VACUOUSLY, because nothing had changed.
+await tap('KeyB'); await page.waitForTimeout(140);
+ok(/HITBOX\s+shown/.test(await hud()), 'B reveals it when wanted');
+await tap('KeyB'); await page.waitForTimeout(140);
+ok(/HITBOX\s+hidden/.test(await hud()), 'B hides it again');
+
+ok(await page.locator('#te-toggle').count() === 1, 'tile edit panel exists');
+ok(/TILE EDIT\s+off/.test(await hud()), 'tile edit starts off, so a focus click never paints');
+
+// Chief's exact scenario: fall in the pit, get out without resetting.
+await page.keyboard.press('KeyR'); await page.waitForTimeout(120);
+await page.keyboard.down('ArrowRight'); await page.waitForTimeout(2800); await page.keyboard.up('ArrowRight');
+await page.waitForTimeout(300);
+await page.locator('#te-fillrow').click(); await page.waitForTimeout(450);
+ok((await field('GROUNDED')) === 'yes',
+   'Floor-under-me gives ground to stand on after a fall — no reset needed',
+   'grounded=' + await field('GROUNDED'));
+
+await page.locator('#te-toggle').click(); await page.waitForTimeout(140);
+ok(/TILE EDIT\s+ON/.test(await hud()), 'Edit toggles ON');
+await page.locator('#te-restore').click(); await page.waitForTimeout(200);
+ok(true, 'Restore room runs clean');
+
 ok(errors.length === 0, 'no console errors', errors.slice(0,3).join(' | ') || 'clean');
 ok(failed.length === 0, 'no failed requests', [...new Set(failed)].slice(0,3).join(' | ') || 'clean');
 
