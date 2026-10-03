@@ -1,3 +1,29 @@
+# AKI STATUS — 2026-10-02 (b)
+
+## Pulled the 4 wall-filler strips back out of the Builder
+
+Chief: "remove them from the builder dont wanna see em if i cant use em." Removed the 4
+`building_nc_filler_*` manifest entries and deleted the 4 PNGs (ASSET_MANIFEST.json 107 -> 103,
+matching session start). Root cause confirmed by edge-pixel inspection: all 4 PixelLab outputs had a
+near-white (RGB ~248-254, fully opaque) vignette/margin on every border — framed like a centered
+object, not a full-bleed tileable swatch, despite the prompt asking for seamless. Would show as a
+visible white seam against any wall panel.
+
+**Self-caught bug in this same cleanup:** my manifest rewrite accidentally prepended a UTF-8 BOM that
+the committed file has never actually had (confirmed by checking it back to `3147fde` — always starts
+with a bare `{`). That broke `parity_regression.mjs`s `JSON.parse` (crashed instead of its normal
+50-failing baseline). Caught via full-suite re-run before push, fixed by re-writing without the BOM.
+Lesson for next time: this repo's ASSET_MANIFEST.json has NO BOM, period — stop assuming otherwise.
+
+**Verify:** 2359 passed, 89 failed (post deco-anim merge baseline), identical pre/post this change.
+Also merged in Kiro's `d6d0e0b` (deco-anim schema landing, ORDER AKI 15 §1) in the same push.
+
+**HEAD:** c778f93, pushed to both agent/aki-editor and agent/orcha-gameplay.
+
+Will regenerate the 4 strips with an explicit full-bleed anti-vignette prompt before re-adding them.
+
+
+
 # AKI STATUS — 2026-10-02
 
 ## Delivery: 4 per-family wall-filler strips (Chief request, not a Kiro order) + ORDER AKI 15 ack
