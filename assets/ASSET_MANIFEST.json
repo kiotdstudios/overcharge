@@ -1469,7 +1469,8 @@
         "y": 0.0653,
         "w": 0.8131,
         "h": 0.8649
-      }
+      },
+      "mount": "wall"
     },
     {
       "id": "prop_ncp_neon_sign",
@@ -1497,7 +1498,8 @@
         "y": 0.1532,
         "w": 0.7815,
         "h": 0.6847
-      }
+      },
+      "mount": "wall"
     },
     {
       "id": "prop_ncp_security_camera",
@@ -1525,7 +1527,8 @@
         "y": 0.2815,
         "w": 0.7185,
         "h": 0.5135
-      }
+      },
+      "mount": "wall"
     },
     {
       "id": "prop_ncp_streetlight",
