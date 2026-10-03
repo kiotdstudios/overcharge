@@ -76,6 +76,15 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
       <div id="hud">starting…</div>
     </section>
     <section>
+      <h2>Camera</h2>
+      <div class="row">
+        <button id="zoom-out" type="button">&minus; Zoom</button>
+        <button id="zoom-reset" type="button">100%</button>
+        <button id="zoom-in" type="button">+ Zoom</button>
+      </div>
+      <p class="note">Scroll wheel over the canvas also zooms. Camera stays centred on the player.</p>
+    </section>
+    <section>
       <h2>Animation override</h2>
       <div class="row" style="margin-bottom:8px">
         <button id="ov-off" type="button" aria-pressed="true">Gameplay</button>
@@ -87,12 +96,22 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
         <span class="pill">assets only</span> — no mechanic exists for them in production.</p>
     </section>
     <section>
+      <h2>Placement <span class="pill" style="margin-left:6px">animated only</span></h2>
+      <div id="placement-groups"></div>
+      <div class="row" style="margin-top:8px">
+        <button id="place-clear" type="button">Clear placed</button>
+      </div>
+      <p class="note">Pulled live from <code>ASSET_MANIFEST.json</code> — every prop and enemy here plays
+        its real animation, not a frame-0 placeholder. Click a button to arm it, click the room to drop one,
+        click a placed instance to remove it. Enemies play their idle gait only; no AI runs in the lab.</p>
+    </section>
+    <section>
       <h2>Scope</h2>
       <p class="note">Separate disposable sandbox. Hero Lab, the Builder, level JSON and the live game are
         untouched and do not depend on this page. Deleting it affects nothing.</p>
     </section>
   </aside>
 </main>
-<script type="module" src="editor/overcharge-lab.js?v=1"></script>
+<script type="module" src="editor/overcharge-lab.js?v=2"></script>
 </body>
 </html>

@@ -23,6 +23,10 @@ import { GRAVITY, JUMP_FORCE, PLAYER_SPEED, PLAYER_W, PLAYER_H, TILE } from '../
 // ArrowUp. Hand-rolled key handling is how that drift happened, so the lab now shares
 // production's `Input` exactly: same key codes, same held/pressed edge semantics.
 import * as Input from '../src_scroll/input.js';
+// Deco animation playback is the SAME stateless module production uses for animated
+// decorations \u2014 reused read-only here so a placed vending machine or neon sign plays
+// its real powered/absorbing/drained cycle, not a frozen frame 0.
+import { loadDecoAnimations, animationFor, framesFor, phaseFor, frameAt } from '../src_scroll/deco-anim.js';
 
 const RUN_MULT   = 2.1;    // lab-only: production has no run state to match
 const HERO_DRAW  = 80;     // game-scale display, same as Hero Lab's 80px preview
@@ -95,6 +99,56 @@ let override = null;        // forced state name, or null for gameplay
 let playing  = true;        // override playback
 let lastT    = null;
 let fps      = 0, fpsAcc = 0, fpsFrames = 0;
+
+// ── Camera (lab-only, no production equivalent) ───────────────────────────────────
+// Production scrolls a fixed-scale viewport (camera.js). The lab instead zooms around
+// the player so a frame-by-frame pose or a placed prop can be inspected up close
+// without the hero shrinking to nothing on a 960x540 canvas.
+const ZOOM_MIN = 0.5, ZOOM_MAX = 3, ZOOM_STEP = 0.15;
+let zoom = 1;
+function setZoom(z) { zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); syncZoomLabel(); }
+
+// ── Placement (lab-only) ─────────────────────────────────────────────
+// Drop live instances of anything in ASSET_MANIFEST.json that actually animates, so a
+// prop or enemy can be judged in motion next to the hero instead of as a static
+// Hero-Lab-style frame. Pulled from the manifest, not hand-listed, so a new animated
+// asset shows up here with no code change — same philosophy as deco-anim.js.
+let placeable = { props: [], enemies: [] };   // filled by loadPlaceables()
+let armed     = null;                          // placeable entry currently armed to drop
+const placed  = [];                            // { kind:'prop'|'enemy', asset, x, y, w, h }
+const droneFrameCache = new Map();             // type -> Image[8], loaded once, shared
+
+function droneFrames(type) {
+  if (!droneFrameCache.has(type)) {
+    const tpl = `../assets/sprites/city-drones/${type}/frame_`;
+    droneFrameCache.set(type, Array.from({ length: 8 }, (_, i) => {
+      const img = new Image();
+      img.src = `${tpl}${String(i).padStart(3, '0')}.png`;
+      return img;
+    }));
+  }
+  return droneFrameCache.get(type);
+}
+
+async function loadPlaceables() {
+  await loadDecoAnimations('../assets/ASSET_MANIFEST.json');
+  try {
+    const res = await fetch('../assets/ASSET_MANIFEST.json', { cache: 'no-store' });
+    const raw = await res.json();
+    const list = raw.assets || [];
+    // Prop branch: anything with >1 real frame, driven by deco-anim.js exactly as
+    // production decorations are — same frameAt(), same per-instance phase offset.
+    placeable.props = list.filter(a => (Number(a.frame_count) || 1) > 1 && a.category !== 'enemy');
+    // Enemy branch: city-drones.js hand-loads these 8 frames per type outside the
+    // manifest's frame_count (left at 1 there for placement-palette reasons — see
+    // each entry's notes). Same source files, idle-cycled here since the lab has no
+    // level/AI to drive them for real.
+    placeable.enemies = list.filter(a => a.category === 'enemy' && (a.tags || []).includes('drone'));
+  } catch (err) {
+    console.warn('[overcharge-lab] placement palette unavailable:', err.message);
+  }
+  buildPlacementPanel();
+}
 
 function reset() {
   Object.assign(p, {
@@ -248,7 +302,114 @@ btnPlay.addEventListener('click', () => { playing = !playing; syncOv(); });
 document.getElementById('ov-replay').addEventListener('click', () => { sprite._current.reset(); playing = true; syncOv(); });
 syncOv();
 
-// ── Render ───────────────────────────────────────────────────────────────────
+// ── Camera UI ───────────────────────────────────────────────────────────
+const zoomResetBtn = document.getElementById('zoom-reset');
+function syncZoomLabel() { zoomResetBtn.textContent = Math.round(zoom * 100) + '%'; }
+document.getElementById('zoom-out').addEventListener('click', () => setZoom(zoom - ZOOM_STEP));
+document.getElementById('zoom-in').addEventListener('click', () => setZoom(zoom + ZOOM_STEP));
+zoomResetBtn.addEventListener('click', () => setZoom(1));
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  setZoom(zoom + (e.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP));
+}, { passive: false });
+syncZoomLabel();
+
+// Screen <-> world conversion for the current camera transform (zoom centred on the
+// player). Shared by click-to-place and click-to-remove so both agree with what is
+// actually drawn, instead of assuming a 1:1 canvas-to-world mapping that only held
+// true at zoom === 1.
+function cameraOrigin() {
+  const cx = p.x + PLAYER_W / 2, cy = p.y + PLAYER_H / 2;
+  return { ox: canvas.width / 2 - cx * zoom, oy: canvas.height / 2 - cy * zoom };
+}
+function screenToWorld(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = (clientX - rect.left) * (canvas.width / rect.width);
+  const sy = (clientY - rect.top) * (canvas.height / rect.height);
+  const { ox, oy } = cameraOrigin();
+  return { x: (sx - ox) / zoom, y: (sy - oy) / zoom };
+}
+
+// ── Placement UI ─────────────────────────────────────────────────────
+const placementHost = document.getElementById('placement-groups');
+const placeButtons = [];
+function buildPlacementPanel() {
+  placementHost.innerHTML = '';
+  placeButtons.length = 0;
+  const groups = [['Props', placeable.props, 'prop'], ['Enemies', placeable.enemies, 'enemy']];
+  for (const [label, assets, kind] of groups) {
+    if (!assets.length) continue;
+    const wrap = document.createElement('div'); wrap.className = 'grp';
+    const h = document.createElement('h3'); h.textContent = label; wrap.append(h);
+    const grid = document.createElement('div'); grid.className = 'states';
+    for (const asset of assets) {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = asset.name || asset.id;
+      b.addEventListener('click', () => {
+        armed = (armed && armed.asset === asset) ? null : { asset, kind };
+        syncPlacement();
+      });
+      b._asset = asset; b._kind = kind;
+      grid.append(b); placeButtons.push(b);
+    }
+    wrap.append(grid); placementHost.append(wrap);
+  }
+  syncPlacement();
+}
+function syncPlacement() {
+  placeButtons.forEach(b => b.setAttribute('aria-pressed', String(!!armed && armed.asset === b._asset)));
+}
+document.getElementById('place-clear').addEventListener('click', () => { placed.length = 0; });
+loadPlaceables();
+
+// A placed prop/enemy's on-screen box, used for both drawing and hit-testing removal.
+// Props sit at native frame_width/frame_height, matching how the Builder places them
+// in a real level (editor/main.js, artW/artH defaults). Enemies draw at the fixed 64x64
+// production renders them at (city-drones.js) regardless of their 384x384 source.
+function placedBox(inst) {
+  const w = inst.kind === 'enemy' ? 64 : (inst.asset.frame_width || 64);
+  const h = inst.kind === 'enemy' ? 64 : (inst.asset.frame_height || 64);
+  return { x: inst.x - w / 2, y: inst.y - h, w, h };   // click point = bottom-centre anchor
+}
+
+canvas.addEventListener('pointerdown', ev => {
+  canvas.focus();
+  const world = screenToWorld(ev.clientX, ev.clientY);
+  if (armed) {
+    placed.push({ kind: armed.kind, asset: armed.asset, x: world.x, y: world.y });
+    return;
+  }
+  // No stamp armed: a click on an existing instance removes it (topmost first).
+  for (let i = placed.length - 1; i >= 0; i--) {
+    const box = placedBox(placed[i]);
+    if (world.x >= box.x && world.x <= box.x + box.w && world.y >= box.y && world.y <= box.y + box.h) {
+      placed.splice(i, 1);
+      return;
+    }
+  }
+});
+
+function drawPlaced(t) {
+  for (const inst of placed) {
+    const box = placedBox(inst);
+    let img = null;
+    if (inst.kind === 'enemy') {
+      const frames = droneFrames(inst.asset.spawnsKind || inst.asset.id);
+      const idx = Math.floor(t * 8) % 8;         // fixed idle cycle; the lab has no AI
+      img = frames[idx];
+    } else {
+      const anim = animationFor(inst.asset.path);
+      if (anim) {
+        const frames = framesFor(anim);
+        img = frameAt({ frames, fps: anim.fps, loop: anim.loop, phase: phaseFor(inst.x, inst.y, frames.length) }, t);
+      }
+    }
+    if (img && img.complete && img.naturalWidth) ctx.drawImage(img, box.x, box.y, box.w, box.h);
+    else { ctx.fillStyle = 'rgba(0,229,208,.25)'; ctx.fillRect(box.x, box.y, box.w, box.h); }
+  }
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
 function drawRoom() {
   ctx.fillStyle = '#050d12';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -281,14 +442,19 @@ function drawHud() {
     ['VEL',      `vx ${p.vx.toFixed(1)}  vy ${p.vy.toFixed(1)}`],
     ['GROUNDED', p.grounded ? 'yes' : '<span class="warn">no</span>'],
     ['RENDER',   `${fps.toFixed(0)} fps`],
+    ['ZOOM',     `${Math.round(zoom * 100)}%`],
+    ['PLACED',   `${placed.length} instance${placed.length === 1 ? '' : 's'}`],
   ];
   document.getElementById('hud').innerHTML =
     rows.map(([k, v]) => `<b>${k.padEnd(9, ' ')}</b> ${v}`).join('<br>');
 }
 
+let clockSec = 0;   // seconds elapsed, the same unit deco-anim.js's frameAt() expects
+
 function frame(t) {
   const dt = lastT === null ? 0 : Math.min((t - lastT) / 1000, 0.1);
   lastT = t;
+  clockSec += dt;
   fpsAcc += dt; fpsFrames++;
   if (fpsAcc >= 0.25) { fps = fpsFrames / fpsAcc; fpsAcc = 0; fpsFrames = 0; }
 
@@ -303,7 +469,14 @@ function frame(t) {
     step(dt);
   }
 
+  // Camera: zoom around the player. ctx.setTransform replaces the matrix outright,
+  // so every draw below (room, placed props/enemies, hero, hitbox) is affected and
+  // nothing needs its own per-call scale math.
+  const { ox, oy } = cameraOrigin();
+  ctx.setTransform(zoom, 0, 0, zoom, ox, oy);
+
   drawRoom();
+  drawPlaced(clockSec);
   drawHeroFrame(ctx, sprite.currentFrame, p.x + PLAYER_W / 2, p.y + PLAYER_H, HERO_DRAW);
 
   // Hitbox outline — the sprite draws at 80px while the body is 20x30, so without
@@ -311,6 +484,7 @@ function frame(t) {
   ctx.strokeStyle = 'rgba(0,229,208,.45)'; ctx.lineWidth = 1;
   ctx.strokeRect(Math.round(p.x) + .5, Math.round(p.y) + .5, PLAYER_W - 1, PLAYER_H - 1);
 
+  ctx.setTransform(1, 0, 0, 1, 0, 0);   // back to identity before the next frame's clear
   drawHud();
   // MUST be last, exactly as production does it: this copies cur -> prev so that
   // Input.pressed() reports a true one-frame edge. Call it earlier and every
@@ -319,6 +493,5 @@ function frame(t) {
   requestAnimationFrame(frame);
 }
 
-canvas.tabIndex = 0;
-canvas.addEventListener('pointerdown', () => canvas.focus());
+canvas.tabIndex = 0;   // focus + placement handled by the pointerdown listener above
 requestAnimationFrame(frame);
