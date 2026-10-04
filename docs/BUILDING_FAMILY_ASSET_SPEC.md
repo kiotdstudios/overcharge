@@ -27,15 +27,22 @@ exact split so facades can be mixed and still read as the same building language
 ## 2. Plain-panel rule (standing, non-negotiable)
 
 No baked-in cameras, antennas, pipes, vending machines, posters, graffiti, or any
-other prop on ANY panel. Those all exist as separate placeable items in
-`assets/objects/night-city-props/` and get dropped in by hand later. The ONLY
-exception is the one identity feature the front/identity panel exists for (e.g. the
-MART storefront window+sign+door) — nothing else, on any panel, including the
-end-caps.
+other prop on ANY panel — **including the rooftop.** Those all exist as separate
+placeable items in `assets/objects/night-city-props/` and get dropped in by hand
+later. The ONLY exception is the one identity feature the front/identity panel
+exists for (e.g. the MART storefront window+sign+door, or the tire shop's hanging
+sign) — nothing else, on any panel, including the end-caps and the roofline.
+
+**Rooftop must generate empty** (bare wall-top/skyline only, no AC units, pipes,
+tanks, antennas, vents, or cameras baked on). Warehouse's rooftop clutter predates
+this clarification and is grandfathered, not a model to copy — every new or
+regenerated panel going forward ships with an empty roof, full stop.
 
 This rule was violated twice on the convenience-store family (cameras baked into the
-end-caps, vending machines baked into a wall bay) and cost a full regeneration pass
-each time. Check for it explicitly before shipping.
+end-caps, vending machines baked into a wall bay) and once on the tire shop's
+front/identity panel (pipes + water tank baked onto the roof) — each cost (or will
+cost) a regeneration pass. Check for it explicitly before shipping, roofline
+included.
 
 ## 3. Color palette — Night City Props, locked via style_image
 
@@ -54,6 +61,19 @@ Text-only palette prompting drifts off-palette panel-to-panel — a past batch
 generated each panel against a different base material/color temperature (dark navy
 metal, lighter gray brick, cyan glass, dark brick again) and read as unrelated
 buildings bolted together. The image-reference lock is what fixed it.
+
+**Cross-family visual consistency (standing, confirmed 2026-10-03):** every
+building family must read as the same game world when placed side by side —
+same overall brightness/value range and cool blue-cyan color temperature as the
+warehouse family (the visual benchmark), even when wall *material* differs
+(e.g. tire shop's brick vs. warehouse's corrugated metal — material choice per
+family is fine, color grade is not). A family-specific accent light (e.g. the
+tire shop's warm orange garage-interior glow) is allowed only as a small,
+localized identity accent — it must not pull the panel's overall base-wall
+color grade warmer/darker than the locked palette in a way that reads as a
+mismatched, unrelated building next to warehouse. Verification step 5 below
+must include an eyeball check against warehouse specifically, not just the
+hex-range sample.
 
 ## 4. Height consistency — generate it right the first time, do not patch after
 
@@ -77,6 +97,11 @@ correct, kept through the stretch-revert.
 
 - Render all 4 panels side-by-side as `preview_stitched.png` (QA reference only,
   not a game asset itself) and eyeball the roofline/seams for drift.
+- **Place the new family's stitched preview next to warehouse's and eyeball the two
+  side by side** — overall brightness, color temperature, and rooftop (must be
+  empty) all need to read as the same world. Don't rely on the hex-range sample
+  alone; a panel can sample "in range" per-pixel and still look like a different
+  building next to warehouse (this is exactly how tire shop shipped once already).
 - Recompute `trim` bounding boxes in `assets/ASSET_MANIFEST.json` from the actual new
   content — don't carry over stale values from a prior generation.
 - Sample pixels against the Night City Props hex ranges above (don't just trust the
@@ -128,3 +153,10 @@ wins, every time, no exception.
   built, tested (2341/87, no regression), and still reverted because Chief wants new
   art, not patched art. New-generation filler/transition pieces are the correct
   follow-up, not yet built as of this doc.
+- **Tire shop family, color-grade correction (2026-10-03)** — shipped version read
+  as a different, darker/warmer building next to warehouse despite sampling inside
+  the locked hex ranges, and its front/identity panel had pipes + a water tank baked
+  onto the roof. Material (brick) is a deliberate, confirmed-standing choice and
+  stays — only the color grade and rooftop prop-baking need correcting. Prompted
+  sections 2, 3, and 5 above to be made explicit about rooftop-empty and
+  cross-family visual consistency, since neither was spelled out before this.
