@@ -2093,3 +2093,27 @@ v6 loaded in the lab, but not all of it was reachable:
 ### Still open
 - `wall-slide` is still a standing guard pose, not a body pressed to a wall. It plays and animates, so it passes every mechanical check. That is the limit of those checks.
 - In live gameplay the lab still uses `jump` for the whole airborne arc. `fall` and `land` are reachable in the override panel but not triggered by movement. Wiring them in changes how jumping looks, so it is a call for Chief.
+
+## 2026-09-20 — lab: centred room, white background, seamless v6 run
+Three Chief reports, one commit.
+
+### "the run animation doesnt loop he runs then stops then the animation picks up again"
+Measured, not guessed. Every v6 clip was animated out of the standing reference pose, so the run opened with 3 near-standing frames (silhouette overlap with the standing pose 1.000, 1.000, 0.926) and ramped up. On loop, he stopped dead once a cycle. The seam measured 0.314 frame-to-frame overlap at 15 -> 0 against a typical 0.618.
+
+Fix: regenerated run by interpolation with frame 8 (its widest stride) as both the start and end pose, so the clip starts mid-stride and ends where it began. New run: no near-standing frames (max 0.523), and the 15 -> 0 wrap is now the SMOOTHEST step in the clip (0.734 against a 0.62-0.72 range). 4 generations, palette-locked to 21 colours.
+
+The same seam exists in other looping states, measured with the same check: walk, fall, absorb, discharge, wall-slide, ladder-up. Idle and stunned are fine. I fixed only run, the one Chief reported. The rest cost about 4 generations each.
+
+v6 frames now load with `?r=<rev>` (`HERO_PACKS['hero-v6'].rev = 2`), because replacing PNGs under the same filename otherwise leaves browsers on the old frames.
+
+### "make the BG for the overcharche lab WHITE"
+Canvas clears to `#ffffff`, the canvas CSS background is white, and the grid stroke moved from `#0d2630` to `#e2e7ea`, because a near-black grid tuned for a dark canvas becomes a heavy cage on white. Tiles, teal caps and the hero are unchanged. I first read "WHITE" as "with"; Chief clarified.
+
+### "this paleyr window needs to be centered"
+The camera centred purely on the player, so a zoomed-out room slid sideways with empty space beside it. Now, per axis: if the room fits, the room is centred; if it is bigger than the view, follow the player but clamp so the camera never shows past the room edge. Painting and placement both go through the same `cameraOrigin()`, so clicks still land where they are drawn.
+
+### Verified, in a real headless browser
+- Centring: 4/0. Zoomed out, the gap is 240px left and 240px right. Zoomed in at spawn, the camera clamps to the room edge with no void. The background is 88% pure-white pixels. No page errors.
+- `_dev/overcharge_lab.mjs` 72/0. v6 state pass 130/0. `_dev/hero_pack.mjs` 131/0. `module_parse` 135/0.
+
+The loop check confirms the seam is gone mathematically. Whether the stride reads well in motion is for Chief to judge in the lab.

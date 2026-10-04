@@ -28,7 +28,10 @@ export const HERO_PACKS = {
   standIn:['fall','land'],
  },
  'hero-v6':{
-  root:'assets/sprites/hero-v6', frames:16, cell:128, footAnchor:126,
+  // rev is appended to every frame URL. Bump it whenever frames are replaced in
+  // place, or browsers keep serving the old PNGs under the same filename.
+  // rev 2: run regenerated as a seamless loop.
+  root:'assets/sprites/hero-v6', frames:16, cell:128, footAnchor:126, rev:2,
   alias:{
    'energy-strike':'melee','projectile-cast':'cast',
    grapple:'jump','ladder-down':'ladder-up',
@@ -49,7 +52,8 @@ function framesFor(state,dir,gaitRoot,pack){
  const count=revised?(state==='walk'?7:8):spec.frames;
  const key=`${root}/${folder}/${dir}/${count}`;
  if(!cache.has(key))cache.set(key,Array.from({length:count},(_,i)=>{
-  const img=new Image();img.src=`${root}/${folder}/${dir}/frame_${String(i).padStart(3,'0')}.png`;return img;
+  const rev=!revised&&spec.rev?`?r=${spec.rev}`:'';
+  const img=new Image();img.src=`${root}/${folder}/${dir}/frame_${String(i).padStart(3,'0')}.png${rev}`;return img;
  }));return cache.get(key);
 }
 export class Animator{

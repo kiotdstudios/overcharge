@@ -17,8 +17,8 @@
 // Versioned so a browser holding the pre-v6 copies cannot keep serving them —
 // the lab page itself is versioned in overcharge-lab.html, but its imports were
 // not, and these two files changed shape (packs, anchors, fall/land).
-import { PlayerSprites, HERO_STATES, HERO_PACKS, isStandIn } from '../src_scroll/hero-sprites.js?v=9';
-import { drawHeroFrame } from '../src_scroll/hero-render.js?v=9';
+import { PlayerSprites, HERO_STATES, HERO_PACKS, isStandIn } from '../src_scroll/hero-sprites.js?v=10';
+import { drawHeroFrame } from '../src_scroll/hero-render.js?v=10';
 import { GRAVITY, JUMP_FORCE, PLAYER_SPEED, PLAYER_W, PLAYER_H, TILE } from '../src_scroll/constants.js';
 // THE REAL INPUT MODULE, not a reimplementation. Chief: "i need this to have the real
 // actual game controls". The original build followed the order's control table (A/D,
@@ -196,9 +196,22 @@ let clockSec = 0;           // seconds elapsed, for placed-prop/enemy animation 
 const ZOOM_MIN = 0.5, ZOOM_MAX = 3, ZOOM_STEP = 0.15;
 let zoom = 1;
 function setZoom(z) { zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); syncZoomLabel(); }
+// Per axis: if the whole room fits on screen, CENTRE THE ROOM. Otherwise follow the
+// player, clamped so the room edge never pulls in past the canvas edge.
+// Chief: "this player window needs to be centered". Centring purely on the player
+// slid a zoomed-out room off to one side with a void beside it.
+function axisOrigin(view, world, focus) {
+  const span = world * zoom;
+  if (span <= view) return (view - span) / 2;
+  const o = view / 2 - focus * zoom;
+  return Math.min(0, Math.max(view - span, o));
+}
 function cameraOrigin() {
   const cx = p.x + PLAYER_W / 2, cy = p.y + PLAYER_H / 2;
-  return { ox: canvas.width / 2 - cx * zoom, oy: canvas.height / 2 - cy * zoom };
+  return {
+    ox: axisOrigin(canvas.width,  COLS * TILE, cx),
+    oy: axisOrigin(canvas.height, ROWS * TILE, cy),
+  };
 }
 // Screen (client px) -> world. Shared by tile-edit painting and prop placement so both
 // agree with what is actually drawn, instead of assuming a 1:1 canvas-to-world mapping
@@ -597,13 +610,15 @@ function drawPlaced(t) {
 // background always covers the whole backing resolution regardless of camera position.
 function clearCanvas() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = '#050d12';
+  // Chief: plain white, so the dark navy hero reads with maximum contrast.
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawRoom() {
-  // Faint grid so pose alignment against tile boundaries is readable.
-  ctx.strokeStyle = '#0d2630'; ctx.lineWidth = 1;
+  // Faint grid so pose alignment against tile boundaries is readable. Light grey
+  // on the white background; the old near-black stroke was tuned for a dark canvas.
+  ctx.strokeStyle = '#e2e7ea'; ctx.lineWidth = 1;
   for (let c = 0; c <= COLS; c++) { ctx.beginPath(); ctx.moveTo(c*TILE, 0); ctx.lineTo(c*TILE, ROWS*TILE); ctx.stroke(); }
   for (let r = 0; r <= ROWS; r++) { ctx.beginPath(); ctx.moveTo(0, r*TILE); ctx.lineTo(COLS*TILE, r*TILE); ctx.stroke(); }
 
