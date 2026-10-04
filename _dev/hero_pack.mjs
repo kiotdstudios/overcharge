@@ -88,6 +88,43 @@ ok('gait-v4 does NOT leak into v6',
    v6gait.get('walk', 'east').frames[0].src);
 eq('v6 walk stays 16 frames under a gait root', v6gait.get('walk', 'east').frames.length, 16);
 
+// ── fall / land, added with v6 ──────────────────────────────────────
+ok('HERO_STATES has fall', !!HERO_STATES.fall);
+ok('HERO_STATES has land', !!HERO_STATES.land);
+ok('v6 fall loads its own clip', v6.get('fall', 'east').frames[0].src.includes('/hero-v6/fall/east/'),
+   v6.get('fall', 'east').frames[0].src);
+ok('v6 land loads its own clip', v6.get('land', 'east').frames[0].src.includes('/hero-v6/land/east/'),
+   v6.get('land', 'east').frames[0].src);
+ok('v3 fall stands in with jump (v3 has no fall folder)',
+   v3.get('fall', 'east').frames[0].src.includes('/hero-v3/jump/east/'), v3.get('fall', 'east').frames[0].src);
+
+// ── stand-in marking ────────────────────────────────────────────────
+const { isStandIn } = await import('../src_scroll/hero-sprites.js');
+ok('v6 grapple is a stand-in', isStandIn('hero-v6', 'grapple'));
+ok('v6 ladder-down is a stand-in', isStandIn('hero-v6', 'ladder-down'));
+ok('v6 melee rename is NOT a stand-in', !isStandIn('hero-v6', 'energy-strike'));
+ok('v6 fall is NOT a stand-in', !isStandIn('hero-v6', 'fall'));
+ok('v3 fall is a stand-in', isStandIn('hero-v3', 'fall'));
+ok('v3 grapple is NOT a stand-in', !isStandIn('hero-v3', 'grapple'));
+for (const pack of Object.keys(HERO_PACKS)) {
+  for (const s of HERO_PACKS[pack].standIn) {
+    ok(pack + ' stand-in ' + s + ' has an alias to play', !!HERO_PACKS[pack].alias[s]);
+  }
+}
+
+// ── fps scales with frame count so clip DURATION is unchanged ───────
+eq('v3 fps scale', v3.fpsScale, 1);
+eq('v6 fps scale', v6.fpsScale, 2);
+for (const st of ['ledge-climb', 'idle', 'death', 'energy-strike']) {
+  const a3 = v3.get(st, 'east'), a6 = v6.get(st, 'east');
+  near('v6 ' + st + ' lasts as long as v3', a6.frames.length / a6.fps, a3.frames.length / a3.fps, 1e-9);
+}
+// gait fps follows speed and must scale too, or the feet slide
+const gait = (sp, state, speed) => { sp.update(0, true, true, false, state === 'run', false, false, speed); return sp._current.fps; };
+const g3 = new PlayerSprites({ pack: 'hero-v3' }), g6 = new PlayerSprites({ pack: 'hero-v6' });
+near('v6 walk fps is 2x v3 at the same speed', gait(g6, 'walk', 75), gait(g3, 'walk', 75) * 2, 1e-9);
+near('v6 run fps is 2x v3 at the same speed', gait(g6, 'run', 150), gait(g3, 'run', 150) * 2, 1e-9);
+
 // ── unknown pack falls back rather than throwing ────────────────────
 const bogus = new PlayerSprites({ pack: 'hero-v99' });
 eq('unknown pack falls back to default', bogus.pack, 'hero-v3');

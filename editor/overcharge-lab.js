@@ -14,8 +14,11 @@
 // to different numbers would validate animations against a jump the game does not have.
 // RUN_MULT is lab-local because production has no run state yet.
 
-import { PlayerSprites, HERO_STATES, HERO_PACKS } from '../src_scroll/hero-sprites.js';
-import { drawHeroFrame } from '../src_scroll/hero-render.js';
+// Versioned so a browser holding the pre-v6 copies cannot keep serving them —
+// the lab page itself is versioned in overcharge-lab.html, but its imports were
+// not, and these two files changed shape (packs, anchors, fall/land).
+import { PlayerSprites, HERO_STATES, HERO_PACKS, isStandIn } from '../src_scroll/hero-sprites.js?v=9';
+import { drawHeroFrame } from '../src_scroll/hero-render.js?v=9';
 import { GRAVITY, JUMP_FORCE, PLAYER_SPEED, PLAYER_W, PLAYER_H, TILE } from '../src_scroll/constants.js';
 // THE REAL INPUT MODULE, not a reimplementation. Chief: "i need this to have the real
 // actual game controls". The original build followed the order's control table (A/D,
@@ -461,13 +464,18 @@ function step(dt) {
 }
 
 // ── Override panel ───────────────────────────────────────────────────────────
+// Every canonical state gets a button. A state the active pack does not really
+// have still gets one, marked with a trailing asterisk and a tooltip, because the
+// frames it plays are a stand-in (v6 grapple = its jump clip). Hiding them would
+// make the panel differ between packs; marking them keeps it honest.
 const GROUPS = {
-  Movement:  ['idle','walk','run','jump','hurt','stunned','death'],
+  Movement:  ['idle','walk','run','jump','fall','land','hurt','stunned','death'],
   Combat:    ['energy-strike','projectile-cast','absorb','discharge'],
   Traversal: ['ladder-up','ladder-down','ledge-climb','wall-slide','grapple'],
 };
-const LABEL = { idle:'Idle', walk:'Walk', run:'Run', jump:'Jump', hurt:'Hurt', stunned:'Stunned',
-  death:'Death', 'energy-strike':'Strike', 'projectile-cast':'Cast', absorb:'Absorb',
+const LABEL = { idle:'Idle', walk:'Walk', run:'Run', jump:'Jump', fall:'Fall', land:'Land',
+  hurt:'Hurt', stunned:'Stunned', death:'Death',
+  'energy-strike':'Strike', 'projectile-cast':'Cast', absorb:'Absorb',
   discharge:'Discharge', 'ladder-up':'Ladder up', 'ladder-down':'Ladder dn',
   'ledge-climb':'Ledge', 'wall-slide':'Wall slide', grapple:'Grapple' };
 
@@ -479,7 +487,13 @@ for (const [group, states] of Object.entries(GROUPS)) {
   const grid = document.createElement('div'); grid.className = 'states';
   for (const s of states) {
     const b = document.createElement('button');
-    b.type = 'button'; b.textContent = LABEL[s]; b.dataset.state = s;
+    const sub = isStandIn(HERO_PACK, s);
+    b.type = 'button'; b.dataset.state = s;
+    b.textContent = LABEL[s] + (sub ? '*' : '');
+    if (sub) {
+      const folder = PACK_SPEC.alias[s];
+      b.title = `${HERO_PACK} has no ${s} clip — plays its ${folder} frames as a stand-in`;
+    }
     b.addEventListener('click', () => setOverride(s));
     grid.append(b); ovButtons.push(b);
   }
@@ -608,10 +622,12 @@ function drawHud() {
   const st = sprite.state;
   const [stFps, loop] = HERO_STATES[st] ?? [0, false];
   const rows = [
-    ['STATE',    st + (override ? '  <span class="warn">(override)</span>' : '')],
+    ['STATE',    st + (override ? '  <span class="warn">(override)</span>' : '')
+                    + (isStandIn(HERO_PACK, st)
+                        ? `  <span class="warn">stand-in: ${PACK_SPEC.alias[st]} frames</span>` : '')],
     ['FACING',   sprite.dir === 'east' ? 'east / right' : 'west / left'],
     ['FRAME',    `${a._frame + 1} / ${a.frames.length}   ${loop ? 'loop' : 'one-shot'}`],
-    ['ANIM FPS', `${a.fps.toFixed(1)}  (base ${stFps})`],
+    ['ANIM FPS', `${a.fps.toFixed(1)}  (base ${stFps}${sprite.fpsScale !== 1 ? ` x${sprite.fpsScale} for ${a.frames.length}f` : ''})`],
     ['POS',      `x ${p.x.toFixed(1)}  y ${p.y.toFixed(1)}`],
     ['VEL',      `vx ${p.vx.toFixed(1)}  vy ${p.vy.toFixed(1)}`],
     ['GROUNDED', p.grounded ? 'yes' : '<span class="warn">no</span>'],
@@ -926,6 +942,8 @@ window.addEventListener('blur', endPaint);
 // flaky, which is the worst kind of red.
 window.__lab = {
   player: p,
+  sprite,              // the animator, so tests can read which file is on screen
+  pack: HERO_PACK,
   findLedge,
   setTile, solidAt, restoreRoom,
   TILE, PLAYER_W, PLAYER_H,

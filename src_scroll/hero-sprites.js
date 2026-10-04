@@ -2,7 +2,9 @@ export const HERO_STATES = {
  idle:[6,true],walk:[10,true],run:[14,true],jump:[10,false],
  'ledge-climb':[10,false],death:[9,false],hurt:[16,false],stunned:[8,true],
  'energy-strike':[18,false],'projectile-cast':[20,false],'wall-slide':[8,true],grapple:[10,false],
- 'ladder-up':[10,true],'ladder-down':[8,true],absorb:[10,true],discharge:[10,true]
+ 'ladder-up':[10,true],'ladder-down':[8,true],absorb:[10,true],discharge:[10,true],
+ // Added with hero-v6, which has dedicated airborne-descent and touchdown clips.
+ fall:[8,true],land:[14,false]
 };
 
 // Two hero packs exist and they are NOT interchangeable: different canvas size,
@@ -15,11 +17,15 @@ export const HERO_STATES = {
 //            same art upscaled 4x — so v6 loses nothing by being smaller.
 //
 // `alias` maps the animator's canonical state names onto a pack's own folders.
-// v6 named its attack states melee/cast, and has no grapple or ladder-down, so
-// those fall back to the nearest state it does have rather than 404ing.
+// `standIn` lists canonical states the pack does NOT really have: their alias
+// points at a different motion so nothing 404s, but a tester must be told the
+// frames on screen are a substitute. v6's melee/cast are true renames, not
+// stand-ins. v3 predates fall/land; v6 has no grapple or ladder-down.
 export const HERO_PACKS = {
  'hero-v3':{
-  root:'assets/sprites/hero-v3', frames:8, cell:512, footAnchor:496, alias:{},
+  root:'assets/sprites/hero-v3', frames:8, cell:512, footAnchor:496,
+  alias:{fall:'jump',land:'jump'},
+  standIn:['fall','land'],
  },
  'hero-v6':{
   root:'assets/sprites/hero-v6', frames:16, cell:128, footAnchor:126,
@@ -27,8 +33,10 @@ export const HERO_PACKS = {
    'energy-strike':'melee','projectile-cast':'cast',
    grapple:'jump','ladder-down':'ladder-up',
   },
+  standIn:['grapple','ladder-down'],
  },
 };
+export function isStandIn(pack,state){return (HERO_PACKS[pack]?.standIn||[]).includes(state);}
 export const DEFAULT_PACK='hero-v3';
 
 const cache=new Map();
@@ -65,12 +73,24 @@ export class PlayerSprites{
   this.gaitRoot=gaitRoot;
   this.pack=HERO_PACKS[pack]?pack:DEFAULT_PACK;
   this.packSpec=HERO_PACKS[this.pack];
+  // HERO_STATES fps values were tuned for 8-frame clips. A 16-frame pack played at
+  // the same fps takes twice as long: the climb drags to 1.6s, and walk/run, whose
+  // fps follows ground speed, cycle the legs at half the rate the body moves, so
+  // the feet slide. Scaling fps by frames/8 keeps every clip's DURATION identical.
+  this.fpsScale=this.packSpec.frames/8;
   this.anims={};this.state='idle';this.dir='east';this._current=this.get('idle','east');this._attackHeld=false;
   // Preload movement and attack frames before their first transition.
   for(const state of ['idle','walk','run','jump','projectile-cast','energy-strike'])
    for(const dir of ['east','west'])this.get(state,dir);
  }
- get(state,dir){const key=`${state}/${dir}`;return this.anims[key]??=new Animator(framesFor(state,dir,this.gaitRoot,this.pack),...HERO_STATES[state]);}
+ get(state,dir){
+  const key=`${state}/${dir}`;
+  if(!this.anims[key]){
+   const [fps,loop]=HERO_STATES[state];
+   this.anims[key]=new Animator(framesFor(state,dir,this.gaitRoot,this.pack),fps*this.fpsScale,loop);
+  }
+  return this.anims[key];
+ }
  setState(state,facingRight=true){
   if(!HERO_STATES[state])throw new Error(`Unknown hero state: ${state}`);
   const dir=facingRight?'east':'west',next=this.get(state,dir);
@@ -110,7 +130,8 @@ export class PlayerSprites{
    return;
   }
   // Both gaits advance with traveled distance; sprint acceleration stays in sync.
-  this._current.fps=state==='walk'?Math.max(1,speed/11):state==='run'?Math.max(1,speed/14):HERO_STATES[state][0];
+  const k=this.fpsScale;
+  this._current.fps=state==='walk'?Math.max(1,speed/11)*k:state==='run'?Math.max(1,speed/14)*k:HERO_STATES[state][0]*k;
   this._current.update(dt);
  }
  get currentFrame(){

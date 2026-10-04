@@ -2062,3 +2062,34 @@ My clone was **13 commits behind** when I went to commit; Aki/Orcha had rewritte
 2. The game still renders `walking`/`running`/`jumping`/`idle_2.0` through `src_scroll/sprites.js`. v6 is lab-only. Migrating production is a separate decision, now cheap to execute since the pack is complete and anchored.
 3. `absorb` frame 13 and `cast` frames 7/9 clip 3px at the canvas edge. Cosmetic, trivial, left alone.
 4. Want playwright installed so the browser lab suite can run?
+
+## 2026-09-20 — every hero-v6 state reachable in the OVERCHARGE LAB, verified in the real page
+Chief: "make sure all new hero 6 is added to the overcharge lab so i can begin testing."
+
+### Correction to my last report
+I said the browser lab suite could not run because playwright was not installed. That was wrong. It is not in the repo, but it IS in `_kiro_tools/node_modules`, and my own `runlab.mjs` has used it all along. I checked the repo and stopped. This round I drove the real page.
+
+### What was missing
+v6 loaded in the lab, but not all of it was reachable:
+- **`fall` and `land` had no way to play.** They were not in `HERO_STATES`, so `setState` would throw, and the override panel had no button. Two of v6's sixteen clips were unreachable.
+- **`grapple` and `ladder-down` played other clips without saying so.** v6 has neither, so they alias to jump and ladder-up. A tester would have been judging the wrong animation.
+- **16 frames at 8-frame fps doubled every clip's length.** The ledge climb took 1.6s instead of 0.8s, and walk/run, whose fps follows ground speed, cycled the legs at half the rate the body moved, so the feet slid. The existing lab suite caught this: it failed three ledge assertions (climb not finished, ledge not released, landing 4px off the lip) because the climb was still running when it checked.
+- **Browser cache.** The lab page was versioned (`?v=8`) but its imports were not, and `hero-sprites.js`/`hero-render.js` changed shape. Chief has hit stale cache twice this weekend.
+
+### Fixes
+- `fall` and `land` added to `HERO_STATES` and the override panel. v3 has no such folders, so for v3 they are aliased to jump and marked as stand-ins.
+- `HERO_PACKS[*].standIn` plus `isStandIn()`. Stand-in buttons show a trailing `*` with a tooltip naming the clip actually played, and the HUD STATE row says `stand-in: <clip> frames`.
+- fps scaled by `frames / 8` per pack, so every clip keeps its original DURATION. The HUD ANIM FPS row shows the scale.
+- Page bumped to `?v=9` and both hero imports versioned `?v=9`.
+- `window.__lab` now exposes `sprite` and `pack`, so tests can read which file is actually on screen.
+
+### Verified, in a real headless browser
+- **New `v6lab.mjs` pass: 130 passed, 0 failed.** Clicks every override button and reads the animator directly: each of v6's 16 states loads from `hero-v6/`, has 16 frames, all 16 load, they are 128x128, and the frame index advances (7-15 distinct frames seen per state). grapple and ladder-down are marked stand-ins on screen. No failed requests, no console errors. Gameplay smoke: D walks, Shift+D runs, W jumps, all drawing v6 art. `?pack=v3` still loads v3 at 8 frames. The versioned modules are what the browser actually requests.
+- **`_dev/overcharge_lab.mjs` (the existing 72-check lab suite): 72 passed, 0 failed**, including the ledge hang and climb assertions against v6. Two assertions changed intent and were updated: the default pack is now hero-v6, and the override panel has 18 states (fall and land added).
+- **`_dev/hero_pack.mjs`: 131 passed, 0 failed**, up from 104 — adds fall/land, stand-in marking, and that v6 clips last exactly as long as v3's, including walk and run at the same ground speed.
+- `module_parse` 135/0. `parity_regression` 576/51, unchanged; it touches none of these files.
+- Screenshot check: v6 stands on the floor line, so the 126/128 foot anchor is right.
+
+### Still open
+- `wall-slide` is still a standing guard pose, not a body pressed to a wall. It plays and animates, so it passes every mechanical check. That is the limit of those checks.
+- In live gameplay the lab still uses `jump` for the whole airborne arc. `fall` and `land` are reachable in the override panel but not triggered by movement. Wiring them in changes how jumping looks, so it is a call for Chief.
