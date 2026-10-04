@@ -81,3 +81,26 @@ Wired into `assets/ASSET_MANIFEST.json` as 4 placeable decoration items
 `building_nc_tire_right`), tagged `building` (same tag-driven "Buildings" filter
 as warehouse/coffee_bar/store — no separate filter needed). Not yet placed in any
 level JSON.
+
+
+## Color-grade correction (2026-10-03, second pass)
+
+The v4 recolor (above) fixed magenta/pink but still read as a visibly different,
+darker/more-saturated building next to warehouse when placed side by side —
+confirmed by Chief directly comparing them in-game. Root cause: tire shop's brick
+base sampled ~0.7-0.92 average saturation vs. warehouse's ~0.53-0.71, even though
+hue was already close (222-232 vs warehouse's 226-236). Numerically "in palette"
+is not the same as "reads the same" — see `docs/BUILDING_FAMILY_ASSET_SPEC.md`
+section 3's cross-family consistency clause, added because of this exact miss.
+
+Fix: a targeted HSV desaturation pass (not a new PixelLab generation — the
+layout/content/magenta-fix from v4 was already correct, only the color grade was
+off) applied to each panel's brick/wall pixels only. Saturation multiplied by
+~0.72 for any pixel that is NOT part of the warm interior glow (hue < 70°,
+sat > 0.25 — left untouched, interior lighting for a business is fine) and NOT
+a bright highlight/signage glow (value > 0.55 — also left untouched). Result
+lands at avg H 222-232 / avg S 0.52-0.69 / avg V 0.22-0.35 across all 4 panels,
+inside warehouse's own H 226-236 / S 0.53-0.71 / V 0.21-0.34 range. Brick
+material, layout, signage, and the warm garage-interior glow are all unchanged —
+only the base wall's saturation came down to match warehouse's steel-blue
+register. bbox/trim values unaffected (grading doesn't change alpha).
