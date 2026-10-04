@@ -9,9 +9,9 @@ as `assets/objects/night-city-buildings/warehouse/` (same family — shares the
 - `wall_bay.png` — 160x256px / 5x8 tiles — chain-link fence, "GRIP CITY" banner,
   a "NEW / USED / REPAIR / CUSTOM / BALANCE" sign post, street lamp
 - `front_bay.png` — 160x256px / 5x8 tiles — the storefront identity panel: hanging
-  magenta/cyan neon sign reading "RUSS'S TIRE SHOP" above an open roll-up garage
+  cyan neon sign reading "RUSS'S TIRE SHOP" above an open roll-up garage
   door with a car parked inside, rooftop pipes/tank
-- `right.png` — 128x256px / 4x8 tiles — "24 HR" magenta neon badge, street lamp,
+- `right.png` — 128x256px / 4x8 tiles — "24 HR" cyan neon badge, street lamp,
   brick/stone pillar wall
 
 Placed left-to-right (`left`, `wall_bay`, `front_bay`, `right`) the panels line up
@@ -20,7 +20,7 @@ edge-to-edge into one 640x256px / 20x8 tile storefront, matching the warehouse's
 
 ## Standing-rule exceptions for this family (direct Chief correction, 2026-10-03)
 
-This family intentionally breaks from two rules that otherwise apply to every
+This family intentionally breaks from one rule that otherwise applies to every
 other lvl-1 building family:
 
 1. **Brick/stone wall material, not corrugated sheet metal.** Chief explicitly
@@ -29,17 +29,23 @@ other lvl-1 building family:
    masonry instead, cropped directly from his reference screenshot. **This is now
    the new default wall material for every future building family** going
    forward — not just this one.
-2. **Reference image followed closely, not mood-only.** Chief supplied a "NEON
-   TIRES" garage screenshot and asked for "an exact replica... just change the
-   name." Per `docs/BUILDING_FAMILY_ASSET_SPEC.md` section 6, a reference
-   normally governs mood/composition only, never palette or layout — that rule
-   was overridden here on explicit instruction. All composition elements from
-   the reference were kept (fence banner, signpost, roll-up door + car, rooftop
-   pipes/tank, 24 HR badge, magenta/cyan neon palette including magenta/pink,
-   which the standing Night City Props palette otherwise forbids). The ONLY
-   change from the reference is the business name: "NEON TIRES" → "RUSS'S TIRE
-   SHOP" on the main sign. "GRIP CITY" and the "NEW/USED/REPAIR/CUSTOM/BALANCE"
-   signpost are unrelated to the shop's own name and were kept as-is.
+
+**Reference-image rule, corrected 2026-10-03 (standing, applies to ALL mockup-driven
+assets going forward, not just this one):** Chief supplied a "NEON TIRES" garage
+screenshot and asked for the layout/composition replicated closely, name swapped
+to "RUSS'S TIRE SHOP". The first build (v2/v3) kept the reference's own magenta/
+pink neon colors on top of the exact layout — Chief corrected this: **replicate a
+mockup's layout/composition/content exactly, but ALWAYS recolor it into the game's
+own locked Night City Props palette** (deep indigo/near-black base, cyan/lavender/
+steel-blue accents, no magenta/pink), regardless of what colors the mockup itself
+uses. A reference image's layout and content govern; its own palette never does.
+
+All composition elements from the reference were kept (fence banner, signpost,
+roll-up door + car, rooftop pipes/tank, 24 HR badge) — only the business name
+changed ("NEON TIRES" → "RUSS'S TIRE SHOP") and the neon color changed from the
+reference's magenta/pink to the game's cyan/lavender palette. "GRIP CITY" and the
+"NEW/USED/REPAIR/CUSTOM/BALANCE" signpost are unrelated to the shop's own name
+and were kept as-is.
 
 The plain-panel rule (section 2) still applies in spirit — `left.png` and
 `right.png` carry only the brick wall + one small identity badge each (skyline
@@ -50,18 +56,23 @@ from the reference, not optional placeable props.
 ## Style source
 
 Generated via PixelLab `create_image_pro_flash`, each panel using a cropped/
-downscaled region of the Chief-supplied reference screenshot itself as the
-`style_image` (not a Night City Props crop, unlike every other family) — brick
-wall texture for `left`, the fence/banner/signpost region for `wall_bay`, the
-main sign/door/car region for `front_bay`, the 24 HR badge/pillar region for
-`right`. Generated with `no_background: false` (background removal erased the
-whole `front_bay` image on first attempt — opaque generation + a border
-flood-fill alpha pass was used instead to isolate content cleanly).
+downscaled region of the Chief-supplied reference screenshot as the `style_image`
+— brick wall texture for `left`, the fence/banner/signpost region for `wall_bay`,
+the main sign/door/car region for `front_bay`, the 24 HR badge/pillar region for
+`right`. **The reference crops themselves were recoloured first** (HSV hue-remap,
+magenta/pink band → cyan/lavender band, saturation/value preserved) before being
+used as `style_image` — a `style_image` region's own colors dominate PixelLab's
+output even against explicit "no magenta/pink" text instruction, so the fix has
+to happen in the source image, not just the prompt text. Generated with
+`no_background: false` (background removal erased the whole `front_bay` image on
+an earlier attempt — opaque generation + a border flood-fill alpha pass was used
+instead to isolate content cleanly).
 
 **Reference example for building-family *structure* (panel count/widths):
-WAREHOUSE.** The *reference-image/palette/material* approach for this specific
-family came from Chief's own screenshot and correction, not from WAREHOUSE or any
-other existing family.
+WAREHOUSE.** The *reference-image/material* approach for this specific family
+came from Chief's own screenshot and correction, not from WAREHOUSE or any other
+existing family — but the *palette* always comes from Night City Props, per the
+corrected standing rule above.
 
 ## Status
 

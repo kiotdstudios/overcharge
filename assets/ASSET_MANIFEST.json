@@ -2329,9 +2329,9 @@
       "family": "nc_building_wall",
       "trim": {
         "x": 0.0,
-        "y": 0.1016,
+        "y": 0.0039,
         "w": 1.0,
-        "h": 0.7461
+        "h": 0.8789
       }
     },
     {
@@ -2349,13 +2349,13 @@
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "RUSS'S TIRE SHOP front/identity panel (5x8 tiles), hanging magenta/cyan neon sign reading 'RUSS'S TIRE SHOP' above an open roll-up garage door with a car parked inside, rooftop pipes/tank. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "RUSS'S TIRE SHOP front/identity panel (5x8 tiles), hanging cyan neon sign reading 'RUSS'S TIRE SHOP' above an open roll-up garage door with a car parked inside, rooftop pipes/tank. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.0,
-        "y": 0.1445,
+        "y": 0.1406,
         "w": 1.0,
-        "h": 0.7109
+        "h": 0.7148
       }
     },
     {
@@ -2373,7 +2373,7 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "RUSS'S TIRE SHOP right end-cap panel (4x8 tiles), '24 HR' magenta neon badge, street lamp, brick/stone pillar wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "RUSS'S TIRE SHOP right end-cap panel (4x8 tiles), '24 HR' cyan neon badge, street lamp, brick/stone pillar wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.0391,
