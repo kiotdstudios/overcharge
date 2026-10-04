@@ -3317,6 +3317,15 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
+      "x": 1325,
+      "y": 136,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
     }
   ],
   "sources": [
