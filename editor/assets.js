@@ -10,10 +10,23 @@ import {
   currentLevelBackground,
   setFilterCategory, setFilterSearch, setSelectedAsset,
   setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly, setElectricOnly, setNeonRiseOnly, setPipeOnly, setBuildingOnly,
+  setWarehouseOnly, setCoffeeBarOnly, setApartmentOnly, setMartOnly,
   setLevelBackground,
   setTool,
 } from './state.js';
 import { startAssetDrag } from './tools.js';
+
+// Reset object for the pack quick-filters, DERIVED from state.filter rather than written out
+// by hand. Chief 2026-10-03: the two reset sites below each listed 9 filter keys by hand, and
+// adding the four building packs meant editing both — miss one and selecting Warehouse would
+// leave Buildings set, ANDing two filters and showing nothing, with no error. Every pack
+// filter key ends in "Only", so deriving it means a future filter is reset automatically and
+// there is no list left to forget.
+function clearedPackFilters(extra = {}) {
+  const out = { category: 'all' };
+  for (const k of Object.keys(state.filter)) if (k.endsWith('Only')) out[k] = false;
+  return Object.assign(out, extra);
+}
 
 let root;
 let searchInput;
@@ -99,6 +112,15 @@ export function mountAssetBrowser(container) {
     { id: 'ab-neon-rise-only',      label: 'Neon Rise',        color: '#f6b', getter: () => !!state.filter.neonRiseOnly,    setter: setNeonRiseOnly       },
     { id: 'ab-pipe-only',           label: 'Pipes',            color: '#9cf', getter: () => !!state.filter.pipeOnly,        setter: setPipeOnly           },
     { id: 'ab-building-only',       label: 'Buildings',        color: '#c9f', getter: () => !!state.filter.buildingOnly,    setter: setBuildingOnly       },
+    // CHIEF 2026-10-03: "i dont see check box filters for warehouse, coffee bar, apartment,
+    // and mart". One chip per night-city building pack. Buildings above still shows all 20
+    // together; these narrow to the 4 (or 8) pieces of a single structure.
+    // Labels are Chief's words. The TAGS behind Apartment and Mart are 'abandoned' and
+    // 'convenience_store' — see the predicate comments in state.js.
+    { id: 'ab-warehouse-only',      label: 'Warehouse',        color: '#cb9', getter: () => !!state.filter.warehouseOnly,   setter: setWarehouseOnly      },
+    { id: 'ab-coffee-bar-only',     label: 'Coffee Bar',       color: '#e9a', getter: () => !!state.filter.coffeeBarOnly,   setter: setCoffeeBarOnly      },
+    { id: 'ab-apartment-only',      label: 'Apartment',        color: '#9cb', getter: () => !!state.filter.apartmentOnly,   setter: setApartmentOnly      },
+    { id: 'ab-mart-only',           label: 'Mart',             color: '#bc9', getter: () => !!state.filter.martOnly,        setter: setMartOnly           },
     { id: 'ab-enemies', label: 'Enemies', color: '#f79', getter: () => state.filter.category === 'enemy', setter: v => setFilterCategory(v ? 'enemy' : 'all') },
   ];
 
@@ -114,9 +136,7 @@ export function mountAssetBrowser(container) {
       const checked = box.checked;
       // Each quick filter selects one asset group; changing groups must not
       // leave a stale pack/category restriction hiding the requested assets.
-      Object.assign(state.filter, { category: 'all', purpleCityOnly: false,
-        purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false,
-        nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, buildingOnly: false });
+      Object.assign(state.filter, clearedPackFilters());
       cfg.setter(checked);
     });
     filterCheckboxes.push({box, cfg});
@@ -136,7 +156,7 @@ export function mountAssetBrowser(container) {
   clear.className = 'ab-clear';
   clear.textContent = 'Clear filters';
   clear.addEventListener('click', () => {
-    Object.assign(state.filter, { category: 'all', purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, electricOnly: false, purpleCityOnly: false, nightCityRailOnly: false, neonRiseOnly: false, pipeOnly: false, buildingOnly: false });
+    Object.assign(state.filter, clearedPackFilters());
     searchInput.value = '';
     setFilterSearch('');
   });

@@ -2011,3 +2011,109 @@ No test in any of the 47 suites would have caught this. The lab and the game eac
 
 ### Chief/TD decision required
 Migrate the game to hero-v3, or keep the PixelLab character and generate a ledge-climb for it. Document ready for Chief to read: `docs/KIRO_SPRITE_PROVENANCE_AUDIT.md`.
+
+## 2026-09-20 — hero-v6: the lab character, restyled tactical, 16 frames a state
+Chief: "make hero v6" — the hero-v3 character (the one the LAB renders), more tactical, a chest logo, different pants and boots, all animations 16 frames.
+
+### Delivered
+`assets/sprites/hero-v6/` — 16 states x 16 frames x 2 facings = **512 PNGs**, plus a manifest and the reference sprite. The lab now renders it by default; `?pack=v3` goes back.
+
+### I built the first one off the wrong character
+Chief said "v5, the hero design from the pixel lab model." The only hero in his PixelLab account is the 64px masked superhero in a trench coat, so that is what I seeded from — 20 generations on a character he did not mean. He corrected me with a screenshot, and it was hero-v3 all along. Dropped v5 entirely. The lesson is cheap to state and I had the means to avoid it: I could have asked which of the two heroes he meant before spending, and the provenance audit I wrote one commit earlier is literally the document saying these are two different characters.
+
+### How v6 was made, and why image-first
+hero-v3 is not a PixelLab character — no rig to animate. So the pipeline is image-first:
+1. **Recovered the native resolution.** `/unzoom` detected zoom factor 4: hero-v3's 512px art is really **128px upscaled**. That mattered commercially — a 16-frame v3 clip bills `ceil(canvas² · 16 / 65536)` per direction, so 128px costs 4 generations where 256px costs 16. Same result at the 80px the game draws.
+2. **Grid-aligned decimation, not resampling.** Box-average downscaling blew the palette from 25 to 1,030 colours. Decimation held it at 25.
+3. **Tactical restyle** over four cheap passes (1 generation each) rather than one expensive guess.
+4. **Palette lock.** Every sprite and every animation frame is quantised onto hero-v3's own palette, so v6 sits next to existing art at **23 colours**.
+5. **East only, west mirrored locally** — free, exact, and the two facings cannot drift apart from each other.
+
+### Two defects I caught by looking, and one by measuring
+- **Chained edits let pure black in.** Adding the logo on top of the already-edited sprite pushed off-palette grey to 10%. Regenerating in a single pass from the base art held the palette. I kept the single-pass version.
+- **`ledge-climb` and `wall-slide` came back as standing poses.** v3 animation builds every state out of the one reference pose, and it will not invent a body suspended below its own hands. I caught this because v6's ledge frame 0 had its content top at row 23 while idle's was row 22 — proportionally a standing pose. Fixed ledge-climb by generating a dedicated hang pose and interpolating the climb from it; the regenerated frame 0 now sits at row 20, giving hands **66.25px** above the feet against hero-v3's **66.72px**. Half a pixel apart, which is the real proof the geometry carried over.
+- **`wall-slide` is still wrong** and I am not shipping a claim otherwise. No mechanic consumes it yet, so it is logged, not hidden.
+
+### My pose metric does not prove correctness, and I will not pretend it does
+I wrote a silhouette-IoU check to measure departure from the standing pose. It rules out "nothing happened" — every state has motion — but it flagged `idle` and `stunned` as suspect when subtlety is correct for those, and it passed `ledge-climb` and `wall-slide` which were semantically wrong. It is a smoke test, not a verdict. The two real failures were found by eye.
+
+### Rate limiting, and what it cost
+Queuing 15 animations back to back got all 15 rejected with a 500 "temporary server issue", billing nothing. Rebuilt as a throttled, retrying, resumable runner (concurrency 2, skips states already complete on disk). Second attempt: 15 generated, 0 failed.
+
+### Verification
+- `_dev/hero_pack.mjs` — **new suite, 104 passed, 0 failed.** Covers pack geometry, frame paths, the v6 state aliases, the gait-v4 override staying v3-only, unknown-pack fallback, foot-anchor maths, the ledge agreement between packs, jump index scaling, and whether every state the animator can request actually exists on disk with 16 frames.
+- `_dev/module_parse.mjs` — **135 passed, 0 failed** (upstream fixed the 3 that used to fail; it parses all three files I changed).
+- `_dev/parity_regression.mjs` — 576/51, unchanged by my work: the suite references none of the files I touched, which I verified directly rather than by stash-swapping, because two other agents have stashes parked.
+- **The browser lab suite did NOT run.** `_dev/overcharge_lab.mjs` needs playwright, which is not installed in this clone and there is no `package.json`. I did not install it — that is a ~130MB browser download into Chief's repo and his call, not mine. So the lab's pack switch is verified at module level and by file-existence, **not** by driving the actual page. Say the word and I will install playwright and run it.
+
+### Code changes, deliberately additive
+- `src_scroll/hero-sprites.js` — added `HERO_PACKS` (root, frame count, cell size, foot anchor, state aliases) and a `pack` option. Default stays `hero-v3`, so nothing existing moves. Also made the jump pose index scale with frame count; it hardcoded 1/2/4/5 against 8 frames and would have used only the first third of a 16-frame clip.
+- `src_scroll/hero-render.js` — `drawHeroFrame`/`heroFramePlacement` take an `anchor`, defaulting to v3's 496/512. v6 is 126/128.
+- `editor/overcharge-lab.js` — pack selection, geometry derived from the pack rather than hardcoded, PACK readout. Re-applied by hand onto upstream's rewritten lab rather than resolving a conflict.
+
+### Merge note
+My clone was **13 commits behind** when I went to commit; Aki/Orcha had rewritten `editor/overcharge-lab.js` (+181/-12, the zoom camera and prop placement). I discarded my copy of that file, fast-forwarded, and re-applied my four edits onto their version. `hero-sprites.js` and `hero-render.js` were untouched upstream.
+
+### Cost
+**~70 generations total**: 20 wasted on the wrong character, 0.1 grid probe, ~5 design iteration, 64 for the pack (16 states x 4), ~1.6 palette locking, 4 for the ledge regeneration. The 15 rate-limited failures billed nothing.
+
+### Open for Chief
+1. `wall-slide` needs the same hang-pose treatment ledge-climb got (~5 generations).
+2. The game still renders `walking`/`running`/`jumping`/`idle_2.0` through `src_scroll/sprites.js`. v6 is lab-only. Migrating production is a separate decision, now cheap to execute since the pack is complete and anchored.
+3. `absorb` frame 13 and `cast` frames 7/9 clip 3px at the canvas edge. Cosmetic, trivial, left alone.
+4. Want playwright installed so the browser lab suite can run?
+
+## 2026-09-20 — every hero-v6 state reachable in the OVERCHARGE LAB, verified in the real page
+Chief: "make sure all new hero 6 is added to the overcharge lab so i can begin testing."
+
+### Correction to my last report
+I said the browser lab suite could not run because playwright was not installed. That was wrong. It is not in the repo, but it IS in `_kiro_tools/node_modules`, and my own `runlab.mjs` has used it all along. I checked the repo and stopped. This round I drove the real page.
+
+### What was missing
+v6 loaded in the lab, but not all of it was reachable:
+- **`fall` and `land` had no way to play.** They were not in `HERO_STATES`, so `setState` would throw, and the override panel had no button. Two of v6's sixteen clips were unreachable.
+- **`grapple` and `ladder-down` played other clips without saying so.** v6 has neither, so they alias to jump and ladder-up. A tester would have been judging the wrong animation.
+- **16 frames at 8-frame fps doubled every clip's length.** The ledge climb took 1.6s instead of 0.8s, and walk/run, whose fps follows ground speed, cycled the legs at half the rate the body moved, so the feet slid. The existing lab suite caught this: it failed three ledge assertions (climb not finished, ledge not released, landing 4px off the lip) because the climb was still running when it checked.
+- **Browser cache.** The lab page was versioned (`?v=8`) but its imports were not, and `hero-sprites.js`/`hero-render.js` changed shape. Chief has hit stale cache twice this weekend.
+
+### Fixes
+- `fall` and `land` added to `HERO_STATES` and the override panel. v3 has no such folders, so for v3 they are aliased to jump and marked as stand-ins.
+- `HERO_PACKS[*].standIn` plus `isStandIn()`. Stand-in buttons show a trailing `*` with a tooltip naming the clip actually played, and the HUD STATE row says `stand-in: <clip> frames`.
+- fps scaled by `frames / 8` per pack, so every clip keeps its original DURATION. The HUD ANIM FPS row shows the scale.
+- Page bumped to `?v=9` and both hero imports versioned `?v=9`.
+- `window.__lab` now exposes `sprite` and `pack`, so tests can read which file is actually on screen.
+
+### Verified, in a real headless browser
+- **New `v6lab.mjs` pass: 130 passed, 0 failed.** Clicks every override button and reads the animator directly: each of v6's 16 states loads from `hero-v6/`, has 16 frames, all 16 load, they are 128x128, and the frame index advances (7-15 distinct frames seen per state). grapple and ladder-down are marked stand-ins on screen. No failed requests, no console errors. Gameplay smoke: D walks, Shift+D runs, W jumps, all drawing v6 art. `?pack=v3` still loads v3 at 8 frames. The versioned modules are what the browser actually requests.
+- **`_dev/overcharge_lab.mjs` (the existing 72-check lab suite): 72 passed, 0 failed**, including the ledge hang and climb assertions against v6. Two assertions changed intent and were updated: the default pack is now hero-v6, and the override panel has 18 states (fall and land added).
+- **`_dev/hero_pack.mjs`: 131 passed, 0 failed**, up from 104 — adds fall/land, stand-in marking, and that v6 clips last exactly as long as v3's, including walk and run at the same ground speed.
+- `module_parse` 135/0. `parity_regression` 576/51, unchanged; it touches none of these files.
+- Screenshot check: v6 stands on the floor line, so the 126/128 foot anchor is right.
+
+### Still open
+- `wall-slide` is still a standing guard pose, not a body pressed to a wall. It plays and animates, so it passes every mechanical check. That is the limit of those checks.
+- In live gameplay the lab still uses `jump` for the whole airborne arc. `fall` and `land` are reachable in the override panel but not triggered by movement. Wiring them in changes how jumping looks, so it is a call for Chief.
+
+## 2026-09-20 — lab: centred room, white background, seamless v6 run
+Three Chief reports, one commit.
+
+### "the run animation doesnt loop he runs then stops then the animation picks up again"
+Measured, not guessed. Every v6 clip was animated out of the standing reference pose, so the run opened with 3 near-standing frames (silhouette overlap with the standing pose 1.000, 1.000, 0.926) and ramped up. On loop, he stopped dead once a cycle. The seam measured 0.314 frame-to-frame overlap at 15 -> 0 against a typical 0.618.
+
+Fix: regenerated run by interpolation with frame 8 (its widest stride) as both the start and end pose, so the clip starts mid-stride and ends where it began. New run: no near-standing frames (max 0.523), and the 15 -> 0 wrap is now the SMOOTHEST step in the clip (0.734 against a 0.62-0.72 range). 4 generations, palette-locked to 21 colours.
+
+The same seam exists in other looping states, measured with the same check: walk, fall, absorb, discharge, wall-slide, ladder-up. Idle and stunned are fine. I fixed only run, the one Chief reported. The rest cost about 4 generations each.
+
+v6 frames now load with `?r=<rev>` (`HERO_PACKS['hero-v6'].rev = 2`), because replacing PNGs under the same filename otherwise leaves browsers on the old frames.
+
+### "make the BG for the overcharche lab WHITE"
+Canvas clears to `#ffffff`, the canvas CSS background is white, and the grid stroke moved from `#0d2630` to `#e2e7ea`, because a near-black grid tuned for a dark canvas becomes a heavy cage on white. Tiles, teal caps and the hero are unchanged. I first read "WHITE" as "with"; Chief clarified.
+
+### "this paleyr window needs to be centered"
+The camera centred purely on the player, so a zoomed-out room slid sideways with empty space beside it. Now, per axis: if the room fits, the room is centred; if it is bigger than the view, follow the player but clamp so the camera never shows past the room edge. Painting and placement both go through the same `cameraOrigin()`, so clicks still land where they are drawn.
+
+### Verified, in a real headless browser
+- Centring: 4/0. Zoomed out, the gap is 240px left and 240px right. Zoomed in at spawn, the camera clamps to the room edge with no void. The background is 88% pure-white pixels. No page errors.
+- `_dev/overcharge_lab.mjs` 72/0. v6 state pass 130/0. `_dev/hero_pack.mjs` 131/0. `module_parse` 135/0.
+
+The loop check confirms the seam is gone mathematically. Whether the stride reads well in motion is for Chief to judge in the lab.

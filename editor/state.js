@@ -404,7 +404,11 @@ export const state = {
   camera: { x: 0, y: 0, zoom: 1 },   // worldâ†’screen offset & scale
 
   // Filters
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, buildingOnly: false },
+  // Chief 2026-10-03: "i dont see check box filters for warehouse, coffee bar, apartment,
+  // and mart; in asset library on builder". The art was all on disk and in the manifest —
+  // only the quick-filter chips were missing, so the four packs were reachable solely by
+  // typing in the search box or by eyeballing the 20 entries under Buildings.
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -562,7 +566,7 @@ export function manifestCategories() {
 // Background-category assets are excluded here â€” they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, buildingOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Hand-authored spawn assets stay available even when random generation
@@ -607,6 +611,21 @@ export function filteredManifestItems() {
     // Same tag-driven pattern as AKI_19: any asset tagged 'building' joins
     // this filter automatically, no hard-coded id list to maintain.
     if (buildingOnly    && !(it.tags && it.tags.indexOf('building') >= 0))        return false;
+    // CHIEF 2026-10-03: the four night-city building packs each get their own chip. Buildings
+    // (above) shows all 20 at once, which is not much better than scrolling.
+    //
+    // TWO OF THESE LABELS DO NOT MATCH THEIR TAG, and that is the whole reason this was easy
+    // to get wrong: Chief says "apartment" and "mart", but Aki tagged them 'abandoned'
+    // (folder abandoned_apartment) and 'convenience_store' (folder convenience_store). There
+    // is no 'apartment' tag and no 'mart' tag anywhere in the manifest. Searching for one
+    // finds nothing, so anyone adding these later would reasonably conclude the art is
+    // missing. The chip label follows Chief's vocabulary; the predicate follows Aki's tag.
+    //
+    // Tag-driven like AKI_19, so new art joins a pack automatically with no id list here.
+    if (warehouseOnly   && !(it.tags && it.tags.indexOf('warehouse') >= 0))          return false;
+    if (coffeeBarOnly   && !(it.tags && it.tags.indexOf('coffee_bar') >= 0))         return false;
+    if (apartmentOnly   && !(it.tags && it.tags.indexOf('abandoned') >= 0))          return false;
+    if (martOnly        && !(it.tags && it.tags.indexOf('convenience_store') >= 0))  return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -673,6 +692,11 @@ export function setElectricOnly(v)       { state.filter.electricOnly = !!v; noti
 export function setNeonRiseOnly(v)       { state.filter.neonRiseOnly = !!v; notify(); }
 export function setPipeOnly(v)           { state.filter.pipeOnly = !!v; notify(); }
 export function setBuildingOnly(v)       { state.filter.buildingOnly = !!v; notify(); }
+// Chief 2026-10-03 — the four night-city building packs.
+export function setWarehouseOnly(v)      { state.filter.warehouseOnly = !!v; notify(); }
+export function setCoffeeBarOnly(v)      { state.filter.coffeeBarOnly = !!v; notify(); }
+export function setApartmentOnly(v)      { state.filter.apartmentOnly = !!v; notify(); }
+export function setMartOnly(v)           { state.filter.martOnly = !!v; notify(); }
 // Set the level's background pack key (null = no background).
 // Marks the level dirty so save picks up the change.
 export function setLevelBackground(packKey) {
