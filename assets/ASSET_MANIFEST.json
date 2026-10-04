@@ -1903,54 +1903,6 @@
       }
     },
     {
-      "id": "building_nc_coffee_left",
-      "name": "Night City coffee bar - left end-cap",
-      "path": "assets/objects/night-city-buildings/coffee_bar/left.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "coffee_bar",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 192,
-      "frame_height": 256,
-      "frame_count": 1,
-      "notes": "Coffee bar left end-cap panel (6x8 tiles). Plain wall, no decoration. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall",
-      "trim": {
-        "x": 0.0208,
-        "y": 0.0,
-        "w": 0.9583,
-        "h": 1.0
-      }
-    },
-    {
-      "id": "building_nc_coffee_wall_bay",
-      "name": "Night City coffee bar - plain wall bay",
-      "path": "assets/objects/night-city-buildings/coffee_bar/wall_bay.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "coffee_bar",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 160,
-      "frame_height": 256,
-      "frame_count": 1,
-      "notes": "Coffee bar plain wall bay panel (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall",
-      "trim": {
-        "x": 0.0125,
-        "y": 0.0625,
-        "w": 0.975,
-        "h": 0.8789
-      }
-    },
-    {
       "id": "building_nc_coffee_front_bay",
       "name": "Night City coffee bar - storefront bay",
       "path": "assets/objects/night-city-buildings/coffee_bar/front_bay.png",
@@ -1972,30 +1924,6 @@
         "y": 0.1797,
         "w": 0.7938,
         "h": 0.6562
-      }
-    },
-    {
-      "id": "building_nc_coffee_right",
-      "name": "Night City coffee bar - right end-cap",
-      "path": "assets/objects/night-city-buildings/coffee_bar/right.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "coffee_bar",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 128,
-      "frame_height": 256,
-      "frame_count": 1,
-      "notes": "Coffee bar right end-cap panel (4x8 tiles). Plain wall, no decoration. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall",
-      "trim": {
-        "x": 0.0156,
-        "y": 0.1445,
-        "w": 0.9688,
-        "h": 0.7031
       }
     },
     {
