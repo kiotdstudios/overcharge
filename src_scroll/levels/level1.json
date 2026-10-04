@@ -1811,6 +1811,15 @@
   },
   "decorations": [
     {
+      "src": "assets/objects/night-city-buildings/coffee_bar/front_bay.png",
+      "x": 1372,
+      "y": 142,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
       "id": "bg_exit_building_49_10",
       "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "x": 1568,
@@ -3293,7 +3302,7 @@
     },
     {
       "src": "assets/objects/night-city-buildings/warehouse/warehouse_closed_bay.png",
-      "x": 1084,
+      "x": 988,
       "y": 110,
       "w": 160,
       "h": 256,
@@ -3302,8 +3311,17 @@
     },
     {
       "src": "assets/objects/night-city-buildings/warehouse/warehouse_open_bay.png",
-      "x": 944,
+      "x": 848,
       "y": 110,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
+      "x": 1231,
+      "y": 132,
       "w": 160,
       "h": 256,
       "snap": 1,
@@ -3311,18 +3329,9 @@
     },
     {
       "src": "assets/objects/night-city-buildings/warehouse/warehouse_right.png",
-      "x": 1223,
+      "x": 1127,
       "y": 110,
       "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
-      "x": 1325,
-      "y": 136,
-      "w": 160,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
@@ -3342,7 +3351,7 @@
       "artH": 192
     },
     {
-      "x": 1600,
+      "x": 1664,
       "y": 292,
       "label": "LAMP",
       "charge": 4,
@@ -3376,8 +3385,8 @@
   "checkpoints": [
     {
       "id": "CP1",
-      "x": 800,
-      "y": 384,
+      "x": 1824,
+      "y": 320,
       "label": "CP"
     }
   ],
