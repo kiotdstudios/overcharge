@@ -104,3 +104,27 @@ inside warehouse's own H 226-236 / S 0.53-0.71 / V 0.21-0.34 range. Brick
 material, layout, signage, and the warm garage-interior glow are all unchanged —
 only the base wall's saturation came down to match warehouse's steel-blue
 register. bbox/trim values unaffected (grading doesn't change alpha).
+
+## Rooftop-clutter fix (2026-10-03, third pass)
+
+Chief caught it directly in the Builder: `front_bay.png` still had pipes, a
+fan/vent unit, a ladder, an exhaust stack, and a water tank baked onto the
+roof, and `right.png` had a small chimney cap. Root cause for front_bay: the
+original generation prompt *explicitly asked* for "rooftop pipes, vents and a
+water tank along the top edge" — a leftover from before the rooftop-empty
+rule in `docs/BUILDING_FAMILY_ASSET_SPEC.md` section 2 existed. `right.png`'s
+chimney was never requested but PixelLab added it anyway.
+
+Fix: regenerated both panels (not a post-process edit this time — rooftop
+clutter removal doesn't crop/patch cleanly) from the same already-correct
+style_image sources, with the prompt rewritten to explicitly state "rooftop is
+completely bare and empty, no pipes/vents/tank/antennas/chimney/mechanical
+equipment of any kind." Re-applied the same color-grade desaturation pass
+afterward. `left.png` and `wall_bay.png` were checked and are clean (skyline
+backdrop and a street lamp only — no mounted equipment) and were not touched.
+
+`right.png`'s content bbox shifted slightly on the regenerate (now
+`(0,0,124,256)` vs the old `(5,0,123,256)`) since this was a fresh generation,
+not a recolor — `ASSET_MANIFEST.json`'s trim was updated accordingly.
+`front_bay.png`'s bbox landed identical to before, no trim change needed
+there.

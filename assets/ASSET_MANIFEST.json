@@ -2376,9 +2376,9 @@
       "notes": "RUSS'S TIRE SHOP right end-cap panel (4x8 tiles), '24 HR' cyan neon badge, street lamp, brick/stone pillar wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
-        "x": 0.0391,
+        "x": 0.0,
         "y": 0.0,
-        "w": 0.9219,
+        "w": 0.9688,
         "h": 1.0
       }
     }
