@@ -67,6 +67,7 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
           <div><kbd>K</kbd> attack &nbsp; <kbd>J</kbd> melee</div>
           <div><kbd>E</kbd> absorb &nbsp; <kbd>Space</kbd> charge</div>
           <div><kbd>H</kbd> hurt &nbsp; <kbd>R</kbd> reset &nbsp; <kbd>B</kbd> hitbox</div>
+          <div><kbd>V</kbd> switch hero v3 / v6</div>
           <div><kbd>↓</kbd> or <kbd>S</kbd> drop from a ledge</div>
         </div>
         <p class="note"><b>Real game controls</b>, driven through production's own <code>input.js</code> —
@@ -152,12 +153,16 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
     </section>
     <section>
       <h2>Sprite pack</h2>
-      <p class="note">Showing <b>hero-v3</b> — 16 states, the pack built for the animator migration.
+      <div id="pack-toggle" class="row" role="group" aria-label="Hero sprite pack" style="margin-bottom:6px">
+        <button type="button" data-pack="hero-v6" aria-pressed="true">Hero v6</button>
+        <button type="button" data-pack="hero-v3" aria-pressed="false">Hero v3</button>
+        <span class="note" style="margin:0"><kbd style="min-width:0">V</kbd> toggles</span>
+      </div>
+      <p id="pack-note" class="note" style="margin-top:4px"></p>
+      <p class="note">Switching is live: position, zoom, placed props and unsaved tile edits stay put.
         <b>The game still draws a different, older set</b> (<code>walking</code>, <code>running</code>,
-        <code>jumping</code>, <code>idle_2.0</code>) through <code>src_scroll/sprites.js</code>. That
-        migration has not shipped.</p>
-      <p class="note"><a href="?gait=4" style="color:#00e5d0">Compare revised walk/run →</a> &nbsp;
-        <a href="?" style="color:#6fa7b0">back to hero-v3</a></p>
+        <code>jumping</code>, <code>idle_2.0</code>) through <code>src_scroll/sprites.js</code>.</p>
+      <p class="note"><a href="?gait=4" style="color:#00e5d0">Compare v3 revised walk/run →</a></p>
     </section>
     <section>
       <h2>Scope</h2>
@@ -170,6 +175,6 @@ button:focus-visible{outline:2px solid #00e5d0;outline-offset:2px}
      minutes and the CDN can hold it longer, so without a new query string the browser has
      no reason to refetch — which is why the hitbox box appeared "still there" after it had
      already been fixed and deployed. -->
-<script type="module" src="editor/overcharge-lab.js?v=10"></script>
+<script type="module" src="editor/overcharge-lab.js?v=11"></script>
 </body>
 </html>

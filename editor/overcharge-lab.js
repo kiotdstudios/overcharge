@@ -142,21 +142,38 @@ const SPAWN = { x: 3 * TILE, y: 11 * TILE };
 // shipped. hero-v6 is hero-v3's character restyled tactical with a teal chest emblem,
 // generated at hero-v3's TRUE 128px resolution (v3 is the same art upscaled 4x), so the
 // smaller canvas costs no detail.
+// The pack is switchable LIVE from the Sprite pack panel (Chief: "make a toggle
+// between hero v3 and v6"). No reload, so position, zoom, placed props and unsaved
+// tile edits all survive the switch. Everything below that depends on the pack
+// is reassigned together inside setPack(), and nothing else may cache it.
+//
+// Choice order: ?pack=v3|v6 in the URL, then the last choice saved in this
+// browser, then v6. ?gait=4 only ever replaced v3's walk/run, so it implies v3.
 const qs = new URLSearchParams(location.search);
 const useGait4 = qs.get('gait') === '4';
-// ?gait=4 only ever replaced v3's walk/run, so asking for it implies the v3 pack.
-const HERO_PACK = (qs.get('pack') === 'v3' || useGait4) ? 'hero-v3' : 'hero-v6';
-const sprite = new PlayerSprites({
-  pack: HERO_PACK,
-  gaitRoot: useGait4 ? 'assets/sprites/hero-gait-v4' : null,
-});
-// Pack-dependent geometry, derived from the active pack's own numbers rather
-// than hardcoded, so swapping packs cannot silently move the character.
-const PACK_SPEC       = HERO_PACKS[HERO_PACK];
-const FOOT_ANCHOR     = PACK_SPEC.footAnchor / PACK_SPEC.cell;
-const HAND_ABOVE_FEET = HERO_DRAW *
-  (PACK_SPEC.footAnchor - LEDGE_FRAME0_TOP[HERO_PACK]) / PACK_SPEC.cell;
-const LEDGE_HANG_Y    = HAND_ABOVE_FEET - PLAYER_H;   // body top, relative to the lip
+const PACK_KEY = 'overcharge.lab.pack';
+function initialPack() {
+  if (useGait4) return 'hero-v3';
+  const q = qs.get('pack');
+  if (q === 'v3' || q === 'hero-v3') return 'hero-v3';
+  if (q === 'v6' || q === 'hero-v6') return 'hero-v6';
+  try { const saved = localStorage.getItem(PACK_KEY); if (HERO_PACKS[saved]) return saved; } catch {}
+  return 'hero-v6';
+}
+let HERO_PACK, sprite, PACK_SPEC, FOOT_ANCHOR, HAND_ABOVE_FEET, LEDGE_HANG_Y;
+function buildPack(pack) {
+  HERO_PACK = pack;
+  sprite = new PlayerSprites({
+    pack,
+    gaitRoot: useGait4 && pack === 'hero-v3' ? 'assets/sprites/hero-gait-v4' : null,
+  });
+  // Geometry from the pack's own numbers, so switching cannot move the character.
+  PACK_SPEC       = HERO_PACKS[pack];
+  FOOT_ANCHOR     = PACK_SPEC.footAnchor / PACK_SPEC.cell;
+  HAND_ABOVE_FEET = HERO_DRAW * (PACK_SPEC.footAnchor - LEDGE_FRAME0_TOP[pack]) / PACK_SPEC.cell;
+  LEDGE_HANG_Y    = HAND_ABOVE_FEET - PLAYER_H;   // body top, relative to the lip
+}
+buildPack(initialPack());
 const canvas = document.getElementById('lab');
 const ctx    = canvas.getContext('2d');
 
@@ -500,18 +517,22 @@ for (const [group, states] of Object.entries(GROUPS)) {
   const grid = document.createElement('div'); grid.className = 'states';
   for (const s of states) {
     const b = document.createElement('button');
-    const sub = isStandIn(HERO_PACK, s);
     b.type = 'button'; b.dataset.state = s;
-    b.textContent = LABEL[s] + (sub ? '*' : '');
-    if (sub) {
-      const folder = PACK_SPEC.alias[s];
-      b.title = `${HERO_PACK} has no ${s} clip — plays its ${folder} frames as a stand-in`;
-    }
     b.addEventListener('click', () => setOverride(s));
     grid.append(b); ovButtons.push(b);
   }
   wrap.append(grid); host.append(wrap);
 }
+// Labels depend on the pack (stand-ins get a *), so they are rewritten on every switch.
+function labelOverrideButtons() {
+  for (const b of ovButtons) {
+    const s = b.dataset.state;
+    const sub = isStandIn(HERO_PACK, s);
+    b.textContent = LABEL[s] + (sub ? '*' : '');
+    b.title = sub ? `${HERO_PACK} has no ${s} clip — plays its ${PACK_SPEC.alias[s]} frames as a stand-in` : '';
+  }
+}
+labelOverrideButtons();
 
 const btnOff = document.getElementById('ov-off');
 const btnPlay = document.getElementById('ov-play');
@@ -527,6 +548,47 @@ function setOverride(s) {
   playing = true;
   syncOv();
 }
+
+// ── Pack switch ──────────────────────────────────────────────────────
+// Swaps the whole animator and the geometry derived from it, carrying the current
+// state and the same RELATIVE point in the clip across. v3 clips are 8 frames and
+// v6 are 16, so "frame 3 of 8" becomes "frame 6 of 16" and a held pose, an override
+// or a ledge climb continues from the same moment in the motion instead of restarting.
+function setPack(pack) {
+  if (!HERO_PACKS[pack] || pack === HERO_PACK) return;
+  const prev = sprite._current, prevState = sprite.state;
+  const phase = prev.frames.length ? prev._frame / prev.frames.length : 0;
+  buildPack(pack);
+  sprite.setState(prevState, p.facingRight);
+  const a = sprite._current;
+  a._frame = Math.min(a.frames.length - 1, Math.round(phase * a.frames.length));
+  a._t = 0;
+  a.done = prev.done;
+  try { localStorage.setItem(PACK_KEY, pack); } catch {}
+  // Keep the URL honest without reloading, so a refresh keeps the choice.
+  const u = new URL(location.href);
+  u.searchParams.set('pack', pack === 'hero-v3' ? 'v3' : 'v6');
+  history.replaceState(null, '', u);
+  labelOverrideButtons();
+  syncPackButtons();
+}
+
+const packBtns = [...document.querySelectorAll('#pack-toggle button[data-pack]')];
+function syncPackButtons() {
+  for (const b of packBtns) b.setAttribute('aria-pressed', String(b.dataset.pack === HERO_PACK));
+  const note = document.getElementById('pack-note');
+  if (note) note.innerHTML = HERO_PACK === 'hero-v6'
+    ? '<b>hero-v6</b> — tactical restyle, 16 frames a state, 128px.'
+    : '<b>hero-v3</b> — the original lab character, 8 frames a state, 512px.'
+      + (useGait4 ? ' Walk/run replaced by <b>hero-gait-v4</b>.' : '');
+}
+for (const b of packBtns) b.addEventListener('click', () => { setPack(b.dataset.pack); b.blur(); });
+syncPackButtons();
+// V toggles too, so the comparison can be made without taking eyes off the hero.
+window.addEventListener('keydown', e => {
+  if (e.code !== 'KeyV' || e.repeat || e.target.closest?.('input, select, textarea')) return;
+  setPack(HERO_PACK === 'hero-v6' ? 'hero-v3' : 'hero-v6');
+});
 btnOff.addEventListener('click', () => { override = null; playing = true; syncOv(); });
 btnPlay.addEventListener('click', () => { playing = !playing; syncOv(); });
 document.getElementById('ov-replay').addEventListener('click', () => { sprite._current.reset(); playing = true; syncOv(); });
@@ -957,8 +1019,10 @@ window.addEventListener('blur', endPaint);
 // flaky, which is the worst kind of red.
 window.__lab = {
   player: p,
-  sprite,              // the animator, so tests can read which file is on screen
-  pack: HERO_PACK,
+  // Getters, not values: the pack can be switched live, which replaces the animator.
+  get sprite() { return sprite; },   // so tests can read which file is on screen
+  get pack() { return HERO_PACK; },
+  setPack,
   findLedge,
   setTile, solidAt, restoreRoom,
   TILE, PLAYER_W, PLAYER_H,

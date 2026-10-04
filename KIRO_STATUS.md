@@ -2117,3 +2117,18 @@ The camera centred purely on the player, so a zoomed-out room slid sideways with
 - `_dev/overcharge_lab.mjs` 72/0. v6 state pass 130/0. `_dev/hero_pack.mjs` 131/0. `module_parse` 135/0.
 
 The loop check confirms the seam is gone mathematically. Whether the stride reads well in motion is for Chief to judge in the lab.
+
+## 2026-09-20 — lab: live hero-v3 / hero-v6 toggle
+Chief: "can you make a toggle between hero v3 and v6 on the overcharge lab".
+
+### What it does
+Sprite pack panel has **Hero v6 / Hero v3** buttons, and **V** toggles from the keyboard. Switching is LIVE, with no reload: position, zoom, placed props and unsaved tile edits all stay. The current state carries across at the same relative point in the clip (v6 frame 8 of 16 becomes v3 frame 4 of 8), so an override, a held pose or a ledge climb continues instead of restarting. The ledge hang re-derives from the new pack's geometry, 0.47px higher on v6, which matches the measured difference. Stand-in `*` labels are rewritten for the active pack.
+
+The choice is remembered: `?pack=v3|v6` in the URL wins, then the last choice in this browser (`localStorage['overcharge.lab.pack']`), then v6. Switching updates the URL with `history.replaceState`, so a refresh keeps it.
+
+### How
+The pack-dependent values (`sprite`, `PACK_SPEC`, `FOOT_ANCHOR`, `HAND_ABOVE_FEET`, `LEDGE_HANG_Y`) were `const`s fixed at load. They are now built together in one `buildPack()`, and `setPack()` swaps them as a unit. `window.__lab.sprite` and `.pack` became getters, because the animator object is replaced on a switch. The Sprite pack panel's text still said "Showing hero-v3" from before v6 existed, so I rewrote it.
+
+### Verified, in a real headless browser
+- New toggle check, 27/0: the click switches the art (512px/8f vs 128px/16f), the buttons and HUD show the active pack, and the URL updates without a reload. Position is kept, and an unsaved painted tile survives. Override labels are re-marked, V toggles back, the override state and relative frame carry across (8/16 to 4/8), and a hang survives a switch with its height re-derived (-0.47px). The choice is remembered after a refresh and the URL overrides it. No console errors, no failed requests.
+- Lab suite 72/0, v6 state pass 130/0, centring 4/0, hero_pack 131/0, module_parse 135/0.
