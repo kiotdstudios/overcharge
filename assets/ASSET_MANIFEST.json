@@ -2285,6 +2285,102 @@
         "w": 0.7812,
         "h": 0.6367
       }
+    },
+    {
+      "id": "building_nc_tire_left",
+      "name": "Night City tire shop - left end-cap",
+      "path": "assets/objects/night-city-buildings/tire_shop/left.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP left end-cap panel (6x8 tiles), brick/stone wall with city skyline backdrop. Place left-to-right: left, wall_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      }
+    },
+    {
+      "id": "building_nc_tire_wall_bay",
+      "name": "Night City tire shop - wall bay",
+      "path": "assets/objects/night-city-buildings/tire_shop/wall_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP wall bay panel (5x8 tiles), chain-link fence with 'GRIP CITY' banner and a 'NEW/USED/REPAIR/CUSTOM/BALANCE' sign post, street lamp, brick wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0,
+        "y": 0.1016,
+        "w": 1.0,
+        "h": 0.7461
+      }
+    },
+    {
+      "id": "building_nc_tire_front_bay",
+      "name": "Night City tire shop - front/identity bay",
+      "path": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP front/identity panel (5x8 tiles), hanging magenta/cyan neon sign reading 'RUSS'S TIRE SHOP' above an open roll-up garage door with a car parked inside, rooftop pipes/tank. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0,
+        "y": 0.1445,
+        "w": 1.0,
+        "h": 0.7109
+      }
+    },
+    {
+      "id": "building_nc_tire_right",
+      "name": "Night City tire shop - right end-cap",
+      "path": "assets/objects/night-city-buildings/tire_shop/right.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP right end-cap panel (4x8 tiles), '24 HR' magenta neon badge, street lamp, brick/stone pillar wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0391,
+        "y": 0.0,
+        "w": 0.9219,
+        "h": 1.0
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
