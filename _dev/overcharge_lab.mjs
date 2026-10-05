@@ -123,7 +123,8 @@ const after = parseFloat((await field('POS')).replace(/x\s*/, ''));
 ok(after < moved, 'R resets to the start', `${moved.toFixed(0)} -> ${after.toFixed(0)}`);
 
 // ── override panel: every Hero Lab state must be forceable ──
-const states = ['idle','walk','run','jump','hurt','stunned','death','energy-strike',
+// fall and land joined with hero-v6, which has dedicated clips for both.
+const states = ['idle','walk','run','jump','fall','land','hurt','stunned','death','energy-strike',
   'projectile-cast','absorb','discharge','ladder-up','ladder-down','ledge-climb','wall-slide','grapple'];
 const btns = await page.locator('#override-groups button').count();
 ok(btns === states.length, `override panel exposes all ${states.length} states`, btns + ' buttons');
@@ -307,7 +308,9 @@ ok((await page.evaluate(() => window.__lab.levels())).length === 1,
    'clearing storage reseeds a single default level rather than an empty list');
 
 console.log('\n[ sprite pack ]');
-ok(/PACK\s+hero-v3/.test(await hud()), 'default pack is hero-v3', (await hud()).match(/PACK[^A-Z]*/)?.[0] ?? '');
+// Chief: "make sure all new hero 6 is added to the overcharge lab". v6 is the
+// lab default; ?pack=v3 is the way back.
+ok(/PACK\s+hero-v6/.test(await hud()), 'default pack is hero-v6', (await hud()).match(/PACK[^A-Z]*/)?.[0] ?? '');
 ok(/TILE EDIT\s+off/.test(await hud()), 'tile edit starts off, so a focus click never paints');
 
 // Chief's exact scenario: fall in the pit, get out without resetting.

@@ -1473,6 +1473,22 @@
       "mount": "wall"
     },
     {
+      "id": "prop_ncp_tire_sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/tire-sign/00.png",
+      "category": "decoration",
+      "tags": ["source", "placement", "spawn", "night_city_props", "electric", "prop", "animated", "tire_shop"],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Large literal neon tire wall sign. Powered(f0-1), absorbing(f2-5), drained(f6); f7 spare dark frame. Independently placeable absorbable source, 4 charge by default.",
+      "trim": { "x": 0.03125, "y": 0.0625, "w": 0.953125, "h": 0.859375 },
+      "mount": "wall"
+    },
+    {
       "id": "prop_ncp_neon_sign",
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/neon-sign/00.png",
@@ -1903,54 +1919,6 @@
       }
     },
     {
-      "id": "building_nc_coffee_left",
-      "name": "Night City coffee bar - left end-cap",
-      "path": "assets/objects/night-city-buildings/coffee_bar/left.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "coffee_bar",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 192,
-      "frame_height": 256,
-      "frame_count": 1,
-      "notes": "Coffee bar left end-cap panel (6x8 tiles). Plain wall, no decoration. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall",
-      "trim": {
-        "x": 0.0208,
-        "y": 0.0,
-        "w": 0.9583,
-        "h": 1.0
-      }
-    },
-    {
-      "id": "building_nc_coffee_wall_bay",
-      "name": "Night City coffee bar - plain wall bay",
-      "path": "assets/objects/night-city-buildings/coffee_bar/wall_bay.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "coffee_bar",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 160,
-      "frame_height": 256,
-      "frame_count": 1,
-      "notes": "Coffee bar plain wall bay panel (5x8 tiles). Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall",
-      "trim": {
-        "x": 0.0125,
-        "y": 0.0625,
-        "w": 0.975,
-        "h": 0.8789
-      }
-    },
-    {
       "id": "building_nc_coffee_front_bay",
       "name": "Night City coffee bar - storefront bay",
       "path": "assets/objects/night-city-buildings/coffee_bar/front_bay.png",
@@ -1972,30 +1940,6 @@
         "y": 0.1797,
         "w": 0.7938,
         "h": 0.6562
-      }
-    },
-    {
-      "id": "building_nc_coffee_right",
-      "name": "Night City coffee bar - right end-cap",
-      "path": "assets/objects/night-city-buildings/coffee_bar/right.png",
-      "category": "decoration",
-      "tags": [
-        "night_city_props",
-        "building",
-        "coffee_bar",
-        "scenery",
-        "noncolliding"
-      ],
-      "frame_width": 128,
-      "frame_height": 256,
-      "frame_count": 1,
-      "notes": "Coffee bar right end-cap panel (4x8 tiles). Plain wall, no decoration. Placeable visual dressing only. No collision, power, light, or switch logic.",
-      "family": "nc_building_wall",
-      "trim": {
-        "x": 0.0156,
-        "y": 0.1445,
-        "w": 0.9688,
-        "h": 0.7031
       }
     },
     {
@@ -2284,6 +2228,198 @@
         "y": 0.3047,
         "w": 0.7812,
         "h": 0.6367
+      }
+    },
+    {
+      "id": "building_nc_apartment_left",
+      "name": "Night City apartment - fire escape",
+      "path": "assets/objects/night-city-buildings/apartment_complex/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 1/4 (6x8 tiles). Place left-to-right with wall bay, entrance, and right end-cap. Visual dressing only; fire escape is not climbable.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_wall_bay",
+      "name": "Night City apartment - window bay",
+      "path": "assets/objects/night-city-buildings/apartment_complex/wall_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 2/4 (5x8 tiles). Visual dressing only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_front_bay",
+      "name": "Night City apartment - entrance",
+      "path": "assets/objects/night-city-buildings/apartment_complex/front_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 3/4 (5x8 tiles), lit entrance. Visual dressing only; door is not interactive.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_right",
+      "name": "Night City apartment - right end-cap",
+      "path": "assets/objects/night-city-buildings/apartment_complex/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 4/4 (4x8 tiles). Visual dressing only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_left",
+      "name": "Night City gatehouse - left wing",
+      "path": "assets/objects/night-city-buildings/gatehouse/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 1/4 (6x8 tiles). Visual facade only; place with portal, service wing, and right end cap.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_portal",
+      "name": "Night City gatehouse - electric portal housing",
+      "path": "assets/objects/night-city-buildings/gatehouse/portal.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 2/4 (5x8 tiles). Dark 112px recess fits the separate animated exit gate; this art has no gate collision or charge behavior.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_service",
+      "name": "Night City gatehouse - service wing",
+      "path": "assets/objects/night-city-buildings/gatehouse/service.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 3/4 (5x8 tiles). Visual facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_right",
+      "name": "Night City gatehouse - right end cap",
+      "path": "assets/objects/night-city-buildings/gatehouse/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 4/4 (4x8 tiles). Visual facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_tire_left",
+      "name": "Night City tire shop - left end-cap",
+      "path": "assets/objects/night-city-buildings/tire_shop/left.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP left end-cap panel (6x8 tiles), brick/stone wall with city skyline backdrop. Place left-to-right: left, wall_bay, front_bay, right. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 1.0,
+        "h": 1.0
+      }
+    },
+    {
+      "id": "building_nc_tire_wall_bay",
+      "name": "Night City tire shop - wall bay",
+      "path": "assets/objects/night-city-buildings/tire_shop/wall_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP wall bay panel (5x8 tiles), chain-link fence with 'GRIP CITY' banner and a 'NEW/USED/REPAIR/CUSTOM/BALANCE' sign post, street lamp, brick wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0,
+        "y": 0.0039,
+        "w": 1.0,
+        "h": 0.8789
+      }
+    },
+    {
+      "id": "building_nc_tire_front_bay",
+      "name": "Night City tire shop - front/identity bay",
+      "path": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP front/identity panel (5x8 tiles), hanging cyan neon sign reading 'RUSS'S TIRE SHOP' above an open roll-up garage door with a car parked inside, rooftop pipes/tank. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0,
+        "y": 0.1406,
+        "w": 1.0,
+        "h": 0.7148
+      }
+    },
+    {
+      "id": "building_nc_tire_right",
+      "name": "Night City tire shop - right end-cap",
+      "path": "assets/objects/night-city-buildings/tire_shop/right.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "tire_shop",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "RUSS'S TIRE SHOP right end-cap panel (4x8 tiles), '24 HR' cyan neon badge, street lamp, brick/stone pillar wall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0,
+        "y": 0.0,
+        "w": 0.9688,
+        "h": 1.0
       }
     }
   ],

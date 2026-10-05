@@ -1,0 +1,226 @@
+{
+  "name": "hero-v6",
+  "derivedFrom": "hero-v3 (the pack the OVERCHARGE LAB renders)",
+  "note": "Tactical redesign with a teal lightning-bolt chest emblem, generated from the hero-v3 profile art via PixelLab image editing, then animated per state. Native 128px — hero-v3 is the same art upscaled 4x to 512. West frames are exact horizontal mirrors of east, so the two facings cannot drift apart.",
+  "frameSize": [
+    128,
+    128
+  ],
+  "footAnchor": 126,
+  "frameCount": 16,
+  "directions": [
+    "east",
+    "west"
+  ],
+  "paletteColours": 23,
+  "states": {
+    "absorb": {
+      "fps": 10,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 27,
+        "y0": 0,
+        "x1": 101,
+        "y1": 126,
+        "w": 75,
+        "h": 127
+      }
+    },
+    "cast": {
+      "fps": 20,
+      "loop": false,
+      "frames": 16,
+      "bounds": {
+        "x0": 0,
+        "y0": 23,
+        "x1": 127,
+        "y1": 126,
+        "w": 128,
+        "h": 104
+      }
+    },
+    "death": {
+      "fps": 9,
+      "loop": false,
+      "frames": 16,
+      "bounds": {
+        "x0": 10,
+        "y0": 23,
+        "x1": 116,
+        "y1": 127,
+        "w": 107,
+        "h": 105
+      }
+    },
+    "discharge": {
+      "fps": 10,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 2,
+        "y0": 1,
+        "x1": 122,
+        "y1": 126,
+        "w": 121,
+        "h": 126
+      }
+    },
+    "fall": {
+      "fps": 8,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 19,
+        "y0": 6,
+        "x1": 115,
+        "y1": 126,
+        "w": 97,
+        "h": 121
+      }
+    },
+    "hurt": {
+      "fps": 16,
+      "loop": false,
+      "frames": 16,
+      "bounds": {
+        "x0": 27,
+        "y0": 20,
+        "x1": 95,
+        "y1": 126,
+        "w": 69,
+        "h": 107
+      }
+    },
+    "idle": {
+      "fps": 6,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 40,
+        "y0": 22,
+        "x1": 86,
+        "y1": 126,
+        "w": 47,
+        "h": 105
+      }
+    },
+    "jump": {
+      "fps": 10,
+      "loop": false,
+      "frames": 16,
+      "bounds": {
+        "x0": 25,
+        "y0": 6,
+        "x1": 100,
+        "y1": 127,
+        "w": 76,
+        "h": 122
+      }
+    },
+    "ladder-up": {
+      "fps": 10,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 36,
+        "y0": 2,
+        "x1": 93,
+        "y1": 127,
+        "w": 58,
+        "h": 126
+      }
+    },
+    "land": {
+      "fps": 14,
+      "loop": false,
+      "frames": 16,
+      "bounds": {
+        "x0": 37,
+        "y0": 23,
+        "x1": 99,
+        "y1": 126,
+        "w": 63,
+        "h": 104
+      }
+    },
+    "ledge-climb": {
+      "fps": 10,
+      "loop": false,
+      "frames": 16,
+      "bounds": {
+        "x0": 36,
+        "y0": 16,
+        "x1": 93,
+        "y1": 126,
+        "w": 58,
+        "h": 111
+      }
+    },
+    "melee": {
+      "fps": 18,
+      "loop": false,
+      "frames": 16,
+      "bounds": {
+        "x0": 24,
+        "y0": 23,
+        "x1": 113,
+        "y1": 126,
+        "w": 90,
+        "h": 104
+      }
+    },
+    "run": {
+      "fps": 14,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 30,
+        "y0": 23,
+        "x1": 96,
+        "y1": 126,
+        "w": 67,
+        "h": 104
+      }
+    },
+    "stunned": {
+      "fps": 8,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 36,
+        "y0": 23,
+        "x1": 86,
+        "y1": 126,
+        "w": 51,
+        "h": 104
+      }
+    },
+    "walk": {
+      "fps": 10,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 36,
+        "y0": 21,
+        "x1": 98,
+        "y1": 126,
+        "w": 63,
+        "h": 106
+      }
+    },
+    "wall-slide": {
+      "fps": 8,
+      "loop": true,
+      "frames": 16,
+      "bounds": {
+        "x0": 23,
+        "y0": 3,
+        "x1": 99,
+        "y1": 127,
+        "w": 77,
+        "h": 125
+      }
+    }
+  }
+}

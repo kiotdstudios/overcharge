@@ -31,7 +31,7 @@ await St.loadManifest();
 // label, setter name, state key, manifest tag, expected count
 const PACKS = [
   ['Warehouse',  'setWarehouseOnly', 'warehouseOnly', 'warehouse',         4],
-  ['Coffee Bar', 'setCoffeeBarOnly', 'coffeeBarOnly', 'coffee_bar',        4],
+  ['Coffee Bar', 'setCoffeeBarOnly', 'coffeeBarOnly', 'coffee_bar',        1],
   ['Apartment',  'setApartmentOnly', 'apartmentOnly', 'abandoned',         8],
   ['Mart',       'setMartOnly',      'martOnly',      'convenience_store', 4],
 ];

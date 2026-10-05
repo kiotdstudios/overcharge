@@ -14,8 +14,11 @@
 // to different numbers would validate animations against a jump the game does not have.
 // RUN_MULT is lab-local because production has no run state yet.
 
-import { PlayerSprites, HERO_STATES } from '../src_scroll/hero-sprites.js';
-import { drawHeroFrame } from '../src_scroll/hero-render.js';
+// Versioned so a browser holding the pre-v6 copies cannot keep serving them —
+// the lab page itself is versioned in overcharge-lab.html, but its imports were
+// not, and these two files changed shape (packs, anchors, fall/land).
+import { PlayerSprites, HERO_STATES, HERO_PACKS, isStandIn } from '../src_scroll/hero-sprites.js?v=10';
+import { drawHeroFrame } from '../src_scroll/hero-render.js?v=10';
 import { GRAVITY, JUMP_FORCE, PLAYER_SPEED, PLAYER_W, PLAYER_H, TILE } from '../src_scroll/constants.js';
 // THE REAL INPUT MODULE, not a reimplementation. Chief: "i need this to have the real
 // actual game controls". The original build followed the order's control table (A/D,
@@ -53,9 +56,13 @@ const LEDGE_REACH = 10;    // px in front of the body that counts as touching a 
 // over the ledge, which is exactly what it looked like.
 //
 // Hanging correctly means HANDS ON THE LIP and the body below it.
-const LEDGE_FRAME0_TOP = 69;                                   // measured, hero-v3 ledge-climb
-const HAND_ABOVE_FEET  = HERO_DRAW * (496 - LEDGE_FRAME0_TOP) / 512;
-const LEDGE_HANG_Y     = HAND_ABOVE_FEET - PLAYER_H;           // body top, relative to the lip
+// Measured PER PACK, because the two packs have different canvases and
+// different hang frames. Both land in the same place to within half a pixel,
+// which is the check that v6's regenerated climb matches v3's geometry:
+//   hero-v3  (496 - 69) / 512  -> 66.72px above the feet
+//   hero-v6  (126 - 20) / 128  -> 66.25px above the feet
+// HAND_ABOVE_FEET and LEDGE_HANG_Y are derived below, once the pack is known.
+const LEDGE_FRAME0_TOP = { 'hero-v3': 69, 'hero-v6': 20 };
 // An attack must LATCH, not be read from the held key. A quick tap fires keydown and
 // keyup inside one frame, so clearing the flag on keyup meant the animator never saw a
 // rising edge and the strike silently never played. Caught by the smoke test tapping J.
@@ -123,17 +130,50 @@ const SPAWN = { x: 3 * TILE, y: 11 * TILE };
 
 // ── State ────────────────────────────────────────────────────────────────────
 // WHICH SPRITE PACK. Chief asked which sheets the lab is showing, and the answer is worth
-// stating in code because three generations exist:
+// stating in code because four generations now exist:
 //
-//   assets/sprites/hero-v3/        16 states, 8 frames each  <- what BOTH labs render
-//   assets/sprites/hero-gait-v4/   revised walk + run only   <- opt-in with ?gait=4
+//   assets/sprites/hero-v6/        16 states, 16 frames each <- DEFAULT here, tactical
+//   assets/sprites/hero-v3/        16 states, 8 frames each  <- opt-in with ?pack=v3
+//   assets/sprites/hero-gait-v4/   revised walk + run only   <- opt-in with ?gait=4 (v3 only)
 //   assets/sprites/walking|running|jumping|idle_2.0   <- what the GAME still renders,
 //                                                        through src_scroll/sprites.js
 //
-// So the lab is NOT showing the same character the game draws. hero-v3 is the newer pack
-// built for the animator migration, and that migration has not shipped to production.
-const useGait4 = new URLSearchParams(location.search).get('gait') === '4';
-const sprite = new PlayerSprites({ gaitRoot: useGait4 ? 'assets/sprites/hero-gait-v4' : null });
+// The lab STILL does not show the same character the game draws — that migration has not
+// shipped. hero-v6 is hero-v3's character restyled tactical with a teal chest emblem,
+// generated at hero-v3's TRUE 128px resolution (v3 is the same art upscaled 4x), so the
+// smaller canvas costs no detail.
+// The pack is switchable LIVE from the Sprite pack panel (Chief: "make a toggle
+// between hero v3 and v6"). No reload, so position, zoom, placed props and unsaved
+// tile edits all survive the switch. Everything below that depends on the pack
+// is reassigned together inside setPack(), and nothing else may cache it.
+//
+// Choice order: ?pack=v3|v6 in the URL, then the last choice saved in this
+// browser, then v6. ?gait=4 only ever replaced v3's walk/run, so it implies v3.
+const qs = new URLSearchParams(location.search);
+const useGait4 = qs.get('gait') === '4';
+const PACK_KEY = 'overcharge.lab.pack';
+function initialPack() {
+  if (useGait4) return 'hero-v3';
+  const q = qs.get('pack');
+  if (q === 'v3' || q === 'hero-v3') return 'hero-v3';
+  if (q === 'v6' || q === 'hero-v6') return 'hero-v6';
+  try { const saved = localStorage.getItem(PACK_KEY); if (HERO_PACKS[saved]) return saved; } catch {}
+  return 'hero-v6';
+}
+let HERO_PACK, sprite, PACK_SPEC, FOOT_ANCHOR, HAND_ABOVE_FEET, LEDGE_HANG_Y;
+function buildPack(pack) {
+  HERO_PACK = pack;
+  sprite = new PlayerSprites({
+    pack,
+    gaitRoot: useGait4 && pack === 'hero-v3' ? 'assets/sprites/hero-gait-v4' : null,
+  });
+  // Geometry from the pack's own numbers, so switching cannot move the character.
+  PACK_SPEC       = HERO_PACKS[pack];
+  FOOT_ANCHOR     = PACK_SPEC.footAnchor / PACK_SPEC.cell;
+  HAND_ABOVE_FEET = HERO_DRAW * (PACK_SPEC.footAnchor - LEDGE_FRAME0_TOP[pack]) / PACK_SPEC.cell;
+  LEDGE_HANG_Y    = HAND_ABOVE_FEET - PLAYER_H;   // body top, relative to the lip
+}
+buildPack(initialPack());
 const canvas = document.getElementById('lab');
 const ctx    = canvas.getContext('2d');
 
@@ -173,9 +213,22 @@ let clockSec = 0;           // seconds elapsed, for placed-prop/enemy animation 
 const ZOOM_MIN = 0.5, ZOOM_MAX = 3, ZOOM_STEP = 0.15;
 let zoom = 1;
 function setZoom(z) { zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z)); syncZoomLabel(); }
+// Per axis: if the whole room fits on screen, CENTRE THE ROOM. Otherwise follow the
+// player, clamped so the room edge never pulls in past the canvas edge.
+// Chief: "this player window needs to be centered". Centring purely on the player
+// slid a zoomed-out room off to one side with a void beside it.
+function axisOrigin(view, world, focus) {
+  const span = world * zoom;
+  if (span <= view) return (view - span) / 2;
+  const o = view / 2 - focus * zoom;
+  return Math.min(0, Math.max(view - span, o));
+}
 function cameraOrigin() {
   const cx = p.x + PLAYER_W / 2, cy = p.y + PLAYER_H / 2;
-  return { ox: canvas.width / 2 - cx * zoom, oy: canvas.height / 2 - cy * zoom };
+  return {
+    ox: axisOrigin(canvas.width,  COLS * TILE, cx),
+    oy: axisOrigin(canvas.height, ROWS * TILE, cy),
+  };
 }
 // Screen (client px) -> world. Shared by tile-edit painting and prop placement so both
 // agree with what is actually drawn, instead of assuming a 1:1 canvas-to-world mapping
@@ -441,13 +494,18 @@ function step(dt) {
 }
 
 // ── Override panel ───────────────────────────────────────────────────────────
+// Every canonical state gets a button. A state the active pack does not really
+// have still gets one, marked with a trailing asterisk and a tooltip, because the
+// frames it plays are a stand-in (v6 grapple = its jump clip). Hiding them would
+// make the panel differ between packs; marking them keeps it honest.
 const GROUPS = {
-  Movement:  ['idle','walk','run','jump','hurt','stunned','death'],
+  Movement:  ['idle','walk','run','jump','fall','land','hurt','stunned','death'],
   Combat:    ['energy-strike','projectile-cast','absorb','discharge'],
   Traversal: ['ladder-up','ladder-down','ledge-climb','wall-slide','grapple'],
 };
-const LABEL = { idle:'Idle', walk:'Walk', run:'Run', jump:'Jump', hurt:'Hurt', stunned:'Stunned',
-  death:'Death', 'energy-strike':'Strike', 'projectile-cast':'Cast', absorb:'Absorb',
+const LABEL = { idle:'Idle', walk:'Walk', run:'Run', jump:'Jump', fall:'Fall', land:'Land',
+  hurt:'Hurt', stunned:'Stunned', death:'Death',
+  'energy-strike':'Strike', 'projectile-cast':'Cast', absorb:'Absorb',
   discharge:'Discharge', 'ladder-up':'Ladder up', 'ladder-down':'Ladder dn',
   'ledge-climb':'Ledge', 'wall-slide':'Wall slide', grapple:'Grapple' };
 
@@ -459,12 +517,22 @@ for (const [group, states] of Object.entries(GROUPS)) {
   const grid = document.createElement('div'); grid.className = 'states';
   for (const s of states) {
     const b = document.createElement('button');
-    b.type = 'button'; b.textContent = LABEL[s]; b.dataset.state = s;
+    b.type = 'button'; b.dataset.state = s;
     b.addEventListener('click', () => setOverride(s));
     grid.append(b); ovButtons.push(b);
   }
   wrap.append(grid); host.append(wrap);
 }
+// Labels depend on the pack (stand-ins get a *), so they are rewritten on every switch.
+function labelOverrideButtons() {
+  for (const b of ovButtons) {
+    const s = b.dataset.state;
+    const sub = isStandIn(HERO_PACK, s);
+    b.textContent = LABEL[s] + (sub ? '*' : '');
+    b.title = sub ? `${HERO_PACK} has no ${s} clip — plays its ${PACK_SPEC.alias[s]} frames as a stand-in` : '';
+  }
+}
+labelOverrideButtons();
 
 const btnOff = document.getElementById('ov-off');
 const btnPlay = document.getElementById('ov-play');
@@ -480,6 +548,47 @@ function setOverride(s) {
   playing = true;
   syncOv();
 }
+
+// ── Pack switch ──────────────────────────────────────────────────────
+// Swaps the whole animator and the geometry derived from it, carrying the current
+// state and the same RELATIVE point in the clip across. v3 clips are 8 frames and
+// v6 are 16, so "frame 3 of 8" becomes "frame 6 of 16" and a held pose, an override
+// or a ledge climb continues from the same moment in the motion instead of restarting.
+function setPack(pack) {
+  if (!HERO_PACKS[pack] || pack === HERO_PACK) return;
+  const prev = sprite._current, prevState = sprite.state;
+  const phase = prev.frames.length ? prev._frame / prev.frames.length : 0;
+  buildPack(pack);
+  sprite.setState(prevState, p.facingRight);
+  const a = sprite._current;
+  a._frame = Math.min(a.frames.length - 1, Math.round(phase * a.frames.length));
+  a._t = 0;
+  a.done = prev.done;
+  try { localStorage.setItem(PACK_KEY, pack); } catch {}
+  // Keep the URL honest without reloading, so a refresh keeps the choice.
+  const u = new URL(location.href);
+  u.searchParams.set('pack', pack === 'hero-v3' ? 'v3' : 'v6');
+  history.replaceState(null, '', u);
+  labelOverrideButtons();
+  syncPackButtons();
+}
+
+const packBtns = [...document.querySelectorAll('#pack-toggle button[data-pack]')];
+function syncPackButtons() {
+  for (const b of packBtns) b.setAttribute('aria-pressed', String(b.dataset.pack === HERO_PACK));
+  const note = document.getElementById('pack-note');
+  if (note) note.innerHTML = HERO_PACK === 'hero-v6'
+    ? '<b>hero-v6</b> — tactical restyle, 16 frames a state, 128px.'
+    : '<b>hero-v3</b> — the original lab character, 8 frames a state, 512px.'
+      + (useGait4 ? ' Walk/run replaced by <b>hero-gait-v4</b>.' : '');
+}
+for (const b of packBtns) b.addEventListener('click', () => { setPack(b.dataset.pack); b.blur(); });
+syncPackButtons();
+// V toggles too, so the comparison can be made without taking eyes off the hero.
+window.addEventListener('keydown', e => {
+  if (e.code !== 'KeyV' || e.repeat || e.target.closest?.('input, select, textarea')) return;
+  setPack(HERO_PACK === 'hero-v6' ? 'hero-v3' : 'hero-v6');
+});
 btnOff.addEventListener('click', () => { override = null; playing = true; syncOv(); });
 btnPlay.addEventListener('click', () => { playing = !playing; syncOv(); });
 document.getElementById('ov-replay').addEventListener('click', () => { sprite._current.reset(); playing = true; syncOv(); });
@@ -563,13 +672,15 @@ function drawPlaced(t) {
 // background always covers the whole backing resolution regardless of camera position.
 function clearCanvas() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillStyle = '#050d12';
+  // Chief: plain white, so the dark navy hero reads with maximum contrast.
+  ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function drawRoom() {
-  // Faint grid so pose alignment against tile boundaries is readable.
-  ctx.strokeStyle = '#0d2630'; ctx.lineWidth = 1;
+  // Faint grid so pose alignment against tile boundaries is readable. Light grey
+  // on the white background; the old near-black stroke was tuned for a dark canvas.
+  ctx.strokeStyle = '#e2e7ea'; ctx.lineWidth = 1;
   for (let c = 0; c <= COLS; c++) { ctx.beginPath(); ctx.moveTo(c*TILE, 0); ctx.lineTo(c*TILE, ROWS*TILE); ctx.stroke(); }
   for (let r = 0; r <= ROWS; r++) { ctx.beginPath(); ctx.moveTo(0, r*TILE); ctx.lineTo(COLS*TILE, r*TILE); ctx.stroke(); }
 
@@ -588,17 +699,22 @@ function drawHud() {
   const st = sprite.state;
   const [stFps, loop] = HERO_STATES[st] ?? [0, false];
   const rows = [
-    ['STATE',    st + (override ? '  <span class="warn">(override)</span>' : '')],
+    ['STATE',    st + (override ? '  <span class="warn">(override)</span>' : '')
+                    + (isStandIn(HERO_PACK, st)
+                        ? `  <span class="warn">stand-in: ${PACK_SPEC.alias[st]} frames</span>` : '')],
     ['FACING',   sprite.dir === 'east' ? 'east / right' : 'west / left'],
     ['FRAME',    `${a._frame + 1} / ${a.frames.length}   ${loop ? 'loop' : 'one-shot'}`],
-    ['ANIM FPS', `${a.fps.toFixed(1)}  (base ${stFps})`],
+    ['ANIM FPS', `${a.fps.toFixed(1)}  (base ${stFps}${sprite.fpsScale !== 1 ? ` x${sprite.fpsScale} for ${a.frames.length}f` : ''})`],
     ['POS',      `x ${p.x.toFixed(1)}  y ${p.y.toFixed(1)}`],
     ['VEL',      `vx ${p.vx.toFixed(1)}  vy ${p.vy.toFixed(1)}`],
     ['GROUNDED', p.grounded ? 'yes' : '<span class="warn">no</span>'],
     ['RENDER',   `${fps.toFixed(0)} fps`],
     ['LEDGE',    p.ledge ? (p.climbing ? '<span class="warn">climbing</span>'
                                        : '<span class="warn">hanging — ↑/W climb, ↓/S drop</span>') : 'no'],
-    ['PACK',     useGait4 ? '<span class="warn">hero-gait-v4</span> walk/run' : 'hero-v3'],
+    ['PACK',     useGait4 ? '<span class="warn">hero-gait-v4</span> walk/run'
+                          : HERO_PACK === 'hero-v6'
+                            ? '<span class="warn">hero-v6</span> tactical, 16f'
+                            : 'hero-v3, 8f'],
     ['TILE EDIT', editMode ? '<span class="warn">ON — click to paint</span>' : 'off'],
     ['HITBOX',   showHitbox ? '<span class="warn">shown (B)</span>' : 'hidden'],
   ];
@@ -630,7 +746,7 @@ function frame(t) {
 
   drawRoom();
   drawPlaced(clockSec);
-  drawHeroFrame(ctx, sprite.currentFrame, p.x + PLAYER_W / 2, p.y + PLAYER_H, HERO_DRAW);
+  drawHeroFrame(ctx, sprite.currentFrame, p.x + PLAYER_W / 2, p.y + PLAYER_H, HERO_DRAW, FOOT_ANCHOR);
 
   // Hitbox outline. OFF by default — Chief: "remove the weird box on top of the
   // charcter". The 20x30 body sits inside an 80px sprite, so the outline landed across
@@ -903,6 +1019,10 @@ window.addEventListener('blur', endPaint);
 // flaky, which is the worst kind of red.
 window.__lab = {
   player: p,
+  // Getters, not values: the pack can be switched live, which replaces the animator.
+  get sprite() { return sprite; },   // so tests can read which file is on screen
+  get pack() { return HERO_PACK; },
+  setPack,
   findLedge,
   setTile, solidAt, restoreRoom,
   TILE, PLAYER_W, PLAYER_H,
