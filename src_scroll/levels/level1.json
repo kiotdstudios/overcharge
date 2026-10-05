@@ -3335,6 +3335,46 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
+    },
+    {
+      "id": "gatehouse_left_lvl1",
+      "src": "assets/objects/night-city-buildings/gatehouse/left.png",
+      "x": 1972,
+      "y": 128,
+      "w": 192,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "gatehouse_portal_lvl1",
+      "src": "assets/objects/night-city-buildings/gatehouse/portal.png",
+      "x": 2164,
+      "y": 128,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "gatehouse_service_lvl1",
+      "src": "assets/objects/night-city-buildings/gatehouse/service.png",
+      "x": 2324,
+      "y": 128,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "gatehouse_right_lvl1",
+      "src": "assets/objects/night-city-buildings/gatehouse/right.png",
+      "x": 2484,
+      "y": 128,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
     }
   ],
   "sources": [

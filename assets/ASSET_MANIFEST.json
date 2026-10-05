@@ -2279,6 +2279,54 @@
       "family": "nc_building_wall"
     },
     {
+      "id": "building_nc_gatehouse_left",
+      "name": "Night City gatehouse - left wing",
+      "path": "assets/objects/night-city-buildings/gatehouse/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 1/4 (6x8 tiles). Visual facade only; place with portal, service wing, and right end cap.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_portal",
+      "name": "Night City gatehouse - electric portal housing",
+      "path": "assets/objects/night-city-buildings/gatehouse/portal.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 2/4 (5x8 tiles). Dark 112px recess fits the separate animated exit gate; this art has no gate collision or charge behavior.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_service",
+      "name": "Night City gatehouse - service wing",
+      "path": "assets/objects/night-city-buildings/gatehouse/service.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 3/4 (5x8 tiles). Visual facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_right",
+      "name": "Night City gatehouse - right end cap",
+      "path": "assets/objects/night-city-buildings/gatehouse/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 4/4 (4x8 tiles). Visual facade only.",
+      "family": "nc_building_wall"
+    },
+    {
       "id": "building_nc_tire_left",
       "name": "Night City tire shop - left end-cap",
       "path": "assets/objects/night-city-buildings/tire_shop/left.png",
