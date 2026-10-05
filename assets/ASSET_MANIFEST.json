@@ -2215,6 +2215,54 @@
       }
     },
     {
+      "id": "building_nc_apartment_left",
+      "name": "Night City apartment - fire escape",
+      "path": "assets/objects/night-city-buildings/apartment_complex/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 1/4 (6x8 tiles). Place left-to-right with wall bay, entrance, and right end-cap. Visual dressing only; fire escape is not climbable.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_wall_bay",
+      "name": "Night City apartment - window bay",
+      "path": "assets/objects/night-city-buildings/apartment_complex/wall_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 2/4 (5x8 tiles). Visual dressing only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_front_bay",
+      "name": "Night City apartment - entrance",
+      "path": "assets/objects/night-city-buildings/apartment_complex/front_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 3/4 (5x8 tiles), lit entrance. Visual dressing only; door is not interactive.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_right",
+      "name": "Night City apartment - right end-cap",
+      "path": "assets/objects/night-city-buildings/apartment_complex/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 4/4 (4x8 tiles). Visual dressing only.",
+      "family": "nc_building_wall"
+    },
+    {
       "id": "building_nc_tire_left",
       "name": "Night City tire shop - left end-cap",
       "path": "assets/objects/night-city-buildings/tire_shop/left.png",
