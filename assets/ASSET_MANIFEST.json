@@ -1489,6 +1489,22 @@
       "mount": "wall"
     },
     {
+      "id": "prop_ncp_book_sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/book-sign/00.png",
+      "category": "decoration",
+      "tags": ["source", "placement", "spawn", "night_city_props", "electric", "prop", "animated", "library"],
+      "frame_width": 160,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Independent neon BOOKS side-wall sign. Powered(f0-1), absorbing(f2-5), drained(f6-7). Absorbable source with 4 charge by default; not baked into the library facade.",
+      "trim": { "x": 0.01875, "y": 0.104167, "w": 0.9625, "h": 0.791667 },
+      "mount": "wall"
+    },
+    {
       "id": "prop_ncp_neon_sign",
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/neon-sign/00.png",
@@ -2327,6 +2343,54 @@
       "family": "nc_building_wall"
     },
     {
+      "id": "building_nc_library_left",
+      "name": "Night City library - left end cap",
+      "path": "assets/objects/night-city-buildings/library/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 1/4 (6x8 tiles). Place left-to-right: left, wall bay, front bay, right. Facade only; no collision or power logic.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_library_wall_bay",
+      "name": "Night City library - window bay",
+      "path": "assets/objects/night-city-buildings/library/wall_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 2/4 (5x8 tiles). Distinct upstairs and downstairs window interiors; facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_library_front_bay",
+      "name": "Night City library - entrance and sign",
+      "path": "assets/objects/night-city-buildings/library/front_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 3/4 (5x8 tiles). Main entrance and permanent Bry's neon identity; separate BOOKS powered sign remains independently placeable.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_library_right",
+      "name": "Night City library - right end cap",
+      "path": "assets/objects/night-city-buildings/library/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 4/4 (4x8 tiles). Independent children's reading window, planters and bike rack; facade only.",
+      "family": "nc_building_wall"
+    },
+    {
       "id": "building_nc_tire_left",
       "name": "Night City tire shop - left end-cap",
       "path": "assets/objects/night-city-buildings/tire_shop/left.png",
@@ -2711,5 +2775,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 102
+  "count": 113
 }
