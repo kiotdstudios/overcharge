@@ -2566,7 +2566,7 @@
     },
     {
       "id": "night_city_grapple_anchor",
-      "name": "Night City grapple anchor",
+      "name": "Night City grapple hook anchor",
       "path": "assets/objects/night-city-props/grapple-anchor/anchor.png",
       "category": "decoration",
       "tags": [
