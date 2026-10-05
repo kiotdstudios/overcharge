@@ -10,7 +10,7 @@ import {
   currentLevelBackground,
   setFilterCategory, setFilterSearch, setSelectedAsset,
   setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly, setElectricOnly, setNeonRiseOnly, setPipeOnly, setBuildingOnly,
-  setWarehouseOnly, setCoffeeBarOnly, setApartmentOnly, setMartOnly,
+  setWarehouseOnly, setCoffeeBarOnly, setApartmentOnly, setMartOnly, setLibraryOnly,
   setLevelBackground,
   setTool,
 } from './state.js';
@@ -121,6 +121,7 @@ export function mountAssetBrowser(container) {
     { id: 'ab-coffee-bar-only',     label: 'Coffee Bar',       color: '#e9a', getter: () => !!state.filter.coffeeBarOnly,   setter: setCoffeeBarOnly      },
     { id: 'ab-apartment-only',      label: 'Apartment',        color: '#9cb', getter: () => !!state.filter.apartmentOnly,   setter: setApartmentOnly      },
     { id: 'ab-mart-only',           label: 'Mart',             color: '#bc9', getter: () => !!state.filter.martOnly,        setter: setMartOnly           },
+    { id: 'ab-library-only',        label: 'Library',          color: '#b9f', getter: () => !!state.filter.libraryOnly,     setter: setLibraryOnly        },
     { id: 'ab-enemies', label: 'Enemies', color: '#f79', getter: () => state.filter.category === 'enemy', setter: v => setFilterCategory(v ? 'enemy' : 'all') },
   ];
 
