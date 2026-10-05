@@ -741,28 +741,6 @@
       }
     },
     {
-      "id": "player_spawn",
-      "path": "assets/sprites/idle_2.0/east/frame_000.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "spawn",
-        "placement"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "spawnsKind": "player-start",
-      "notes": "Palette entry for the player spawn point. Clicking this in the asset panel enters spawn-placement mode — sets pendingSpawn:{kind:'player-start'}. Exactly one per level; placement calls Actions.setPlayerStart, never adds a second. Art: idle east frame_000 at runtime anchor (spriteX = ps.x - 36, spriteY = ps.y - 48).",
-      "generation": {
-        "eligible": false,
-        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
-      }
-    },
-    {
       "id": "drone_enemy",
       "path": "assets/sprites/city-drones/sky-sentry/frame_000.png",
       "category": "enemy",
@@ -1477,7 +1455,16 @@
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/tire-sign/00.png",
       "category": "decoration",
-      "tags": ["source", "placement", "spawn", "night_city_props", "electric", "prop", "animated", "tire_shop"],
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated",
+        "tire_shop"
+      ],
       "frame_width": 128,
       "frame_height": 128,
       "frame_count": 8,
@@ -1485,7 +1472,12 @@
       "directions": null,
       "loop": true,
       "notes": "Large literal neon tire wall sign. Powered(f0-1), absorbing(f2-5), drained(f6); f7 spare dark frame. Independently placeable absorbable source, 4 charge by default.",
-      "trim": { "x": 0.03125, "y": 0.0625, "w": 0.953125, "h": 0.859375 },
+      "trim": {
+        "x": 0.03125,
+        "y": 0.0625,
+        "w": 0.953125,
+        "h": 0.859375
+      },
       "mount": "wall"
     },
     {
@@ -2251,7 +2243,13 @@
       "name": "Night City apartment - fire escape",
       "path": "assets/objects/night-city-buildings/apartment_complex/left.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 192,
       "frame_height": 256,
       "frame_count": 1,
@@ -2263,7 +2261,13 @@
       "name": "Night City apartment - window bay",
       "path": "assets/objects/night-city-buildings/apartment_complex/wall_bay.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
@@ -2275,7 +2279,13 @@
       "name": "Night City apartment - entrance",
       "path": "assets/objects/night-city-buildings/apartment_complex/front_bay.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
@@ -2287,7 +2297,13 @@
       "name": "Night City apartment - right end-cap",
       "path": "assets/objects/night-city-buildings/apartment_complex/right.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "apartment", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
@@ -2299,7 +2315,13 @@
       "name": "Night City gatehouse - left wing",
       "path": "assets/objects/night-city-buildings/gatehouse/left.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 192,
       "frame_height": 256,
       "frame_count": 1,
@@ -2311,7 +2333,13 @@
       "name": "Night City gatehouse - electric portal housing",
       "path": "assets/objects/night-city-buildings/gatehouse/portal.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
@@ -2323,7 +2351,13 @@
       "name": "Night City gatehouse - service wing",
       "path": "assets/objects/night-city-buildings/gatehouse/service.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 160,
       "frame_height": 256,
       "frame_count": 1,
@@ -2335,7 +2369,13 @@
       "name": "Night City gatehouse - right end cap",
       "path": "assets/objects/night-city-buildings/gatehouse/right.png",
       "category": "decoration",
-      "tags": ["night_city_props", "building", "gatehouse", "scenery", "noncolliding"],
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
@@ -2485,6 +2525,60 @@
         "w": 0.9688,
         "h": 1.0
       }
+    },
+    {
+      "id": "player_spawn",
+      "path": "assets/sprites/hero-v3/idle/east/frame_000.png",
+      "category": "player",
+      "tags": [
+        "player",
+        "spawn",
+        "placement"
+      ],
+      "frame_width": 512,
+      "frame_height": 512,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "player-start",
+      "notes": "Palette entry for the player spawn point. Exactly one per level; placement sets playerStart. Art: hero-v3 idle at the shared 80px runtime feet anchor.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
+      }
+    },
+    {
+      "id": "night_city_ladder",
+      "name": "Night City climbable ladder",
+      "path": "assets/objects/night-city-props/ladder/ladder.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "traversal",
+        "ladder",
+        "climbable"
+      ],
+      "frame_width": 64,
+      "frame_height": 288,
+      "frame_count": 1,
+      "notes": "Resizable climbable ladder. Up/W climbs; Down/S descends. Place between upper and lower walkable surfaces."
+    },
+    {
+      "id": "night_city_grapple_anchor",
+      "name": "Night City grapple anchor",
+      "path": "assets/objects/night-city-props/grapple-anchor/anchor.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "traversal",
+        "grapple"
+      ],
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 1,
+      "loop": false,
+      "notes": "Hold G within 240px with clear line of sight to pull toward this anchor; release to drop. Matches Night City pipe art."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -2775,5 +2869,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 113
+  "count": 115
 }

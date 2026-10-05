@@ -7,11 +7,12 @@ const groups = {
   Traversal: ['ladder-up', 'ladder-down', 'ledge-climb', 'wall-slide', 'grapple'],
 };
 const names = { idle:'Idle', walk:'Walk', run:'Run', jump:'Jump', hurt:'Hurt', stunned:'Stunned', death:'Death', 'energy-strike':'Energy strike', 'projectile-cast':'Projectile cast', absorb:'Absorb', discharge:'Discharge', 'ladder-up':'Ladder up', 'ladder-down':'Ladder down', 'ledge-climb':'Ledge climb', 'wall-slide':'Wall slide', grapple:'Grapple' };
-const revisedGait = new URLSearchParams(location.search).get('gait') === '4';
-const sprite = new PlayerSprites({gaitRoot: revisedGait ? 'assets/sprites/hero-gait-v4' : null});
+const gait = new URLSearchParams(location.search).get('gait');
+const revisedGait = gait === '4' || gait === '5';
+const sprite = new PlayerSprites({gaitRoot: revisedGait ? `assets/sprites/hero-gait-v${gait}` : null});
 if (revisedGait) {
-  document.querySelector('header span').textContent = 'OVERCHARGE / Revised gait candidate';
-  document.querySelector('.source').textContent = 'Revised walk/run review candidate. Originals remain available without ?gait=4. Production player is unchanged.';
+  document.querySelector('header span').textContent = gait === '5' ? 'OVERCHARGE / PixelLab gait candidate' : 'OVERCHARGE / Revised gait candidate';
+  document.querySelector('.source').textContent = 'Walk/run review candidate. Originals remain available without a gait query. Production player is unchanged.';
 }
 const canvas = document.getElementById('hero-preview');
 const ctx = canvas.getContext('2d');
@@ -59,7 +60,7 @@ function selectState(state) {
   sprite._current.reset();
   scrub.value = '0';
   document.getElementById('state-title').textContent = names[state];
-  const pending = groups.Traversal.includes(state);
+  const pending = state === 'wall-slide';
   const badge = document.getElementById('state-badge');
   badge.textContent = pending ? 'Assets only · mechanic pending' : 'Animation preview';
   badge.classList.toggle('pending', pending);

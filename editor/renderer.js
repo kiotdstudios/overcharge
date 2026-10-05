@@ -9,6 +9,7 @@ import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
          worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation, getTileFlip } from './state.js';
 import * as Selection from './selection.js';
 import { drawHvac, sourceBox } from '../src_scroll/source-visuals.js';
+import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
 function getImage(path) {
@@ -50,9 +51,9 @@ const CP_OFF_X = 31;   // Math.round(60  * 56/108)
 const CP_OFF_Y = 61;   // Math.round(117 * 56/108)
 
 // Player sprite anchor constants — from src_scroll/player.js.
-const PLAYER_SPRITE_W    = 92;
-const PLAYER_SPRITE_H    = 92;
-const PLAYER_SPRITE_FEET = 78;  // pixel row of feet within the 92px frame
+const PLAYER_SPRITE_W    = HERO_SIZE;
+const PLAYER_SPRITE_H    = HERO_SIZE;
+const PLAYER_SPRITE_FEET = HERO_FEET_Y;
 const PLAYER_HIT_W       = 20;  // collision box width (PLAYER_W in constants.js)
 const PLAYER_HIT_H       = 30;  // collision box height
 
@@ -1083,11 +1084,11 @@ function _drawChests(ctx, arr) {
 function _drawPlayerStart(ctx, ps) {
   if (!ps) return;
   const z = state.camera.zoom;
-  const spriteX = ps.x - 36;   // = ps.x + PLAYER_HIT_W/2 - PLAYER_SPRITE_W/2
-  const spriteY = ps.y - 48;   // = ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET
+  const spriteX = Math.round(ps.x + PLAYER_HIT_W / 2 - PLAYER_SPRITE_W / 2);
+  const spriteY = Math.round(ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET);
   const sp = worldToScreen(spriteX, spriteY);
   const sw = PLAYER_SPRITE_W * z, sh = PLAYER_SPRITE_H * z;
-  const img = getImage('assets/sprites/idle_2.0/east/frame_000.png');
+  const img = getImage('assets/sprites/hero-v3/idle/east/frame_000.png');
   ctx.imageSmoothingEnabled = false;
   if (img.complete && img.naturalWidth > 0) {
     ctx.drawImage(img, sp.x, sp.y, sw, sh);

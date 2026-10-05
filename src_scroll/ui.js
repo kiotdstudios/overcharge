@@ -33,7 +33,7 @@ export function drawWorldPrompts(ctx, player, t) {
 let _avatarImg = null;
 function _initAvatarImg() {
   if (_avatarImg || typeof Image === 'undefined') return;
-  _avatarImg = Object.assign(new Image(), { src: 'assets/sprites/idle_2.0/east/frame_001.png' });
+  _avatarImg = Object.assign(new Image(), { src: 'assets/sprites/hero-v3/idle/east/frame_000.png' });
 }
 
 function _drawPlayerAvatar(ctx) {
@@ -53,7 +53,7 @@ function _drawPlayerAvatar(ctx) {
   // Scale to fill box height, preserve aspect ratio, nearest-neighbor for pixel crispness.
   if (_avatarImg?.complete && _avatarImg.naturalWidth > 0) {
     ctx.imageSmoothingEnabled = false;
-    const sx = 35, sy = 14, sw = 21, sh = 26;   // head bounds in source sprite
+    const sx = 210, sy = 78, sw = 120, sh = 135; // hero-v3 head and shoulders
     const dh = ah - 8;                            // fill most of box height
     const dw = Math.round(dh * sw / sh);          // preserve aspect ratio (~52px wide)
     ctx.drawImage(_avatarImg, sx, sy, sw, sh, ax + (aw - dw) / 2, ay + (ah - dh) / 2, dw, dh);

@@ -1,4 +1,5 @@
 import { sourceBox } from '../src_scroll/source-visuals.js';
+import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
 // selection.js — tracks what is currently selected in the editor.
 //
 // Selection covers every kind of level content:
@@ -271,7 +272,7 @@ export function boundingRect(kind, ref) {
   // SPAWN triangle points right — 14x14 rect from (x, y).
   // playerStart: 20×30 collision box, but the idle sprite is 92×92 drawn at
   // (x-36, y-48) — see renderer.js::_drawPlayerStart. Wrap the visible player.
-  if (kind === 'playerStart') return { x: ref.x - 36, y: ref.y - 48, w: 92, h: 92 };
+  if (kind === 'playerStart') return { x: Math.round(ref.x + 10 - HERO_SIZE / 2), y: Math.round(ref.y + 30 - HERO_FEET_Y), w: HERO_SIZE, h: HERO_SIZE };
   return null;
 }
 

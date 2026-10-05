@@ -5,6 +5,8 @@
 // hero-v3 is 496/512; hero-v6 is 126/128. Pass `anchor` from the pack spec
 // (see HERO_PACKS in hero-sprites.js) — the default keeps v3 callers unchanged.
 export const V3_FOOT_ANCHOR = 496 / 512;
+export const HERO_SIZE = 80;
+export const HERO_FEET_Y = HERO_SIZE * V3_FOOT_ANCHOR;
 
 export function heroFramePlacement(image, footX, footY, size = 80, anchor = V3_FOOT_ANCHOR) {
   if (!image?.naturalWidth || !image?.naturalHeight || !(size > 0)) return null;

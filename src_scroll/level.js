@@ -7,6 +7,9 @@ import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
 
+export const CLIMBABLE_LADDER_SRC = 'assets/objects/night-city-props/ladder/ladder.png';
+export const GRAPPLE_ANCHOR_SRC = 'assets/objects/night-city-props/grapple-anchor/anchor.png';
+
 export class Level {
   constructor(def) {
     this.name    = def.name || 'LEVEL';
@@ -94,6 +97,13 @@ export class Level {
       if (dec.frames) dec.phase = phaseFor(d.x, d.y, dec.frames.length);
       return dec;
     });
+    // The Builder places this art as a resizable decoration. Its exact source
+    // path is also the climbable volume, so art and interaction cannot drift.
+    this.ladders = (def.decorations || []).filter(d => d.src === CLIMBABLE_LADDER_SRC &&
+      (!d.rotation || d.rotation === 180) && d.w > 0 && d.h > 0)
+      .map(d => ({ x: d.x, y: d.y, w: d.w, h: d.h }));
+    this.grappleAnchors = (def.decorations || []).filter(d => d.src === GRAPPLE_ANCHOR_SRC && d.w > 0 && d.h > 0)
+      .map(d => ({ x: d.x + d.w / 2, y: d.y + d.h / 2 }));
 
     this.playerStart = def.playerStart || { x: 48, y: 354 };
     this.complete    = false;

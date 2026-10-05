@@ -408,7 +408,7 @@ export const state = {
   // and mart; in asset library on builder". The art was all on disk and in the manifest —
   // only the quick-filter chips were missing, so the four packs were reachable solely by
   // typing in the search box or by eyeballing the 20 entries under Buildings.
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false, libraryOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, traversalOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false, libraryOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -566,7 +566,7 @@ export function manifestCategories() {
 // Background-category assets are excluded here â€” they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly, libraryOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, traversalOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly, libraryOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Hand-authored spawn assets stay available even when random generation
@@ -607,6 +607,7 @@ export function filteredManifestItems() {
     if (neonRiseOnly     && !(it.tags && it.tags.indexOf('neon_rise_dressing') >= 0)) return false;
     // AKI_19: tag-driven, not a hard-coded name list — any future asset
     // tagged 'pipe' in ASSET_MANIFEST.json joins this filter automatically.
+    if (traversalOnly && !(it.tags && it.tags.includes('traversal'))) return false;
     if (pipeOnly        && !(it.tags && it.tags.indexOf('pipe') >= 0))             return false;
     // Same tag-driven pattern as AKI_19: any asset tagged 'building' joins
     // this filter automatically, no hard-coded id list to maintain.
@@ -880,3 +881,5 @@ export function addDecoration(entry) {
   notify();
   return entry;
 }
+
+export function setTraversalOnly(v) { state.filter.traversalOnly = !!v; notify(); }

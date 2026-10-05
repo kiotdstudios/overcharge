@@ -49,7 +49,7 @@ function framesFor(state,dir,gaitRoot,pack){
  const revised=gaitRoot&&pack===DEFAULT_PACK&&(state==='walk'||state==='run');
  const folder=spec.alias[state]||state;
  const root=revised?gaitRoot:spec.root;
- const count=revised?(state==='walk'?7:8):spec.frames;
+ const count=revised?((state==='walk'||gaitRoot.endsWith('hero-gait-v5'))?7:8):spec.frames;
  const key=`${root}/${folder}/${dir}/${count}`;
  if(!cache.has(key))cache.set(key,Array.from({length:count},(_,i)=>{
   const rev=!revised&&spec.rev?`?r=${spec.rev}`:'';
@@ -122,6 +122,7 @@ export class PlayerSprites{
   else if(airborne)state='jump';
   else state=moving?(running?'run':'walk'):'idle';
   this.setState(state,right);
+  if (status.traversalPaused) return;
   if(attackStart&&['energy-strike','projectile-cast'].includes(state))this._current.reset();
   if(state==='jump'){
    // Velocity picks the airborne pose rather than a timer. The index is

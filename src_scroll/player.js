@@ -8,13 +8,14 @@ import * as Input from './input.js';
 import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
 import { ChargePickup } from './electricity.js';
 import { ElectricBolt } from './entities.js';
-import { PlayerSprites } from './sprites.js';
+import { PlayerSprites } from './hero-sprites.js';
+import { HERO_SIZE, HERO_FEET_Y } from './hero-render.js';
 import { tileIsSolid, tileAllowsLanding } from './terrain-policy.js';
 
-// Sprite PNGs are 92x92; character content sits from y=14 to y=78 (feet at y=78)
-const SPRITE_W      = 92;
-const SPRITE_H      = 92;
-const SPRITE_FEET_Y = 78;  // pixel row of character feet within the 92px frame
+// Hero frames share an 80px display canvas and a measured foot anchor.
+const SPRITE_W      = HERO_SIZE;
+const SPRITE_H      = HERO_SIZE;
+const SPRITE_FEET_Y = HERO_FEET_Y;
 
 const COYOTE_TIME  = 0.1;   // seconds of grace after walking off an edge
 const JUMP_BUFFER       = 0.1;   // pre-jump input buffer
@@ -57,6 +58,10 @@ export class Player {
     // Movement state
     this.running        = false;
     this._wallBlocked   = false;  // true this frame = tile/gate blocked horizontal, mutes jump anim
+    this._ladder = null;
+    this._ladderDirection = 0;
+    this._ledgeClimb = null;
+    this._grapple = null;
     this._stunTime      = 0;  // >0 → input frozen, red flash active
     this._attackCooldown = 0;
     this._attackFx      = 0;  // brief arc-flash timer on swing
@@ -72,7 +77,8 @@ export class Player {
     this.dischargeTarget   = null;
 
     // Sprite animator
-    this._sprites = new PlayerSprites();
+    this._sprites = new PlayerSprites({ gaitRoot: 'assets/sprites/hero-gait-v5' });
+    this._attackAnimationProjectile = false;
 
     // Context prompt shown near devices / enemies
     this.nearSource = null;
@@ -104,7 +110,7 @@ export class Player {
     this._afterImages = this._afterImages.filter(img => img.alpha > 0);
 
     this._updateContext(level);       // context first — nearDevice/Enemy known before input
-    this._handleMovement(dt);
+    this._handleMovement(dt, level);
     this._applyPhysics(dt, level);
     this._updateAbsorb(dt, level);    // hold E near source  → absorb
     this._updateAttack(dt, level);    // press K             → melee or projectile
@@ -141,7 +147,13 @@ export class Player {
 
     // Tick sprite animator — threshold at 20 avoids idle/walk flicker during decel
     const isMoving = Math.abs(this.vx) > 20;
-    this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy, this._wallBlocked);
+    this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy, this._wallBlocked, {
+      dead: this.dead, hurt: this._hurtFlash > 0, stunned: this._stunTime > 0,
+      attacking: this._attackFx > 0, projectile: this._attackAnimationProjectile,
+      traversal: this._ladder ? (this._ladderDirection > 0 ? 'ladder-down' : 'ladder-up') :
+        this._ledgeClimb ? 'ledge-climb' : this._grapple ? 'grapple' : null,
+      traversalPaused: (!!this._ladder && this._ladderDirection === 0) || (!!this._grapple && this.vx === 0 && this.vy === 0),
+    });
   }
 
   // ══ CANONICAL ENERGY MODEL (Order 004 authority) ══════════════════
@@ -336,16 +348,69 @@ export class Player {
   }
 
   // ── Movement & jump ──────────────────────────
-  _handleMovement(dt) {
+  _handleMovement(dt, level) {
     // Stunned: bleed off velocity, ignore all input
     if (this._stunTime > 0) {
+      this._ladder = null;
+      this._ladderDirection = 0;
+      this._ledgeClimb = null;
+      this._grapple = null;
       this.vx *= 0.8;
       if (Math.abs(this.vx) < 5) this.vx = 0;
       this.running = false;
       return;
     }
+    if (this._ledgeClimb) { this.vx = this.vy = 0; this.running = false; return; }
+    if (!Input.held('KeyG')) this._grapple = null;
+    if (Input.pressed('KeyG')) {
+      const candidates = (level.grappleAnchors || []).filter(a => a.y < this.cy - 20 &&
+        Math.hypot(a.x - this.cx, a.y - this.cy) <= 240 && this._ropeClear(level, a));
+      candidates.sort((a, b) => Math.hypot(a.x - this.cx, a.y - this.cy) - Math.hypot(b.x - this.cx, b.y - this.cy));
+      this._grapple = candidates[0] || null;
+    }
+    if (this._grapple) {
+      this._ladder = null; this._ladderDirection = 0;
+      this.running = false; this.grounded = false; this._coyote = 0; this._jumpBuf = 0;
+      return;
+    }
     const left  = Input.heldAny('ArrowLeft',  'KeyA');
     const right = Input.heldAny('ArrowRight', 'KeyD');
+    const up = Input.heldAny('ArrowUp', 'KeyW');
+    const down = Input.heldAny('ArrowDown', 'KeyS');
+    const ladder = (level.ladders || []).find(l =>
+      this.cx >= l.x && this.cx <= l.x + l.w &&
+      this.y + this.h >= l.y - 8 && this.y <= l.y + l.h);
+    const feet = this.y + this.h;
+    const canEnter = ladder && ((up && feet > ladder.y + 1) ||
+      (down && feet < ladder.y + ladder.h - 1) || this._ladder === ladder);
+    const centeredX = ladder ? ladder.x + (ladder.w - this.w) / 2 : this.x;
+    let shaftClear = true;
+    for (const object of [...level.gates.filter(g => !g.open), ...level.crates]) {
+      if (centeredX < object.x + object.w && centeredX + this.w > object.x &&
+          this.y < object.y + object.h && feet > object.y) shaftClear = false;
+    }
+    for (let ty = Math.floor(this.y / TILE); ty <= Math.floor((feet - 1) / TILE); ty++) {
+      for (let tx = Math.floor(centeredX / TILE); tx <= Math.floor((centeredX + this.w - 1) / TILE); tx++) {
+        if (level.solidAt(tx, ty)) shaftClear = false;
+      }
+    }
+    if (canEnter && shaftClear && !(left || right)) {
+      this._ladder = ladder;
+      this._ladderDirection = up ? -1 : down ? 1 : 0;
+      this.x = ladder.x + (ladder.w - this.w) / 2;
+      this.vx = 0;
+      this.vy = this._ladderDirection * 105;
+      this.grounded = false;
+      this.running = false;
+      this._coyote = 0;
+      this._jumpBuf = 0;
+      return;
+    }
+    if (this._ladder && (left || right) && Input.pressedAny('ArrowUp', 'KeyW')) {
+      this.vy = JUMP_FORCE;
+    }
+    this._ladder = null;
+    this._ladderDirection = 0;
     // Jump: Up / W only. SPACE is the charge button, K is attack.
     const jump = Input.pressedAny('ArrowUp', 'KeyW');
 
@@ -384,6 +449,60 @@ export class Player {
 
   // ── Physics + AABB tilemap collision ─────────
   _applyPhysics(dt, level) {
+    if (this._ledgeClimb) {
+      const climb = this._ledgeClimb;
+      climb.time += dt;
+      const progress = Math.min(1, climb.time / 0.8);
+      const y = climb.fromY + (climb.y - climb.fromY) * Math.min(1, progress / 0.7);
+      const x = climb.fromX + (climb.x - climb.fromX) * Math.max(0, (progress - 0.7) / 0.3);
+      if (!this._bodyClearAt(level, x, y)) { this._ledgeClimb = null; return; }
+      this.x = x; this.y = y;
+      if (progress === 1) { this._ledgeClimb = null; this.grounded = true; }
+      return;
+    }
+    if (this._grapple) {
+      const anchor = this._grapple;
+      if (!this._ropeClear(level, anchor)) { this._grapple = null; return; }
+      const dx = anchor.x - this.cx, dy = anchor.y - this.cy;
+      const distance = Math.hypot(dx, dy);
+      const speed = Math.min(180, Math.max(0, (distance - 24) / dt));
+      this.vx = distance ? dx / distance * speed : 0;
+      this.vy = distance ? dy / distance * speed : 0;
+      this.x += this.vx * dt; this._resolveX(level);
+      const previousFeet = this.y + this.h, intendedY = this.vy;
+      this.y += this.vy * dt; this._resolveY(level, previousFeet, false);
+      this._resolveCrates(level, previousFeet);
+      if (this._wallBlocked || (intendedY !== 0 && this.vy === 0)) this._grapple = null;
+      return;
+    }
+    if (this._ladder) {
+      const ladder = this._ladder;
+      const previousFeet = this.y + this.h;
+      this.y = Math.max(ladder.y - this.h,
+        Math.min(ladder.y + ladder.h - this.h, this.y + this.vy * dt));
+      // Ladders pass through one-way landings, but never solid terrain or gates.
+      const intendedVelocity = this.vy;
+      this._resolveY(level, previousFeet, true);
+      this._resolveCrates(level, previousFeet);
+      if (intendedVelocity !== 0 && this.vy === 0) {
+        this._ladder = null;
+        this._ladderDirection = 0;
+        return;
+      }
+      if ((this._ladderDirection < 0 && this.y <= ladder.y - this.h) ||
+          (this._ladderDirection > 0 && this.y + this.h >= ladder.y + ladder.h)) {
+        this._ladder = null;
+        this._ladderDirection = 0;
+        this.vy = 0;
+        // Standing requires an actual supporting roof, not the ladder endpoint.
+        this.grounded = false;
+        const row = Math.floor((this.y + this.h) / TILE);
+        for (let tx = Math.floor(this.x / TILE); tx <= Math.floor((this.x + this.w - 1) / TILE); tx++) {
+          if (tileAllowsLanding(level.tileAt(tx, row), this.y + this.h, row * TILE)) this.grounded = true;
+        }
+      }
+      return;
+    }
     this.vy += GRAVITY * dt;
     this.vy = Math.min(this.vy, 700); // terminal velocity
 
@@ -414,6 +533,7 @@ export class Player {
     this._resolveY(level, prevBottom, dropDown);
     this._resolvePlatforms(level, prevBottom, dt);
     this._resolveCrates(level, prevBottom);   // crates are solid — land on top (D7)
+    this._tryLedgeClimb(level);
 
     // Clamp to canvas bounds — ceiling at y=0 prevents jumping above all barriers
     if (this.x < 0) { this.x = 0; this.vx = 0; }
@@ -425,6 +545,43 @@ export class Player {
       this._coyote = COYOTE_TIME;
     } else {
       this._coyote = Math.max(0, this._coyote - dt);
+    }
+  }
+
+  _bodyClearAt(level, x, y) {
+    if (x < 0 || y < 0 || x + this.w > level.pxW || y + this.h > level.pxH) return false;
+    for (let ty = Math.floor(y / TILE); ty <= Math.floor((y + this.h - 0.01) / TILE); ty++)
+      for (let tx = Math.floor(x / TILE); tx <= Math.floor((x + this.w - 0.01) / TILE); tx++)
+        if (level.solidAt(tx, ty)) return false;
+    return ![...level.gates.filter(g => !g.open && !g.isExit), ...level.crates].some(o =>
+      x < o.x + o.w && x + this.w > o.x && y < o.y + o.h && y + this.h > o.y);
+  }
+
+  _ropeClear(level, anchor) {
+    const steps = Math.ceil(Math.hypot(anchor.x - this.cx, anchor.y - this.cy) / 4);
+    for (let i = 1; i <= steps; i++) {
+      const x = this.cx + (anchor.x - this.cx) * i / steps;
+      const y = this.cy + (anchor.y - this.cy) * i / steps;
+      if (level.solidAt(Math.floor(x / TILE), Math.floor(y / TILE))) return false;
+      if (level.gates.some(g => !g.open && !g.isExit && g.blocks(x, y, 1, 1))) return false;
+    }
+    return true;
+  }
+
+  _tryLedgeClimb(level) {
+    if (this.grounded || !this._wallBlocked || !Input.heldAny('ArrowUp', 'KeyW') ||
+        !Input.heldAny('ArrowLeft', 'KeyA', 'ArrowRight', 'KeyD')) return;
+    const tx = Math.floor((this._facingRight ? this.x + this.w + 0.01 : this.x - 0.01) / TILE);
+    const feet = this.y + this.h;
+    for (let ty = Math.floor(this.y / TILE) - 1; ty <= Math.floor(feet / TILE); ty++) {
+      const top = ty * TILE;
+      if (!level.solidAt(tx, ty) || feet - top < 6 || feet - top > 48) continue;
+      const x = this._facingRight ? tx * TILE + 2 : (tx + 1) * TILE - this.w - 2;
+      const y = top - this.h;
+      if (!this._bodyClearAt(level, x, y) || !this._bodyClearAt(level, this.x, y)) continue;
+      this._ledgeClimb = { fromX: this.x, fromY: this.y, x, y, time: 0 };
+      this.vx = this.vy = 0; this.running = false; this._jumpBuf = 0; this._coyote = 0;
+      break;
     }
   }
 
@@ -672,6 +829,7 @@ export class Player {
     if (!Input.pressed('KeyK')) return;
 
     if (this.nearEnemy) {
+      this._attackAnimationProjectile = false;
       // branch 1 — melee
       this.nearEnemy.hit(level);
       this._attackCooldown = ATTACK_COOLDOWN;
@@ -699,6 +857,7 @@ export class Player {
       dx * BOLT_LAUNCH_SPEED,
       dy * BOLT_LAUNCH_SPEED
     ));
+    this._attackAnimationProjectile = true;
     this._attackCooldown = ATTACK_COOLDOWN;
     this._attackFx       = 0.15;
   }
@@ -986,6 +1145,11 @@ export class Player {
     const t           = this._t;
     const hurt        = this._hurtFlash > 0;
     const chargeRatio = this.charge / MAX_CHARGE;
+    if (this._grapple) {
+      ctx.save(); ctx.strokeStyle = '#392951'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(this.cx, this.cy); ctx.lineTo(this._grapple.x, this._grapple.y); ctx.stroke();
+      ctx.strokeStyle = '#66cbe5'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
+    }
 
     // Charge-based glow color
     let glowColor;
