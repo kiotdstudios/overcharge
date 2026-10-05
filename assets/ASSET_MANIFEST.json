@@ -1473,6 +1473,22 @@
       "mount": "wall"
     },
     {
+      "id": "prop_ncp_tire_sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/tire-sign/00.png",
+      "category": "decoration",
+      "tags": ["source", "placement", "spawn", "night_city_props", "electric", "prop", "animated", "tire_shop"],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Large literal neon tire wall sign. Powered(f0-1), absorbing(f2-5), drained(f6); f7 spare dark frame. Independently placeable absorbable source, 4 charge by default.",
+      "trim": { "x": 0.03125, "y": 0.0625, "w": 0.953125, "h": 0.859375 },
+      "mount": "wall"
+    },
+    {
       "id": "prop_ncp_neon_sign",
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/neon-sign/00.png",

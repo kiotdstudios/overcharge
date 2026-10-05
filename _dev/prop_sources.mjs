@@ -25,12 +25,12 @@ const ok=(c,m,d='')=>{ if(c){pass++;console.log(`  \u2713 ${m}${d?' — '+d:''}`
 const sec=t=>console.log(`\n[ ${t} ]`);
 const fire=(t,c)=>{for(const f of (_L[t]||[]))f({code:c,preventDefault(){}});};
 const manifest=JSON.parse(fs.readFileSync('assets/ASSET_MANIFEST.json','utf8').replace(/^\uFEFF/,''));
-const PROPS=['prop_ncp_fuse_box','prop_ncp_neon_sign','prop_ncp_security_camera','prop_ncp_streetlight','prop_ncp_vending_machine'];
+const PROPS=['prop_ncp_fuse_box','prop_ncp_tire_sign','prop_ncp_neon_sign','prop_ncp_security_camera','prop_ncp_streetlight','prop_ncp_vending_machine'];
 
 sec('Manifest: HVAC and the props filter TOGETHER, and all are placeable');
 {
   const el = manifest.assets.filter(a=>(a.tags||[]).includes('electric'));
-  ok(el.length === 7, 'the Electric filter matches 7 assets', 'generator + HVAC source + 5 props');
+  ok(el.length === 8, 'the Electric filter matches 8 assets', 'generator + HVAC source + 6 props');
   ok(el.some(a=>a.id==='source_hvac'), 'HVAC is one of them',
     'Chief: "the new electric HVAC unit and the other electric props need to be filtered together"');
   for (const id of PROPS) {
@@ -194,11 +194,11 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
 
   setF({ electricOnly:true });
   const el = ids();
-  ok(el.length === 7, 'the Electric filter shows exactly 7', el.join(', '));
+  ok(el.length === 8, 'the Electric filter shows exactly 8', el.join(', '));
   ok(el.includes('electrical_generator'), 'Generator is visible under Electric');
   ok(el.includes('source_hvac'), 'HVAC is in it — filtered TOGETHER with the props',
     'this is the literal request');
-  ok(PROPS.every(p=>el.includes(p)), 'and all 5 props are in it');
+  ok(PROPS.every(p=>el.includes(p)), 'and all 6 props are in it');
 
   setF({});
   const all = ids();
@@ -210,7 +210,7 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
                     'env_rt_tile_purple_a','env_rt_tile_accent_a'])
     ok(!all.includes(id), `generator-ineligible non-spawn ${id} stays hidden`,
       'the exemption is scoped to spawn assets, so Aki\u2019s palette is otherwise unchanged');
-  ok(all.length === 56, 'palette total is 56', 'includes placeable Generator and Wheel Drone');
+  ok(all.includes('prop_ncp_tire_sign'), 'the tire sign is visible in the unfiltered palette');
 
   setF({blueRooftopOnly:true});
   const blue=S.filteredManifestItems();

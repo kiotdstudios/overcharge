@@ -10,7 +10,7 @@ as `assets/objects/night-city-buildings/warehouse/` (same family — shares the
   a "NEW / USED / REPAIR / CUSTOM / BALANCE" sign post, street lamp
 - `front_bay.png` — 160x256px / 5x8 tiles — the storefront identity panel: hanging
   cyan neon sign reading "RUSS'S TIRE SHOP" above an open roll-up garage
-  door with a car parked inside, rooftop pipes/tank
+  door with a car parked inside; no baked rooftop equipment
 - `right.png` — 128x256px / 4x8 tiles — "24 HR" cyan neon badge, street lamp,
   brick/stone pillar wall
 
@@ -128,3 +128,10 @@ backdrop and a street lamp only — no mounted equipment) and were not touched.
 not a recolor — `ASSET_MANIFEST.json`'s trim was updated accordingly.
 `front_bay.png`'s bbox landed identical to before, no trim change needed
 there.
+
+## User-exported front-bay update (2026-10-04)
+
+`front_bay.png` was replaced with the user's exported PixelLab gallery image
+`b074d6dd-70e2-5e2f-a67f-a7d6f2100b68`, preserving its 160x256 canvas and
+existing trim. The separate powered neon tire sign is in
+`assets/objects/night-city-props/tire-sign/` and is placed independently.
