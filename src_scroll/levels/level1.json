@@ -1812,7 +1812,7 @@
   "decorations": [
     {
       "src": "assets/objects/night-city-buildings/coffee_bar/front_bay.png",
-      "x": 1371,
+      "x": 1372,
       "y": 143,
       "w": 160,
       "h": 256,
@@ -3293,14 +3293,6 @@
       "snap": 32
     },
     {
-      "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top3.png",
-      "x": 111,
-      "y": 237,
-      "w": 160,
-      "h": 256,
-      "snap": 1
-    },
-    {
       "src": "assets/objects/night-city-buildings/warehouse/warehouse_closed_bay.png",
       "x": 988,
       "y": 110,
@@ -3320,8 +3312,8 @@
     },
     {
       "src": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
-      "x": 1231,
-      "y": 132,
+      "x": 1230,
+      "y": 131,
       "w": 160,
       "h": 256,
       "snap": 1,
@@ -3337,40 +3329,18 @@
       "family": "nc_building_wall"
     },
     {
-      "id": "gatehouse_left_lvl1",
-      "src": "assets/objects/night-city-buildings/gatehouse/left.png",
-      "x": 1972,
-      "y": 128,
-      "w": 192,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "id": "gatehouse_portal_lvl1",
-      "src": "assets/objects/night-city-buildings/gatehouse/portal.png",
-      "x": 2164,
-      "y": 128,
+      "src": "assets/objects/night-city-buildings/apartment_complex/front_bay.png",
+      "x": 103,
+      "y": 233,
       "w": 160,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
     },
     {
-      "id": "gatehouse_service_lvl1",
-      "src": "assets/objects/night-city-buildings/gatehouse/service.png",
-      "x": 2324,
-      "y": 128,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "id": "gatehouse_right_lvl1",
-      "src": "assets/objects/night-city-buildings/gatehouse/right.png",
-      "x": 2484,
-      "y": 128,
+      "src": "assets/objects/night-city-buildings/apartment_complex/right.png",
+      "x": 0,
+      "y": 233,
       "w": 128,
       "h": 256,
       "snap": 1,
