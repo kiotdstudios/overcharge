@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 const cols = 40, rows = 18;
 const tiles = Array(cols * rows).fill(0);
 for (let row = 14; row < rows; row++) for (let col = 0; col < cols; col++) tiles[row * cols + col] = 16;
@@ -19,5 +19,8 @@ const def = {
   enemies: [{ type: 'drain', x: 864, y: 424 }],
   checkpoints: [{ x: 704, y: 426 }], switches: [], crates: [], platforms: [], chests: [],
 };
-writeFileSync(new URL('./fixtures/hero-mechanics.json', import.meta.url), JSON.stringify(def, null, 2) + '\n');
+const fixture = JSON.stringify(def, null, 2) + '\n';
+writeFileSync(new URL('./fixtures/hero-mechanics.json', import.meta.url), fixture);
+mkdirSync(new URL('../assets/fixtures/', import.meta.url), { recursive: true });
+writeFileSync(new URL('../assets/fixtures/hero-mechanics.json', import.meta.url), fixture);
 console.log('Wrote isolated hero mechanics fixture; campaign levels unchanged.');

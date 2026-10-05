@@ -566,8 +566,8 @@ async function _bootAsync() {
   _drawBootingScreen();
   _TEST_LEVEL = _tryLoadTestLevel();
   if (!_TEST_LEVEL && new URLSearchParams(window.location.search).get('fixture') === 'hero-mechanics') {
-    _TEST_LEVEL = await _loadJsonLevel('_dev/fixtures/hero-mechanics.json', 'HERO MECHANICS QA', 0);
-    logLevelSource('[game] HERO MECHANICS FIXTURE', '_dev/fixtures/hero-mechanics.json', _TEST_LEVEL);
+    _TEST_LEVEL = await _loadJsonLevel('assets/fixtures/hero-mechanics.json', 'HERO MECHANICS QA', 0);
+    logLevelSource('[game] HERO MECHANICS FIXTURE', 'assets/fixtures/hero-mechanics.json', _TEST_LEVEL);
   }
   if (_TEST_LEVEL) {
     LEVEL_DEFS = [_TEST_LEVEL];
