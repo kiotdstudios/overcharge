@@ -129,7 +129,7 @@ export function render(ctx, canvas) {
   for (let r = 0; r < rows; r++) {
     for (let col = 0; col < L.cols; col++) {
       const v = L.tiles[r * L.cols + col];
-      if (v === 0) continue;
+      if (v === 0 || v === 2) continue; // Landable bars draw after facade art.
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
       const img = tileIsSolid(v) ? resolveTileImg(v) : null;
@@ -212,6 +212,20 @@ export function render(ctx, canvas) {
         ctx.fillText('⚠ MISSING', p.x + 3, p.y + Math.min(labelH, dh - 2));
         ctx.restore();
       }
+    }
+  }
+
+  // Keep one-way roof surfaces visible above the building art they support.
+  // Collision remains at the authored tile row; this changes drawing order only.
+  for (let r = 0; r < rows; r++) {
+    for (let col = 0; col < L.cols; col++) {
+      if (L.tiles[r * L.cols + col] !== 2) continue;
+      const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
+      if (p.x + tsz < 0 || p.x > w || p.y + 7 * c.zoom < 0 || p.y > h) continue;
+      ctx.fillStyle = '#1a0830';
+      ctx.fillRect(p.x, p.y, tsz, 7 * c.zoom);
+      ctx.fillStyle = '#9922dd';
+      ctx.fillRect(p.x, p.y, tsz, 2 * c.zoom);
     }
   }
 
