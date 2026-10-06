@@ -3032,15 +3032,6 @@
       "family": "nc_building_wall"
     },
     {
-      "src": "assets/objects/night-city-buildings/library/left.png",
-      "x": 2422,
-      "y": 225,
-      "w": 192,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
       "src": "assets/objects/night-city-buildings/library/wall_bay.png",
       "x": 2614,
       "y": 225,
@@ -3077,6 +3068,15 @@
       "snap": 32,
       "rotation": 0,
       "flipX": false
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/left.png",
+      "x": 2422,
+      "y": 225,
+      "w": 192,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
     }
   ],
   "sources": [
