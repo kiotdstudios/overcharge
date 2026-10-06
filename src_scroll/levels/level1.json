@@ -1811,15 +1811,6 @@
   },
   "decorations": [
     {
-      "src": "assets/objects/night-city-buildings/coffee_bar/front_bay.png",
-      "x": 1372,
-      "y": 143,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
       "id": "bg_exit_building_49_10",
       "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "x": 1568,
@@ -3311,15 +3302,6 @@
       "family": "nc_building_wall"
     },
     {
-      "src": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
-      "x": 1230,
-      "y": 131,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
       "src": "assets/objects/night-city-buildings/warehouse/warehouse_right.png",
       "x": 1127,
       "y": 110,
@@ -3341,6 +3323,42 @@
       "src": "assets/objects/night-city-buildings/apartment_complex/right.png",
       "x": 0,
       "y": 233,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/left.png",
+      "x": 2422,
+      "y": 225,
+      "w": 192,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/wall_bay.png",
+      "x": 2614,
+      "y": 225,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/front_bay.png",
+      "x": 2774,
+      "y": 225,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/right.png",
+      "x": 2934,
+      "y": 225,
       "w": 128,
       "h": 256,
       "snap": 1,
@@ -3377,13 +3395,24 @@
       "label": "HVAC",
       "charge": 4,
       "kind": "hvac"
+    },
+    {
+      "x": 960,
+      "y": 324,
+      "label": "LAMP",
+      "charge": 4,
+      "kind": "prop",
+      "sprite": "assets/objects/night-city-props/streetlight/",
+      "frames": 8,
+      "artW": 192,
+      "artH": 192
     }
   ],
   "gates": [
     {
       "id": "gate_1",
-      "x": 2240,
-      "y": 320,
+      "x": 3104,
+      "y": 416,
       "w": 32,
       "h": 64,
       "label": "GATE",
