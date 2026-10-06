@@ -138,14 +138,8 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0, flipX =
   const x = tx * T, y = ty * T;
 
   if (type === 2) {
-    // One-way platform - crisp ledge over facade art, no glow or mass.
-    ctx.save();
-    ctx.shadowBlur  = 0;
-    ctx.fillStyle   = '#1a0830';
-    ctx.fillRect(x, y, T, 7);
-    ctx.fillStyle   = '#9922dd';
-    ctx.fillRect(x, y, T, 2);
-    ctx.restore();
+    // One-way landing is collision only. The facade art beneath it supplies
+    // the visible rooftop; the Builder draws an editing bar separately.
     return;
   }
 
