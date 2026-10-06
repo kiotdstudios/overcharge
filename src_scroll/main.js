@@ -325,6 +325,11 @@ function _drawScrollGame() {
   // World: translate by camera before drawing level + player
   ctx.save();
   ctx.translate(-Math.round(camX), -Math.round(camY));
+  // Clip placed art and world sprites to the authored level, not the viewport.
+  // The player, collisions and saved object positions stay untouched.
+  ctx.beginPath();
+  ctx.rect(0, 0, level.pxW, level.pxH);
+  ctx.clip();
   level.draw(ctx, t);
   player.draw(ctx);
   // World-anchored prompts belong INSIDE the camera transform — they position

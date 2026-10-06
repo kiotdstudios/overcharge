@@ -109,6 +109,13 @@ export function render(ctx, canvas) {
   ctx.lineWidth = 1;
   ctx.strokeRect(originScreen.x, originScreen.y, extentScreen.x - originScreen.x, extentScreen.y - originScreen.y);
 
+  // Objects may be authored partly past an edge, but only the part inside the
+  // level is visible. Keep the outline above outside the clipped world art.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(originScreen.x, originScreen.y, extentScreen.x - originScreen.x, extentScreen.y - originScreen.y);
+  ctx.clip();
+
   // Terrain tiles — draw with actual tile PNG when available; fallback to
   // solid color. NOTE: the pink rooftop-edge highlight previously drawn here
   // was removed — it was misleading because it appeared on every top-of-stack
@@ -447,6 +454,7 @@ export function render(ctx, canvas) {
     }
     ctx.restore();
   }
+  ctx.restore();
 }
 
 // ── Gameplay object renderers ─────────────────────────────────────────────
