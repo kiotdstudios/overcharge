@@ -231,7 +231,7 @@
   #parity-status { font-family:monospace; font-size:10px; letter-spacing:0.3px; line-height:1.6; margin-bottom:6px; }
 
 </style>
-<link rel="stylesheet" href="editor/workspace.css?v=f8bf7d3af4cd4950">
+<link rel="stylesheet" href="editor/workspace.css?v=3bb32cb58f0f926e">
 </head>
 <body>
 <div id="editor-root">
@@ -328,7 +328,7 @@
           </div>
           <div class="tp-row" style="margin-top:4px;align-items:center">
             <label class="tp-lbl">snap
-              <select id="snap-select" class="tp-sel" style="margin-left:4px">
+              <select id="snap-select" class="tp-sel" style="margin-left:4px" title="AUTO: scenery and powered props move 1px at a time; terrain and gameplay markers use the 32px grid">
                 <option value="auto">AUTO</option>
                 <option value="32">32</option>
                 <option value="16">16</option>
@@ -622,52 +622,52 @@
 <script type="importmap">
 {
   "imports": {
-    "./editor/actions.js": "./editor/actions.js?v=f8bf7d3af4cd4950",
-    "./editor/assets.js": "./editor/assets.js?v=f8bf7d3af4cd4950",
-    "./editor/buildinfo.js": "./editor/buildinfo.js?v=f8bf7d3af4cd4950",
-    "./editor/clipboard.js": "./editor/clipboard.js?v=f8bf7d3af4cd4950",
-    "./editor/facade.js": "./editor/facade.js?v=f8bf7d3af4cd4950",
-    "./editor/generator.js": "./editor/generator.js?v=f8bf7d3af4cd4950",
-    "./editor/hero-lab.js": "./editor/hero-lab.js?v=f8bf7d3af4cd4950",
-    "./editor/history.js": "./editor/history.js?v=f8bf7d3af4cd4950",
-    "./editor/level-shape.js": "./editor/level-shape.js?v=f8bf7d3af4cd4950",
-    "./editor/localstore.js": "./editor/localstore.js?v=f8bf7d3af4cd4950",
-    "./editor/main.js": "./editor/main.js?v=f8bf7d3af4cd4950",
-    "./editor/overcharge-lab.js": "./editor/overcharge-lab.js?v=f8bf7d3af4cd4950",
-    "./editor/persistence.js": "./editor/persistence.js?v=f8bf7d3af4cd4950",
-    "./editor/renderer.js": "./editor/renderer.js?v=f8bf7d3af4cd4950",
-    "./editor/selection.js": "./editor/selection.js?v=f8bf7d3af4cd4950",
-    "./editor/snapshots.js": "./editor/snapshots.js?v=f8bf7d3af4cd4950",
-    "./editor/snapshotui.js": "./editor/snapshotui.js?v=f8bf7d3af4cd4950",
-    "./editor/state.js": "./editor/state.js?v=f8bf7d3af4cd4950",
-    "./editor/tools.js": "./editor/tools.js?v=f8bf7d3af4cd4950",
-    "./editor/workspace.js": "./editor/workspace.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/background.js": "./src_scroll/background.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/camera.js": "./src_scroll/camera.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/constants.js": "./src_scroll/constants.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/deco-anim.js": "./src_scroll/deco-anim.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/entities.js": "./src_scroll/entities.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/hero-render.js": "./src_scroll/hero-render.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/hero-sprites.js": "./src_scroll/hero-sprites.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/input.js": "./src_scroll/input.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/level.js": "./src_scroll/level.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/main.js": "./src_scroll/main.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/player.js": "./src_scroll/player.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/render.js": "./src_scroll/render.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/terrain-policy.js": "./src_scroll/terrain-policy.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/ui.js": "./src_scroll/ui.js?v=f8bf7d3af4cd4950",
-    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=f8bf7d3af4cd4950"
+    "./editor/actions.js": "./editor/actions.js?v=3bb32cb58f0f926e",
+    "./editor/assets.js": "./editor/assets.js?v=3bb32cb58f0f926e",
+    "./editor/buildinfo.js": "./editor/buildinfo.js?v=3bb32cb58f0f926e",
+    "./editor/clipboard.js": "./editor/clipboard.js?v=3bb32cb58f0f926e",
+    "./editor/facade.js": "./editor/facade.js?v=3bb32cb58f0f926e",
+    "./editor/generator.js": "./editor/generator.js?v=3bb32cb58f0f926e",
+    "./editor/hero-lab.js": "./editor/hero-lab.js?v=3bb32cb58f0f926e",
+    "./editor/history.js": "./editor/history.js?v=3bb32cb58f0f926e",
+    "./editor/level-shape.js": "./editor/level-shape.js?v=3bb32cb58f0f926e",
+    "./editor/localstore.js": "./editor/localstore.js?v=3bb32cb58f0f926e",
+    "./editor/main.js": "./editor/main.js?v=3bb32cb58f0f926e",
+    "./editor/overcharge-lab.js": "./editor/overcharge-lab.js?v=3bb32cb58f0f926e",
+    "./editor/persistence.js": "./editor/persistence.js?v=3bb32cb58f0f926e",
+    "./editor/renderer.js": "./editor/renderer.js?v=3bb32cb58f0f926e",
+    "./editor/selection.js": "./editor/selection.js?v=3bb32cb58f0f926e",
+    "./editor/snapshots.js": "./editor/snapshots.js?v=3bb32cb58f0f926e",
+    "./editor/snapshotui.js": "./editor/snapshotui.js?v=3bb32cb58f0f926e",
+    "./editor/state.js": "./editor/state.js?v=3bb32cb58f0f926e",
+    "./editor/tools.js": "./editor/tools.js?v=3bb32cb58f0f926e",
+    "./editor/workspace.js": "./editor/workspace.js?v=3bb32cb58f0f926e",
+    "./src_scroll/background.js": "./src_scroll/background.js?v=3bb32cb58f0f926e",
+    "./src_scroll/camera.js": "./src_scroll/camera.js?v=3bb32cb58f0f926e",
+    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=3bb32cb58f0f926e",
+    "./src_scroll/constants.js": "./src_scroll/constants.js?v=3bb32cb58f0f926e",
+    "./src_scroll/deco-anim.js": "./src_scroll/deco-anim.js?v=3bb32cb58f0f926e",
+    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=3bb32cb58f0f926e",
+    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=3bb32cb58f0f926e",
+    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=3bb32cb58f0f926e",
+    "./src_scroll/entities.js": "./src_scroll/entities.js?v=3bb32cb58f0f926e",
+    "./src_scroll/hero-render.js": "./src_scroll/hero-render.js?v=3bb32cb58f0f926e",
+    "./src_scroll/hero-sprites.js": "./src_scroll/hero-sprites.js?v=3bb32cb58f0f926e",
+    "./src_scroll/input.js": "./src_scroll/input.js?v=3bb32cb58f0f926e",
+    "./src_scroll/level.js": "./src_scroll/level.js?v=3bb32cb58f0f926e",
+    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=3bb32cb58f0f926e",
+    "./src_scroll/main.js": "./src_scroll/main.js?v=3bb32cb58f0f926e",
+    "./src_scroll/player.js": "./src_scroll/player.js?v=3bb32cb58f0f926e",
+    "./src_scroll/render.js": "./src_scroll/render.js?v=3bb32cb58f0f926e",
+    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=3bb32cb58f0f926e",
+    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=3bb32cb58f0f926e",
+    "./src_scroll/terrain-policy.js": "./src_scroll/terrain-policy.js?v=3bb32cb58f0f926e",
+    "./src_scroll/ui.js": "./src_scroll/ui.js?v=3bb32cb58f0f926e",
+    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=3bb32cb58f0f926e"
   }
 }
 </script>
 <!-- END GENERATED EDITOR MODULE VERSIONS -->
-<script type="module" src="editor/main.js?v=f8bf7d3af4cd4950"></script>
+<script type="module" src="editor/main.js?v=3bb32cb58f0f926e"></script>
 </body>
 </html>

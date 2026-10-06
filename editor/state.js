@@ -230,6 +230,9 @@ export function snapForRef(kind, ref) {
   if (kind === 'tile') return SNAP_TERRAIN;
   if (kind === 'decoration' && ref && typeof ref.snap === 'number') return ref.snap;
   if (kind === 'decoration') return SNAP_DECORATION_DEFAULT;
+  // Powered Night City props live in sources for absorption, but are scenery
+  // to position. They need the same fine movement as ordinary decorations.
+  if (kind === 'source' && ref?.kind === 'prop') return SNAP_DECORATION_DEFAULT;
   // sources, gates, switches, checkpoints, enemies, playerStart
   return SNAP_GAMEPLAY_DEFAULT;
 }

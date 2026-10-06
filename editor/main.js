@@ -6,6 +6,7 @@ import {
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid, tileSupportsStanding,
+  snapPoint, effectiveSnap,
   getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
   BG_OFFSET_LAYERS, currentBackgroundOffsets, currentBackgroundLayersHidden,
@@ -1680,9 +1681,10 @@ function _doSpawn(e, canvas) {
     // the level object because the runtime never reads the manifest, and because the
     // grounding assertions need to know this one is allowed to float.
     const wallMounted = a.mount === 'wall';
+    const propPos = snapPoint(wx, wy, effectiveSnap(1));
     obj = {
-      x: _snapGrid(wx),
-      y: wallMounted ? _snapGrid(wy) : _groundAt(_snapGrid(wx) + 14, wy, 28),
+      x: propPos.x,
+      y: wallMounted ? propPos.y : _groundAt(propPos.x + 14, wy, 28),
       label: _propLabel(a.id),
       charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
       kind: 'prop',

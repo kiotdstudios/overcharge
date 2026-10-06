@@ -305,7 +305,7 @@ sec('Prop labels are short and never cut mid-word');
     ok((s.label||'').length <= 6, `level1 source label "${s.label}" is short enough to read`);
 }
 
-sec('Streetlight selection and dragging use its visible art and grounded source base');
+sec('Streetlight selection and dragging use its visible art and fine prop positioning');
 {
   const {state}=await import('../editor/state.js');
   const {boundingRect}=await import('../editor/selection.js');
@@ -313,12 +313,15 @@ sec('Streetlight selection and dragging use its visible art and grounded source 
   const lamp={kind:'prop',sprite:'assets/objects/night-city-props/streetlight/',artW:192,artH:192,x:201,y:350};
   state.level={cols:40,tiles:Array.from({length:40*18},(_,i)=>Math.floor(i/40)>=14?16:0),sources:[lamp]};
   __testReanchor(new Map([[lamp,{x:lamp.x,y:lamp.y}]]));
-  ok(lamp.x===192 && lamp.y+28===448,'dragged lamp snaps horizontally and rests on rooftop');
+  ok(lamp.x===201 && lamp.y===350,'dragged lamp keeps its chosen pixel position');
   const b=SV.sourceBox(lamp), selection=boundingRect('source',lamp);
   ok(selection.x===b.dX && selection.y===b.dY && selection.w===192 && selection.h===192,'selection wraps the lamp art instead of a generator-sized box');
-  ok(Math.abs(b.dY+b.dH-192*11/444-448)<1e-9,'powered visible base touches the rooftop');
+  const beforeBase=b.dY+b.dH;
+  lamp.y-=13;
+  const raised=SV.sourceBox(lamp);
+  ok(Math.abs(raised.dY+raised.dH-(beforeBase-13))<1e-9,'powered visible base follows a 13px upward move');
   const drained=SV.sourceBox({...lamp,drained:true});
-  ok(Math.abs(drained.dY+drained.dH-192*12/444-448)<1e-9,'drained visible base also touches the rooftop');
+  ok(Math.abs(drained.dY+drained.dH-192*12/444-(lamp.y+28))<1e-9,'drained art remains anchored to the moved source');
 }
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
