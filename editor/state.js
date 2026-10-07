@@ -454,7 +454,9 @@ export function notify() { for (const fn of listeners) fn(); }
 // push kept showing deleted/renamed palette entries as broken tiles until the
 // HTTP cache expired (bit Chief after the 2026-09-12 asset purge).
 import { BUILD } from './buildinfo.js';
-const _bust = '?v=' + (BUILD?.shaShort || Date.now());
+// The import-map version changes with every Builder module update. buildinfo.js
+// can lag behind on shared branches, so it must not key the asset HTTP cache.
+const _bust = '?v=' + (new URL(import.meta.url).searchParams.get('v') || BUILD?.shaShort || Date.now());
 
 export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
   const res = await fetch(url + _bust);
