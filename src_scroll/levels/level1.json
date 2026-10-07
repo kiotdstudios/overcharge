@@ -1271,7 +1271,7 @@
     0,
     0,
     0,
-    2,
+    0,
     43,
     43,
     43,
@@ -1810,15 +1810,6 @@
     "y": 450
   },
   "decorations": [
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 3140,
-      "y": 239,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
     {
       "id": "bg_exit_building_49_10",
       "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
@@ -3095,6 +3086,16 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "x": 3140,
+      "y": 240,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "flipX": true
     }
   ],
   "sources": [
