@@ -411,7 +411,7 @@ export const state = {
   // and mart; in asset library on builder". The art was all on disk and in the manifest —
   // only the quick-filter chips were missing, so the four packs were reachable solely by
   // typing in the search box or by eyeballing the 20 entries under Buildings.
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, traversalOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false, libraryOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, traversalOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false, libraryOnly: false, electronicsOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -569,7 +569,7 @@ export function manifestCategories() {
 // Background-category assets are excluded here â€” they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, traversalOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly, libraryOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, traversalOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly, libraryOnly, electronicsOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Hand-authored spawn assets stay available even when random generation
@@ -631,6 +631,7 @@ export function filteredManifestItems() {
     if (apartmentOnly   && !(it.tags && it.tags.indexOf('abandoned') >= 0))          return false;
     if (martOnly        && !(it.tags && it.tags.indexOf('convenience_store') >= 0))  return false;
     if (libraryOnly     && !(it.tags && it.tags.indexOf('library') >= 0))            return false;
+    if (electronicsOnly && !(it.tags && it.tags.indexOf('garrys_electronics') >= 0)) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -703,6 +704,7 @@ export function setCoffeeBarOnly(v)      { state.filter.coffeeBarOnly = !!v; not
 export function setApartmentOnly(v)      { state.filter.apartmentOnly = !!v; notify(); }
 export function setMartOnly(v)           { state.filter.martOnly = !!v; notify(); }
 export function setLibraryOnly(v)        { state.filter.libraryOnly = !!v; notify(); }
+export function setElectronicsOnly(v)    { state.filter.electronicsOnly = !!v; notify(); }
 // Set the level's background pack key (null = no background).
 // Marks the level dirty so save picks up the change.
 export function setLevelBackground(packKey) {

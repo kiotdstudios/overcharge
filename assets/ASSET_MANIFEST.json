@@ -1481,6 +1481,23 @@
       "mount": "wall"
     },
     {
+      "id": "prop_ncp_plug_sign",
+      "name": "Garry's powered plug sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/plug-sign/00.png",
+      "category": "decoration",
+      "tags": ["source", "placement", "spawn", "night_city_props", "electric", "prop", "animated", "garrys_electronics"],
+      "frame_width": 64,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Independent wall-mounted neon plug from Garry's Electronics. Powered(f0-1), absorbing(f2-5), drained(f6-7). Four absorbable charge by default; place over the storefront logo or elsewhere.",
+      "trim": { "x": 0.125, "y": 0.03125, "w": 0.75, "h": 0.9375 },
+      "mount": "wall"
+    },
+    {
       "id": "prop_ncp_book_sign",
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/book-sign/00.png",
@@ -2431,6 +2448,54 @@
       "family": "nc_building_wall"
     },
     {
+      "id": "building_nc_garrys_left",
+      "name": "Garry's Electronics - left end cap",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 144,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 1/4: plain brick, service door and frosted glass. No sidewalk or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_garrys_wall_bay",
+      "name": "Garry's Electronics - frosted window bay",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/wall_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 144,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 2/4: opaque frosted upper and lower windows. No sidewalk or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_garrys_front_bay",
+      "name": "Garry's Electronics - entrance and logo",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/front_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 176,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 3/4: permanent Garry's lettering and entrance; powered plug is an independent prop. No sidewalk or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_garrys_right",
+      "name": "Garry's Electronics - right end cap",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 176,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 4/4: opaque frosted display window. No sidewalk or collision.",
+      "family": "nc_building_wall"
+    },
+    {
       "id": "building_nc_tire_left",
       "name": "Night City tire shop - left end-cap",
       "path": "assets/objects/night-city-buildings/tire_shop/left.png",
@@ -2869,5 +2934,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 115
+  "count": 120
 }

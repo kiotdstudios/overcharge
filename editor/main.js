@@ -1612,6 +1612,7 @@ function _propLabel(assetId) {
     prop_ncp_security_camera: 'CAM',
     prop_ncp_streetlight:     'LAMP',
     prop_ncp_vending_machine: 'VEND',
+    prop_ncp_plug_sign:      'PLUG',
   };
   if (SHORT[assetId]) return SHORT[assetId];
   return String(assetId || 'PROP').replace(/^prop_ncp_/, '').split('_')[0].toUpperCase();
