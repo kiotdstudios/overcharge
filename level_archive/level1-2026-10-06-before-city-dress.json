@@ -2987,6 +2987,78 @@
       "snap": 32
     },
     {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_closed_bay.png",
+      "x": 988,
+      "y": 110,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_open_bay.png",
+      "x": 848,
+      "y": 110,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_right.png",
+      "x": 1127,
+      "y": 110,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/apartment_complex/front_bay.png",
+      "x": 103,
+      "y": 233,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/apartment_complex/right.png",
+      "x": 0,
+      "y": 233,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/wall_bay.png",
+      "x": 2614,
+      "y": 225,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/front_bay.png",
+      "x": 2774,
+      "y": 225,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/library/right.png",
+      "x": 2934,
+      "y": 225,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
       "id": "facade_67_12_1791251507177",
       "src": "assets/tilesets/blue_rooftop/tiles/bt_bldg_r02_c01.png",
       "x": 2144,
@@ -2998,175 +3070,32 @@
       "flipX": false
     },
     {
-      "src": "assets/objects/night-city-buildings/apartment_complex/left.png",
-      "x": 0,
-      "y": 224,
-      "w": 192,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/apartment_complex/wall_bay.png",
-      "x": 192,
-      "y": 224,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/apartment_complex/front_bay.png",
-      "x": 352,
-      "y": 224,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/apartment_complex/right.png",
-      "x": 512,
-      "y": 224,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/warehouse/warehouse_left.png",
-      "x": 864,
-      "y": 96,
-      "w": 192,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/warehouse/warehouse_open_bay.png",
-      "x": 1056,
-      "y": 96,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/warehouse/warehouse_closed_bay.png",
-      "x": 1216,
-      "y": 96,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/warehouse/warehouse_right.png",
-      "x": 1376,
-      "y": 96,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/garrys_electronics/left.png",
-      "x": 1504,
-      "y": 64,
-      "w": 144,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/garrys_electronics/wall_bay.png",
-      "x": 1648,
-      "y": 64,
-      "w": 144,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/garrys_electronics/front_bay.png",
-      "x": 1792,
-      "y": 64,
-      "w": 176,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/garrys_electronics/right.png",
-      "x": 1968,
-      "y": 64,
-      "w": 176,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/tire_shop/front_bay.png",
-      "x": 2144,
-      "y": 128,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/tire_shop/right.png",
-      "x": 2304,
-      "y": 128,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
       "src": "assets/objects/night-city-buildings/library/left.png",
-      "x": 2432,
-      "y": 224,
+      "x": 2422,
+      "y": 225,
       "w": 192,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
     },
     {
-      "src": "assets/objects/night-city-buildings/library/wall_bay.png",
-      "x": 2624,
-      "y": 224,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/library/front_bay.png",
-      "x": 2784,
-      "y": 224,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/library/right.png",
-      "x": 2944,
-      "y": 224,
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "x": 3043,
+      "y": 239,
       "w": 128,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
     },
     {
-      "src": "assets/objects/night-city-buildings/gatehouse/portal.png",
-      "x": 3072,
-      "y": 224,
-      "w": 160,
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
+      "x": 3140,
+      "y": 240,
+      "w": 128,
       "h": 256,
       "snap": 1,
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "flipX": true
     }
   ],
   "sources": [
@@ -3210,45 +3139,6 @@
       "frames": 8,
       "artW": 192,
       "artH": 192
-    },
-    {
-      "id": "src_garrys_plug",
-      "x": 1953,
-      "y": 248,
-      "label": "PLUG",
-      "charge": 4,
-      "kind": "prop",
-      "sprite": "assets/objects/night-city-props/plug-sign/",
-      "frames": 8,
-      "artW": 64,
-      "artH": 96,
-      "mount": "wall"
-    },
-    {
-      "id": "src_russ_tire",
-      "x": 2330,
-      "y": 350,
-      "label": "TIRE",
-      "charge": 4,
-      "kind": "prop",
-      "sprite": "assets/objects/night-city-props/tire-sign/",
-      "frames": 8,
-      "artW": 128,
-      "artH": 128,
-      "mount": "wall"
-    },
-    {
-      "id": "src_brys_books",
-      "x": 2516,
-      "y": 418,
-      "label": "BOOKS",
-      "charge": 4,
-      "kind": "prop",
-      "sprite": "assets/objects/night-city-props/book-sign/",
-      "frames": 8,
-      "artW": 160,
-      "artH": 96,
-      "mount": "wall"
     }
   ],
   "gates": [
