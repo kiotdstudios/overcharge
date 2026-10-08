@@ -2209,8 +2209,8 @@
     },
     {
       "id": "building_nc_filler_wall_04",
-      "name": "Night City filler wall - graffiti tag",
-      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "name": "Night City filler wall - height-matched graffiti",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_04_heightmatched.png",
       "category": "decoration",
       "tags": [
         "night_city_props",
@@ -2222,13 +2222,13 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a graffiti tag. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), extended to the warehouse panel baseline with its original brick palette and graffiti. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.1094,
-        "y": 0.3086,
+        "y": 0.1797,
         "w": 0.7891,
-        "h": 0.6328
+        "h": 0.7617
       }
     },
     {

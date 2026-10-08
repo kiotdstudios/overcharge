@@ -459,7 +459,7 @@ import { BUILD } from './buildinfo.js';
 const _bust = '?v=' + (new URL(import.meta.url).searchParams.get('v') || BUILD?.shaShort || Date.now());
 
 export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
-  const res = await fetch(url + _bust);
+  const res = await fetch(url + _bust, { cache: 'no-store' });
   if (!res.ok) throw new Error('manifest fetch failed: ' + res.status);
   const raw = await res.json();
   const source = Array.isArray(raw.assets) ? raw.assets : (Array.isArray(raw.items) ? raw.items : []);
