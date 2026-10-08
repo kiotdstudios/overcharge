@@ -2185,8 +2185,8 @@
     },
     {
       "id": "building_nc_filler_wall_02",
-      "name": "Night City filler wall - trash can",
-      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
+      "name": "Night City filler wall - height-matched trash can",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_02_heightmatched.png",
       "category": "decoration",
       "tags": [
         "night_city_props",
@@ -2198,13 +2198,13 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a trash can at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Alley-gap filler wall with a trash can, extended to the warehouse baseline while preserving its brick palette and roofline. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.1094,
-        "y": 0.3086,
+        "y": 0.1797,
         "w": 0.7812,
-        "h": 0.6328
+        "h": 0.7617
       }
     },
     {
@@ -2233,8 +2233,8 @@
     },
     {
       "id": "building_nc_filler_wall_03",
-      "name": "Night City filler wall - traffic cone",
-      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_03.png",
+      "name": "Night City filler wall - height-matched traffic cone",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_03_heightmatched.png",
       "category": "decoration",
       "tags": [
         "night_city_props",
@@ -2246,13 +2246,36 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a traffic cone at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Alley-gap filler wall with a traffic cone, extended to the warehouse baseline while preserving its brick palette and roofline. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.1094,
-        "y": 0.3047,
+        "y": 0.1797,
         "w": 0.7812,
-        "h": 0.6367
+        "h": 0.7656
+      }
+    },
+    {
+      "id": "building_nc_industrial_cctv_wall",
+      "name": "Night City industrial wall - CCTV pipe",
+      "path": "assets/objects/night-city-buildings/industrial_wall/cctv_pipe_heightmatched.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Independent industrial brick wall with CCTV and pipe. Its base matches the warehouse panels; visual dressing only, with no camera gameplay, collision, or power logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0938,
+        "y": 0.0781,
+        "w": 0.8063,
+        "h": 0.8633
       }
     },
     {

@@ -12,8 +12,8 @@ grime, water stains, moody blue-purple lighting) with one small distinguishing
 element:
 
 - `filler_wall_01.png` — bare wall, grime only, no extra prop
-- `filler_wall_02.png` — bare wall + trash can at the base
-- `filler_wall_03.png` — bare wall + traffic cone at the base
+- `filler_wall_02.png` / `filler_wall_02_heightmatched.png` - trash can at the base, with roofline y=46 and base y=240
+- `filler_wall_03.png` / `filler_wall_03_heightmatched.png` - traffic cone at the base, with roofline y=46 and base y=241
 - `filler_wall_04.png` - height-matched bare wall + graffiti tag, preserving older placed references
 - `filler_wall_04_heightmatched.png` - Builder-selected version of that panel, with visible brickwork from y=46 to y=240 to match the warehouse base
 
@@ -27,4 +27,4 @@ of `assets/objects/night-city-props/vending-machine/00.png` as the
 ## Status
 Wired into `assets/ASSET_MANIFEST.json` as 4 placeable decoration items,
 tagged `building` + `filler_wall`. Not yet placed in any level JSON.
-The fourth manifest item points at `filler_wall_04_heightmatched.png`; the previous PNG is archived at `level_archive/assets/filler_wall_04-before-height-match.png`.
+The second, third, and fourth manifest items point at height-matched filenames so Builder refreshes the revised art. Their earlier PNGs are archived at `level_archive/assets/filler_wall_0{2,3,4}-before-height-match.png`.
