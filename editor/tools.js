@@ -994,6 +994,7 @@ export function placeAssetAt(asset, worldX, worldY) {
     w:    dims.w,
     h:    dims.h,
     snap,
+    tileLayer: 'front', // match the Builder preview until the author sends it behind tiles
   };
   // Persist modular-family tag so future placements and drag-moves can find
   // this piece's siblings without re-resolving the manifest.
