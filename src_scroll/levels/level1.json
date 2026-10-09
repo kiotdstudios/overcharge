@@ -1850,13 +1850,13 @@
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
-      "x": 164,
-      "y": 238,
+      "x": 465,
+      "y": 207,
       "w": 128,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall",
-      "flipX": true
+      "flipX": false
     },
     {
       "id": "bg_exit_building_49_10",
@@ -3136,12 +3136,30 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "x": 370,
+      "y": 207,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04_heightmatched.png",
+      "x": 555,
+      "y": 207,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
     }
   ],
   "sources": [
     {
       "id": "src_4",
-      "x": 416,
+      "x": 428,
       "y": 420,
       "charge": 4,
       "label": "LAMP",
@@ -3161,13 +3179,6 @@
       "frames": 8,
       "artW": 192,
       "artH": 192
-    },
-    {
-      "x": 544,
-      "y": 420,
-      "label": "HVAC",
-      "charge": 4,
-      "kind": "hvac"
     },
     {
       "x": 933,
