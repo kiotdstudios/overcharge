@@ -213,6 +213,12 @@ btnLayerFront   ?.addEventListener('click', () => _applyLayerOp('bring-to-front'
 btnLayerForward ?.addEventListener('click', () => _applyLayerOp('bring-forward'));
 btnLayerBackward?.addEventListener('click', () => _applyLayerOp('send-backward'));
 btnLayerBack    ?.addEventListener('click', () => _applyLayerOp('send-to-back'));
+function _setSelectedTileLayer(layer) {
+  const action = Actions.setDecorationTileLayer(Selection.selectedDecorations(), layer);
+  if (action) History.apply(action);
+}
+document.getElementById('btn-behind-tiles')?.addEventListener('click', () => _setSelectedTileLayer('back'));
+document.getElementById('btn-above-tiles')?.addEventListener('click', () => _setSelectedTileLayer('front'));
 
 // ── Rotate wiring ─────────────────────────────────────────────────────────
 // Rotates the currently-selected tiles AND decorations by ±90°. Gameplay

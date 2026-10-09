@@ -115,12 +115,16 @@ export function render(ctx, canvas) {
   ctx.beginPath();
   ctx.rect(originScreen.x, originScreen.y, extentScreen.x - originScreen.x, extentScreen.y - originScreen.y);
   ctx.clip();
+  const L = state.level;
 
-  // Terrain tiles — draw with actual tile PNG when available; fallback to
+  // Explicitly backed scenery goes beneath rooftop ground. Legacy scenery
+  // keeps its existing Builder appearance above tiles until the author chooses.
+  _drawDecorations(ctx, d => d.tileLayer === 'back');
+
+  // Terrain tiles - draw with actual tile PNG when available; fallback to
   // solid color. NOTE: the pink rooftop-edge highlight previously drawn here
   // was removed — it was misleading because it appeared on every top-of-stack
   // tile, not just intentional rooftops.
-  const L = state.level;
   const rows = levelRows();
   const tsz = TILE_SIZE * c.zoom;
   // Small per-frame cache: tile value → resolved Image. Avoids repeating
@@ -171,55 +175,60 @@ export function render(ctx, canvas) {
   }
 
   // Decorations
-  if (Array.isArray(L.decorations)) {
-    for (const d of L.decorations) {
-      const p = worldToScreen(d.x, d.y);
-      const dw = d.w * c.zoom, dh = d.h * c.zoom;
-      if (p.x + dw < 0 || p.x > w || p.y + dh < 0 || p.y > h) continue;
-      const img = getImage(d.src);
-      if (img.complete && img.naturalWidth > 0) {
-        const rot  = d.rotation || 0;
-        const flip = !!d.flipX;
-        if (rot === 0 && !flip) {
-          ctx.drawImage(img, p.x, p.y, dw, dh);
+  _drawDecorations(ctx, d => d.tileLayer !== 'back');
+
+  function _drawDecorations(ctx, matchesLayer) {
+    if (Array.isArray(L.decorations)) {
+      for (const d of L.decorations) {
+        if (!matchesLayer(d)) continue;
+        const p = worldToScreen(d.x, d.y);
+        const dw = d.w * c.zoom, dh = d.h * c.zoom;
+        if (p.x + dw < 0 || p.x > w || p.y + dh < 0 || p.y > h) continue;
+        const img = getImage(d.src);
+        if (img.complete && img.naturalWidth > 0) {
+          const rot  = d.rotation || 0;
+          const flip = !!d.flipX;
+          if (rot === 0 && !flip) {
+            ctx.drawImage(img, p.x, p.y, dw, dh);
+          } else {
+            // Rotate/mirror around visual-bbox center. Source draw dims match the
+            // sprite's NATIVE orientation: at 90/270 that's (bbox.h, bbox.w).
+            // A horizontal mirror does NOT swap the bbox, so srcDW/srcDH are unaffected by
+            // flip — only the transform changes. Same translate-scale-rotate order as tiles
+            // and as src_scroll/level.js.
+            const rad = rot * Math.PI / 180;
+            const isHoriz = (rot % 180) === 0;   // 0 or 180
+            const srcDW = (isHoriz ? d.w : d.h) * c.zoom;
+            const srcDH = (isHoriz ? d.h : d.w) * c.zoom;
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;   // preserve pixel-art crispness
+            ctx.translate(p.x + dw / 2, p.y + dh / 2);
+            if (flip) ctx.scale(-1, 1);
+            ctx.rotate(rad);
+            ctx.drawImage(img, -srcDW / 2, -srcDH / 2, srcDW, srcDH);
+            ctx.restore();
+          }
         } else {
-          // Rotate/mirror around visual-bbox center. Source draw dims match the
-          // sprite's NATIVE orientation: at 90/270 that's (bbox.h, bbox.w).
-          // A horizontal mirror does NOT swap the bbox, so srcDW/srcDH are unaffected by
-          // flip — only the transform changes. Same translate-scale-rotate order as tiles
-          // and as src_scroll/level.js.
-          const rad = rot * Math.PI / 180;
-          const isHoriz = (rot % 180) === 0;   // 0 or 180
-          const srcDW = (isHoriz ? d.w : d.h) * c.zoom;
-          const srcDH = (isHoriz ? d.h : d.w) * c.zoom;
+          // A14: dangling decoration — image src did not resolve. Draw a labelled
+          // placeholder so Chief can see the decoration exists (and its bounds)
+          // without mistaking it for real tile content. A plain grey box is worse
+          // than nothing because it blends with level content; a red dashed
+          // outline with text is unambiguous. Do NOT strip the entry from the
+          // level JSON — Kiro left dangling refs deliberately for archive restore.
+          const labelH = Math.max(14, dh * 0.55);
           ctx.save();
-          ctx.imageSmoothingEnabled = false;   // preserve pixel-art crispness
-          ctx.translate(p.x + dw / 2, p.y + dh / 2);
-          if (flip) ctx.scale(-1, 1);
-          ctx.rotate(rad);
-          ctx.drawImage(img, -srcDW / 2, -srcDH / 2, srcDW, srcDH);
+          ctx.strokeStyle = 'rgba(255,80,80,0.7)';
+          ctx.lineWidth   = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(p.x + 0.5, p.y + 0.5, Math.max(dw, 40) - 1, Math.max(dh, 16) - 1);
+          ctx.setLineDash([]);
+          ctx.fillStyle = 'rgba(255,80,80,0.85)';
+          ctx.font      = Math.max(8, Math.min(10, labelH * 0.7)) + 'px monospace';
+          ctx.fillText('⚠ MISSING', p.x + 3, p.y + Math.min(labelH, dh - 2));
           ctx.restore();
         }
-      } else {
-        // A14: dangling decoration — image src did not resolve. Draw a labelled
-        // placeholder so Chief can see the decoration exists (and its bounds)
-        // without mistaking it for real tile content. A plain grey box is worse
-        // than nothing because it blends with level content; a red dashed
-        // outline with text is unambiguous. Do NOT strip the entry from the
-        // level JSON — Kiro left dangling refs deliberately for archive restore.
-        const labelH = Math.max(14, dh * 0.55);
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255,80,80,0.7)';
-        ctx.lineWidth   = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.strokeRect(p.x + 0.5, p.y + 0.5, Math.max(dw, 40) - 1, Math.max(dh, 16) - 1);
-        ctx.setLineDash([]);
-        ctx.fillStyle = 'rgba(255,80,80,0.85)';
-        ctx.font      = Math.max(8, Math.min(10, labelH * 0.7)) + 'px monospace';
-        ctx.fillText('⚠ MISSING', p.x + 3, p.y + Math.min(labelH, dh - 2));
-        ctx.restore();
       }
-    }
+  }
   }
 
   // Keep one-way roof surfaces visible above the building art they support.

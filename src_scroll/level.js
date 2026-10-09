@@ -80,7 +80,7 @@ export class Level {
       img.src = d.src;
       // Preserve rotation ({0,90,180,270} deg) so TEST mode renders
       // decorations exactly as authored in the editor.
-      const dec = { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0, flipX: !!d.flipX };
+      const dec = { img, x: d.x, y: d.y, w: d.w, h: d.h, rotation: d.rotation || 0, flipX: !!d.flipX, tileLayer: d.tileLayer === 'front' ? 'front' : 'back' };
 
       if (Array.isArray(d.frames) && d.frames.length > 1) {
         dec.frames = d.frames.map(src => { const i = new Image(); i.src = src; return i; });
@@ -314,35 +314,40 @@ export class Level {
   }
 
   draw(ctx, t) {
-    // 1. Background decorations (buildings, props) — behind everything
-    for (const dec of this.decorations) {
-      // An animated decoration picks its frame from elapsed time; a static one is
-      // exactly the image it always was. frameAt() returns dec.img when there are no
-      // frames, so the static path is byte-identical to the previous behaviour.
-      const img = dec.frames ? frameAt(dec, t) : dec.img;
-      if (!(img && img.complete && img.naturalWidth > 0)) continue;
-      const rot  = dec.rotation || 0;
-      const flip = !!dec.flipX;
-      if (rot === 0 && !flip) {
-        ctx.drawImage(img, dec.x, dec.y, dec.w, dec.h);
-      } else {
-        // Rotation swaps the visual bbox — source draw dims are h,w when
-        // rotation is 90/270 (matches editor rotate action's bbox swap).
-        // A horizontal mirror does NOT swap the bbox, so it leaves srcW/srcH alone and only
-        // changes the transform. Same translate-scale-rotate order as tiles and as
-        // editor/renderer.js — see the contract note in render.js drawTile.
-        const isHoriz = (rot % 180) === 0;
-        const srcW = isHoriz ? dec.w : dec.h;
-        const srcH = isHoriz ? dec.h : dec.w;
-        ctx.save();
-        ctx.imageSmoothingEnabled = false;
-        ctx.translate(dec.x + dec.w / 2, dec.y + dec.h / 2);
-        if (flip) ctx.scale(-1, 1);
-        ctx.rotate(rot * Math.PI / 180);
-        ctx.drawImage(img, -srcW / 2, -srcH / 2, srcW, srcH);
-        ctx.restore();
+    // 1. Background decorations (buildings, props) - behind ground tiles.
+    // Older levels have no tileLayer field and retain this drawing order.
+    const drawDecorations = (layer) => {
+      for (const dec of this.decorations) {
+        if (dec.tileLayer !== layer) continue;
+        // An animated decoration picks its frame from elapsed time; a static one is
+        // exactly the image it always was. frameAt() returns dec.img when there are no
+        // frames, so the static path is byte-identical to the previous behaviour.
+        const img = dec.frames ? frameAt(dec, t) : dec.img;
+        if (!(img && img.complete && img.naturalWidth > 0)) continue;
+        const rot  = dec.rotation || 0;
+        const flip = !!dec.flipX;
+        if (rot === 0 && !flip) {
+          ctx.drawImage(img, dec.x, dec.y, dec.w, dec.h);
+        } else {
+          // Rotation swaps the visual bbox — source draw dims are h,w when
+          // rotation is 90/270 (matches editor rotate action's bbox swap).
+          // A horizontal mirror does NOT swap the bbox, so it leaves srcW/srcH alone and only
+          // changes the transform. Same translate-scale-rotate order as tiles and as
+          // editor/renderer.js — see the contract note in render.js drawTile.
+          const isHoriz = (rot % 180) === 0;
+          const srcW = isHoriz ? dec.w : dec.h;
+          const srcH = isHoriz ? dec.h : dec.w;
+          ctx.save();
+          ctx.imageSmoothingEnabled = false;
+          ctx.translate(dec.x + dec.w / 2, dec.y + dec.h / 2);
+          if (flip) ctx.scale(-1, 1);
+          ctx.rotate(rot * Math.PI / 180);
+          ctx.drawImage(img, -srcW / 2, -srcH / 2, srcW, srcH);
+          ctx.restore();
+        }
       }
-    }
+    };
+    drawDecorations('back');
 
     // 2. Tiles — pass topOpen so exposed surfaces get neon edge
     for (let ty = 0; ty < this.rows; ty++) {
@@ -358,6 +363,9 @@ export class Level {
         }
       }
     }
+
+    // Art explicitly moved above the ground in Builder stays above it in TEST.
+    drawDecorations('front');
 
     // 3. Moving platforms
     for (const pl of this.platforms) pl.draw(ctx);

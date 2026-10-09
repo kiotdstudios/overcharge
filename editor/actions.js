@@ -173,6 +173,19 @@ export function reorderDecorations(decs, op) {
   };
 }
 
+// Choose which side of the solid rooftop tiles selected art is drawn on.
+// Keep the previous value (including an absent field) for exact undo.
+export function setDecorationTileLayer(decs, layer) {
+  if (!decs?.length || !['front', 'back'].includes(layer)) return null;
+  const prior = decs.map(d => ({ d, value: d.tileLayer, had: Object.prototype.hasOwnProperty.call(d, 'tileLayer') }));
+  if (prior.every(({ d }) => d.tileLayer === layer)) return null;
+  return {
+    type: 'set_decoration_tile_layer',
+    forward() { for (const { d } of prior) d.tileLayer = layer; notify(); },
+    inverse() { for (const { d, value, had } of prior) { if (had) d.tileLayer = value; else delete d.tileLayer; } notify(); },
+  };
+}
+
 function _applyReorder(arr, decs, op) {
   const selected = new Set(decs);
   const selectedInOrder = arr.filter(d => selected.has(d));
