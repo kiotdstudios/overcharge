@@ -1426,8 +1426,8 @@
     43,
     43,
     43,
-    59,
-    0,
+    43,
+    43,
     45,
     47,
     0,
@@ -1526,8 +1526,8 @@
     49,
     49,
     49,
-    53,
-    0,
+    52,
+    52,
     45,
     47,
     0,
@@ -1626,8 +1626,8 @@
     49,
     49,
     49,
-    53,
-    0,
+    52,
+    52,
     45,
     47,
     0,
@@ -1726,8 +1726,8 @@
     49,
     49,
     49,
-    53,
-    0,
+    52,
+    52,
     45,
     47,
     0,
@@ -1810,6 +1810,15 @@
     "y": 450
   },
   "decorations": [
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "x": 3141,
+      "y": 239,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_03.png",
       "x": 1034,
@@ -3109,16 +3118,6 @@
       "family": "nc_building_wall"
     },
     {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 3140,
-      "y": 240,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall",
-      "flipX": true
-    },
-    {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
       "x": 74,
       "y": 238,
@@ -3127,15 +3126,6 @@
       "snap": 1,
       "family": "nc_building_wall",
       "flipX": true
-    },
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": -17,
-      "y": 239,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
@@ -3154,13 +3144,51 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_03_heightmatched.png",
+      "x": 653,
+      "y": 207,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04_heightmatched.png",
+      "x": 167,
+      "y": 238,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "flipX": true
+    },
+    {
+      "src": "assets/objects/night-city-buildings/industrial_wall/cctv_pipe_heightmatched.png",
+      "x": 254,
+      "y": 238,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "flipX": true
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04_heightmatched.png",
+      "x": -23,
+      "y": 238,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall"
     }
   ],
   "sources": [
     {
       "id": "src_4",
-      "x": 428,
-      "y": 420,
+      "x": 451,
+      "y": 417,
       "charge": 4,
       "label": "LAMP",
       "kind": "prop",
