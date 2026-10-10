@@ -2,7 +2,8 @@
 import {
   TILE, COLS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
   PLAYER_W, PLAYER_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, C,
-  RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS
+  RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS,
+  PROJECTILE_CHARGE_COST
 } from './constants.js';
 import * as Input from './input.js';
 import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
@@ -665,7 +666,9 @@ export class Player {
   // Structured as an explicit branch table so the projectile slots in later
   // WITHOUT rewiring charge or melee:
   //   branch 1  near enemy   → melee hit            (implemented)
-  //   branch 2  no target    → electric projectile  (NOT built under this order)
+  //   branch 2  no target    → electric projectile  (implemented; costs energy,
+  //                                                   see PROJECTILE_CHARGE_COST
+  //                                                   below — Chief 2026-10-09)
   _updateAttack(dt, level) {
     if (this._stunTime > 0) return;
     if (this._attackCooldown > 0) return;
@@ -682,6 +685,15 @@ export class Player {
     // branch 2 — fire an electric bolt in aimed direction (8-directional)
     // Direction: held arrow/WASD keys at moment of K press; fallback = _facingRight.
     // No auto-aim — player picks direction manually.
+    //
+    // Chief 2026-10-09: first-pass energy cost — a projectile costs
+    // PROJECTILE_CHARGE_COST (1/4 of MAX_CHARGE). Spent through the same
+    // spendEnergy() authority as every other energy-loss path (Order 004 §9),
+    // so a banked pip promotes mid-cost exactly like a discharge would. No
+    // charge, no shot fired — refusal is silent here, same as the discharge
+    // guard above; HUD affordability messaging can follow later if needed.
+    if (!this.canAfford(PROJECTILE_CHARGE_COST)) return;
+
     const aimUp    = Input.heldAny('ArrowUp',    'KeyW');
     const aimDown  = Input.heldAny('ArrowDown',  'KeyS');
     const aimLeft  = Input.heldAny('ArrowLeft',  'KeyA');
@@ -692,6 +704,8 @@ export class Player {
 
     // Normalize diagonal so speed is consistent in every direction
     if (dx !== 0 && dy !== 0) { dx *= 0.7071; dy *= 0.7071; }
+
+    this.spendEnergy(PROJECTILE_CHARGE_COST);
 
     this._bolts.push(new ElectricBolt(
       this.cx,

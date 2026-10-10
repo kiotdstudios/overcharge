@@ -27,7 +27,7 @@ globalThis.Image = class { constructor(){ this.complete = true; this.naturalWidt
   addEventListener(n, f){ if (n === 'load') setTimeout(f, 0); } };
 
 const { Player } = await import('../src_scroll/player.js');
-const { MAX_CHARGE, MAX_BANKED_PIPS } = await import('../src_scroll/constants.js');
+const { MAX_CHARGE, MAX_BANKED_PIPS, PROJECTILE_CHARGE_COST } = await import('../src_scroll/constants.js');
 const EL = await import('../src_scroll/electricity.js');
 const Input = await import('../src_scroll/input.js');
 
@@ -62,19 +62,29 @@ section('REQUIRED MATRIX');
 { const p = P(); p.setEnergyState(0, 0); p.giveEnergy(5);
   assert(near(p.charge, 5) && p.bankedPips === 0, 'bar 0 + 5 -> bar 5', show(p)); }
 
-// Row 2 — Bar 8 + 4 -> Bar 2 + 1 pip   (Chief's worked example, verbatim)
-{ const p = P(); p.setEnergyState(8, 0); p.giveEnergy(4);
-  assert(near(p.charge, 2) && p.bankedPips === 1, 'bar 8 + 4 -> bar 2 + 1 pip', show(p)); }
+// Row 2 — Bar 0.8*MAX + 0.4*MAX -> Bar 0.2*MAX + 1 pip
+// Chief's original worked example was literal "8 + 4 -> 2 + 1 pip" against
+// MAX_CHARGE=10 (80% full, give 40% of a battery, overflow banks one pip).
+// Re-derived at the current MAX_CHARGE (25, divides evenly) to keep the same
+// shape of example rather than hardcode numbers that only meant something at
+// the old meter size.
+{ const p = P();
+  const start = MAX_CHARGE * 0.8, give = MAX_CHARGE * 0.4, remainder = MAX_CHARGE * 0.2;
+  p.setEnergyState(start, 0); p.giveEnergy(give);
+  assert(near(p.charge, remainder) && p.bankedPips === 1,
+    `bar ${start} + ${give} -> bar ${remainder} + 1 pip`, show(p)); }
 
-// Row 3 — Bar 10 + 10.
+// Row 3 — Bar MAX_CHARGE + MAX_CHARGE (a full bar, handed another full battery).
 // RULING 1 (Kiro, 2026-09-11): the order's table said "bar 0 + 1 pip", which
-// contradicts the same order's §7 conservation invariant (it would destroy 10
-// units). When an example contradicts the stated invariant, the invariant wins.
-// Corrected expectation: bar 0 + 2 pips, 20 usable, nothing destroyed.
-{ const p = P(); p.setEnergyState(10, 0);
+// contradicts the same order's §7 conservation invariant (it would destroy a
+// battery's worth of units). When an example contradicts the stated
+// invariant, the invariant wins. Corrected expectation: bar 0 + 2 pips,
+// 2*MAX_CHARGE usable, nothing destroyed. Written against the MAX_CHARGE
+// symbol (not a literal) so it stays correct regardless of meter size.
+{ const p = P(); p.setEnergyState(MAX_CHARGE, 0);
   const before = p.usableEnergy;
-  const accepted = p.giveEnergy(10);
-  assert(p.charge === 0 && p.bankedPips === 2, 'bar 10 + 10 -> bar 0 + 2 pips [RULING 1]', show(p));
+  const accepted = p.giveEnergy(MAX_CHARGE);
+  assert(p.charge === 0 && p.bankedPips === 2, 'bar MAX_CHARGE + MAX_CHARGE -> bar 0 + 2 pips [RULING 1]', show(p));
   assert(near(p.usableEnergy, before + accepted), '  ...and energy is conserved',
     `${before} + ${accepted} = ${p.usableEnergy}`); }
 
@@ -245,14 +255,16 @@ section('RULINGS (Kiro, 2026-09-11)');
   const battery = p.spendPip();
   assert(battery === MAX_CHARGE, 'RULING 3: spendPip yields exactly one full battery', String(battery));
   assert(p.bankedPips === 0 && p.charge === 0, '  ...pip consumed, active bar untouched', show(p));
-  // Gate needs 3 of the 10 — surplus 7 must come back, not evaporate.
+  // Gate needs 3 of the battery — the surplus (MAX_CHARGE - 3) must come back,
+  // not evaporate. Written symbolically so it holds at any MAX_CHARGE.
   const g = new EL.PowerGate({ id: 'G', x: 0, y: 0, w: 32, h: 64, required: 3 });
   const transfer = Math.min(battery, g.required - g.charged);
   g.receive(transfer);
   const surplus = battery - transfer;
   p.giveEnergy(surplus);
-  assert(g.open === true && near(p.usableEnergy, 7),
-    '  ...gate opens on 3 and the surplus 7 returns to the player',
+  const expectedSurplus = MAX_CHARGE - 3;
+  assert(g.open === true && near(p.usableEnergy, expectedSurplus),
+    `  ...gate opens on 3 and the surplus ${expectedSurplus} returns to the player`,
     `gate open=${g.open}, ${show(p)}`);
   assert(near(transfer + p.usableEnergy, MAX_CHARGE), '  ...battery fully accounted for (conserved)',
     `${transfer} delivered + ${p.usableEnergy} returned = ${MAX_CHARGE}`); }
@@ -386,7 +398,12 @@ const lvl = () => mkLevel();
   assert(hits === 0, 'SPACE: no longer attacks (K owns attack)', `hits ${hits}`);
   releaseAll(); }
 
-// ── K does not charge a gate, and costs no energy ──────────────────────────
+// ── K does not charge a gate; firing a projectile costs PROJECTILE_CHARGE_COST
+// Chief 2026-10-09: K away from an enemy fires a projectile (branch 2), which
+// now has a real energy cost. The gate-isolation guarantee is unchanged — K
+// never routes energy INTO a device, no matter what it costs the player to
+// fire. Updated from the old "K never touches energy" assertion, which
+// encoded a stage where branch 2 was free; that premise is gone by design.
 { releaseAll();
   const { p, g } = atGate(8);
   const before = p.usableEnergy;
@@ -394,7 +411,9 @@ const lvl = () => mkLevel();
   p._updateAttack(1 / 60, lvl());
   p._updateDischarge(1 / 60, lvl());
   assert(g.charged === 0, 'K: does not charge a gate', `charged ${g.charged}`);
-  assert(p.usableEnergy === before, '  ...and never touches energy', `usable ${p.usableEnergy}`);
+  assert(near(before - p.usableEnergy, PROJECTILE_CHARGE_COST),
+    '  ...firing the projectile costs exactly PROJECTILE_CHARGE_COST',
+    `usable ${p.usableEnergy} (spent ${before - p.usableEnergy})`);
   releaseAll(); }
 
 // ── SPACE-charging works while standing at a source (removed guard) ────────
@@ -415,7 +434,8 @@ const lvl = () => mkLevel();
   keyDown('Space');
   for (let i = 0; i < 600 && !g.open; i++) p._updateDischarge(1 / 60, lvl());
   assert(g.open === true, 'SPACE: gate opens using the reserve', `charged ${g.charged}/8, ${show(p)}`);
-  assert(near(20 - p.usableEnergy, 8), '  ...exactly 8 left the player', `spent ${20 - p.usableEnergy}`);
+  const startUsable = 2 * MAX_CHARGE;   // atGate(8, 0, 2) starting usableEnergy
+  assert(near(startUsable - p.usableEnergy, 8), '  ...exactly 8 left the player', `spent ${startUsable - p.usableEnergy}`);
   releaseAll(); }
 
 // ════════════════════════════════════════════════════════════════════════════

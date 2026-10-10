@@ -25,9 +25,14 @@ export const PLAYER_W     = 20;
 export const PLAYER_H     = 30;
 
 // Electricity
-export const MAX_CHARGE      = 10;
+export const MAX_CHARGE      = 25;    // Chief 2026-10-09: raised from 10 to 25
 export const ABSORB_RATE     = 3;     // units per second while holding E near source
 export const DISCHARGE_RATE  = 3;     // units per second while holding SPACE near device
+// Chief 2026-10-09: K-fired electric bolt (player.js branch 2) now costs energy.
+// First pass per Chief's own number — a quarter of the full bar per shot. Spent
+// through the same spendEnergy() authority as discharge, so it drains the bar
+// then promotes a banked pip on the same frame if the bar runs dry mid-cost.
+export const PROJECTILE_CHARGE_COST = MAX_CHARGE / 4;
 export const ABSORB_RADIUS   = 56;    // px from source center
 export const INTERACT_RADIUS = 50;    // px from device center
 export const PICKUP_LIFETIME = 6;     // seconds before pickup vanishes
