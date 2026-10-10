@@ -1147,6 +1147,16 @@ const BOLT_SPEED    = 320;   // px/s
 const BOLT_W        = 6;
 const BOLT_H        = 6;
 const BOLT_MAX_LIFE = 1.5;   // seconds before despawn
+const BOLT_FRAME_SIZE = 48;
+let boltFrames = null;
+function getBoltFrames() {
+  if (!boltFrames) boltFrames = Array.from({ length: 4 }, (_, i) => {
+    const img = new Image();
+    img.src = `assets/sprites/electric-bolt/frame_${String(i).padStart(2, '0')}.png`;
+    return img;
+  });
+  return boltFrames;
+}
 
 export class ElectricBolt {
   constructor(x, y, vx, vy) {
@@ -1158,7 +1168,7 @@ export class ElectricBolt {
     this.h  = BOLT_H;
     this.alive = true;
     this._life = 0;
-    this._t    = 0;   // oscillator for pulse glow
+    this._t    = 0;   // sprite animation clock
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -1193,12 +1203,19 @@ export class ElectricBolt {
 
   draw(ctx) {
     if (!this.alive) return;
-    const pulse = 0.7 + 0.3 * Math.sin(this._t * 30);
+    const frames = getBoltFrames();
+    const frame = frames[Math.floor(this._t * 12) % frames.length];
     ctx.save();
-    ctx.shadowBlur  = 14;
-    ctx.shadowColor = '#44ddff';
-    ctx.fillStyle   = `rgba(68,221,255,${pulse})`;
-    ctx.fillRect(this.x, this.y, this.w, this.h);
+    ctx.translate(Math.round(this.cx), Math.round(this.cy));
+    ctx.rotate(Math.atan2(this.vy, this.vx));
+    ctx.imageSmoothingEnabled = false;
+    if (frame.complete && frame.naturalWidth > 0) {
+      ctx.drawImage(frame, -BOLT_FRAME_SIZE / 2, -BOLT_FRAME_SIZE / 2, BOLT_FRAME_SIZE, BOLT_FRAME_SIZE);
+    } else {
+      // A brief fallback while the four PNGs load; gameplay hitbox stays 6x6.
+      ctx.fillStyle = '#8ff8ff';
+      ctx.fillRect(-BOLT_W / 2, -BOLT_H / 2, BOLT_W, BOLT_H);
+    }
     ctx.restore();
   }
 }
