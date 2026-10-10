@@ -230,6 +230,9 @@ export function snapForRef(kind, ref) {
   if (kind === 'tile') return SNAP_TERRAIN;
   if (kind === 'decoration' && ref && typeof ref.snap === 'number') return ref.snap;
   if (kind === 'decoration') return SNAP_DECORATION_DEFAULT;
+  // Powered Night City props live in sources for absorption, but are scenery
+  // to position. They need the same fine movement as ordinary decorations.
+  if (kind === 'source' && ref?.kind === 'prop') return SNAP_DECORATION_DEFAULT;
   // sources, gates, switches, checkpoints, enemies, playerStart
   return SNAP_GAMEPLAY_DEFAULT;
 }
@@ -408,7 +411,7 @@ export const state = {
   // and mart; in asset library on builder". The art was all on disk and in the manifest —
   // only the quick-filter chips were missing, so the four packs were reachable solely by
   // typing in the search box or by eyeballing the 20 entries under Buildings.
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, traversalOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false, libraryOnly: false, electronicsOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -451,10 +454,12 @@ export function notify() { for (const fn of listeners) fn(); }
 // push kept showing deleted/renamed palette entries as broken tiles until the
 // HTTP cache expired (bit Chief after the 2026-09-12 asset purge).
 import { BUILD } from './buildinfo.js';
-const _bust = '?v=' + (BUILD?.shaShort || Date.now());
+// The import-map version changes with every Builder module update. buildinfo.js
+// can lag behind on shared branches, so it must not key the asset HTTP cache.
+const _bust = '?v=' + (new URL(import.meta.url).searchParams.get('v') || BUILD?.shaShort || Date.now());
 
 export async function loadManifest(url = 'assets/ASSET_MANIFEST.json') {
-  const res = await fetch(url + _bust);
+  const res = await fetch(url + _bust, { cache: 'no-store' });
   if (!res.ok) throw new Error('manifest fetch failed: ' + res.status);
   const raw = await res.json();
   const source = Array.isArray(raw.assets) ? raw.assets : (Array.isArray(raw.items) ? raw.items : []);
@@ -566,7 +571,7 @@ export function manifestCategories() {
 // Background-category assets are excluded here â€” they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, traversalOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly, libraryOnly, electronicsOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Hand-authored spawn assets stay available even when random generation
@@ -607,6 +612,7 @@ export function filteredManifestItems() {
     if (neonRiseOnly     && !(it.tags && it.tags.indexOf('neon_rise_dressing') >= 0)) return false;
     // AKI_19: tag-driven, not a hard-coded name list — any future asset
     // tagged 'pipe' in ASSET_MANIFEST.json joins this filter automatically.
+    if (traversalOnly && !(it.tags && it.tags.includes('traversal'))) return false;
     if (pipeOnly        && !(it.tags && it.tags.indexOf('pipe') >= 0))             return false;
     // Same tag-driven pattern as AKI_19: any asset tagged 'building' joins
     // this filter automatically, no hard-coded id list to maintain.
@@ -626,6 +632,8 @@ export function filteredManifestItems() {
     if (coffeeBarOnly   && !(it.tags && it.tags.indexOf('coffee_bar') >= 0))         return false;
     if (apartmentOnly   && !(it.tags && it.tags.indexOf('abandoned') >= 0))          return false;
     if (martOnly        && !(it.tags && it.tags.indexOf('convenience_store') >= 0))  return false;
+    if (libraryOnly     && !(it.tags && it.tags.indexOf('library') >= 0))            return false;
+    if (electronicsOnly && !(it.tags && it.tags.indexOf('garrys_electronics') >= 0)) return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -697,6 +705,8 @@ export function setWarehouseOnly(v)      { state.filter.warehouseOnly = !!v; not
 export function setCoffeeBarOnly(v)      { state.filter.coffeeBarOnly = !!v; notify(); }
 export function setApartmentOnly(v)      { state.filter.apartmentOnly = !!v; notify(); }
 export function setMartOnly(v)           { state.filter.martOnly = !!v; notify(); }
+export function setLibraryOnly(v)        { state.filter.libraryOnly = !!v; notify(); }
+export function setElectronicsOnly(v)    { state.filter.electronicsOnly = !!v; notify(); }
 // Set the level's background pack key (null = no background).
 // Marks the level dirty so save picks up the change.
 export function setLevelBackground(packKey) {
@@ -878,3 +888,5 @@ export function addDecoration(entry) {
   notify();
   return entry;
 }
+
+export function setTraversalOnly(v) { state.filter.traversalOnly = !!v; notify(); }

@@ -6,6 +6,7 @@ import {
   setTool, setShowGrid, resetZoom, zoomCamera,
   setGuardsOn, setMagneticSnap, setSnapOverride,
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid, tileSupportsStanding,
+  snapPoint, effectiveSnap,
   getTile, tileAssetIdFor,
   setLevelBackground, currentLevelBackground,
   BG_OFFSET_LAYERS, currentBackgroundOffsets, currentBackgroundLayersHidden,
@@ -212,6 +213,12 @@ btnLayerFront   ?.addEventListener('click', () => _applyLayerOp('bring-to-front'
 btnLayerForward ?.addEventListener('click', () => _applyLayerOp('bring-forward'));
 btnLayerBackward?.addEventListener('click', () => _applyLayerOp('send-backward'));
 btnLayerBack    ?.addEventListener('click', () => _applyLayerOp('send-to-back'));
+function _setSelectedTileLayer(layer) {
+  const action = Actions.setDecorationTileLayer(Selection.selectedDecorations(), layer);
+  if (action) History.apply(action);
+}
+document.getElementById('btn-behind-tiles')?.addEventListener('click', () => _setSelectedTileLayer('back'));
+document.getElementById('btn-above-tiles')?.addEventListener('click', () => _setSelectedTileLayer('front'));
 
 // ── Rotate wiring ─────────────────────────────────────────────────────────
 // Rotates the currently-selected tiles AND decorations by ±90°. Gameplay
@@ -1611,6 +1618,7 @@ function _propLabel(assetId) {
     prop_ncp_security_camera: 'CAM',
     prop_ncp_streetlight:     'LAMP',
     prop_ncp_vending_machine: 'VEND',
+    prop_ncp_plug_sign:      'PLUG',
   };
   if (SHORT[assetId]) return SHORT[assetId];
   return String(assetId || 'PROP').replace(/^prop_ncp_/, '').split('_')[0].toUpperCase();
@@ -1680,9 +1688,10 @@ function _doSpawn(e, canvas) {
     // the level object because the runtime never reads the manifest, and because the
     // grounding assertions need to know this one is allowed to float.
     const wallMounted = a.mount === 'wall';
+    const propPos = snapPoint(wx, wy, effectiveSnap(1));
     obj = {
-      x: _snapGrid(wx),
-      y: wallMounted ? _snapGrid(wy) : _groundAt(_snapGrid(wx) + 14, wy, 28),
+      x: propPos.x,
+      y: wallMounted ? propPos.y : _groundAt(propPos.x + 14, wy, 28),
       label: _propLabel(a.id),
       charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
       kind: 'prop',

@@ -720,6 +720,9 @@ function _reanchorGameplay(origPositions) {
   for (const ref of origPositions.keys()) {
     const kind = _kindOfRef(ref);
     if (!kind) continue;
+    // Powered props are source objects for gameplay, but their scenery can be
+    // positioned freely. Re-grounding here made upward drags jump back down.
+    if (kind === 'source' && ref.kind === 'prop') continue;
 
     // Floating by design: align to grid, never drag down to the floor.
     const floats = kind === 'platform' || (kind === 'enemy' && ['drone', 'sky-sentry'].includes(ref.type));
@@ -991,6 +994,7 @@ export function placeAssetAt(asset, worldX, worldY) {
     w:    dims.w,
     h:    dims.h,
     snap,
+    tileLayer: 'front', // match the Builder preview until the author sends it behind tiles
   };
   // Persist modular-family tag so future placements and drag-moves can find
   // this piece's siblings without re-resolving the manifest.

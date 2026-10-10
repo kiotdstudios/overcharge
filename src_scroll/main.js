@@ -98,6 +98,12 @@ let state           = STATES.TITLE;   // startup default; test mode auto-starts 
 let currentLevelIdx = 0;
 let level  = null;
 let player = null;
+// Read-only browser acceptance hook, available only for the isolated QA fixture.
+export function mechanicsSnapshot() {
+  if (_TEST_LEVEL?.name !== 'HERO MECHANICS QA' || !player) return null;
+  return { x: player.x, y: player.y, grounded: player.grounded, animation: player._sprites.state,
+    ladder: !!player._ladder, climbing: !!player._ledgeClimb, grappling: !!player._grapple };
+}
 let t      = 0;
 let completeTimer = 0;
 
@@ -319,6 +325,11 @@ function _drawScrollGame() {
   // World: translate by camera before drawing level + player
   ctx.save();
   ctx.translate(-Math.round(camX), -Math.round(camY));
+  // Clip placed art and world sprites to the authored level, not the viewport.
+  // The player, collisions and saved object positions stay untouched.
+  ctx.beginPath();
+  ctx.rect(0, 0, level.pxW, level.pxH);
+  ctx.clip();
   level.draw(ctx, t);
   player.draw(ctx);
   // World-anchored prompts belong INSIDE the camera transform — they position
@@ -336,8 +347,8 @@ function _drawDevBar() {
   ctx.textAlign = 'center';
   ctx.fillText(
     (_DEV_MODE && _DEV_LEVELS.length > 1
-    ? '\u2190\u2192 MOVE   SHIFT RUN   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K ATTACK   [F2] skip   [[] PREV   []] NEXT'
-    : '\u2190\u2192 MOVE   SHIFT RUN   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K ATTACK   [F2] skip   [P] +charge'),
+    ? '\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K ATTACK   [F2] skip   [[] PREV   []] NEXT'
+    : '\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K ATTACK   [F2] skip   [P] +charge'),
     viewW() / 2, 13
   );
 }
@@ -559,6 +570,10 @@ function _drawBootingScreen() {
 async function _bootAsync() {
   _drawBootingScreen();
   _TEST_LEVEL = _tryLoadTestLevel();
+  if (!_TEST_LEVEL && new URLSearchParams(window.location.search).get('fixture') === 'hero-mechanics') {
+    _TEST_LEVEL = await _loadJsonLevel('assets/fixtures/hero-mechanics.json', 'HERO MECHANICS QA', 0);
+    logLevelSource('[game] HERO MECHANICS FIXTURE', 'assets/fixtures/hero-mechanics.json', _TEST_LEVEL);
+  }
   if (_TEST_LEVEL) {
     LEVEL_DEFS = [_TEST_LEVEL];
     _showLevelSourceBadge('test', 'BUILDER TEST PREVIEW \u2014 unsaved editor level');

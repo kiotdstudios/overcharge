@@ -741,28 +741,6 @@
       }
     },
     {
-      "id": "player_spawn",
-      "path": "assets/sprites/idle_2.0/east/frame_000.png",
-      "category": "player",
-      "tags": [
-        "player",
-        "spawn",
-        "placement"
-      ],
-      "frame_width": 92,
-      "frame_height": 92,
-      "frame_count": 1,
-      "fps": null,
-      "directions": null,
-      "loop": false,
-      "spawnsKind": "player-start",
-      "notes": "Palette entry for the player spawn point. Clicking this in the asset panel enters spawn-placement mode — sets pendingSpawn:{kind:'player-start'}. Exactly one per level; placement calls Actions.setPlayerStart, never adds a second. Art: idle east frame_000 at runtime anchor (spriteX = ps.x - 36, spriteY = ps.y - 48).",
-      "generation": {
-        "eligible": false,
-        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
-      }
-    },
-    {
       "id": "drone_enemy",
       "path": "assets/sprites/city-drones/sky-sentry/frame_000.png",
       "category": "enemy",
@@ -1473,6 +1451,69 @@
       "mount": "wall"
     },
     {
+      "id": "prop_ncp_tire_sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/tire-sign/00.png",
+      "category": "decoration",
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated",
+        "tire_shop"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Large literal neon tire wall sign. Powered(f0-1), absorbing(f2-5), drained(f6); f7 spare dark frame. Independently placeable absorbable source, 4 charge by default.",
+      "trim": {
+        "x": 0.03125,
+        "y": 0.0625,
+        "w": 0.953125,
+        "h": 0.859375
+      },
+      "mount": "wall"
+    },
+    {
+      "id": "prop_ncp_plug_sign",
+      "name": "Garry's powered plug sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/plug-sign/00.png",
+      "category": "decoration",
+      "tags": ["source", "placement", "spawn", "night_city_props", "electric", "prop", "animated", "garrys_electronics"],
+      "frame_width": 64,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Independent wall-mounted neon plug from Garry's Electronics. Powered(f0-1), absorbing(f2-5), drained(f6-7). Four absorbable charge by default; place over the storefront logo or elsewhere.",
+      "trim": { "x": 0.125, "y": 0.03125, "w": 0.75, "h": 0.9375 },
+      "mount": "wall"
+    },
+    {
+      "id": "prop_ncp_book_sign",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/book-sign/00.png",
+      "category": "decoration",
+      "tags": ["source", "placement", "spawn", "night_city_props", "electric", "prop", "animated", "library"],
+      "frame_width": 160,
+      "frame_height": 96,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Independent neon BOOKS side-wall sign. Powered(f0-1), absorbing(f2-5), drained(f6-7). Absorbable source with 4 charge by default; not baked into the library facade.",
+      "trim": { "x": 0.01875, "y": 0.104167, "w": 0.9625, "h": 0.791667 },
+      "mount": "wall"
+    },
+    {
       "id": "prop_ncp_neon_sign",
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/neon-sign/00.png",
@@ -2144,8 +2185,8 @@
     },
     {
       "id": "building_nc_filler_wall_02",
-      "name": "Night City filler wall - trash can",
-      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
+      "name": "Night City filler wall - height-matched trash can",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_02_heightmatched.png",
       "category": "decoration",
       "tags": [
         "night_city_props",
@@ -2157,19 +2198,19 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a trash can at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Alley-gap filler wall with a trash can, extended to the warehouse baseline while preserving its brick palette and roofline. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.1094,
-        "y": 0.3086,
+        "y": 0.1797,
         "w": 0.7812,
-        "h": 0.6328
+        "h": 0.7617
       }
     },
     {
       "id": "building_nc_filler_wall_04",
-      "name": "Night City filler wall - graffiti tag",
-      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "name": "Night City filler wall - height-matched graffiti",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_04_heightmatched.png",
       "category": "decoration",
       "tags": [
         "night_city_props",
@@ -2181,19 +2222,19 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a graffiti tag. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Generic alley-gap filler wall panel (4x8 tiles), extended to the warehouse panel baseline with its original brick palette and graffiti. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.1094,
-        "y": 0.3086,
+        "y": 0.1797,
         "w": 0.7891,
-        "h": 0.6328
+        "h": 0.7617
       }
     },
     {
       "id": "building_nc_filler_wall_03",
-      "name": "Night City filler wall - traffic cone",
-      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_03.png",
+      "name": "Night City filler wall - height-matched traffic cone",
+      "path": "assets/objects/night-city-buildings/filler_wall/filler_wall_03_heightmatched.png",
       "category": "decoration",
       "tags": [
         "night_city_props",
@@ -2205,14 +2246,277 @@
       "frame_width": 128,
       "frame_height": 256,
       "frame_count": 1,
-      "notes": "Generic alley-gap filler wall panel (4x8 tiles), bare wall with a traffic cone at the base. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "notes": "Alley-gap filler wall with a traffic cone, extended to the warehouse baseline while preserving its brick palette and roofline. Placeable visual dressing only. No collision, power, light, or switch logic.",
       "family": "nc_building_wall",
       "trim": {
         "x": 0.1094,
-        "y": 0.3047,
+        "y": 0.1797,
         "w": 0.7812,
-        "h": 0.6367
+        "h": 0.7656
       }
+    },
+    {
+      "id": "building_nc_industrial_cctv_wall",
+      "name": "Night City industrial wall - CCTV pipe",
+      "path": "assets/objects/night-city-buildings/industrial_wall/cctv_pipe_heightmatched.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Independent industrial brick wall with CCTV and pipe. Its base matches the warehouse panels; visual dressing only, with no camera gameplay, collision, or power logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0.0938,
+        "y": 0.0781,
+        "w": 0.8063,
+        "h": 0.8633
+      }
+    },
+    {
+      "id": "building_nc_apartment_left",
+      "name": "Night City apartment - fire escape",
+      "path": "assets/objects/night-city-buildings/apartment_complex/left.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 1/4 (6x8 tiles). Place left-to-right with wall bay, entrance, and right end-cap. Visual dressing only; fire escape is not climbable.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_wall_bay",
+      "name": "Night City apartment - window bay",
+      "path": "assets/objects/night-city-buildings/apartment_complex/wall_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 2/4 (5x8 tiles). Visual dressing only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_front_bay",
+      "name": "Night City apartment - entrance",
+      "path": "assets/objects/night-city-buildings/apartment_complex/front_bay.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 3/4 (5x8 tiles), lit entrance. Visual dressing only; door is not interactive.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_apartment_right",
+      "name": "Night City apartment - right end-cap",
+      "path": "assets/objects/night-city-buildings/apartment_complex/right.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Apartment panel 4/4 (4x8 tiles). Visual dressing only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_left",
+      "name": "Night City gatehouse - left wing",
+      "path": "assets/objects/night-city-buildings/gatehouse/left.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 1/4 (6x8 tiles). Visual facade only; place with portal, service wing, and right end cap.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_portal",
+      "name": "Night City gatehouse - electric portal housing",
+      "path": "assets/objects/night-city-buildings/gatehouse/portal.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 2/4 (5x8 tiles). Dark 112px recess fits the separate animated exit gate; this art has no gate collision or charge behavior.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_service",
+      "name": "Night City gatehouse - service wing",
+      "path": "assets/objects/night-city-buildings/gatehouse/service.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 3/4 (5x8 tiles). Visual facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_gatehouse_right",
+      "name": "Night City gatehouse - right end cap",
+      "path": "assets/objects/night-city-buildings/gatehouse/right.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "gatehouse",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Gatehouse panel 4/4 (4x8 tiles). Visual facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_library_left",
+      "name": "Night City library - left end cap",
+      "path": "assets/objects/night-city-buildings/library/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 1/4 (6x8 tiles). Place left-to-right: left, wall bay, front bay, right. Facade only; no collision or power logic.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_library_wall_bay",
+      "name": "Night City library - window bay",
+      "path": "assets/objects/night-city-buildings/library/wall_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 2/4 (5x8 tiles). Distinct upstairs and downstairs window interiors; facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_library_front_bay",
+      "name": "Night City library - entrance and sign",
+      "path": "assets/objects/night-city-buildings/library/front_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 3/4 (5x8 tiles). Main entrance and permanent Bry's neon identity; separate BOOKS powered sign remains independently placeable.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_library_right",
+      "name": "Night City library - right end cap",
+      "path": "assets/objects/night-city-buildings/library/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "library", "scenery", "noncolliding"],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "BRY'S LIBRARY panel 4/4 (4x8 tiles). Independent children's reading window, planters and bike rack; facade only.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_garrys_left",
+      "name": "Garry's Electronics - left end cap",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 144,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 1/4: plain brick, service door and frosted glass. No sidewalk or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_garrys_wall_bay",
+      "name": "Garry's Electronics - frosted window bay",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/wall_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 144,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 2/4: opaque frosted upper and lower windows. No sidewalk or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_garrys_front_bay",
+      "name": "Garry's Electronics - entrance and logo",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/front_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 176,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 3/4: permanent Garry's lettering and entrance; powered plug is an independent prop. No sidewalk or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_garrys_right",
+      "name": "Garry's Electronics - right end cap",
+      "path": "assets/objects/night-city-buildings/garrys_electronics/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "garrys_electronics", "scenery", "noncolliding"],
+      "frame_width": 176,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Garry's Electronics panel 4/4: opaque frosted display window. No sidewalk or collision.",
+      "family": "nc_building_wall"
     },
     {
       "id": "building_nc_tire_left",
@@ -2309,6 +2613,60 @@
         "w": 0.9688,
         "h": 1.0
       }
+    },
+    {
+      "id": "player_spawn",
+      "path": "assets/sprites/hero-v3/idle/east/frame_000.png",
+      "category": "player",
+      "tags": [
+        "player",
+        "spawn",
+        "placement"
+      ],
+      "frame_width": 512,
+      "frame_height": 512,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "player-start",
+      "notes": "Palette entry for the player spawn point. Exactly one per level; placement sets playerStart. Art: hero-v3 idle at the shared 80px runtime feet anchor.",
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
+      }
+    },
+    {
+      "id": "night_city_ladder",
+      "name": "Night City climbable ladder",
+      "path": "assets/objects/night-city-props/ladder/ladder.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "traversal",
+        "ladder",
+        "climbable"
+      ],
+      "frame_width": 64,
+      "frame_height": 288,
+      "frame_count": 1,
+      "notes": "Resizable climbable ladder. Up/W climbs; Down/S descends. Place between upper and lower walkable surfaces."
+    },
+    {
+      "id": "night_city_grapple_anchor",
+      "name": "Night City grapple hook anchor",
+      "path": "assets/objects/night-city-props/grapple-anchor/anchor.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "traversal",
+        "grapple"
+      ],
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 1,
+      "loop": false,
+      "notes": "Hold G within 240px with clear line of sight to pull toward this anchor; release to drop. Matches Night City pipe art."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -2599,5 +2957,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 102
+  "count": 120
 }

@@ -32,8 +32,8 @@ for (const id of ['prop_ncp_streetlight', 'prop_ncp_vending_machine']) {
 sec('the editor honours it, and does so from DATA not a hardcoded id list');
 const em = fs.readFileSync(`${R}/editor/main.js`, 'utf8');
 ok(/a\.mount === 'wall'/.test(em), 'placement reads `mount` off the asset');
-ok(/wallMounted \? _snapGrid\(wy\) : _groundAt\(/.test(em),
-   'wall props grid-snap on Y; everything else still grounds');
+ok(/wallMounted \? propPos\.y : _groundAt\(/.test(em),
+   'wall props use fine Y placement; floor props initially ground');
 ok(/if \(wallMounted\) obj\.mount = 'wall';/.test(em),
    'the flag is copied into the level object — the runtime never reads the manifest');
 // Prop ids DO appear in editor/main.js, in the _propLabel display map ('NEON', 'CAM').
@@ -51,8 +51,8 @@ ok(/if \(wallMounted\) obj\.mount = 'wall';/.test(em),
 sec('the grounding assertion no longer calls a wall prop "floating"');
 const pr = fs.readFileSync(`${R}/_dev/parity_regression.mjs`, 'utf8');
 ok(/obj\.mount === 'wall'/.test(pr), 'parity_regression is mount-aware');
-ok(/is wall-mounted and grid-aligned on Y/.test(pr),
-   'a wall prop is still checked — grid-aligned on Y rather than unchecked');
+ok(/has pixel-aligned prop coordinates/.test(pr),
+   'a powered prop is checked for pixel-aligned coordinates');
 
 sec('REACH: can the player actually charge one? (the gameplay consequence)');
 const c = fs.readFileSync(`${R}/src_scroll/constants.js`, 'utf8');

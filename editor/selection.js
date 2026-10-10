@@ -1,4 +1,5 @@
 import { sourceBox } from '../src_scroll/source-visuals.js';
+import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
 // selection.js — tracks what is currently selected in the editor.
 //
 // Selection covers every kind of level content:
@@ -271,7 +272,7 @@ export function boundingRect(kind, ref) {
   // SPAWN triangle points right — 14x14 rect from (x, y).
   // playerStart: 20×30 collision box, but the idle sprite is 92×92 drawn at
   // (x-36, y-48) — see renderer.js::_drawPlayerStart. Wrap the visible player.
-  if (kind === 'playerStart') return { x: ref.x - 36, y: ref.y - 48, w: 92, h: 92 };
+  if (kind === 'playerStart') return { x: Math.round(ref.x + 10 - HERO_SIZE / 2), y: Math.round(ref.y + 30 - HERO_FEET_Y), w: HERO_SIZE, h: HERO_SIZE };
   return null;
 }
 
@@ -334,7 +335,7 @@ export function objectAt(worldX, worldY) {
     }
   }
 
-  // Decorations next (they sit on top of terrain visually). The trimmed
+  // Front/legacy decorations next (they sit on top of terrain visually). The trimmed
   // hitRect is still a rectangle, but non-convex art (e.g. a thin lamp
   // pole under a wide curved head) leaves genuinely transparent gaps
   // inside that rectangle. A click landing in one of those gaps must fall
@@ -345,6 +346,7 @@ export function objectAt(worldX, worldY) {
   if (Array.isArray(L.decorations)) {
     for (let i = L.decorations.length - 1; i >= 0; i--) {
       const d = L.decorations[i];
+      if (d.tileLayer === 'back') continue;
       const rect = hitRect('decoration', d);
       if (rect && _hits(rect, worldX, worldY)) {
         const u = d.w ? (worldX - d.x) / d.w : 0.5;
@@ -355,8 +357,7 @@ export function objectAt(worldX, worldY) {
     }
   }
 
-  // Terrain tiles LAST — lowest priority so a prop sitting on terrain is
-  // selected first, and only a click on bare terrain hits the tile beneath.
+  // Terrain tiles before explicitly backed art, matching what is visible.
   if (Array.isArray(L.tiles) && L.cols) {
     const col = Math.floor(worldX / TILE_SIZE);
     const row = Math.floor(worldY / TILE_SIZE);
@@ -365,6 +366,19 @@ export function objectAt(worldX, worldY) {
       const v = L.tiles[idx];
       if (v && v !== 0) {                       // solid OR platform
         return { kind: 'tile', ref: col + ',' + row };
+      }
+    }
+  }
+  // Backed decorations remain selectable where they protrude beyond tiles.
+  if (Array.isArray(L.decorations)) {
+    for (let i = L.decorations.length - 1; i >= 0; i--) {
+      const d = L.decorations[i];
+      if (d.tileLayer !== 'back') continue;
+      const rect = hitRect('decoration', d);
+      if (rect && _hits(rect, worldX, worldY)) {
+        const u = d.w ? (worldX - d.x) / d.w : 0.5;
+        const v = d.h ? (worldY - d.y) / d.h : 0.5;
+        if (isOpaqueAt(d.src, u, v)) return { kind: 'decoration', ref: d };
       }
     }
   }

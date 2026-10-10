@@ -138,17 +138,8 @@ export function drawTile(ctx, tx, ty, T, type, topOpen = false, rot = 0, flipX =
   const x = tx * T, y = ty * T;
 
   if (type === 2) {
-    // One-way platform — thin neon ledge, no mass
-    ctx.save();
-    ctx.shadowBlur  = 8;
-    ctx.shadowColor = '#aa33ff';
-    ctx.fillStyle   = '#1a0830';
-    ctx.fillRect(x, y, T, 7);
-    ctx.shadowBlur  = 14;
-    ctx.shadowColor = '#cc44ff';
-    ctx.fillStyle   = '#9922dd';
-    ctx.fillRect(x, y, T, 2);
-    ctx.restore();
+    // One-way landing is collision only. The facade art beneath it supplies
+    // the visible rooftop; the Builder draws an editing bar separately.
     return;
   }
 

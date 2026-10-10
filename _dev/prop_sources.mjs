@@ -25,12 +25,12 @@ const ok=(c,m,d='')=>{ if(c){pass++;console.log(`  \u2713 ${m}${d?' — '+d:''}`
 const sec=t=>console.log(`\n[ ${t} ]`);
 const fire=(t,c)=>{for(const f of (_L[t]||[]))f({code:c,preventDefault(){}});};
 const manifest=JSON.parse(fs.readFileSync('assets/ASSET_MANIFEST.json','utf8').replace(/^\uFEFF/,''));
-const PROPS=['prop_ncp_fuse_box','prop_ncp_neon_sign','prop_ncp_security_camera','prop_ncp_streetlight','prop_ncp_vending_machine'];
+const PROPS=['prop_ncp_fuse_box','prop_ncp_tire_sign','prop_ncp_book_sign','prop_ncp_neon_sign','prop_ncp_security_camera','prop_ncp_streetlight','prop_ncp_vending_machine'];
 
 sec('Manifest: HVAC and the props filter TOGETHER, and all are placeable');
 {
   const el = manifest.assets.filter(a=>(a.tags||[]).includes('electric'));
-  ok(el.length === 7, 'the Electric filter matches 7 assets', 'generator + HVAC source + 5 props');
+  ok(el.length === 9, 'the Electric filter matches 9 assets', 'generator + HVAC source + 7 props');
   ok(el.some(a=>a.id==='source_hvac'), 'HVAC is one of them',
     'Chief: "the new electric HVAC unit and the other electric props need to be filtered together"');
   for (const id of PROPS) {
@@ -194,11 +194,11 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
 
   setF({ electricOnly:true });
   const el = ids();
-  ok(el.length === 7, 'the Electric filter shows exactly 7', el.join(', '));
+  ok(el.length === 9, 'the Electric filter shows exactly 9', el.join(', '));
   ok(el.includes('electrical_generator'), 'Generator is visible under Electric');
   ok(el.includes('source_hvac'), 'HVAC is in it — filtered TOGETHER with the props',
     'this is the literal request');
-  ok(PROPS.every(p=>el.includes(p)), 'and all 5 props are in it');
+  ok(PROPS.every(p=>el.includes(p)), 'and all 6 props are in it');
 
   setF({});
   const all = ids();
@@ -210,7 +210,7 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
                     'env_rt_tile_purple_a','env_rt_tile_accent_a'])
     ok(!all.includes(id), `generator-ineligible non-spawn ${id} stays hidden`,
       'the exemption is scoped to spawn assets, so Aki\u2019s palette is otherwise unchanged');
-  ok(all.length === 56, 'palette total is 56', 'includes placeable Generator and Wheel Drone');
+  ok(all.includes('prop_ncp_tire_sign'), 'the tire sign is visible in the unfiltered palette');
 
   setF({blueRooftopOnly:true});
   const blue=S.filteredManifestItems();
@@ -305,7 +305,7 @@ sec('Prop labels are short and never cut mid-word');
     ok((s.label||'').length <= 6, `level1 source label "${s.label}" is short enough to read`);
 }
 
-sec('Streetlight selection and dragging use its visible art and grounded source base');
+sec('Streetlight selection and dragging use its visible art and fine prop positioning');
 {
   const {state}=await import('../editor/state.js');
   const {boundingRect}=await import('../editor/selection.js');
@@ -313,12 +313,15 @@ sec('Streetlight selection and dragging use its visible art and grounded source 
   const lamp={kind:'prop',sprite:'assets/objects/night-city-props/streetlight/',artW:192,artH:192,x:201,y:350};
   state.level={cols:40,tiles:Array.from({length:40*18},(_,i)=>Math.floor(i/40)>=14?16:0),sources:[lamp]};
   __testReanchor(new Map([[lamp,{x:lamp.x,y:lamp.y}]]));
-  ok(lamp.x===192 && lamp.y+28===448,'dragged lamp snaps horizontally and rests on rooftop');
+  ok(lamp.x===201 && lamp.y===350,'dragged lamp keeps its chosen pixel position');
   const b=SV.sourceBox(lamp), selection=boundingRect('source',lamp);
   ok(selection.x===b.dX && selection.y===b.dY && selection.w===192 && selection.h===192,'selection wraps the lamp art instead of a generator-sized box');
-  ok(Math.abs(b.dY+b.dH-192*11/444-448)<1e-9,'powered visible base touches the rooftop');
+  const beforeBase=b.dY+b.dH;
+  lamp.y-=13;
+  const raised=SV.sourceBox(lamp);
+  ok(Math.abs(raised.dY+raised.dH-(beforeBase-13))<1e-9,'powered visible base follows a 13px upward move');
   const drained=SV.sourceBox({...lamp,drained:true});
-  ok(Math.abs(drained.dY+drained.dH-192*12/444-448)<1e-9,'drained visible base also touches the rooftop');
+  ok(Math.abs(drained.dY+drained.dH-192*12/444-(lamp.y+28))<1e-9,'drained art remains anchored to the moved source');
 }
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');

@@ -9,6 +9,7 @@ import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
          worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation, getTileFlip } from './state.js';
 import * as Selection from './selection.js';
 import { drawHvac, sourceBox } from '../src_scroll/source-visuals.js';
+import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
 function getImage(path) {
@@ -50,9 +51,9 @@ const CP_OFF_X = 31;   // Math.round(60  * 56/108)
 const CP_OFF_Y = 61;   // Math.round(117 * 56/108)
 
 // Player sprite anchor constants — from src_scroll/player.js.
-const PLAYER_SPRITE_W    = 92;
-const PLAYER_SPRITE_H    = 92;
-const PLAYER_SPRITE_FEET = 78;  // pixel row of feet within the 92px frame
+const PLAYER_SPRITE_W    = HERO_SIZE;
+const PLAYER_SPRITE_H    = HERO_SIZE;
+const PLAYER_SPRITE_FEET = HERO_FEET_Y;
 const PLAYER_HIT_W       = 20;  // collision box width (PLAYER_W in constants.js)
 const PLAYER_HIT_H       = 30;  // collision box height
 
@@ -108,11 +109,22 @@ export function render(ctx, canvas) {
   ctx.lineWidth = 1;
   ctx.strokeRect(originScreen.x, originScreen.y, extentScreen.x - originScreen.x, extentScreen.y - originScreen.y);
 
-  // Terrain tiles — draw with actual tile PNG when available; fallback to
+  // Objects may be authored partly past an edge, but only the part inside the
+  // level is visible. Keep the outline above outside the clipped world art.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(originScreen.x, originScreen.y, extentScreen.x - originScreen.x, extentScreen.y - originScreen.y);
+  ctx.clip();
+  const L = state.level;
+
+  // Explicitly backed scenery goes beneath rooftop ground. Legacy scenery
+  // keeps its existing Builder appearance above tiles until the author chooses.
+  _drawDecorations(ctx, d => d.tileLayer === 'back');
+
+  // Terrain tiles - draw with actual tile PNG when available; fallback to
   // solid color. NOTE: the pink rooftop-edge highlight previously drawn here
   // was removed — it was misleading because it appeared on every top-of-stack
   // tile, not just intentional rooftops.
-  const L = state.level;
   const rows = levelRows();
   const tsz = TILE_SIZE * c.zoom;
   // Small per-frame cache: tile value → resolved Image. Avoids repeating
@@ -128,7 +140,7 @@ export function render(ctx, canvas) {
   for (let r = 0; r < rows; r++) {
     for (let col = 0; col < L.cols; col++) {
       const v = L.tiles[r * L.cols + col];
-      if (v === 0) continue;
+      if (v === 0 || v === 2) continue; // Landable bars draw after facade art.
       const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
       if (p.x + tsz < 0 || p.x > w || p.y + tsz < 0 || p.y > h) continue;
       const img = tileIsSolid(v) ? resolveTileImg(v) : null;
@@ -163,54 +175,73 @@ export function render(ctx, canvas) {
   }
 
   // Decorations
-  if (Array.isArray(L.decorations)) {
-    for (const d of L.decorations) {
-      const p = worldToScreen(d.x, d.y);
-      const dw = d.w * c.zoom, dh = d.h * c.zoom;
-      if (p.x + dw < 0 || p.x > w || p.y + dh < 0 || p.y > h) continue;
-      const img = getImage(d.src);
-      if (img.complete && img.naturalWidth > 0) {
-        const rot  = d.rotation || 0;
-        const flip = !!d.flipX;
-        if (rot === 0 && !flip) {
-          ctx.drawImage(img, p.x, p.y, dw, dh);
+  _drawDecorations(ctx, d => d.tileLayer !== 'back');
+
+  function _drawDecorations(ctx, matchesLayer) {
+    if (Array.isArray(L.decorations)) {
+      for (const d of L.decorations) {
+        if (!matchesLayer(d)) continue;
+        const p = worldToScreen(d.x, d.y);
+        const dw = d.w * c.zoom, dh = d.h * c.zoom;
+        if (p.x + dw < 0 || p.x > w || p.y + dh < 0 || p.y > h) continue;
+        const img = getImage(d.src);
+        if (img.complete && img.naturalWidth > 0) {
+          const rot  = d.rotation || 0;
+          const flip = !!d.flipX;
+          if (rot === 0 && !flip) {
+            ctx.drawImage(img, p.x, p.y, dw, dh);
+          } else {
+            // Rotate/mirror around visual-bbox center. Source draw dims match the
+            // sprite's NATIVE orientation: at 90/270 that's (bbox.h, bbox.w).
+            // A horizontal mirror does NOT swap the bbox, so srcDW/srcDH are unaffected by
+            // flip — only the transform changes. Same translate-scale-rotate order as tiles
+            // and as src_scroll/level.js.
+            const rad = rot * Math.PI / 180;
+            const isHoriz = (rot % 180) === 0;   // 0 or 180
+            const srcDW = (isHoriz ? d.w : d.h) * c.zoom;
+            const srcDH = (isHoriz ? d.h : d.w) * c.zoom;
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;   // preserve pixel-art crispness
+            ctx.translate(p.x + dw / 2, p.y + dh / 2);
+            if (flip) ctx.scale(-1, 1);
+            ctx.rotate(rad);
+            ctx.drawImage(img, -srcDW / 2, -srcDH / 2, srcDW, srcDH);
+            ctx.restore();
+          }
         } else {
-          // Rotate/mirror around visual-bbox center. Source draw dims match the
-          // sprite's NATIVE orientation: at 90/270 that's (bbox.h, bbox.w).
-          // A horizontal mirror does NOT swap the bbox, so srcDW/srcDH are unaffected by
-          // flip — only the transform changes. Same translate-scale-rotate order as tiles
-          // and as src_scroll/level.js.
-          const rad = rot * Math.PI / 180;
-          const isHoriz = (rot % 180) === 0;   // 0 or 180
-          const srcDW = (isHoriz ? d.w : d.h) * c.zoom;
-          const srcDH = (isHoriz ? d.h : d.w) * c.zoom;
+          // A14: dangling decoration — image src did not resolve. Draw a labelled
+          // placeholder so Chief can see the decoration exists (and its bounds)
+          // without mistaking it for real tile content. A plain grey box is worse
+          // than nothing because it blends with level content; a red dashed
+          // outline with text is unambiguous. Do NOT strip the entry from the
+          // level JSON — Kiro left dangling refs deliberately for archive restore.
+          const labelH = Math.max(14, dh * 0.55);
           ctx.save();
-          ctx.imageSmoothingEnabled = false;   // preserve pixel-art crispness
-          ctx.translate(p.x + dw / 2, p.y + dh / 2);
-          if (flip) ctx.scale(-1, 1);
-          ctx.rotate(rad);
-          ctx.drawImage(img, -srcDW / 2, -srcDH / 2, srcDW, srcDH);
+          ctx.strokeStyle = 'rgba(255,80,80,0.7)';
+          ctx.lineWidth   = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(p.x + 0.5, p.y + 0.5, Math.max(dw, 40) - 1, Math.max(dh, 16) - 1);
+          ctx.setLineDash([]);
+          ctx.fillStyle = 'rgba(255,80,80,0.85)';
+          ctx.font      = Math.max(8, Math.min(10, labelH * 0.7)) + 'px monospace';
+          ctx.fillText('⚠ MISSING', p.x + 3, p.y + Math.min(labelH, dh - 2));
           ctx.restore();
         }
-      } else {
-        // A14: dangling decoration — image src did not resolve. Draw a labelled
-        // placeholder so Chief can see the decoration exists (and its bounds)
-        // without mistaking it for real tile content. A plain grey box is worse
-        // than nothing because it blends with level content; a red dashed
-        // outline with text is unambiguous. Do NOT strip the entry from the
-        // level JSON — Kiro left dangling refs deliberately for archive restore.
-        const labelH = Math.max(14, dh * 0.55);
-        ctx.save();
-        ctx.strokeStyle = 'rgba(255,80,80,0.7)';
-        ctx.lineWidth   = 1;
-        ctx.setLineDash([4, 4]);
-        ctx.strokeRect(p.x + 0.5, p.y + 0.5, Math.max(dw, 40) - 1, Math.max(dh, 16) - 1);
-        ctx.setLineDash([]);
-        ctx.fillStyle = 'rgba(255,80,80,0.85)';
-        ctx.font      = Math.max(8, Math.min(10, labelH * 0.7)) + 'px monospace';
-        ctx.fillText('⚠ MISSING', p.x + 3, p.y + Math.min(labelH, dh - 2));
-        ctx.restore();
       }
+  }
+  }
+
+  // Keep one-way roof surfaces visible above the building art they support.
+  // Collision remains at the authored tile row; this changes drawing order only.
+  for (let r = 0; r < rows; r++) {
+    for (let col = 0; col < L.cols; col++) {
+      if (L.tiles[r * L.cols + col] !== 2) continue;
+      const p = worldToScreen(col * TILE_SIZE, r * TILE_SIZE);
+      if (p.x + tsz < 0 || p.x > w || p.y + 7 * c.zoom < 0 || p.y > h) continue;
+      ctx.fillStyle = '#1a0830';
+      ctx.fillRect(p.x, p.y, tsz, 7 * c.zoom);
+      ctx.fillStyle = '#9922dd';
+      ctx.fillRect(p.x, p.y, tsz, 2 * c.zoom);
     }
   }
 
@@ -432,6 +463,7 @@ export function render(ctx, canvas) {
     }
     ctx.restore();
   }
+  ctx.restore();
 }
 
 // ── Gameplay object renderers ─────────────────────────────────────────────
@@ -1083,11 +1115,11 @@ function _drawChests(ctx, arr) {
 function _drawPlayerStart(ctx, ps) {
   if (!ps) return;
   const z = state.camera.zoom;
-  const spriteX = ps.x - 36;   // = ps.x + PLAYER_HIT_W/2 - PLAYER_SPRITE_W/2
-  const spriteY = ps.y - 48;   // = ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET
+  const spriteX = Math.round(ps.x + PLAYER_HIT_W / 2 - PLAYER_SPRITE_W / 2);
+  const spriteY = Math.round(ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET);
   const sp = worldToScreen(spriteX, spriteY);
   const sw = PLAYER_SPRITE_W * z, sh = PLAYER_SPRITE_H * z;
-  const img = getImage('assets/sprites/idle_2.0/east/frame_000.png');
+  const img = getImage('assets/sprites/hero-v3/idle/east/frame_000.png');
   ctx.imageSmoothingEnabled = false;
   if (img.complete && img.naturalWidth > 0) {
     ctx.drawImage(img, sp.x, sp.y, sw, sh);

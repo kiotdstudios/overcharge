@@ -332,14 +332,18 @@ console.log('\n[ Placement: grid alignment + grounding ]');
     };
 
     const checkPlacement = (kind, obj, w, h, label) => {
+      // Absorbable Night City props use source entries, but Chief positions
+      // their art at pixel precision and may deliberately lift it above a roof.
+      if (kind === 'sources' && obj.kind === 'prop') {
+        check(Number.isInteger(obj.x) && Number.isInteger(obj.y),
+          `${filename}: ${label} has pixel-aligned prop coordinates (${obj.x},${obj.y})`);
+        return;
+      }
       // X: grid alignment. Objects are authored on 32px columns.
       check(Number.isFinite(obj.x) && obj.x % TILE === 0,
         `${filename}: ${label} x is 32px grid-aligned (x=${obj.x})`);
 
-      // WALL-MOUNTED props are SUPPOSED to float (Chief 2026-09-27: a neon sign, fuse box
-      // or camera bolts to a wall, it does not stand on the pavement). Grounding them is
-      // the defect that pinned the sign to one spot. They still have to be grid-aligned on
-      // both axes, which is asserted instead — so a wall prop is not simply unchecked.
+      // Legacy non-prop wall sources may float but stay grid-aligned.
       if (obj.mount === 'wall') {
         check(Number.isFinite(obj.y) && obj.y % TILE === 0,
           `${filename}: ${label} is wall-mounted and grid-aligned on Y (y=${obj.y})`);
