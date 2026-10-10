@@ -14,8 +14,11 @@ for (const key of ['cols', 'tileRotations', 'tileFlips', 'playerStart',
 }
 for (let i = 0; i < now.tiles.length; i++) {
   const row = Math.floor(i / now.cols), col = i % now.cols;
-  const expected = row === 10 && col >= 49 && col <= 65
-    ? (col === 49 ? 42 : col === 65 ? 44 : 43) : old.tiles[i];
+  // Chief Builder saves after the dress pass (4e14b8f..): the gate-building roof became a
+  // one-way rooftop (tile 2), and the building at cols 22-23 was widened (rows 14-17).
+  const widened = (col === 22 || col === 23) && row >= 14 && row <= 17;
+  const expected = row === 10 && col >= 49 && col <= 65 ? 2
+    : widened ? (row === 14 ? 43 : 52) : old.tiles[i];
   assert.equal(now.tiles[i], expected, `unexpected tile edit at ${col},${row}`);
 }
 assert.equal(now.gates.find(g => g.isExit)?.required, 8);

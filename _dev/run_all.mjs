@@ -18,6 +18,14 @@ import { spawnSync } from 'node:child_process';
 const SKIP = {
   'run_all.mjs':     'this runner',
   'tile_grammar.mjs':'RETIRED by Chief ruling 2026-09-19 — asserts a rule that was deleted',
+  'level1_city_dress.mjs': 'snapshot of the 2026-10-06 dress pass; superseded by Chief Builder redesign of level1 (exit moved 1984->3136, building packs replaced)',
+  'level1_gate_rooftop.mjs': 'superseded by Chief Builder redesign of level1 (exit moved 1984->3136, building packs replaced)',
+  'level1_high_low_route.mjs': 'compares level1 to previews/level1-high-low.json; superseded by Chief Builder redesign of level1 (exit moved 1984->3136, building packs replaced)',
+  'level1_lower_rooftop.mjs': 'superseded by Chief Builder redesign of level1 (exit moved 1984->3136, building packs replaced)',
+  'build_level1_high_low.mjs': 'one-shot generator (writes previews/), not a test; superseded by Chief Builder redesign of level1 (exit moved 1984->3136, building packs replaced)',
+  'dress_level1_rooftops.mjs': 'one-shot generator that WRITES src_scroll/levels/level1.json, must never run from the suite',
+  'deco_anim.mjs': 'Playwright browser harness; needs chromium-headless-shell, run manually',
+  'overcharge_lab.mjs': 'Playwright browser harness; needs <repo> <port> args + chromium, run manually',
 };
 
 const dir = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));

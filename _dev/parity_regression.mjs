@@ -100,7 +100,8 @@ State.state.level = structuredClone(authored);
 check(State.worldToTile(63, 63).col === 1 && State.worldToTile(63, 63).row === 1, 'Builder worldToTile uses floor-based 32px coordinates');
 check(State.getTile(0, 0) === 1 && State.getTile(1, 0) === 2 && State.getTile(2, 0) === 10 && State.getTile(1, 1) === 13, 'Builder indexes flat tiles row-major');
 check(State.getTile(-1, 0) === 0 && !State.setTile(3, 0, 10), 'Builder rejects out-of-bounds tile writes');
-check(State.tileValueForAssetId('env_tile_dark_a') === 10 && State.tileValueForAssetId('env_tile_purple_b') === 13, 'Builder registry emits supported art tile values ≥10');
+// env_tile_dark_a / env_tile_purple_b were retired in aaa4db1 (remapped to mid_a); use live tiles.
+check(State.tileValueForAssetId('env_rt_tile_mid_b') === 17 && State.tileValueForAssetId('env_rt_tile_purple_a') === 19, 'Builder registry emits supported art tile values ≥10');
 check(State.tileValueForAssetId('unregistered_tile') === -1, 'Builder does not map an unregistered art asset to a reserved value');
 check(State.tileIsSolid(1) && State.tileIsSolid(10) && State.tileIsSolid(13) && !State.tileIsSolid(2), 'Builder solidness matches the runtime tile contract');
 
@@ -327,7 +328,9 @@ console.log('\n[ Placement: grid alignment + grounding ]');
     const surfaceUnder = (x, w, y) => {
       const footCol = Math.max(0, Math.min(Math.floor((x + w / 2) / TILE), cols - 1));
       const fromRow = Math.max(0, Math.floor(y / TILE));
-      for (let r = fromRow; r < rows; r++) if (SOLID(tileAt(footCol, r))) return r * TILE;
+      // Tile 2 (one-way rooftop) is not solid for walls but IS a surface you stand on,
+      // so an object resting on a one-way roof is grounded, not floating.
+      for (let r = fromRow; r < rows; r++) { const v = tileAt(footCol, r); if (SOLID(v) || v === 2) return r * TILE; }
       return null;
     };
 
@@ -609,9 +612,15 @@ console.log('\n[ Tile registry sync: editor <-> runtime <-> disk ]');
         `tile ${id}: editor asset id "${assetId}" is present in ASSET_MANIFEST.json`);
       if (manifestPath) {
         const base = path.basename(String(manifestPath)).replace(/\.png$/i, '');
-        check(base === runtimeK,
+        // Runtime keys are no longer PNG basenames (they became env_* ids that resolve
+        // through TILE_PATHS), so compare against the basename of the file the runtime
+        // actually loads. Falls back to the key itself when there is no TILE_PATHS entry.
+        const runtimeBase = tilePaths[runtimeK]
+          ? path.basename(String(tilePaths[runtimeK])).replace(/\.png$/i, '')
+          : runtimeK;
+        check(base === runtimeBase,
           `tile ${id}: editor and runtime resolve to the SAME file ` +
-          `(manifest basename "${base}" vs runtime key "${runtimeK}")`);
+          `(manifest basename "${base}" vs runtime file "${runtimeBase}" via key "${runtimeK}")`);
       }
 
       // 3. The file the runtime asks for must exist on disk. A registered key

@@ -70,7 +70,7 @@ sec('ASSET_MANIFEST — state frames ARE in _runtime_state_sprites[]');
 }
 
 // ── 2. boundingRect — content box 104×104 ────────────────────────────────────
-sec('boundingRect — chest returns 104×104 content box');
+sec('boundingRect — chest returns the 32×32 runtime hitbox');
 {
   // Import the state mock then selection.js
   const { boundingRect } = await import('../editor/selection.js');
@@ -79,8 +79,10 @@ sec('boundingRect — chest returns 104×104 content box');
   ok(!!r, 'boundingRect returns non-null for chest');
   ok(r?.x === 64,  'x matches chest.x',   String(r?.x));
   ok(r?.y === 128, 'y matches chest.y',   String(r?.y));
-  ok(r?.w === 104, 'width  = 104 (content)', String(r?.w));
-  ok(r?.h === 104, 'height = 104 (content)', String(r?.h));
+  // The Builder box was aligned to the runtime Chest hitbox (entities.js w/h = 32,
+  // renderer CHEST_CONTENT = 32); the old 104 was the source-art content size.
+  ok(r?.w === 32, 'width  = 32 (runtime hitbox)', String(r?.w));
+  ok(r?.h === 32, 'height = 32 (runtime hitbox)', String(r?.h));
 }
 
 // ── 3. Spawn defaults ────────────────────────────────────────────────────────

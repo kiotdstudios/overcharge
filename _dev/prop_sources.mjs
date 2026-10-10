@@ -25,12 +25,12 @@ const ok=(c,m,d='')=>{ if(c){pass++;console.log(`  \u2713 ${m}${d?' — '+d:''}`
 const sec=t=>console.log(`\n[ ${t} ]`);
 const fire=(t,c)=>{for(const f of (_L[t]||[]))f({code:c,preventDefault(){}});};
 const manifest=JSON.parse(fs.readFileSync('assets/ASSET_MANIFEST.json','utf8').replace(/^\uFEFF/,''));
-const PROPS=['prop_ncp_fuse_box','prop_ncp_tire_sign','prop_ncp_book_sign','prop_ncp_neon_sign','prop_ncp_security_camera','prop_ncp_streetlight','prop_ncp_vending_machine'];
+const PROPS=['prop_ncp_fuse_box','prop_ncp_tire_sign','prop_ncp_plug_sign','prop_ncp_book_sign','prop_ncp_neon_sign','prop_ncp_security_camera','prop_ncp_streetlight','prop_ncp_vending_machine'];
 
 sec('Manifest: HVAC and the props filter TOGETHER, and all are placeable');
 {
   const el = manifest.assets.filter(a=>(a.tags||[]).includes('electric'));
-  ok(el.length === 9, 'the Electric filter matches 9 assets', 'generator + HVAC source + 7 props');
+  ok(el.length === 10, 'the Electric filter matches 10 assets', 'generator + HVAC source + 8 props');
   ok(el.some(a=>a.id==='source_hvac'), 'HVAC is one of them',
     'Chief: "the new electric HVAC unit and the other electric props need to be filtered together"');
   for (const id of PROPS) {
@@ -145,14 +145,20 @@ sec('Level 1: Chief\u2019s lamp is a real source he can walk to and drain');
   if (lamp) {
     const lv0=new Level(def); const s=lv0.sources.find(x=>x.kind==='prop');
     const b=SV.sourceBox(s);
-    // Chief placed the DECORATION freehand at (173,293) with snap 1. Parity requires a
-    // SOURCE to be 32px grid-aligned and to rest on the surface — rules decorations are
-    // exempt from. So it had to move 1px right and 5px up, to (174,288).
-    // Asserting the grounded/aligned position rather than his original pixels: keeping his
-    // exact placement meant failing two parity rules that every other source obeys.
-    ok(b.dX===174 && Math.abs(b.dY - (288 + 192 * 11 / 444)) < 1e-9, 'art accounts for transparent padding at the grounded position',
-      `dX=${b.dX} dY=${b.dY}, was (173,293) freehand`);
-    ok(s.y + s.h === 480, 'and the lamp base rests ON the surface, not 5px into it');
+    // Chief has re-placed the lamp in the Builder since this was written, so assert the
+    // anchoring CONTRACT (art centred on the hitbox, art bottom on the hitbox bottom, minus
+    // the streetlight's 11px transparent padding) rather than one historical position.
+    const expX = s.x + s.w / 2 - 96, expY = s.y + s.h - 192 + 192 * 11 / 444;
+    ok(Math.abs(b.dX - expX) < 1e-9 && Math.abs(b.dY - expY) < 1e-9, 'art accounts for transparent padding at the grounded position',
+      `dX=${b.dX} dY=${b.dY}, expected (${expX},${expY})`);
+    // Not sunk into the roof (the original bug), and not visibly hovering either.
+    const col = Math.floor((s.x + s.w / 2) / 32);
+    let surf = null;
+    for (let r = Math.floor(s.y / 32); r < def.tiles.length / def.cols; r++) {
+      const v = def.tiles[r * def.cols + col]; if (v === 1 || v === 2 || v >= 10) { surf = r * 32; break; } }
+    const base = s.y + s.h;
+    ok(surf !== null && base <= surf && surf - base <= 8, 'and the lamp base rests ON the surface, not 5px into it',
+      `base=${base} surface=${surf}`);
   }
   // The real thing: walk there from spawn and hold E.
   const lv=new Level(def);
@@ -161,8 +167,14 @@ sec('Level 1: Chief\u2019s lamp is a real source he can walk to and drain');
   const dir = lamp2.cx < p.cx ? 'KeyA' : 'KeyD';
   fire('keydown',dir);
   let arrived=false;
+  // Level 1 now has a one-tile step before the lamp, so hop when blocked, as a player would.
+  let lastX=p.x, stuck=0, jumping=0;
   for(let i=0;i<3000;i++){ p.update(1/60,lv); lv.update(1/60,p); Input.update();
-    if(lamp2.inRange(p.cx,p.cy)){arrived=true;break;} if(p.y>lv.pxH+80) break; }
+    if(lamp2.inRange(p.cx,p.cy)){arrived=true;break;} if(p.y>lv.pxH+80) break;
+    if(jumping>0 && --jumping===0) fire('keyup','ArrowUp');
+    stuck = Math.abs(p.x-lastX) < 0.01 ? stuck+1 : 0; lastX=p.x;
+    if(stuck>10 && p.grounded && jumping===0){ fire('keydown','ArrowUp'); jumping=20; stuck=0; } }
+  if(jumping>0) fire('keyup','ArrowUp');
   fire('keyup',dir);
   ok(arrived, 'the player can WALK to it from spawn', 'unreachable energy is not energy');
   const before=p.charge+p.bankedPips*C.MAX_CHARGE;
@@ -194,7 +206,7 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
 
   setF({ electricOnly:true });
   const el = ids();
-  ok(el.length === 9, 'the Electric filter shows exactly 9', el.join(', '));
+  ok(el.length === 10, 'the Electric filter shows exactly 10', el.join(', '));
   ok(el.includes('electrical_generator'), 'Generator is visible under Electric');
   ok(el.includes('source_hvac'), 'HVAC is in it — filtered TOGETHER with the props',
     'this is the literal request');
@@ -244,6 +256,9 @@ sec('BOTH renderers draw the prop art — Builder AND game');
     if(k==='canvas') return {width:800,height:600};
     return ()=>{}; }, set:()=>true}); };
   const def = JSON.parse(fs.readFileSync('src_scroll/levels/level1.json','utf8'));
+  // Level 1 no longer contains a generator, so add one ordinary source to prove the prop
+  // branch does not hijack non-prop sources (in view of both cameras below).
+  def.sources = [...def.sources, { id:'GEN_FIXTURE', x:192, y:420, charge:4, label:'GEN' }];
 
   // ── GAME ──
   {
@@ -257,7 +272,7 @@ sec('BOTH renderers draw the prop art — Builder AND game');
     ok(lamp && lamp.a[2]===192 && lamp.a[3]===192, 'GAME draws it at its own 192x192',
       lamp ? `w=${lamp.a[2]} h=${lamp.a[3]}` : 'not drawn');
     // The two real generators must still use generator art.
-    ok(srcs.some(s=>/generator/.test(s)), 'GAME still draws generator art for the 2 GEN sources',
+    ok(srcs.some(s=>/generator/.test(s)), 'GAME still draws generator art for an ordinary GEN source',
       'the prop branch must not hijack ordinary sources');
   }
 
@@ -276,10 +291,12 @@ sec('BOTH renderers draw the prop art — Builder AND game');
     const lamp = ctx.calls.find(c=>/streetlight/.test(c.src));
     ok(lamp && lamp.a[2]===192 && lamp.a[3]===192, 'BUILDER draws it at its own 192x192, not 64x64',
       lamp ? `w=${lamp.a[2]} h=${lamp.a[3]}` : 'not drawn');
-    // Geometry must agree with the runtime: art world pos (174,288), camera (100,300) zoom 1.
-    ok(lamp && lamp.a[0]===74 && Math.abs(lamp.a[1] - (-12 + 192 * 11 / 444)) < 1e-9,
+    // Geometry must agree with the runtime: sourceBox world pos minus camera (100,300), zoom 1.
+    const firstLamp = def.sources.find(x=>x.kind==='prop');
+    const wb = SV.sourceBox({ ...firstLamp, w:28, h:28 });
+    ok(lamp && Math.abs(lamp.a[0] - (wb.dX - 100)) < 1e-9 && Math.abs(lamp.a[1] - (wb.dY - 300)) < 1e-9,
       'BUILDER places it exactly where the game will draw it',
-      lamp ? `screen (${lamp.a[0]},${lamp.a[1]}) expected (74,-12)` : 'not drawn');
+      lamp ? `screen (${lamp.a[0]},${lamp.a[1]}) expected (${wb.dX - 100},${wb.dY - 300})` : 'not drawn');
     ok(srcs.some(s=>/generator/.test(s)), 'BUILDER still draws generator art for the GEN sources');
   }
 }

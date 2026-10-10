@@ -64,12 +64,36 @@ export function analyse(d) {
   const exits = gates.filter(g => g.isExit);
   const spendGates = gates.filter(g => !g.blockOnly);
   const mandatory = spendGates.reduce((s, g) => s + (g.required || 0), 0)
-                  + switches.reduce((s, w) => s + (w.required || 0), 0);
+                  // A switch is only mandatory if the fence it opens cannot be walked under.
+                  + switches.filter(w => !bypassable(gates.find(g => g.id === w.linkedId) || {}))
+                            .reduce((s, w) => s + (w.required || 0), 0);
   const margin = totalCharge - mandatory;
 
   // REACHABILITY CLOSURE. Blockers seal a band; expand outward from spawn,
   // spending only reachable charge, until nothing more can be opened.
-  const blockers = gates.filter(g => !g.open).map(g => ({
+  // A blockOnly fence is only a wall if there is no walkable route UNDER it. Builder levels
+  // fork on exactly this (level2: upper route fenced, lower floor passes beneath), and a
+  // 1-D sweep that treats every fence as full-height wrongly forces the switch spend.
+  function bypassable(g) {
+    const PLAYER_H = 30;
+    if (!g.blockOnly) return false;
+    const rows = Math.round(tiles.length / (cols || 1));
+    const bottomRow = Math.ceil((g.y + (g.h || 64)) / TILE);
+    for (let c = Math.floor(g.x / TILE); c < Math.ceil((g.x + (g.w || 32)) / TILE); c++) {
+      let ok = false;
+      for (let r = bottomRow; r < rows && !ok; r++) {
+        const v = tiles[r * cols + c];
+        if (!(solid(v) || v === 2)) continue;
+        // walkable surface at r: need PLAYER_H of clear space above it, below the fence
+        let ceil = 0;
+        for (let k = r - 1; k >= 0; k--) if (solid(tiles[k * cols + c])) { ceil = (k + 1) * TILE; break; }
+        if (r * TILE - PLAYER_H >= Math.max(ceil, g.y + (g.h || 64))) ok = true;
+      }
+      if (!ok) return false;
+    }
+    return true;
+  }
+  const blockers = gates.filter(g => !g.open && !bypassable(g)).map(g => ({
     id: g.id, x: g.x, w: g.w || 32, required: g.required || 0,
     blockOnly: !!g.blockOnly, isExit: !!g.isExit, opened: false,
   }));
@@ -87,8 +111,8 @@ export function analyse(d) {
     progress = false;
     // absorb every source inside the reachable band
     for (const s of sources)
-      if (!drained.has(s.id) && s.x >= lo - TILE && s.x <= hi + TILE) {
-        drained.add(s.id); energy += (s.charge || 0); progress = true;
+      if (!drained.has(s) && s.x >= lo - TILE && s.x <= hi + TILE) {
+        drained.add(s); energy += (s.charge || 0); progress = true;
       }
     // widen to the nearest blocker on each side
     const leftEdge  = Math.max(0, Math.min(...blockers.filter(k => !k.opened && k.x + k.w <= lo).map(k => k.x + k.w), 0));

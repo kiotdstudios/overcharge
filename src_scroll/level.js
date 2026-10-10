@@ -200,6 +200,9 @@ export class Level {
     }
 
     for (const gate of this.gates) {
+      // No player this frame (a one-frame sight break, headless rigs): nothing can
+      // reach or charge an exit, so clear the per-frame flag and move on.
+      if (!player) { gate._justOpenedByPlayer = false; continue; }
       const atExit = player.x + player.w > gate.x && player.x < gate.x + gate.w &&
         player.y + player.h > gate.y && player.y < gate.y + gate.h;
       const chargedHere = gate._justOpenedByPlayer === true && gate.inRange(player.cx, player.cy);

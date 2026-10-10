@@ -21,7 +21,8 @@ globalThis.document = {
   body: { style: {}, appendChild(){}, removeChild(){} },
   addEventListener(){}, removeEventListener(){},
 };
-globalThis.navigator = { clipboard: { writeText: async () => {} } };
+// Node 21+ defines a getter-only globalThis.navigator, so plain assignment throws.
+Object.defineProperty(globalThis, 'navigator', { value: { clipboard: { writeText: async () => {} } }, configurable: true, writable: true });
 // IndexedDB absent → localstore degrades gracefully (it checks typeof indexedDB)
 // fetch not available → loadLevelOrder falls through to the empty-manifest default
 

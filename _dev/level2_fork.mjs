@@ -77,24 +77,28 @@ sec('Structure: the link resolves and the palette is respected');
   ok(solid(L2.tiles[Math.floor((ch.y + 32)/T)*C + chCol]), 'chest is grounded on solid terrain', `y+h=${ch.y+32}`);
 }
 
-sec('Frozen economy: BOTH routes complete, and no number moved');
+sec('Economy: BOTH routes complete with the current Builder layout');
 {
-  const A1 = L2.sources.find(s=>s.id==='A1'), E1 = L2.sources.find(s=>s.id==='E1');
-  ok(A1.charge===4, 'A1 = 4', `${A1.charge}`);
-  ok(E1.charge===6, 'E1 = 6', `${E1.charge}`);
+  // Chief replaced the A1=4 / E1=6 generators with two LAMP props (4 + 4) in Builder
+  // saves after 2026-10-06. Pin the CURRENT numbers and keep the fork's real promise:
+  // both routes finish, and the chest detour finishes richer.
+  const lamps = L2.sources.filter(s => s.kind === 'prop');
+  const total = L2.sources.reduce((n, s) => n + (s.charge || 0), 0);
+  ok(lamps.length === 2 && lamps.every(s => s.charge === 4), 'two LAMP sources of 4 each', lamps.map(s => s.charge).join('+'));
+  ok(L2.sources.every(s => s.x < fenceDef.x), 'all source charge is collected before the fork', `fence x=${fenceDef.x}`);
   ok(sw.required===2, 'SW1 = 2', `${sw.required}`);
   ok(exitDef.required===8, 'EXIT = 8', `${exitDef.required}`);
-  ok(L2.chests[0].cost===2 && L2.chests[0].reward===10, 'chest cost 2 / reward 10', 'one pip');
-  // ROUTE B: never touch the switch. 4 + 6 = 10, exit costs 8.
-  ok(A1.charge + E1.charge >= exitDef.required,
-    'ROUTE B completes with the switch NEVER activated', `${A1.charge}+${E1.charge}=${A1.charge+E1.charge} >= ${exitDef.required}, finishes with ${A1.charge+E1.charge-exitDef.required}`);
-  // ROUTE A: pay switch 2, pay chest 2, gain a full pip (10), then E1.
-  const routeA = A1.charge - sw.required - L2.chests[0].cost + MAX_CHARGE + E1.charge;
+  ok(L2.chests[0].cost===2, 'chest cost 2', 'pays out one banked pip (MAX_CHARGE)');
+  // ROUTE B: never touch the switch, walk under the fence.
+  ok(total >= exitDef.required,
+    'ROUTE B completes with the switch NEVER activated', `${total} >= ${exitDef.required}, finishes with ${total-exitDef.required}`);
+  // ROUTE A: pay switch, pay chest, gain a full pip.
+  const routeA = total - sw.required - L2.chests[0].cost + MAX_CHARGE;
   ok(routeA >= exitDef.required,
     'ROUTE A completes through the switch and chest', `usable ${routeA} >= ${exitDef.required}, finishes with ${routeA-exitDef.required}`);
-  ok(routeA - exitDef.required > A1.charge + E1.charge - exitDef.required,
+  ok(routeA - exitDef.required > total - exitDef.required,
     'and ROUTE A finishes RICHER, so the detour is worth choosing',
-    `A leaves ${routeA-exitDef.required} vs B leaves ${A1.charge+E1.charge-exitDef.required}`);
+    `A leaves ${routeA-exitDef.required} vs B leaves ${total-exitDef.required}`);
 }
 
 sec('RULING A2 — a blockOnly gate must FILL A BOUNDED OPENING (every level, not just this one)');
