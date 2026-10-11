@@ -64,11 +64,7 @@ const PLAYER_HIT_H       = 30;  // collision box height
 //   dX = Math.round(cx - 56/2)  = Math.round(x + 11 - 28) = x - 17
 //   dY = (y + hitH) - 56        = y + 22 - 56             = y - 34
 //
-// FENCE_CANVAS: fence art is 64x64 per tile, tiled to cover the gate hitbox.
-//   baseX = Math.round(cx - ceil(w/64)*64/2)
-//   baseY = (y + h) - ceil(h/64)*64
 const WALL_SW_CANVAS = 56;   // matches WALL_SW_CANVAS in electricity.js
-const FENCE_CANVAS   = 64;   // matches FENCE_CANVAS in electricity.js
 
 // Terrain tile PNG lookup — keyed by ASSET ID, not by array position, so a
 // new manifest tile inserted at any position does not renumber saved cells.
@@ -552,30 +548,15 @@ function _drawGates(ctx, arr) {
   const z = state.camera.zoom;
   const SPRITE_W = GATE_SRC_W, SPRITE_H = GATE_SRC_H;   // 94x105, matches runtime spriteBox()
   for (const g of arr) {
-    // ── Fence branch: style:"fence" blockOnly gate draws live fence art (64x64 tiles).
-    // Anchor/tiling copied from electricity.js PowerGate._drawFence — see FENCE_CANVAS
-    // constant block at the top of this file.
-    // Builder shows frame_001.png (static first live frame — frame_000 is byte-identical
-    // to fence_dead.png and MUST NOT appear on a live fence; see electricity.js comment).
+    // Fence uses the same complete three-strand sprite and hitbox as gameplay.
     if (g.style === 'fence') {
-      const cols = Math.max(1, Math.ceil(g.w / FENCE_CANVAS));
-      const rows = Math.max(1, Math.ceil(g.h / FENCE_CANVAS));
-      const totalW   = cols * FENCE_CANVAS;
-      const baseWX   = Math.round(g.x + g.w / 2 - totalW / 2);
-      const baseWY   = (g.y + g.h) - rows * FENCE_CANVAS;
-      const fimg     = getImage('assets/objects/fence/frame_001.png');
+      const fimg     = getImage('assets/objects/fence/night-city/frame_001.png');
       const FCOL     = '#66ccff';
       ctx.imageSmoothingEnabled = false;
       if (fimg.complete && fimg.naturalWidth > 0) {
         ctx.save();
-        ctx.shadowBlur = Math.max(8, 12 * z); ctx.shadowColor = FCOL;
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            const tp = worldToScreen(baseWX + c * FENCE_CANVAS, baseWY + r * FENCE_CANVAS);
-            ctx.drawImage(fimg, tp.x, tp.y, FENCE_CANVAS * z, FENCE_CANVAS * z);
-          }
-        }
-        ctx.shadowBlur = 0;
+        const tp = worldToScreen(g.x, g.y);
+        ctx.drawImage(fimg, tp.x, tp.y, g.w * z, g.h * z);
         ctx.restore();
       } else {
         // Hatched fallback while image loads

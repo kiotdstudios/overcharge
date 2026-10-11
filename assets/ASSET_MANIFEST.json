@@ -719,7 +719,7 @@
     },
     {
       "id": "electric_fence",
-      "path": "assets/objects/fence/frame_001.png",
+      "path": "assets/objects/fence/night-city/frame_001.png",
       "category": "electrical",
       "tags": [
         "fence",
@@ -728,13 +728,13 @@
         "electrical",
         "placeable"
       ],
-      "frame_width": 64,
+      "frame_width": 128,
       "frame_height": 64,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Palette entry for the electric fence object (ONE entry per device — ORDER AKI 06). Art: frame_001.png (first real frame of the live loop — reads as active/charged; frame_000 excluded, byte-identical to fence_dead.png). Default spawn: w:32, h:128, blockOnly:true, required:1. Runtime states (fence_dead, fence_live_anim) are in _runtime_state_sprites[], not here.",
+      "notes": "Night City electric fence with red-capped posts and three animated blue strands. Default Builder spawn: 128x64, blockOnly:true, required:1. Existing saved fences retain their dimensions and collision. Runtime live/dead states are separate entries.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
@@ -2866,7 +2866,7 @@
     },
     {
       "id": "fence_dead",
-      "path": "assets/objects/fence/fence_dead.png",
+      "path": "assets/objects/fence/night-city/dead.png",
       "category": "electrical",
       "tags": [
         "fence",
@@ -2877,13 +2877,13 @@
         "passable",
         "electrical"
       ],
-      "frame_width": 64,
+      "frame_width": 128,
       "frame_height": 64,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — fence in shorted/dead/passable state. 64x64, tiled to cover gate hitbox. frame_000.png is byte-identical to this file — do not use frame_000 in the live animation. NOT a palette entry.",
+      "notes": "Runtime shorted/passable state of the Night City three-strand fence. Static slack wires. NOT a palette entry.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Runtime state sprite — wired in electricity.js PowerGate._drawFence, not palette-placeable"
@@ -2891,7 +2891,7 @@
     },
     {
       "id": "fence_live_anim",
-      "path": "assets/objects/fence/frame_{n}.png",
+      "path": "assets/objects/fence/night-city/frame_{n}.png",
       "category": "electrical",
       "tags": [
         "fence",
@@ -2903,13 +2903,13 @@
         "blocking",
         "electrical"
       ],
-      "frame_width": 64,
+      "frame_width": 128,
       "frame_height": 64,
-      "frame_count": 8,
+      "frame_count": 4,
       "fps": 10,
       "directions": null,
       "loop": true,
-      "notes": "Live/blocking fence animation. 8 frames: frame_001..frame_008 (SKIP frame_000 — byte-identical to fence_dead.png). Tiled 64x64 to cover gate hitbox. NOT a palette entry.",
+      "notes": "Live/blocking Night City fence animation: 4 frames with three jagged blue strands between red-capped posts. NOT a palette entry.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Runtime animation — wired in electricity.js PowerGate._drawFence, not palette-placeable"

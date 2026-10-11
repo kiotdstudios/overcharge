@@ -72,36 +72,33 @@ sec('SCHEMA — style is additive and default-off (F9)');
   const s=new EL.Switch({id:'S2',x:0,y:0,required:2,linkedId:'G',style:'wat'});
   ok(s.style===null,'unknown switch style falls back to default'); }
 
-sec('F1 — LIVE FENCE NEVER DRAWS frame_000 (the rest pose)');
+sec('F1 — LIVE NIGHT CITY FENCE NEVER DRAWS DEAD ART');
 { const g=fence();
   const seen=[];
   for(let i=0;i<240;i++){ g.update(1/60); seen.push(...shot(g).map(fileOf)); }
   const set=uniq(seen);
-  ok(!set.includes('frame_000.png'),
-    'a live fence NEVER draws frame_000.png',`drew ${set.length} distinct: ${set.sort().join(',')}`);
-  ok(!set.includes('fence_dead.png'),
-    '  ...and never draws fence_dead.png while blocking');
-  ok(set.length===8,'  ...cycles exactly 8 frames (001-008)',`${set.length}`);
-  for(let k=1;k<=8;k++) if(!set.includes('frame_00'+k+'.png')) ok(false,'missing frame_00'+k+'.png');
-  ok(set.every(f=>/^frame_00[1-8]\.png$/.test(f)),'  ...all drawn frames are in 001..008'); }
+  ok(!set.includes('dead.png'),'a live fence NEVER draws slack dead art');
+  ok(set.length===4,'  ...cycles exactly 4 live frames',`${set.length}`);
+  for(let k=1;k<=4;k++) if(!set.includes('frame_00'+k+'.png')) ok(false,'missing frame_00'+k+'.png');
+  ok(set.every(f=>/^frame_00[1-4]\.png$/.test(f)),'  ...all drawn frames are in 001..004'); }
 
-sec('F1 — DEAD FENCE is static fence_dead.png');
+sec('F1 — DEAD FENCE is static dead.png');
 { const g=fence(); g.open=true;
   const seen=[];
   for(let i=0;i<240;i++){ g.update(1/60); seen.push(...shot(g).map(fileOf)); }
   const set=uniq(seen);
-  ok(set.length===1&&set[0]==='fence_dead.png',
-    'a dead fence draws ONLY fence_dead.png, statically',`got ${set.join(',')}`); }
+  ok(set.length===1&&set[0]==='dead.png',
+    'a dead fence draws ONLY dead.png, statically',`got ${set.join(',')}`); }
 
-sec('F3 — TILING over the hitbox, hitbox unchanged');
+sec('F3 - ONE COMPLETE SPRITE FITS HITBOX, hitbox unchanged');
 { const g=fence();               // 32w x 128h
   const n=shot(g).length;
-  ok(n===2,'a 32x128 fence tiles the 64x64 art exactly 2x vertically',`${n} draws`);
+  ok(n===1,'a 32x128 fence draws one complete three-strand sprite',`${n} draws`);
   ok(g.w===32&&g.h===128,'  ...and the HITBOX is unchanged',`${g.w}x${g.h}`); }
 { const g=fence({w:128,h:64});
-  ok(shot(g).length===2,'a 128x64 fence tiles 2x horizontally'); }
+  ok(shot(g).length===1,'a 128x64 fence draws one complete sprite'); }
 { const g=fence({w:32,h:32});
-  ok(shot(g).length===1,'a small fence still draws at least one tile'); }
+  ok(shot(g).length===1,'a small fence still draws one sprite'); }
 
 sec('F3 — fence BLOCKS while live, PASSES when dead');
 { const g=fence();
@@ -220,7 +217,7 @@ sec('F7 — the fence dies IMMEDIATELY, concurrently with the burn (RULED)');
   ok(fg.open===true,'the frame the switch fires, the fence is ALREADY open');
   ok(fg.blocks(fg.x,fg.y,32,30)===false,'  ...and immediately passable (no delay)');
   ok(sw.burnDone===false,'  ...while the switch burn is still playing');
-  ok(fileOf(shot(fg)[0])==='fence_dead.png','  ...fence already draws dead art'); }
+  ok(fileOf(shot(fg)[0])==='dead.png','  ...fence already draws dead art'); }
 
 sec('F11 — _destroyT snapshot / restore');
 { const cols=20, tiles=new Array(cols*18).fill(0);
