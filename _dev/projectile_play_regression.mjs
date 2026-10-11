@@ -21,6 +21,10 @@ held(['KeyL']);
 step(player, level);
 assert.equal(player._bolts.length, 1, 'L creates a visible projectile in Level 1');
 assert.equal(player._bolts[0].alive, true, 'the first frame does not cull the bolt');
+assert.ok(Math.abs(player._bolts[0].cx - (player.cx + 18 + 320 / 60)) < 1e-6,
+  'east-facing bolt begins at the casting hand');
+assert.ok(Math.abs(player._bolts[0].cy - (player.y - 16)) < 1e-6,
+  'bolt height aligns with the hand, not the lower body');
 assert.equal(player.usableEnergy, 7.75, 'L spends 0.25 of the player’s 8 charge');
 assert.equal(level.isFailState(player), false, 'remaining charge keeps the run active');
 
@@ -35,4 +39,16 @@ for (const source of levelWithSource.sources.slice(1)) {
 }
 assert.equal(levelWithSource.isFailState(player), false,
   'remaining source charge is not mislabeled as discharged');
-console.log('RESULTS: 9 passed, 0 failed');
+
+const west = new Player(def.playerStart.x, def.playerStart.y);
+west.setEnergyState(1, 0);
+held([]);
+step(west, level);
+held(['ArrowLeft', 'KeyL']);
+step(west, level);
+assert.equal(west._bolts.length, 1, 'west-facing shot is created');
+assert.ok(Math.abs(west._bolts[0].cx - (west.cx - 18 - 320 / 60)) < 1e-6,
+  'west-facing bolt begins at the mirrored casting hand');
+assert.ok(Math.abs(west._bolts[0].cy - (west.y - 16)) < 1e-6,
+  'west-facing bolt keeps the hand height');
+console.log('RESULTS: 14 passed, 0 failed');

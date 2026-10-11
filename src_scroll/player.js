@@ -21,6 +21,10 @@ const SPRITE_FEET_Y = HERO_FEET_Y;
 const COYOTE_TIME  = 0.1;   // seconds of grace after walking off an edge
 const JUMP_BUFFER       = 0.1;   // pre-jump input buffer
 const BOLT_LAUNCH_SPEED = 320;   // px/s — projectile velocity when L fires
+// hero-v3 cast frame 000: the extended palm is ~18 rendered pixels from the
+// sprite centre and ~46 pixels above the foot anchor (512px source at 80px).
+const BOLT_HAND_X = 18;
+const BOLT_HAND_ABOVE_FEET = 46;
 
 export class Player {
   constructor(x, y) {
@@ -854,8 +858,8 @@ export class Player {
     this.spendEnergy(PROJECTILE_CHARGE_COST);
 
     this._bolts.push(new ElectricBolt(
-      this.cx,
-      this.y + 8,                      // upper-torso spawn — not feet
+      this.cx + (this._facingRight ? BOLT_HAND_X : -BOLT_HAND_X),
+      this.y + this.h - BOLT_HAND_ABOVE_FEET,
       dx * BOLT_LAUNCH_SPEED,
       dy * BOLT_LAUNCH_SPEED
     ));
