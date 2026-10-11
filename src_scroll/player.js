@@ -26,6 +26,43 @@ const BOLT_LAUNCH_SPEED = 320;   // px/s — projectile velocity when L fires
 const BOLT_HAND_X = 18;
 const BOLT_HAND_ABOVE_FEET = 46;
 
+// Authored pixel FX: kept separate from the body animation so the beam can
+// connect sources and gates at different distances without changing gameplay.
+const loadFxFrames = (folder, prefix) => Array.from({ length: 4 }, (_, i) => {
+  if (typeof Image === 'undefined') return null;
+  const image = new Image();
+  image.src = `assets/sprites/${folder}/${prefix}-${i + 1}.png`;
+  return image;
+});
+const transferFrames = loadFxFrames('energy-transfer', 'fx');
+const arrivalFrames = loadFxFrames('energy-arrival', 'impact');
+
+function drawTransfer(ctx, x1, y1, x2, y2, time, phase = 0) {
+  const frame = transferFrames[Math.floor(time * 12 + phase) % transferFrames.length];
+  if (!frame?.complete || !frame.naturalWidth) return;
+  const dx = x2 - x1, dy = y2 - y1;
+  const distance = Math.hypot(dx, dy);
+  if (distance < 4) return;
+  ctx.save();
+  ctx.translate(Math.round(x1), Math.round(y1));
+  ctx.rotate(Math.atan2(dy, dx));
+  ctx.imageSmoothingEnabled = false;
+  // The generated frame has a common 96px canvas; its electric ribbon lies
+  // in this 32px-high center strip. Nearest-neighbor scaling keeps hard pixels.
+  ctx.drawImage(frame, 0, 32, 96, 32, 0, -14, Math.round(distance), 28);
+  ctx.restore();
+}
+
+function drawArrival(ctx, x, y, time, alpha = 1) {
+  const frame = arrivalFrames[Math.floor(time * 14) % arrivalFrames.length];
+  if (!frame?.complete || !frame.naturalWidth) return;
+  ctx.save();
+  ctx.globalAlpha *= alpha;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(frame, Math.round(x - 16), Math.round(y - 16), 32, 32);
+  ctx.restore();
+}
+
 export class Player {
   constructor(x, y) {
     this.x       = x;
@@ -1165,10 +1202,9 @@ export class Player {
 
     // Absorption arc: source → player
     if (this.absorbing && this.absorbTarget && this._absorbFx > 0) {
-      drawLightningArc(ctx,
+      drawTransfer(ctx,
         this.absorbTarget.cx, this.absorbTarget.cy,
-        this.cx, this.cy,
-        '#cc44ff', t);
+        this.cx, this.cy, t);
     }
 
     // Discharge arc: player → device
@@ -1181,7 +1217,7 @@ export class Player {
         // Distribute end-points horizontally across gate face; oscillate vertically
         const tx = tgt.x + tgt.w * (i + 0.5) / arcCount;
         const ty = tgt.y + tgt.h / 2 + Math.sin(t * 7 + i * 2.3) * (tgt.h * 0.28);
-        drawLightningArc(ctx, this.cx, this.cy, tx, ty, '#cc44ff', t + i * 0.22, 8);
+        drawTransfer(ctx, this.cx, this.cy, tx, ty, t, i);
       }
     }
 
@@ -1193,22 +1229,11 @@ export class Player {
         '#ffffff', t);
     }
 
-    // AKI_17: local glow at the player when energy actually arrives (absorb tick or pip
-    // bank — see giveEnergy()/bankPip()). One-shot per transfer, not repeating, so it is
-    // already reduced-motion-safe in cadence; reduced motion just caps peak alpha/blur so
-    // it reads as a steady soft pulse rather than a hot flash.
+    // One-shot pixel spark when energy actually arrives (absorb tick or pip bank).
     if (this._energyGlowFx > 0) {
       const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const life = Math.min(1, this._energyGlowFx / 0.25);
-      const r     = (this.w + this.h) * 0.9;
-      const peak  = reducedMotion ? 0.28 : 0.4;
-      ctx.save();
-      const glow = ctx.createRadialGradient(this.cx, this.cy, 2, this.cx, this.cy, r);
-      glow.addColorStop(0, `rgba(140,220,255,${(peak * life).toFixed(3)})`);
-      glow.addColorStop(1, 'rgba(140,220,255,0)');
-      ctx.fillStyle = glow;
-      ctx.fillRect(this.cx - r, this.cy - r, r * 2, r * 2);
-      ctx.restore();
+      drawArrival(ctx, this.cx, this.cy, t, life * (reducedMotion ? 0.5 : 0.85));
     }
 
     // Sprite: centered horizontally on hitbox; feet row (y=78 in 92px frame) pinned to hitbox bottom
