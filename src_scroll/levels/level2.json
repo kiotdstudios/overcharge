@@ -1838,7 +1838,7 @@
       "id": "BARRIER",
       "x": 2208,
       "y": 160,
-      "w": 32,
+      "w": 64,
       "h": 64,
       "required": 1,
       "blockOnly": true,
