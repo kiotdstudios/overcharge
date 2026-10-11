@@ -1679,6 +1679,34 @@
       }
     },
     {
+      "id": "prop_ncp_atm_machine",
+      "spawnsKind": "source-prop",
+      "path": "assets/objects/night-city-props/atm-machine/00.png",
+      "category": "decoration",
+      "tags": [
+        "source",
+        "placement",
+        "spawn",
+        "night_city_props",
+        "electric",
+        "prop",
+        "animated"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 8,
+      "fps": 8,
+      "directions": null,
+      "loop": true,
+      "notes": "Free-standing street ATM. States: powered(f0-1), absorbing(f2-5), drained(f6-7). 128x128px, floor-standing (no mount key, same as the vending machine).",
+      "trim": {
+        "x": 0.2109,
+        "y": 0.0312,
+        "w": 0.5781,
+        "h": 0.875
+      }
+    },
+    {
       "id": "wheel_drone",
       "path": "assets/sprites/city-drones/wheel-drone/frame_000.png",
       "category": "enemy",
@@ -3056,5 +3084,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 122
+  "count": 123
 }
