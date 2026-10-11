@@ -128,6 +128,15 @@ section('[ Gate: _playerReady tracks usableEnergy vs remaining required, not ope
   gate.update(0.016, player);
   assert(gate._playerReady === true, '3 usableEnergy against required 3 is enough \u2014 gate acknowledges readiness');
 
+  // Readiness is still tracked, but the cyan box over the gate art is gone.
+  const strokes = [];
+  const ctx = new Proxy({}, {
+    get: (_, key) => key === 'strokeRect' ? (...args) => strokes.push(args) : () => {},
+    set: () => true,
+  });
+  gate.draw(ctx);
+  assert(strokes.length === 0, 'ready gate draws no cyan outline rectangle');
+
   // The order's hard constraint: this cue must never alter required/charged/open/position.
   assert(gate.required === 3 && gate.charged === 0 && gate.open === false, 'readiness computation leaves required/charged/open untouched');
 }

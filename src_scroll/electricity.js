@@ -747,27 +747,6 @@ export class PowerGate {
     }
     ctx.restore();
 
-    // AKI_17: steady ambient readiness glow — distinct from the _reactT "charging" flash,
-    // fires only while the player is carrying enough usableEnergy to fully charge this gate
-    // and it has not opened yet. Does not touch required/charged/open/position/collision.
-    // Reduced motion drops the breathing sine to a flat value so the cue is a steady low
-    // outline instead of a pulse.
-    // A fully uncharged gate is normally dormant; it still needs this outline
-    // when the player carries enough energy, or the readiness cue is invisible
-    // at the moment it would be most useful.
-    if (this._playerReady) {
-      const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
-      const breathe = reducedMotion ? 0.5 : 0.5 + 0.3 * Math.sin(this._t * 3.2);
-      ctx.save();
-      ctx.globalAlpha  = 0.55 * breathe;
-      ctx.strokeStyle  = '#8cf0ff';
-      ctx.lineWidth    = 2;
-      ctx.shadowBlur   = reducedMotion ? 0 : 8;
-      ctx.shadowColor  = '#8cf0ff';
-      ctx.strokeRect(dX + 1, dY + 1, spriteW - 2, spriteH - 2);
-      ctx.restore();
-    }
-
     // Charge progress is communicated by the SPRITE ROWS (dormant -> idle ->
     // charging) plus the numeric ⚡ readout below. The old vertical purple strip
     // that rose from the gate's base was pre-sprite-sheet logic and

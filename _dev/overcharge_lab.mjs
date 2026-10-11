@@ -102,7 +102,7 @@ await tap('Space', 120); await page.waitForTimeout(60);
 ok(beforeSpace === 'yes' && (await field('GROUNDED')) === 'yes', 'Space does NOT jump (it is charge)');
 
 // ── one-shots must not corrupt movement ──
-for (const [key, want] of [['KeyJ','energy-strike'], ['KeyK','projectile-cast'], ['KeyH','hurt']]) {
+for (const [key, want] of [['KeyK','energy-strike'], ['KeyL','projectile-cast'], ['KeyH','hurt']]) {
   await tap(key); await page.waitForTimeout(60);
   ok((await field('STATE')).startsWith(want), `${key} triggers ${want}`, await field('STATE'));
   await page.waitForTimeout(1500);

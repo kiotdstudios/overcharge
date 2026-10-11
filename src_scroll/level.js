@@ -138,6 +138,14 @@ export class Level {
     const needed = exit.required - exit.charged;
     if (needed <= 0) return false;
 
+    // A shortfall against the exit price is not the same as being discharged.
+    // In particular, firing at 8 charge leaves 7.75 after a 0.25-cost shot;
+    // ending the run on that frame hides the projectile and reports zero charge
+    // while the player still has some. Keep play active while usable energy remains.
+    if (player.usableEnergy > 1e-9) return false;
+    // Let a final shot finish travelling before showing the loss screen.
+    if (player._bolts?.some(b => b.alive)) return false;
+
     const sourcesLeft  = this.sources
       .filter(s => !s.drained)
       .reduce((sum, s) => sum + s.charge, 0);
@@ -163,7 +171,9 @@ export class Level {
 
     const pipCharge = player.bankedPips * MAX_CHARGE;
     const available = player.charge + pipCharge + sourcesLeft + pickupsLeft + enemyDrops + chestNet;
-    return available < needed - 0.01;
+    // The loss screen says "All charge lost." A remaining source, pickup,
+    // enemy drop, chest reward, or player charge means that is not true yet.
+    return available <= 1e-9;
   }
 
   update(dt, player) {

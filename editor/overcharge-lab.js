@@ -193,11 +193,10 @@ const p = {
 //   drop    pressedAny ArrowDown/KeyS when grounded
 //   absorb  held KeyE
 //   charge  held Space                        <- shows the discharge animation
-//   attack  pressed KeyK  — melee if an enemy is near, otherwise an aimed bolt
+//   melee   pressed KeyK
+//   bolt    pressed KeyL
 //   reset   KeyR
-// KeyJ and KeyH are LAB-ONLY, flagged in the legend: the lab has no enemies, so without
-// a melee trigger the energy-strike clip would be unreachable, and nothing damages the
-// player so hurt would never play.
+// KeyH is LAB-ONLY: nothing damages the player here, so hurt would never play.
 const LEFT = ['ArrowLeft','KeyA'], RIGHT = ['ArrowRight','KeyD'], JUMP = ['ArrowUp','KeyW'];
 let showHitbox = false;     // B toggles it; off so nothing overlays the character
 let override = null;        // forced state name, or null for gameplay
@@ -303,7 +302,7 @@ function reset() {
 if (typeof window !== 'undefined') {
   window.addEventListener('keydown', e => {
     if (['INPUT','SELECT','TEXTAREA','BUTTON'].includes(e.target.tagName)) return;
-    if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyJ','KeyK','KeyH','KeyR','KeyB'].includes(e.code)) e.preventDefault();
+    if (['KeyW','KeyA','KeyS','KeyD','KeyE','KeyK','KeyL','KeyH','KeyR','KeyB'].includes(e.code)) e.preventDefault();
   }, { passive: false });
 }
 
@@ -445,8 +444,8 @@ function step(dt) {
   p.attackT = Math.max(0, p.attackT - dt);
 
   if (Input.pressed('KeyH')) p.hurtT = HURT_TIME;                       // lab-only
-  if (Input.pressed('KeyJ')) { p.attackT = ATTACK_LATCH; p.projectile = false; } // lab-only melee
-  if (Input.pressed('KeyK')) { p.attackT = ATTACK_LATCH; p.projectile = true;  } // production attack
+  if (Input.pressed('KeyK')) { p.attackT = ATTACK_LATCH; p.projectile = false; } // production melee
+  if (Input.pressed('KeyL')) { p.attackT = ATTACK_LATCH; p.projectile = true;  } // production projectile
   if (Input.pressedAny(...JUMP)) p.jumpBuf = JUMP_BUF;
 
   const speed = PLAYER_SPEED * (running ? RUN_MULT : 1);
