@@ -213,28 +213,13 @@ export class ElectricalSource {
 // ──────────────────────────────────────────────
 // ── Fence art (ORDER FENCE_SHORT_CIRCUIT, ratified F1/F2/F3/F4) ─────────────
 //
-// FRAME INDEXING — the live loop is frames 001..008, EIGHT frames, never 000.
-// `fence/frame_000.png` is BYTE-IDENTICAL to `fence_dead.png` (sha256
-// 5b6955205a5fc63b): PixelLab exported the rest pose as frame 0, and
-// metadata.json shows the animation belongs to an object named "uncharged gate"
-// whose base rotation IS that image. Looping 000..008 would render the DEAD,
-// PASSABLE-LOOKING art one frame in nine on a LIVE, BLOCKING fence — telling the
-// player to walk into it. Kiro corrected his own order on this; parity guards it
-// mechanically now.
-//
-// F2 — MOTION is the state signal, NOT brightness. Measured mean luma:
-//   fence_dead 50.4 | 001 22.7 | 002 80.4 | 003 94.5 | 004 108.5 (peak)
-//                   | 005 95.3 | 006 82.9 | 007 38.9 | 008 22.0
-// Live frames 001/008 are DARKER than dead, so brightness cannot carry the
-// state and is deliberately not compensated for in code. A live fence MOVES; a
-// dead fence is static and slack. If brightness should also carry it, that is an
-// art change to 001/008 and Chief's call.
-const FENCE_FPS    = 10;
-const FENCE_CANVAS = 64;          // uniform export canvas; anchor from THIS (F4)
-const _fenceImg = (name) => { const i = new Image(); i.src = `assets/objects/fence/${name}`; return i; };
+// The Night City pack has four live frames and one static, slack dead frame.
+// The earlier PixelLab pack remains in assets/objects/fence for archival use.
+const FENCE_FPS = 10;
+const _fenceImg = (name) => { const i = new Image(); i.src = `assets/objects/fence/night-city/${name}`; return i; };
 const FENCE = {
-  dead: _fenceImg('fence_dead.png'),
-  live: Array.from({ length: 8 }, (_, k) => _fenceImg(`frame_00${k + 1}.png`)),
+  dead: _fenceImg('dead.png'),
+  live: Array.from({ length: 4 }, (_, k) => _fenceImg(`frame_00${k + 1}.png`)),
 };
 // ──────────────────────────────────────────────
 // ── gate/ pack geometry — from assets/objects/gate/GEOMETRY.md (MEASURED) ──
@@ -583,23 +568,10 @@ export class PowerGate {
   }
 
   // ── Fence render (F1/F2/F3/F4) ──────────────────────────────────────
-  // F3: the sprite is drawn LARGER than the hitbox and TILED to cover it — the
-  // same convention PowerGate already uses for its own art (40x64 hitbox under a
-  // 64x128 sprite). Level 2's BARRIER is 32w x 128h, so a 64x64 fence tiles
-  // exactly 2x vertically and is centred horizontally on the 32-wide hitbox.
-  // The HITBOX IS NEVER CHANGED — collision stays exactly as authored.
-  //
-  // Anchored from the uniform 64x64 canvas, never per-frame bbox: measured,
-  // frame_008 is 4,10..58,58 against 1,10..62,59 everywhere else, so per-frame
-  // anchoring would make the fence twitch sideways on the last frame.
+  // One complete three-strand fence sprite fits the authored hitbox. Existing
+  // level geometry and switch logic remain unchanged; new wide placements can
+  // use the sprite's natural 128x64 proportion.
   _drawFence(ctx) {
-    const cols = Math.max(1, Math.ceil(this.w / FENCE_CANVAS));
-    const rows = Math.max(1, Math.ceil(this.h / FENCE_CANVAS));
-    // Centre the tiled block horizontally on the hitbox, bottom-align it.
-    const totalW = cols * FENCE_CANVAS;
-    const baseX  = Math.round(this.cx - totalW / 2);
-    const baseY  = (this.y + this.h) - rows * FENCE_CANVAS;
-
     let img;
     if (this.open) {
       img = FENCE.dead;                    // shorted out — slack, static, passable
@@ -613,15 +585,8 @@ export class PowerGate {
 
     ctx.save();
     ctx.imageSmoothingEnabled = false;
-    if (!this.open) { ctx.shadowBlur = 12; ctx.shadowColor = '#66ccff'; }
     if (img && img.complete && img.naturalWidth > 0) {
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          ctx.drawImage(img,
-            baseX + c * FENCE_CANVAS, baseY + r * FENCE_CANVAS,
-            FENCE_CANVAS, FENCE_CANVAS);
-        }
-      }
+      ctx.drawImage(img, Math.round(this.x), Math.round(this.y), this.w, this.h);
     } else if (!this.open) {
       // Art not loaded yet — never leave a BLOCKING fence invisible.
       drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#0a1a26', '#66ccff', 14);
