@@ -1028,6 +1028,47 @@ const NIGHT_CITY_CHEST_ART = Object.fromEntries(Object.keys(NIGHT_CITY_CHEST_REW
   return [variant, { closed: img('closed'), opening: [img('opening_1'), img('opening_2')], empty: img('open_empty') }];
 }));
 
+// Pixel-only charge overlays. Each chest has a different electrical path, so
+// charging reads as current flowing through that chest rather than a generic glow.
+function drawNightCityChestCharge(ctx, box, variant, frame) {
+  const px = (x, y, w = 2, h = 2) => ctx.fillRect(box.dX + x, box.dY + y, w, h);
+  if (variant === 'street-cache') {
+    // Cyan circuit trace runs left-to-right across the small street cache.
+    ctx.fillStyle = '#063c60';
+    px(6, 26, 2, 15); px(40, 26, 2, 15);
+    ctx.fillStyle = '#00d9ff';
+    for (let i = 0; i < 4; i++) px(8 + ((i + frame) % 4) * 8, 24 + (i % 2) * 2, 5, 2);
+    px(8, 32 + frame * 2, 3, 2); px(38, 38 - frame * 2, 3, 2);
+    ctx.fillStyle = '#c2faff';
+    px(12 + frame * 8, 24, 2, 2);
+  } else if (variant === 'relay-case') {
+    // Violet relay sparks rotate around the center lock in four distinct poses.
+    const sparks = [[21, 10], [37, 25], [24, 37], [8, 25]];
+    ctx.fillStyle = '#8a3cff';
+    for (let i = 0; i < sparks.length; i++) {
+      const [x, y] = sparks[(i + frame) % sparks.length];
+      px(x, y, 2, 5); px(x - 2, y + 2, 6, 2);
+    }
+    ctx.fillStyle = '#f2b6ff';
+    const [x, y] = sparks[frame];
+    px(x, y + 2, 2, 2);
+    px(21 + (frame % 2) * 3, 26, 3, 2);
+  } else if (variant === 'capacitor-vault') {
+    // Amber terminals alternate; a short cyan arc bridges the vault contacts.
+    ctx.fillStyle = '#ff9e2c';
+    px(8, 28 + (frame % 2) * 2, 3, 9);
+    px(37, 28 + ((frame + 1) % 2) * 2, 3, 9);
+    ctx.fillStyle = '#00ddff';
+    const arc = [[12, 27], [18, 24], [25, 28], [32, 25]];
+    for (let i = 0; i < arc.length; i++) {
+      const [x, y] = arc[i];
+      px(x, y + ((i + frame) % 2) * 2, 6, 2);
+    }
+    ctx.fillStyle = '#fff3b0';
+    px(18 + frame * 4, 23 + (frame % 2) * 2, 2, 2);
+  }
+}
+
 export class Chest {
   constructor({ id, x, y, cost = 2, reward, variant = null, opened = false }) {
     this.id     = id;
@@ -1042,6 +1083,8 @@ export class Chest {
     this.charged = 0;          // accumulated toward `cost` while holding SPACE
     this._openT  = 0;          // animation clock, only runs after opening
     this._refusedFx = 0;       // brief tell when a full reserve refuses the open
+    this._chargeFx = 0;        // only visible during an active transfer
+    this._chargeFxT = 0;
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -1097,6 +1140,7 @@ export class Chest {
     const take = Math.min(amount, this.cost - this.charged);
     if (take <= 0) return 0;
     this.charged += take;
+    if (this.variant) this._chargeFx = 0.14;
     return take;
   }
 
@@ -1122,8 +1166,12 @@ export class Chest {
 
   update(dt) {
     this._refusedFx = Math.max(0, this._refusedFx - dt);
+    this._chargeFx = Math.max(0, this._chargeFx - dt);
+    if (this._chargeFx > 0) this._chargeFxT += dt;
     if (this.opened) this._openT += dt;
   }
+
+  get chargeFxFrame() { return Math.floor(this._chargeFxT * 12) % 4; }
 
   draw(ctx) {
     const sb = this.spriteBox();
@@ -1145,6 +1193,9 @@ export class Chest {
       else ctx.drawImage(img, CHEST_SRC_X, CHEST_SRC_Y, CHEST_SRC_W, CHEST_SRC_H, sb.dX, sb.dY, sb.dW, sb.dH);
     } else {
       drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#2a1a00', '#ffaa22', 10);
+    }
+    if (this.variant && !this.opened && this._chargeFx > 0) {
+      drawNightCityChestCharge(ctx, sb, this.variant, this.chargeFxFrame);
     }
     ctx.restore();
     // Charge progress toward the cost, above the sprite — never over the art, and
