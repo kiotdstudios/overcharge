@@ -1032,7 +1032,7 @@ function _drawCrates(ctx, arr) {
 // x,y = runtime 32x32 hitbox top-left. Art is centered and bottom-aligned.
 // GEOMETRY.md is the contract — do not re-derive. frame_000 IS a real frame in this pack
 // (hash-verified different from closed.png); only closed.png is placeable.
-const CHEST_CANVAS  = 36; // Runtime display size, not the source PNG canvas.
+const CHEST_CANVAS  = 36; // Legacy runtime display size.
 const CHEST_CONTENT = 32; // Runtime hitbox, not the source art content size.
 const CHEST_BOT_PAD = 12;  // botPad = 12 uniform across all 11 files (GEOMETRY.md)
 
@@ -1040,17 +1040,19 @@ function _drawChests(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
   const COLOR = MARKER.chest;
-  const IMG_PATH = 'assets/objects/chest/closed.png';
   for (const ch of arr) {
-    // Art top-left is 12px left/above the content top-left
-    const artWorldX = Math.round(ch.x + CHEST_CONTENT / 2 - CHEST_CANVAS / 2);
-    const artWorldY = ch.y + CHEST_CONTENT - CHEST_CANVAS;
+    const variant = ['street-cache','relay-case','capacitor-vault'].includes(ch.variant) ? ch.variant : null;
+    const drawSize = variant ? 48 : CHEST_CANVAS;
+    const imgPath = variant ? `assets/objects/chest/night-city/${variant}/closed.png` : 'assets/objects/chest/closed.png';
+    const artWorldX = Math.round(ch.x + CHEST_CONTENT / 2 - drawSize / 2);
+    const artWorldY = ch.y + CHEST_CONTENT - drawSize;
     const p  = worldToScreen(artWorldX, artWorldY);
-    const artW = CHEST_CANVAS * z, artH = CHEST_CANVAS * z;
-    const img = getImage(IMG_PATH);
+    const artW = drawSize * z, artH = drawSize * z;
+    const img = getImage(imgPath);
     ctx.imageSmoothingEnabled = false;
     if (img.complete && img.naturalWidth > 0) {
-      ctx.drawImage(img, CHEST_BOT_PAD, CHEST_BOT_PAD, 104, 104, p.x, p.y, artW, artH);
+      if (variant) ctx.drawImage(img, p.x, p.y, artW, artH);
+      else ctx.drawImage(img, CHEST_BOT_PAD, CHEST_BOT_PAD, 104, 104, p.x, p.y, artW, artH);
       // Faint outline over content box so the hitbox is legible
       const cp = worldToScreen(ch.x, ch.y);
       const cw = CHEST_CONTENT * z, cch = CHEST_CONTENT * z;

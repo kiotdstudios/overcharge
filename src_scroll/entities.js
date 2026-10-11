@@ -1018,16 +1018,26 @@ const CHEST_ART = {
   empty:  _chestImg('open_empty.png'),
   opening: Array.from({ length: CHEST_FRAMES }, (_, k) => _chestImg(`opening/frame_${String(k).padStart(3,'0')}.png`)),
 };
+const NIGHT_CITY_CHEST_REWARDS = Object.freeze({
+  'street-cache': 5,
+  'relay-case': 10,
+  'capacitor-vault': 20,
+});
+const NIGHT_CITY_CHEST_ART = Object.fromEntries(Object.keys(NIGHT_CITY_CHEST_REWARDS).map(variant => {
+  const img = file => _chestImg(`night-city/${variant}/${file}.png`);
+  return [variant, { closed: img('closed'), opening: [img('opening_1'), img('opening_2')], empty: img('open_empty') }];
+}));
 
 export class Chest {
-  constructor({ id, x, y, cost = 2, reward = 10, opened = false }) {
+  constructor({ id, x, y, cost = 2, reward, variant = null, opened = false }) {
     this.id     = id;
     this.x      = x;
     this.y      = y;
     this.w      = 32;          // hitbox; the sprite draws larger, like every device
     this.h      = 32;
     this.cost   = cost;
-    this.reward = reward;
+    this.variant = Object.hasOwn(NIGHT_CITY_CHEST_REWARDS, variant) ? variant : null;
+    this.reward = Number.isFinite(reward) ? reward : (this.variant ? NIGHT_CITY_CHEST_REWARDS[this.variant] : 10);
     this.opened = opened;      // latched, and snapshotted (D4 + D5)
     this.charged = 0;          // accumulated toward `cost` while holding SPACE
     this._openT  = 0;          // animation clock, only runs after opening
@@ -1048,10 +1058,11 @@ export class Chest {
   // the artwork grounds exactly on (y + h). Uniform across every frame, so this is
   // NOT per-frame bbox anchoring and §6.2 stays intact.
   spriteBox() {
+    const drawSize = this.variant ? 48 : CHEST_DRAW_W;
     return {
-      dX: Math.round(this.cx - CHEST_DRAW_W / 2),
-      dY: (this.y + this.h) - CHEST_DRAW_H,
-      dW: CHEST_DRAW_W, dH: CHEST_DRAW_H,
+      dX: Math.round(this.cx - drawSize / 2),
+      dY: (this.y + this.h) - drawSize,
+      dW: drawSize, dH: drawSize,
     };
   }
 
@@ -1063,6 +1074,12 @@ export class Chest {
   }
 
   frameFor(state) {
+    if (this.variant) {
+      const art = NIGHT_CITY_CHEST_ART[this.variant];
+      if (state === 'empty') return art.empty;
+      if (state === 'opening') return art.opening[Math.min(art.opening.length - 1, Math.floor(this._openT * CHEST_FPS * art.opening.length / CHEST_FRAMES))];
+      return art.closed;
+    }
     if (state === 'empty')   return CHEST_ART.empty;
     if (state === 'opening') return CHEST_ART.opening[Math.min(CHEST_FRAMES - 1, Math.floor(this._openT * CHEST_FPS))];
     return CHEST_ART.closed;
@@ -1091,11 +1108,13 @@ export class Chest {
   // not billed 2 for nothing.
   tryOpen(player) {
     if (this.opened || this.charged < this.cost - 1e-9) return false;
-    if (!player.bankPip()) {
+    const canAccept = this.variant ? player.energyHeadroom + 1e-9 >= this.reward : player.bankPip();
+    if (!canAccept) {
       this.charged   = 0;        // refund the accumulation, do not bill him
       this._refusedFx = 0.6;     // visible "reserve full" tell
       return false;
     }
+    if (this.variant) player.giveEnergy(this.reward);
     this.opened = true;
     this._openT = 0;
     return true;
@@ -1118,11 +1137,12 @@ export class Chest {
       ctx.fillStyle = '#ff4455';
       ctx.font = 'bold 9px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText('RESERVE FULL', this.cx, sb.dY - 6);
+      ctx.fillText(this.variant ? 'CHARGE FULL' : 'RESERVE FULL', this.cx, sb.dY - 6);
       ctx.globalAlpha = 1;
     }
     if (img && img.complete && img.naturalWidth > 0) {
-      ctx.drawImage(img, CHEST_SRC_X, CHEST_SRC_Y, CHEST_SRC_W, CHEST_SRC_H, sb.dX, sb.dY, sb.dW, sb.dH);
+      if (this.variant) ctx.drawImage(img, sb.dX, sb.dY, sb.dW, sb.dH);
+      else ctx.drawImage(img, CHEST_SRC_X, CHEST_SRC_Y, CHEST_SRC_W, CHEST_SRC_H, sb.dX, sb.dY, sb.dW, sb.dH);
     } else {
       drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#2a1a00', '#ffaa22', 10);
     }

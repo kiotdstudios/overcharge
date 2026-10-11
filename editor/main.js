@@ -1737,7 +1737,10 @@ function _doSpawn(e, canvas) {
     // from Chief's ratification (cost 2, reward 10 — full pip).
     const CHEST_H = 32; // Match the runtime hitbox and ground anchor.
     const px = _snapGrid(wx), py = _groundAt(wx, wy, CHEST_H);
-    obj = { id: 'chest_' + Date.now(), x: px, y: py, cost: 2, reward: 10 };
+    const asset = state.pendingSpawn.asset || {};
+    const variant = asset.chestVariant || null;
+    obj = { id: 'chest_' + Date.now(), x: px, y: py, cost: 2, reward: variant ? asset.defaultReward : 10 };
+    if (variant) obj.variant = variant;
     arr = L.chests || (L.chests = []); arrLabel = 'add_chest';
   } else if (kind === 'player-start') {
     // playerStart is a single {x,y} field on the level root, not an array entry.
@@ -1921,6 +1924,7 @@ function _refreshSelectedProps() {
       { label:'y',      key:'y',      num:true },
       { label:'cost',   key:'cost',   num:true, min:0 },
       { label:'reward', key:'reward', num:true, min:0 },
+      { label:'variant', key:'variant', sel:true, opts:['(legacy)','street-cache','relay-case','capacitor-vault'] },
     ];
   } else if (kind === 'playerStart') {
     // Spawn point: only x/y matter. Moving it via inspector or by dragging
