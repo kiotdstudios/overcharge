@@ -1188,6 +1188,8 @@ export class Player {
     const t           = this._t;
     const hurt        = this._hurtFlash > 0;
     const chargeRatio = this.charge / MAX_CHARGE;
+    const handX = this.cx + (this._facingRight ? BOLT_HAND_X : -BOLT_HAND_X);
+    const handY = this.y + this.h - BOLT_HAND_ABOVE_FEET;
     if (this._grapple) {
       ctx.save(); ctx.strokeStyle = '#392951'; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(this.cx, this.cy); ctx.lineTo(this._grapple.x, this._grapple.y); ctx.stroke();
@@ -1204,7 +1206,7 @@ export class Player {
     if (this.absorbing && this.absorbTarget && this._absorbFx > 0) {
       drawTransfer(ctx,
         this.absorbTarget.cx, this.absorbTarget.cy,
-        this.cx, this.cy, t);
+        handX, handY, t);
     }
 
     // Discharge arc: player → device
@@ -1217,7 +1219,7 @@ export class Player {
         // Distribute end-points horizontally across gate face; oscillate vertically
         const tx = tgt.x + tgt.w * (i + 0.5) / arcCount;
         const ty = tgt.y + tgt.h / 2 + Math.sin(t * 7 + i * 2.3) * (tgt.h * 0.28);
-        drawTransfer(ctx, this.cx, this.cy, tx, ty, t, i);
+        drawTransfer(ctx, handX, handY, tx, ty, t, i);
       }
     }
 
@@ -1233,7 +1235,7 @@ export class Player {
     if (this._energyGlowFx > 0) {
       const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
       const life = Math.min(1, this._energyGlowFx / 0.25);
-      drawArrival(ctx, this.cx, this.cy, t, life * (reducedMotion ? 0.5 : 0.85));
+      drawArrival(ctx, handX, handY, t, life * (reducedMotion ? 0.5 : 0.85));
     }
 
     // Sprite: centered horizontally on hitbox; feet row (y=78 in 92px frame) pinned to hitbox bottom
