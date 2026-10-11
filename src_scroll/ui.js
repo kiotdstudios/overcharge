@@ -342,7 +342,7 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.textAlign   = 'center';
     ctx.shadowBlur  = 8;
     ctx.shadowColor = '#ff2244';
-    ctx.fillText(`[K] ATTACK  (${e.hp}/${e.maxHp} HP)`, e.cx, e.y - 12);
+    ctx.fillText(`[K] MELEE  (${e.hp}/${e.maxHp} HP)`, e.cx, e.y - 12);
     ctx.restore();
   }
 

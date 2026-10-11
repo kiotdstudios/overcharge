@@ -20,7 +20,7 @@ const SPRITE_FEET_Y = HERO_FEET_Y;
 
 const COYOTE_TIME  = 0.1;   // seconds of grace after walking off an edge
 const JUMP_BUFFER       = 0.1;   // pre-jump input buffer
-const BOLT_LAUNCH_SPEED = 320;   // px/s — projectile velocity when K fires with no melee target
+const BOLT_LAUNCH_SPEED = 320;   // px/s — projectile velocity when L fires
 
 export class Player {
   constructor(x, y) {
@@ -86,7 +86,7 @@ export class Player {
     this.nearDevice = null;  // gate or switch
     this.nearEnemy  = null;
 
-    // Active projectile bolts fired by K (branch 2)
+    // Active projectile bolts fired by L
     this._bolts = [];
   }
 
@@ -114,7 +114,7 @@ export class Player {
     this._handleMovement(dt, level);
     this._applyPhysics(dt, level);
     this._updateAbsorb(dt, level);    // hold E near source  → absorb
-    this._updateAttack(dt, level);    // press K             → melee or projectile
+    this._updateAttack(dt, level);    // K melee; L charged projectile
     this._updateBolts(dt, level);     // advance + cull live bolts
     this._updateDischarge(dt, level); // hold SPACE near gate/switch → gradual charge
     // ORDER SPACE_CHARGE: _updatePipSpend() is GONE. No button may complete a
@@ -814,38 +814,26 @@ export class Player {
     }
   }
 
-  // ── Attack (press K) ─────────────────────────────────────────────
-  // ORDER SPACE_CHARGE + Chief amendment 2026-09-11: K is the attack/projectile
-  // button; SPACE is the charge button. Separate keys, so there is NO context
-  // priority to resolve — the gate-vs-enemy ambiguity that a shared SPACE would
-  // have created does not exist.
-  //
-  // Structured as an explicit branch table so the projectile slots in later
-  // WITHOUT rewiring charge or melee:
-  //   branch 1  near enemy   → melee hit            (implemented)
-  //   branch 2  no target    → electric projectile  (implemented; costs energy,
-  //                                                   see PROJECTILE_CHARGE_COST
-  //                                                   below — Chief 2026-10-09)
+  // K is the free close-range melee attack. L fires the charged projectile.
+  // Keeping distinct keys avoids enemy proximity silently changing which
+  // attack the player requested.
   _updateAttack(dt, level) {
     if (this._stunTime > 0) return;
     if (this._attackCooldown > 0) return;
-    if (!Input.pressed('KeyK')) return;
-
-    if (this.nearEnemy) {
+    if (Input.pressed('KeyK')) {
       this._attackAnimationProjectile = false;
-      // branch 1 — melee
-      this.nearEnemy.hit(level);
+      if (this.nearEnemy) this.nearEnemy.hit(level);
       this._attackCooldown = ATTACK_COOLDOWN;
-      this._attackFx       = 0.15;
+      this._attackFx = 0.15;
       return;
     }
+    if (!Input.pressed('KeyL')) return;
 
-    // branch 2 — fire an electric bolt in aimed direction (8-directional)
-    // Direction: held arrow/WASD keys at moment of K press; fallback = _facingRight.
+    // Fire an electric bolt in aimed direction (8-directional)
+    // Direction: held arrow/WASD keys at moment of L press; fallback = _facingRight.
     // No auto-aim — player picks direction manually.
     //
-    // Chief 2026-10-09: first-pass energy cost — a projectile costs
-    // PROJECTILE_CHARGE_COST (1/4 of MAX_CHARGE). Spent through the same
+    // A projectile costs PROJECTILE_CHARGE_COST (1/4 of one unit). Spent through the same
     // spendEnergy() authority as every other energy-loss path (Order 004 §9),
     // so a banked pip promotes mid-cost exactly like a discharge would. No
     // charge, no shot fired — refusal is silent here, same as the discharge
@@ -891,7 +879,7 @@ export class Player {
   //  • E is absorb/interact at sources ONLY. Charging is SPACE-only — one
   //    mechanic, one binding (order §3; two bindings for one mechanic is what
   //    made the old E/F split confusing).
-  //  • K is attack. It never touches energy.
+  //  • K is melee and never touches energy; L spends charge on a projectile.
   //  • The mechanic itself is UNCHANGED from Order 004 — same spendEnergy()
   //    authority, same dev.receive() path, same `needed` cap. Only the binding
   //    moved, which is exactly what the order asked for.
@@ -1194,7 +1182,7 @@ export class Player {
     }
 
     // Attack arc: player → enemy on swing
-    if (this._attackFx > 0 && this.nearEnemy) {
+    if (this._attackFx > 0 && this.nearEnemy && !this._attackAnimationProjectile) {
       drawLightningArc(ctx,
         this.cx, this.cy,
         this.nearEnemy.cx, this.nearEnemy.cy,

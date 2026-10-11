@@ -12,8 +12,8 @@ held(['ArrowRight', 'ShiftLeft']); for (let i = 0; i < 20; i++) step(p, level);
 check(p._sprites.state === 'run', 'Shift selects run');
 held([]); step(p, level);
 p.charge = 10; // give the test player charge to afford the projectile cost (Chief 2026-10-09)
-held(['KeyK']); step(p, level);
-check(p._sprites.state === 'projectile-cast', 'K selects casting when a bolt fires');
+held(['KeyL']); step(p, level);
+check(p._sprites.state === 'projectile-cast', 'L selects casting when a bolt fires');
 check(p._bolts.length > 0, 'cast animation accompanies a real projectile');
 
 const ladder = { src: CLIMBABLE_LADDER_SRC, x: 192, y: 256, w: 32, h: 192 };

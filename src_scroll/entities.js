@@ -1140,7 +1140,7 @@ export class Chest {
   }
 }
 
-// ── ElectricBolt (player projectile — K fires this when no melee target in range) ──
+// ── ElectricBolt (player projectile — L fires independently of melee range) ──
 // Aim is 8-directional: caller derives vx/vy from held movement keys.
 // No auto-aim — the player picks the direction.
 const BOLT_SPEED    = 320;   // px/s

@@ -35,7 +35,7 @@ const Input = await import('../src_scroll/input.js');
 const keyDown = code => fire('keydown', code);
 const keyUp   = code => fire('keyup', code);
 const newFrame = () => Input.update();      // copies cur -> prev, so pressed() is edge-only
-function releaseAll() { for (const c of ['Space','KeyK','KeyF','KeyE']) keyUp(c); newFrame(); }
+function releaseAll() { for (const c of ['Space','KeyK','KeyL','KeyF','KeyE']) keyUp(c); newFrame(); }
 
 let passed = 0, failed = 0;
 function assert(condition, name, detail = '') {
@@ -380,16 +380,30 @@ const lvl = () => mkLevel();
 
 // ── K attacks; SPACE does not ──────────────────────────────────────────────
 { releaseAll();
-  const p = P(); p.setEnergyState(MAX_CHARGE, 0); p.grounded = true;
+  const p = P(); p.setEnergyState(0, 0); p.grounded = true;
   let hits = 0;
   const enemy = { alive: true, hp: 3, maxHp: 3, cx: 0, cy: 0, x: 0, y: 0,
                   hit(){ hits++; this.hp--; } };
   p.nearEnemy = enemy; p.nearDevice = null; p.nearSource = null;
   p._attackCooldown = 0;
 
+  const beforeMelee = p.usableEnergy;
   keyDown('KeyK');
   p._updateAttack(1 / 60, lvl());
-  assert(hits === 1, 'K: pressing K near an enemy lands one hit', `hits ${hits}`);
+  assert(hits === 1 && p._bolts.length === 0,
+    'K: pressing K near an enemy lands a melee hit without a bolt');
+  assert(p.usableEnergy === beforeMelee, '  ...melee spends no charge');
+  releaseAll();
+
+  p._attackCooldown = 0; hits = 0;
+  p.setEnergyState(MAX_CHARGE, 0);
+  const beforeBolt = p.usableEnergy;
+  keyDown('KeyL');
+  p._updateAttack(1 / 60, lvl());
+  assert(p._bolts.length === 1 && hits === 0,
+    'L: fires a projectile even when an enemy is nearby');
+  assert(near(beforeBolt - p.usableEnergy, PROJECTILE_CHARGE_COST),
+    '  ...spends exactly a quarter unit');
   releaseAll();
 
   p._attackCooldown = 0; hits = 0;
@@ -398,22 +412,25 @@ const lvl = () => mkLevel();
   assert(hits === 0, 'SPACE: no longer attacks (K owns attack)', `hits ${hits}`);
   releaseAll(); }
 
-// ── K does not charge a gate; firing a projectile costs PROJECTILE_CHARGE_COST
-// Chief 2026-10-09: K away from an enemy fires a projectile (branch 2), which
-// now has a real energy cost. The gate-isolation guarantee is unchanged — K
-// never routes energy INTO a device, no matter what it costs the player to
-// fire. Updated from the old "K never touches energy" assertion, which
-// encoded a stage where branch 2 was free; that premise is gone by design.
+// L fires a charged projectile; neither attack key charges a gate.
 { releaseAll();
   const { p, g } = atGate(8);
   const before = p.usableEnergy;
-  keyDown('KeyK');
+  keyDown('KeyL');
   p._updateAttack(1 / 60, lvl());
   p._updateDischarge(1 / 60, lvl());
-  assert(g.charged === 0, 'K: does not charge a gate', `charged ${g.charged}`);
+  assert(g.charged === 0, 'L: does not charge a gate', `charged ${g.charged}`);
   assert(near(before - p.usableEnergy, PROJECTILE_CHARGE_COST),
     '  ...firing the projectile costs exactly PROJECTILE_CHARGE_COST',
     `usable ${p.usableEnergy} (spent ${before - p.usableEnergy})`);
+  releaseAll(); }
+
+{ releaseAll();
+  const { p } = atGate(8, 0.2);
+  keyDown('KeyL');
+  p._updateAttack(1 / 60, lvl());
+  assert(p._bolts.length === 0 && near(p.usableEnergy, 0.2),
+    'L: below 0.25 charge refuses the shot without spending');
   releaseAll(); }
 
 // ── SPACE-charging works while standing at a source (removed guard) ────────
