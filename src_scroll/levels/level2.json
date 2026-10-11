@@ -1867,7 +1867,13 @@
       "style": "wall"
     }
   ],
-  "checkpoints": [],
+  "checkpoints": [
+    {
+      "id": "cp_1791742651121",
+      "x": 1472,
+      "y": 320
+    }
+  ],
   "platforms": [],
   "enemies": [],
   "chests": [
