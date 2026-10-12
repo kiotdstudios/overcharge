@@ -70,6 +70,63 @@ export function drawLightPool(ctx, source) {
   ctx.restore();
 }
 
+export function isNightCityStreetlight(source) {
+  return source.kind === 'prop' && /\/night-city-props\/streetlight\/$/.test(source.sprite || '');
+}
+
+// The Night City lamp's bulb sits right of its pole. Derive both the bulb and
+// pavement positions from sourceBox, so moving the source in Builder moves its
+// light with it. Intensity is charge-driven; the runtime may supply a smoothed
+// _lightLevel so the final pool fades instead of snapping off on depletion.
+export function streetlightPoolIntensity(source) {
+  if (!isNightCityStreetlight(source)) return 0;
+  const stored = Number.isFinite(source._lightLevel)
+    ? source._lightLevel
+    : (source.charge > 0 ? source.charge / (source.max > 0 ? source.max : source.charge) : 0);
+  return Math.max(0, Math.min(1, stored));
+}
+
+export function drawStreetlightPool(ctx, source) {
+  const intensity = streetlightPoolIntensity(source);
+  if (intensity <= 0.001) return;
+  const b = sourceBox(source);
+  // Measured from the 444px streetlight art: lamp head ≈ x 330, y 55.
+  const headX = b.dX + b.dW * (330 / 444);
+  const headY = b.dY + b.dH * (55 / 444);
+  const groundY = source.y + (source.h || 28);
+  const poolRadius = b.dW * 0.47;
+  ctx.save();
+  // A faint downward beam connects the fixture to its pool. The bright head
+  // and pavement pools provide the readable lighting; the beam stays subtle.
+  const beam = ctx.createLinearGradient(headX, headY, headX, groundY);
+  beam.addColorStop(0, `rgba(80,224,255,${(0.11 * intensity).toFixed(3)})`);
+  beam.addColorStop(1, 'rgba(80,224,255,0)');
+  ctx.fillStyle = beam;
+  ctx.beginPath();
+  ctx.moveTo(headX - 7, headY + 4);
+  ctx.lineTo(headX + 7, headY + 4);
+  ctx.lineTo(headX + poolRadius * 0.75, groundY);
+  ctx.lineTo(headX - poolRadius * 0.75, groundY);
+  ctx.closePath();
+  ctx.fill();
+
+  const bulb = ctx.createRadialGradient(headX, headY, 2, headX, headY, 29);
+  bulb.addColorStop(0, `rgba(175,247,255,${(0.38 * intensity).toFixed(3)})`);
+  bulb.addColorStop(1, 'rgba(58,189,255,0)');
+  ctx.fillStyle = bulb;
+  ctx.fillRect(headX - 29, headY - 29, 58, 58);
+
+  ctx.translate(headX, groundY - 4);
+  ctx.scale(1, 0.32);
+  const pool = ctx.createRadialGradient(0, 0, 4, 0, 0, poolRadius);
+  pool.addColorStop(0, `rgba(100,226,255,${(0.31 * intensity).toFixed(3)})`);
+  pool.addColorStop(0.55, `rgba(55,173,255,${(0.16 * intensity).toFixed(3)})`);
+  pool.addColorStop(1, 'rgba(40,130,255,0)');
+  ctx.fillStyle = pool;
+  ctx.fillRect(-poolRadius, -poolRadius, poolRadius * 2, poolRadius * 2);
+  ctx.restore();
+}
+
 export function drawHvac(ctx, source) {
   const b = sourceBox(source);
   const img = image('assets/tilesets/purple_rooftop/props/hvac_a.png');

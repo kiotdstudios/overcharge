@@ -290,6 +290,10 @@ export class Level {
     if (!snap) return;
     for (let i = 0; i < this.sources.length && i < snap.sources.length; i++) {
       Object.assign(this.sources[i], snap.sources[i]);
+      // A restored streetlight should show the light for its restored charge,
+      // rather than fading from the pre-death scene's transient glow level.
+      this.sources[i]._lightLevel = this.sources[i].max > 0
+        ? this.sources[i].charge / this.sources[i].max : 0;
     }
     for (let i = 0; i < this.gates.length && i < snap.gates.length; i++) {
       Object.assign(this.gates[i], snap.gates[i]);
