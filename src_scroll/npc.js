@@ -67,6 +67,7 @@ export class Npc {
     this._direction = this.facing === 'left' ? -1 : 1;
     this._turnPauseT = 0;
     this._walkClock = 0;
+    this._walkDistance = 0;
     this._walking = false;
     // Draw-size multiplier against the sprite's native pixel dimensions.
     // Lets an NPC reuse art authored at a different canvas size than its
@@ -160,7 +161,12 @@ export class Npc {
       const a = slot.asset;
       const fa = animFromAsset(a);
       if (fa) {
-        slot.frames = framesFor(fa);
+        const sourceFrames = framesFor(fa);
+        const order = Array.isArray(a.frameOrder) && a.frameOrder.length
+          && a.frameOrder.every(i => Number.isInteger(i) && i >= 0 && i < sourceFrames.length)
+          ? a.frameOrder : null;
+        slot.frames = order ? order.map(i => sourceFrames[i]) : sourceFrames;
+        slot.frameFootY = order ? order.map(i => a.footYByFrame?.[i]) : a.footYByFrame;
         slot.fps    = fa.fps;
         slot.loop   = fa.loop;
       } else {
@@ -227,7 +233,9 @@ export class Npc {
           this._direction *= -1;
           this.facing = this._direction < 0 ? 'left' : 'right';
           this._turnPauseT = this.patrol.turnPauseSec;
+          this._walkDistance = 0;
         } else {
+          this._walkDistance += Math.abs(next - this.x);
           this.x = next;
           this._walking = true;
           this._walkClock += dt;
@@ -289,7 +297,9 @@ export class Npc {
     // The one-shot smoke clip is timed from its own elapsed counter (resets to
     // 0 the instant the state machine enters 'smoke'), never from this._clock,
     // so it always starts at frame 0 regardless of how long the NPC has existed.
-    const t = useGreeting ? this._clock - this._greetStartedAt : useWalk ? this._walkClock : useSmoke ? this._smokeElapsed / 1000 : this._clock;
+    const stepPx = Number(slot.asset?.walkFrameStepPx);
+    const walkTime = stepPx > 0 ? this._walkDistance / (stepPx * slot.fps) : this._walkClock;
+    const t = useGreeting ? this._clock - this._greetStartedAt : useWalk ? walkTime : useSmoke ? this._smokeElapsed / 1000 : this._clock;
     if (slot.frames) {
       const fake = { frames: slot.frames, fps: slot.fps, loop: (useGreeting || useSmoke) ? false : slot.loop, phase: 0 };
       return frameAt(fake, t);
@@ -303,7 +313,7 @@ export class Npc {
     const asset = this._sprites?.ambient?.asset;
     const slot = this._frameSlot;
     const frameIndex = slot?.frames ? slot.frames.indexOf(img) : 0;
-    const frameFootY = slot?.asset?.footYByFrame?.[frameIndex];
+    const frameFootY = slot?.frameFootY?.[frameIndex];
     const g = npcGeometry(asset || { frame_width: img.naturalWidth, frame_height: img.naturalHeight },
       this.x, this.y, this.scale, this.facing, frameFootY);
     ctx.save();
@@ -355,6 +365,7 @@ function wrapText(ctx, text, maxWidth) {
 export function drawSpeechBubble(ctx, anchorX, topY, text, viewport) {
   ctx.save();
   ctx.font = BUBBLE_FONT;
+  ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   const lines = wrapText(ctx, text, BUBBLE_MAX_WIDTH - BUBBLE_PAD * 2);
   const textW = Math.max(1, ...lines.map(l => ctx.measureText(l).width));

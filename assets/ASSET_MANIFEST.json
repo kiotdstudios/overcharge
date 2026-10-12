@@ -3054,10 +3054,12 @@
       "frame_height": 236,
       "frame_count": 6,
       "fps": 8,
+      "frameOrder": [0, 1, 2, 4, 3, 4, 2, 1],
+      "walkFrameStepPx": 3,
       "directions": null,
       "loop": true,
       "footYByFrame": [219, 221, 223, 220, 223, 220],
-      "notes": "Six-frame side-view heel-strut loop. Referenced by walkAssetId; not independently placeable in the Builder.",
+      "notes": "Side-view heel strut. Eight playback poses use the smoothest five source frames in a forward/reverse contact cycle; cadence advances every three world pixels walked. Source PNGs remain unchanged. Referenced by walkAssetId; not independently placeable in the Builder.",
       "trim": null
     }
   ],

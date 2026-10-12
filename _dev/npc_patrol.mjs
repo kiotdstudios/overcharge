@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { Npc } from '../src_scroll/npc.js';
+import { Npc, drawSpeechBubble } from '../src_scroll/npc.js';
 import { loadDecoAnimations } from '../src_scroll/deco-anim.js';
 
 const manifest = JSON.parse(fs.readFileSync('assets/ASSET_MANIFEST.json', 'utf8'));
@@ -48,3 +48,25 @@ npc.previewBubble('hello');
 check(npc._currentFrame()?.src.includes('/greeting/'), 'dialogue renders the matching greeting animation');
 npc._bubbleT = 0; npc._greetT = 0; npc._walking = false;
 check(npc._currentFrame()?.src.includes('/idle/'), 'stationary NPC renders the matching idle animation');
+const smooth = manifest.assets.find(entry => entry.id === def.walkAssetId);
+check(smooth.frameOrder.length === 8 && smooth.walkFrameStepPx === 3, 'walk cycle uses eight distance-paced poses');
+const paced = new Npc(def);
+paced._resolveSprites();
+const sampled=[];
+for(let i=0;i<8;i++){
+  paced._walkDistance=i*3;
+  paced._walking=true;
+  sampled.push(paced._currentFrame()?.src.match(/(\d\d)\.png$/)?.[1]);
+}
+check(sampled.join(',') === '00,01,02,04,03,04,02,01', 'walk frames flow through contact and back without repeated wide-stance seam');
+const oldDistance=paced._walkDistance;
+paced._walking=false;
+paced._bubbleT=500;
+paced.update(0.25,null);
+check(paced._walkDistance===oldDistance, 'walk phase does not advance while planted');
+const textCalls=[];
+const ctx={textAlign:'right',save(){},restore(){},measureText(s){return {width:s.length*7};},
+  beginPath(){},rect(){},fill(){},stroke(){},moveTo(){},lineTo(){},closePath(){},
+  fillText(s,x,y){textCalls.push({s,x,y,align:this.textAlign});}};
+drawSpeechBubble(ctx,1740,250,"Mmm, look who's got a little spark.",{x:1500,y:156,w:600,h:420});
+check(textCalls.length===2 && textCalls.every(c=>c.align==='left'), 'bubble text stays left-aligned inside its border');
