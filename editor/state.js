@@ -398,6 +398,13 @@ export const state = {
   level:        null,   // active level json (see SCHEMA.md)
   levelPath:    null,   // where the current level came from (for save-later)
 
+  // Transient (never persisted — not part of state.level): Builder "Preview
+  // Bubble" action for NPC inspector. { ref, text, until } — until is a
+  // Date.now()+durationMs timestamp; renderer draws the bubble over the
+  // matching npc ref while now() < until, then it quietly expires (no timer
+  // to clean up, no leak if the npc is deleted mid-preview).
+  npcPreview:   null,
+
   // Selection / current tool
   selectedAsset: null,  // manifest item currently chosen for placement
   selectedTile:  10,    // integer tile-type to place with terrain brush (10=env_tile_dark_a; not legacy 1)
@@ -532,6 +539,13 @@ export function assetVisualBox(src, w, h) {
   const t = item && item.trim;
   if (!t) return { x: 0, y: 0, w, h };
   return { x: t.x * w, y: t.y * h, w: t.w * w, h: t.h * h };
+}
+
+// Resolve a manifest entry by its `id` field — used by NPC rendering/placement,
+// which refers to its sprite via `assetId`, not a decoration `src` path.
+export function manifestItemById(id) {
+  if (!state.manifest || !Array.isArray(state.manifest.items) || !id) return null;
+  return state.manifest.items.find(it => it.id === id) || null;
 }
 
 export async function loadLevel(url) {

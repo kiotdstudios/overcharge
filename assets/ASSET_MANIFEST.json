@@ -2952,6 +2952,37 @@
         "h": 0.7273
       }
     }
+,
+    {
+      "id": "npc_streetlamp_woman",
+      "path": "assets/sprites/npc-streetlamp-woman/idle/00.png",
+      "category": "npc",
+      "spawnsKind": "npc",
+      "greetingAssetId": "npc_streetlamp_woman_greeting",
+      "tags": ["ambient", "npc", "nightlife", "animated", "dialogue"],
+      "frame_width": 236,
+      "frame_height": 236,
+      "frame_count": 9,
+      "fps": 6,
+      "directions": null,
+      "loop": true,
+      "notes": "Order 21/22 dialogue NPC. Relaxed confident idle under a streetlamp: weight shift, hair touch, head glance, continuous ambient loop. PixelLab 8-direction character, east-only authored (level art faces east). Simplification flagged to Chief: Order 21's 5 discrete motion states were combined into this one continuous idle loop plus the separate wave/beckon greeting (npc_streetlamp_woman_greeting) rather than 5 fully discrete animations, due to PixelLab's per-canvas frame_count ceiling at this size.",
+      "trim": null
+    },
+    {
+      "id": "npc_streetlamp_woman_greeting",
+      "path": "assets/sprites/npc-streetlamp-woman/greeting/00.png",
+      "category": "npc",
+      "tags": ["ambient", "npc", "nightlife", "animated", "dialogue", "greeting"],
+      "frame_width": 236,
+      "frame_height": 236,
+      "frame_count": 9,
+      "fps": 8,
+      "directions": null,
+      "loop": false,
+      "notes": "Order 22 greeting animation — friendly wave/beckon gesture, plays once when this NPC's dialogue bubble triggers, then holds last frame until the ambient idle (npc_streetlamp_woman) resumes. Not independently placeable in the Builder palette (no spawnsKind) — referenced only via another NPC's greetingAssetId.",
+      "trim": null
+    }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
   "_runtime_state_sprites": [

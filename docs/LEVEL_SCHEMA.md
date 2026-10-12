@@ -234,6 +234,109 @@ is no `id` field.
 
 ---
 
+## NPC (Dialogue-capable, non-decoration character)
+
+Added 2026-10-12 (Aki, Order 22) — ADDITIVE. Old levels that omit `npcs` entirely
+are treated as `npcs: []`; nothing above this line changes meaning.
+
+**Why not reuse `decorations[]`:** decorations are not individually selectable as
+semantic objects in the Builder (Order 20's smoke-break workers are intentionally
+plain decorations — cosmetic only, no dialogue). An NPC that carries dialogue needs
+its own array so the Builder can select/edit it as "an NPC", distinct from a prop.
+Do not put dialogue-bearing characters in `decorations[]`.
+
+```js
+{
+  "npcs": [
+    {
+      id:               string,   // ✅ Unique ID within the level, e.g. "NPC_STREETLAMP_01"
+      assetId:          string,   // ✅ ASSET_MANIFEST.json id — ambient/idle loop
+      greetingAssetId:  string,   // ⬜ optional — ASSET_MANIFEST.json id for a short,
+                                   //    non-looping animation played once when
+                                   //    dialogue triggers (e.g. a wave/beckon). Falls
+                                   //    back to assetId (ambient loop keeps playing)
+                                   //    if omitted or the asset is missing.
+      x:                number,   // ✅ World pixel X — feet/anchor point (bottom-centre)
+      y:                number,   // ✅ World pixel Y — ground line the feet rest on
+      facing:           string,   // ✅ "left" | "right". Sprite is authored facing
+                                   //    right; "left" mirrors it at render time.
+      dialogue: {
+        enabled:        boolean,  // ✅ Master on/off for this NPC's bubble system
+        trigger:        string,   // ✅ "player_proximity" (only mode in v1)
+        radiusPx:       number,   // ✅ Enter-radius in world px. Suggested 32-320.
+        triggerMode:    string,   // ✅ "enter" (fires on outside->inside transition
+                                   //    only, never continuously while inside)
+        cooldownMs:     number,   // ✅ Minimum time after a bubble ends before the
+                                   //    SAME NPC can trigger again, even on re-entry
+        oncePerLevel:   boolean,  // ✅ true = never retrigger after the first time
+                                   //    this level session (resets on level restart)
+        durationMs:     number,   // ✅ How long the bubble stays visible once shown.
+                                   //    Suggested floor 1800, default 3500.
+        lines: [                  // ✅ At least one line if enabled=true
+          { id: string, text: string }
+        ],
+        selectionMode:  string,   // ✅ "sequential" (v1 — rotates through lines in
+                                   //    order, one per trigger, wrapping at the end).
+                                   //    "random" reserved for a future version.
+      }
+    }
+  ]
+}
+```
+
+### Anchor & rendering
+
+`x`/`y` are the character's **feet point** — bottom-centre of the sprite's trimmed
+art, matching the ground line it stands on (same convention as the Checkpoint's
+ground-level `y`, NOT the top-left convention Gate/Switch/Decoration use). The
+runtime draws the sprite's trimmed bounding box with its bottom-centre pinned to
+`(x, y)`. This was chosen because NPCs, like the player and checkpoint, are placed
+by "where their feet are" during level design, not by a bounding-box corner.
+
+Both `assetId` and `greetingAssetId` must resolve to `ASSET_MANIFEST.json` entries
+with `frame_count`/`fps`/`loop` set the same way animated decorations already use
+(see `src_scroll/deco-anim.js`). `assetId`'s entry should have `loop: true`;
+`greetingAssetId`'s entry should have `loop: false` so it plays once and holds its
+last frame until the ambient loop resumes. A missing/unresolvable `assetId` must
+not crash the level — fall back to drawing nothing for that NPC and `console.warn`,
+exactly like `deco-anim.js` already does for decorations.
+
+### Dialogue runtime rules
+
+- Proximity is measured between the player's feet anchor and the NPC's `(x, y)`,
+  both world pixels, straight-line distance, compared against `radiusPx`.
+- `triggerMode: "enter"` means the bubble only triggers on the outside→inside
+  transition. Standing inside the radius does not retrigger it, and does not spam
+  it. Leaving and re-entering retriggers it, subject to `cooldownMs`.
+- `cooldownMs` is measured from when a bubble FINISHES (hides), not from when it
+  started, so `durationMs + cooldownMs` is the real minimum gap between two
+  bubbles from the same NPC.
+- `oncePerLevel: true` overrides `cooldownMs` — after the first trigger, this NPC
+  never shows a bubble again until the level restarts (checkpoint respawn does
+  NOT reset it; only a fresh level load does).
+- When two NPCs' radii overlap and both are eligible to trigger in the same frame,
+  only the NEAREST one triggers; the other's trigger is simply skipped for that
+  approach (not queued, not deferred) — at most one bubble on screen at a time.
+- `lines` rotate with `selectionMode: "sequential"`: trigger 1 shows `lines[0]`,
+  trigger 2 shows `lines[1]`, wrapping back to `lines[0]` after the last line.
+  The rotation index is per-NPC runtime state, not saved in the level JSON.
+- A disabled (`enabled: false`) NPC still renders and animates; it simply never
+  computes proximity or shows a bubble.
+
+### Builder authoring
+
+The Builder places NPCs from their own "NPCs" asset-bank category (manifest
+`category: "npc"`), distinct from the `npcOnly` tag-filter chip shipped for
+Order 20's purely-cosmetic decoration-based workers — that chip filters
+DECORATIONS tagged `npc`; it does not touch this array and these are not
+mutually exclusive labels (a cosmetic decoration can be tagged `npc` without
+ever appearing in `level.npcs`). Selecting a placed NPC opens the NPC Inspector
+(`editor/npc-inspector.js`) to edit every field above, including the dialogue
+lines, with changes participating in undo/redo and the normal save/reload flow
+(`editor/persistence.js` round-trips `npcs` the same way it already round-trips
+`enemies`/`checkpoints`).
+
+
 ## Enemy
 
 Updated 2026-09-28 against `Level` and the city-drone integration. The Builder

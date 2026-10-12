@@ -6,10 +6,11 @@
 // Any level JSON conforming to SCHEMA.md renders correctly. No Level-1 assumptions.
 
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
-         worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation, getTileFlip } from './state.js';
+         worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation, getTileFlip, manifestItemById } from './state.js';
 import * as Selection from './selection.js';
 import { drawHvac, sourceBox, drawStreetlightPool, isNightCityStreetlight } from '../src_scroll/source-visuals.js';
 import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
+import { drawSpeechBubble } from '../src_scroll/npc.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
 function getImage(path) {
@@ -39,6 +40,7 @@ const MARKER = {
   platform:   '#44aadd',
   crate:      '#aa55ff',
   chest:      '#e8aa33',
+  npc:        '#bbf6ff',
   playerStart:'#ffffff',
   selection:  '#ffee00',
 };
@@ -272,6 +274,7 @@ export function render(ctx, canvas) {
   _drawPlatforms(ctx, L.platforms);
   _drawCrates(ctx, L.crates);
   _drawChests(ctx, L.chests);
+  _drawNpcs(ctx, L.npcs);
   _drawPlayerStart(ctx, L.playerStart);
 
   // Selection highlights — decorations, gameplay markers, tiles, playerStart.
@@ -314,6 +317,26 @@ export function render(ctx, canvas) {
     for (const o of (state.selection.crates     || [])) outlineByKind('crate', o);
     for (const o of (state.selection.chests     || [])) outlineByKind('chest', o);
     for (const o of state.selection.gates)              outlineByKind('gate', o);
+    for (const o of (state.selection.npcs       || [])) outlineByKind('npc', o);
+
+    // NPC dialogue radius ring — Order 22. Visible only while the NPC is
+    // selected (not permanent clutter, per the order's own UX rule). World-
+    // space circle centred on the NPC's feet anchor, radius = dialogue.radiusPx,
+    // scaled by camera zoom like everything else here.
+    for (const o of (state.selection.npcs || [])) {
+      if (!o.dialogue) continue;
+      const p = worldToScreen(o.x, o.y);
+      const r = (o.dialogue.radiusPx || 0) * c.zoom;
+      ctx.save();
+      ctx.strokeStyle = o.dialogue.enabled ? '#8fe3ff' : '#556';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
 
     if (state.selection.playerStart && L.playerStart) {
       outlineByKind('playerStart', L.playerStart);
@@ -1121,6 +1144,77 @@ function _drawChests(ctx, arr) {
 // Runtime: sx = cx - SPRITE_W/2, sy = y + h - SPRITE_FEET_Y
 //   => sx = ps.x + PLAYER_HIT_W/2 - PLAYER_SPRITE_W/2 = ps.x - 36
 //      sy = ps.y + PLAYER_HIT_H - PLAYER_SPRITE_FEET   = ps.y - 48
+// NPCs — Order 22. Draws the manifest-resolved first frame of the NPC's
+// assetId, anchored bottom-centre at (x, y) exactly like the runtime (see
+// src_scroll/npc.js). This is the editor's OWN resolution path (manifestItemById,
+// not deco-anim's assetById) because the Builder never awaits the runtime's
+// manifest loader. Schematic fallback (a labeled box) while the image loads or
+// if assetId does not resolve, so a broken reference is visible, not invisible.
+function _drawNpcs(ctx, arr) {
+  if (!Array.isArray(arr)) return;
+  const z = state.camera.zoom;
+  const COLOR = MARKER.npc;
+  for (const npc of arr) {
+    const item = manifestItemById(npc.assetId);
+    const p = worldToScreen(npc.x, npc.y);
+    let topY = p.y - 96 * z; // default (schematic height) — overwritten below if sprite draws
+    if (item && item.path) {
+      const img = getImage(item.path);
+      const fw = item.frame_width  || img.naturalWidth  || 64;
+      const fh = item.frame_height || img.naturalHeight || 64;
+      ctx.imageSmoothingEnabled = false;
+      if (img.complete && img.naturalWidth > 0) {
+        const drawW = fw * z, drawH = fh * z;
+        const drawX = p.x - drawW / 2, drawY = p.y - drawH;
+        topY = drawY;
+        ctx.save();
+        if (npc.facing === 'left') {
+          ctx.translate(p.x, 0);
+          ctx.scale(-1, 1);
+          ctx.drawImage(img, 0, 0, fw, fh, -drawW / 2, drawY, drawW, drawH);
+        } else {
+          ctx.drawImage(img, 0, 0, fw, fh, drawX, drawY, drawW, drawH);
+        }
+        ctx.restore();
+      } else {
+        _npcSchematic(ctx, p, COLOR, z);
+      }
+    } else {
+      _npcSchematic(ctx, p, COLOR, z);
+    }
+    // Dialogue indicator + id label under the feet point.
+    ctx.save();
+    ctx.fillStyle = COLOR;
+    ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const tag = (npc.id || 'npc') + (npc.dialogue && npc.dialogue.enabled ? ' \uD83D\uDCAC' : '');
+    ctx.fillText(tag, p.x, p.y + 2);
+    ctx.restore();
+    // Builder "Preview Bubble" overlay — set by the NPC inspector, cleared
+    // by expiry (no cleanup timer; render loop just stops drawing once
+    // Date.now() passes `until`). Screen-space bubble font is NOT zoom-scaled
+    // (matches the id-tag label above) — a documented simplification, the
+    // bubble is slightly oversized/undersized away from zoom 1.
+    if (state.npcPreview && state.npcPreview.ref === npc && Date.now() < state.npcPreview.until) {
+      drawSpeechBubble(ctx, p.x, topY, state.npcPreview.text);
+    }
+  }
+}
+
+function _npcSchematic(ctx, p, color, z) {
+  const w = 48 * z, h = 96 * z;
+  ctx.save();
+  ctx.fillStyle = 'rgba(80,80,160,0.5)';
+  ctx.fillRect(p.x - w / 2, p.y - h, w, h);
+  ctx.strokeStyle = color; ctx.lineWidth = Math.max(1.5, 2 * z);
+  ctx.strokeRect(p.x - w / 2, p.y - h, w, h);
+  ctx.fillStyle = color;
+  ctx.font = `bold ${Math.max(8, Math.round(9 * z))}px monospace`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('NPC', p.x, p.y - h / 2);
+  ctx.restore();
+}
+
 function _drawPlayerStart(ctx, ps) {
   if (!ps) return;
   const z = state.camera.zoom;

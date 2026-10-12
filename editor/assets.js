@@ -312,7 +312,7 @@ function _populateCategories() {
   categorySelect.appendChild(optAll);
   for (const c of cats) {
     const cnt = state.manifest.items.filter(i => i.category === c).length;
-    const names = { enemy: 'Enemies', tile: 'Terrain tiles', decoration: 'Scenery', electrical: 'Electric', object: 'Objects', player: 'Player' };
+    const names = { enemy: 'Enemies', tile: 'Terrain tiles', decoration: 'Scenery', electrical: 'Electric', object: 'Objects', player: 'Player', npc: 'NPCs' };
     categorySelect.appendChild(Object.assign(document.createElement('option'), { value: c, textContent: `${names[c] || c} (${cnt})` }));
   }
   categorySelect.value = cats.includes(current) ? current : 'all';

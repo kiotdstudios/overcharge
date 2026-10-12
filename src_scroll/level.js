@@ -6,6 +6,7 @@ import { ElectricalSource, PowerGate, Switch } from './electricity.js';
 import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
+import { Npc } from './npc.js';
 
 export const CLIMBABLE_LADDER_SRC = 'assets/objects/night-city-props/ladder/ladder.png';
 export const GRAPPLE_ANCHOR_SRC = 'assets/objects/night-city-props/grapple-anchor/anchor.png';
@@ -67,6 +68,9 @@ export class Level {
     // ORCHA_CHEST_V1_SEMANTICS (ratified): an absent or empty chests array means
     // ZERO behavioural change for every existing level - same discipline as crates.
     this.chests      = (def.chests      || []).map(d => new Chest(d));
+    // ORDER 22: an absent or empty npcs array means ZERO behavioural change for
+    // every level authored before this order — same discipline as crates/chests.
+    this.npcs        = (def.npcs        || []).map(d => new Npc(d));
     this.pickups  = [];
 
     // Background decoration sprites (buildings, props) drawn behind tiles.
@@ -191,6 +195,7 @@ export class Level {
     for (const sw   of this.switches) sw.update(dt);
     for (const p    of this.pickups)  p.update(dt, this);
     for (const cp   of this.checkpoints) cp.update(dt);
+    for (const npc  of this.npcs)      npc.update(dt, player);
     for (const e    of this.enemies)  {
       // DroneEnemy.update(dt, level, PLAYER) needs the player to sense at all — the
       // other enemy types take (dt) or (dt, level) and ignore the extra arg. This
@@ -245,6 +250,11 @@ export class Level {
   // What is NOT snapshotted (persistent across death; report):
   //   tiles / tileRotations / decorations — static level geometry.
   //   Image objects on entities — untouched (they carry loaded state).
+  //   npcs — INTENTIONALLY excluded (Order 22). Cooldown timers and the
+  //   oncePerLevel latch must keep counting through a death/respawn — the
+  //   schema doc says oncePerLevel "does NOT reset on checkpoint respawn, only
+  //   on a fresh level load", so NPC dialogue state is simply never touched by
+  //   snapshot/restore and lives for the whole level session, same as `t`.
   snapshot() {
     return {
       sources:     this.sources.map(s => ({ charge: s.charge, drained: s.drained })),
@@ -406,5 +416,9 @@ export class Level {
     for (const cp   of this.checkpoints) cp.draw(ctx);
     for (const p    of this.pickups)  p.draw(ctx);
     for (const e    of this.enemies)  e.draw(ctx);
+    // NPCs draw last so their speech bubbles float above everything else
+    // (platforms, crates, other entities) exactly like Chief would expect text
+    // readability to work.
+    for (const npc  of this.npcs)     npc.draw(ctx);
   }
 }

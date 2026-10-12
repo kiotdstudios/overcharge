@@ -6871,5 +6871,47 @@
     0,
     0,
     0
+  ],
+  "npcs": [
+    {
+      "id": "NPC_STREETLAMP_01",
+      "assetId": "npc_streetlamp_woman",
+      "greetingAssetId": "npc_streetlamp_woman_greeting",
+      "x": 1740,
+      "y": 320,
+      "facing": "left",
+      "dialogue": {
+        "enabled": true,
+        "trigger": "player_proximity",
+        "radiusPx": 112,
+        "triggerMode": "enter",
+        "cooldownMs": 6000,
+        "oncePerLevel": false,
+        "durationMs": 3500,
+        "selectionMode": "sequential",
+        "lines": [
+          {
+            "id": "L1",
+            "text": "Hey, cutie... you look like trouble. The fun kind."
+          },
+          {
+            "id": "L2",
+            "text": "Hey, handsome. You always light up the block like that?"
+          },
+          {
+            "id": "L3",
+            "text": "Mmm, look who's got a little spark."
+          },
+          {
+            "id": "L4",
+            "text": "Careful, baby. This street eats the unprepared."
+          },
+          {
+            "id": "L5",
+            "text": "You headed downtown? Watch those gates, sweetheart."
+          }
+        ]
+      }
+    }
   ]
 }

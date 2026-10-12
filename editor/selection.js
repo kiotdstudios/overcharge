@@ -36,6 +36,7 @@ if (!state.selection) {
     platforms:   new Set(),
     crates:      new Set(),   // was MISSING — selectByKind('crate') threw on s.crates.add
     chests:      new Set(),
+    npcs:        new Set(),
     playerStart: false,
   };
   state.clipboard = null;
@@ -43,7 +44,7 @@ if (!state.selection) {
 
 // Kinds that live in Sets (playerStart is a boolean, handled separately).
 // 'crates' was missing here too, so clearSelection() silently left crates selected.
-const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms', 'crates', 'chests'];
+const SET_KINDS = ['decorations', 'sources', 'gates', 'switches', 'checkpoints', 'enemies', 'platforms', 'crates', 'chests', 'npcs'];
 
 // ── Read helpers ─────────────────────────────────────────────────────────
 export function selectedDecorations() { return [...state.selection.decorations]; }
@@ -54,6 +55,7 @@ export function selectedSwitches()    { return [...state.selection.switches]; }
 export function selectedCheckpoints() { return [...state.selection.checkpoints]; }
 export function selectedEnemies()     { return [...state.selection.enemies]; }
 export function selectedPlatforms()  { return [...state.selection.platforms]; }
+export function selectedNpcs()        { return [...(state.selection.npcs || [])]; }
 export function isPlayerStartSelected() { return state.selection.playerStart; }
 
 export function isSelected(dec)       { return state.selection.decorations.has(dec); }
@@ -85,6 +87,7 @@ export function selectedObjectsByKind() {
     checkpoints: selectedCheckpoints(),
     enemies:     selectedEnemies(),
     platforms:   selectedPlatforms(),
+    npcs:        selectedNpcs(),
     playerStart: s.playerStart ? state.level?.playerStart : null,
   };
 }
@@ -104,6 +107,7 @@ export function selectedRefs() {
   // tool's drag set — it highlighted but refused to move with the group.
   for (const o of (s.crates  || [])) out.push({ kind: 'crate',  ref: o });
   for (const o of (s.chests || [])) out.push({ kind: 'chest',  ref: o });
+  for (const o of (s.npcs   || [])) out.push({ kind: 'npc',    ref: o });
   if (s.playerStart && state.level?.playerStart) out.push({ kind: 'playerStart', ref: state.level.playerStart });
   return out;
 }
@@ -121,6 +125,7 @@ export function clearSelection() {
   s.platforms.clear();
   if (s.crates) s.crates.clear();   // was missing — crates stayed selected forever
   if (s.chests) s.chests.clear();
+  if (s.npcs) s.npcs.clear();
   s.playerStart = false;
   notify();
 }
@@ -140,6 +145,7 @@ export function selectByKind(kind, ref, additive = false) {
   else if (kind === 'platform')   s.platforms.add(ref);
   else if (kind === 'crate')      s.crates.add(ref);
   else if (kind === 'chest')      s.chests.add(ref);
+  else if (kind === 'npc')        s.npcs.add(ref);
   else if (kind === 'tile')       s.tiles.add(ref);   // ref is "col,row"
   else return;
   notify();
@@ -157,6 +163,7 @@ export function toggleByKind(kind, ref) {
   else if (kind === 'platform')   s.platforms.has(ref)   ? s.platforms.delete(ref)   : s.platforms.add(ref);
   else if (kind === 'crate')      s.crates.has(ref)      ? s.crates.delete(ref)      : s.crates.add(ref);
   else if (kind === 'chest')      s.chests.has(ref)      ? s.chests.delete(ref)      : s.chests.add(ref);
+  else if (kind === 'npc')        s.npcs.has(ref)        ? s.npcs.delete(ref)        : s.npcs.add(ref);
   else if (kind === 'tile')       s.tiles.has(ref)       ? s.tiles.delete(ref)       : s.tiles.add(ref);
   else return;
   notify();
@@ -175,6 +182,7 @@ export function isRefSelected(kind, ref) {
   if (kind === 'platform')   return s.platforms.has(ref);
   if (kind === 'crate')      return s.crates.has(ref);
   if (kind === 'chest')      return s.chests.has(ref);
+  if (kind === 'npc')        return s.npcs.has(ref);
   if (kind === 'tile')       return s.tiles.has(ref);
   return false;
 }
@@ -269,6 +277,13 @@ export function boundingRect(kind, ref) {
   if (kind === 'crate')    return { x: ref.x, y: ref.y, w: ref.w || 32, h: ref.h || 32 };
   // Chest: x,y = top-left of the runtime 32x32 hitbox.
   if (kind === 'chest')    return { x: ref.x, y: ref.y, w: 32, h: 32 };
+  // NPC: x,y = FEET anchor (bottom-centre), not top-left — see LEVEL_SCHEMA.md
+  // "NPC" section. Builder has no loaded-image size at selection time, so this
+  // uses a generic standing-character box (64 wide x 128 tall) centred/bottomed
+  // on the anchor; close enough for the selection outline and move handle, and
+  // the real sprite (whatever size) draws from the same anchor so it never
+  // looks detached from the box.
+  if (kind === 'npc')      return { x: ref.x - 32, y: ref.y - 128, w: 64, h: 128 };
   // SPAWN triangle points right — 14x14 rect from (x, y).
   // playerStart: 20×30 collision box, but the idle sprite is 92×92 drawn at
   // (x-36, y-48) — see renderer.js::_drawPlayerStart. Wrap the visible player.
@@ -314,6 +329,7 @@ export function objectAt(worldX, worldY) {
     ['platform',   L.platforms   || []],
     ['crate',      L.crates      || []],
     ['chest',      L.chests      || []],
+    ['npc',        L.npcs        || []],
   ]) {
     for (let i = arr.length - 1; i >= 0; i--) {
       const ref = arr[i];
@@ -427,7 +443,7 @@ export function tilesInRect(x, y, w, h) {
 export function objectsInRect(x, y, w, h) {
   const L = state.level;
   if (!L) return {};
-  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], platforms: [], crates: [], chests: [], playerStart: false };
+  const out = { sources: [], gates: [], switches: [], checkpoints: [], enemies: [], platforms: [], crates: [], chests: [], npcs: [], playerStart: false };
   const check = (kind, ref) => {
     const r = boundingRect(kind, ref);
     return r && r.x + r.w > x && r.x < x + w && r.y + r.h > y && r.y < y + h;
@@ -440,6 +456,7 @@ export function objectsInRect(x, y, w, h) {
   for (const o of L.platforms   || []) if (check('platform',   o)) out.platforms.push(o);
   for (const o of L.crates      || []) if (check('crate',      o)) out.crates.push(o);
   for (const o of L.chests      || []) if (check('chest',      o)) out.chests.push(o);
+  for (const o of L.npcs        || []) if (check('npc',        o)) out.npcs.push(o);
   if (L.playerStart && check('playerStart', L.playerStart)) out.playerStart = true;
   return out;
 }

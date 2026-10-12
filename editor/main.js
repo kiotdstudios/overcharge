@@ -127,7 +127,7 @@ function _gameDiff(committed, current) {
   var fields = [
     ['gates', 'gate'], ['decorations', 'decoration'],
     ['switches', 'switch'], ['enemies', 'enemy'], ['checkpoints', 'checkpoint'],
-    ['chests', 'chest'],
+    ['chests', 'chest'], ['npcs', 'npc'],
   ];
   var parts = [];
   for (var _fi = 0; _fi < fields.length; _fi++) {
@@ -1387,6 +1387,7 @@ function _normalizeUploadedLevel(obj) {
     checkpoints:  obj.checkpoints || [],
     platforms:    obj.platforms   || [],
     enemies:      obj.enemies     || [],
+    npcs:         obj.npcs        || [],
   };
 }
 
@@ -1747,6 +1748,24 @@ function _doSpawn(e, canvas) {
     obj = { id: 'chest_' + Date.now(), x: px, y: py, cost: 2, reward: variant ? asset.defaultReward : 10 };
     if (variant) obj.variant = variant;
     arr = L.chests || (L.chests = []); arrLabel = 'add_chest';
+  } else if (kind === 'npc') {
+    // NPC: x,y = FEET anchor (bottom-centre), grounded like checkpoint/player-start
+    // (see LEVEL_SCHEMA.md "NPC" section). Dialogue starts DISABLED with no lines —
+    // placing an NPC must never make it start talking before Chief authors a line
+    // in the Inspector (Order 22 explicit requirement: no silent/hardcoded content).
+    const px = _snapGrid(wx), py = _groundAt(wx, wy, 0);
+    const asset = state.pendingSpawn.asset || {};
+    obj = {
+      id: 'npc_' + Date.now(), assetId: asset.id || null,
+      greetingAssetId: (asset.raw && asset.raw.greetingAssetId) || null,
+      x: px, y: py, facing: 'right',
+      dialogue: {
+        enabled: false, trigger: 'player_proximity', radiusPx: 112,
+        triggerMode: 'enter', cooldownMs: 6000, oncePerLevel: false,
+        durationMs: 3500, lines: [], selectionMode: 'sequential',
+      },
+    };
+    arr = L.npcs || (L.npcs = []); arrLabel = 'add_npc';
   } else if (kind === 'player-start') {
     // playerStart is a single {x,y} field on the level root, not an array entry.
     // Placing it always moves the existing spawn — exactly one per level.
@@ -1770,7 +1789,7 @@ function _doSpawn(e, canvas) {
       'source': 'source', 'switch': 'switch', 'gate': 'gate',
       'wall-switch': 'switch', 'fence': 'gate',
       'checkpoint': 'checkpoint', 'platform': 'platform', 'crate': 'crate',
-      'chest': 'chest',
+      'chest': 'chest', 'npc': 'npc',
     };
     Selection.selectByKind(kindMap[kind], obj);
   }
@@ -1827,6 +1846,98 @@ subscribe(function _assetSpawnIntercept() {
 const _selPanel   = document.getElementById('tp-selected');
 const _selSection = document.getElementById('tp-selected-section');
 
+// NPC inspector — custom HTML (see note above on why it skips the generic
+// fields[] renderer). "Preview Bubble" sets state.npcPreview, consumed by
+// renderer.js's _drawNpcs; it does NOT touch any runtime Npc instance (the
+// Builder never instantiates src_scroll/npc.js — Test Mode launches the real
+// game in a separate tab/localStorage handoff, there is no live object in
+// this page to poke). This is a documented simplification: Preview Bubble
+// shows the exact same drawSpeechBubble() art the runtime uses, on the exact
+// npc ref, right on the Builder canvas — it just doesn't exercise proximity/
+// cooldown/once-per-level trigger logic, which has its own test coverage in
+// _dev against npc.js directly.
+function _npcManifestOptions(currentId) {
+  const items = (state.manifest && Array.isArray(state.manifest.items))
+    ? state.manifest.items.filter(it => it.category === 'npc')
+    : [];
+  if (currentId && !items.some(it => it.id === currentId)) {
+    // Keep whatever is already on the ref selectable even if the manifest
+    // doesn't (yet) carry it tagged as category 'npc' — never silently
+    // blank out a valid reference just because of a tagging gap.
+    items.unshift({ id: currentId, name: currentId + ' (untagged)' });
+  }
+  return items;
+}
+
+function _renderNpcInspector(ref) {
+  ref.dialogue = ref.dialogue || {
+    enabled: false, trigger: 'player_proximity', radiusPx: 112, triggerMode: 'enter',
+    cooldownMs: 6000, oncePerLevel: false, durationMs: 3500, lines: [], selectionMode: 'sequential',
+  };
+  const d = ref.dialogue;
+  const assetOpts = _npcManifestOptions(ref.assetId)
+    .map(it => `<option value="${it.id}" ${it.id === ref.assetId ? 'selected' : ''}>${it.name || it.id}</option>`)
+    .join('');
+  const linesText = (d.lines || []).map(l => l.text || '').join('\n');
+
+  _selPanel.innerHTML = `
+    <div class="prop-type-badge" style="color:#bbf6ff;border-color:#bbf6ff55">NPC</div>
+    <div class="prop-row"><span class="prop-label">id</span><input class="prop-input" id="npc-id" type="text" value="${ref.id ?? ''}"></div>
+    <div class="prop-row"><span class="prop-label">assetId</span><select class="prop-select" id="npc-assetId">${assetOpts}</select></div>
+    <div class="prop-row"><span class="prop-label">x</span><input class="prop-input" id="npc-x" type="number" step="1" value="${ref.x ?? 0}"></div>
+    <div class="prop-row"><span class="prop-label">y</span><input class="prop-input" id="npc-y" type="number" step="1" value="${ref.y ?? 0}"></div>
+    <div class="prop-row"><span class="prop-label">facing</span>
+      <select class="prop-select" id="npc-facing">
+        <option value="right" ${ref.facing !== 'left' ? 'selected' : ''}>right</option>
+        <option value="left" ${ref.facing === 'left' ? 'selected' : ''}>left</option>
+      </select>
+    </div>
+    <div class="prop-row"><span class="prop-label">dialogue on</span><input id="npc-d-enabled" type="checkbox" style="flex:0;width:16px;height:16px;cursor:pointer" ${d.enabled ? 'checked' : ''}></div>
+    <div class="prop-row"><span class="prop-label">radiusPx</span><input class="prop-input" id="npc-d-radius" type="number" min="8" step="1" value="${d.radiusPx ?? 112}"></div>
+    <div class="prop-row"><span class="prop-label">durationMs</span><input class="prop-input" id="npc-d-duration" type="number" min="500" step="100" value="${d.durationMs ?? 3500}"></div>
+    <div class="prop-row"><span class="prop-label">cooldownMs</span><input class="prop-input" id="npc-d-cooldown" type="number" min="0" step="100" value="${d.cooldownMs ?? 6000}"></div>
+    <div class="prop-row"><span class="prop-label">oncePerLevel</span><input id="npc-d-once" type="checkbox" style="flex:0;width:16px;height:16px;cursor:pointer" ${d.oncePerLevel ? 'checked' : ''}></div>
+    <div class="prop-row" style="flex-direction:column;align-items:stretch;gap:4px">
+      <span class="prop-label">lines (one per row, rotates in order)</span>
+      <textarea id="npc-d-lines" rows="5" style="width:100%;background:#0a0a14;color:#f4f4f0;border:1px solid #335;font-family:monospace;font-size:11px;padding:4px">${linesText}</textarea>
+      <span id="npc-lines-count" style="font-size:10px;color:#789"></span>
+    </div>
+    <button id="npc-preview-btn" style="margin-top:6px;width:100%;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Bubble</button>
+  `;
+
+  const $ = (id) => _selPanel.querySelector('#' + id);
+  const commit = () => { state.dirty = true; notify(); };
+  const lineCountEl = $('npc-lines-count');
+  const refreshLineCount = () => {
+    const n = $('npc-d-lines').value.split('\n').filter(s => s.trim().length).length;
+    lineCountEl.textContent = `${n} line${n === 1 ? '' : 's'}`;
+  };
+  refreshLineCount();
+
+  $('npc-id').addEventListener('change', (e) => { ref.id = e.target.value; commit(); });
+  $('npc-assetId').addEventListener('change', (e) => { ref.assetId = e.target.value; commit(); });
+  $('npc-x').addEventListener('change', (e) => { ref.x = Number(e.target.value); commit(); });
+  $('npc-y').addEventListener('change', (e) => { ref.y = Number(e.target.value); commit(); });
+  $('npc-facing').addEventListener('change', (e) => { ref.facing = e.target.value; commit(); });
+  $('npc-d-enabled').addEventListener('change', (e) => { d.enabled = e.target.checked; commit(); });
+  $('npc-d-radius').addEventListener('change', (e) => { d.radiusPx = Number(e.target.value); commit(); });
+  $('npc-d-duration').addEventListener('change', (e) => { d.durationMs = Math.max(500, Math.min(30000, Number(e.target.value))); commit(); });
+  $('npc-d-cooldown').addEventListener('change', (e) => { d.cooldownMs = Math.max(0, Number(e.target.value)); commit(); });
+  $('npc-d-once').addEventListener('change', (e) => { d.oncePerLevel = e.target.checked; commit(); });
+  $('npc-d-lines').addEventListener('input', refreshLineCount);
+  $('npc-d-lines').addEventListener('change', (e) => {
+    const texts = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
+    d.lines = texts.map((text, i) => ({ id: `L${i + 1}`, text }));
+    commit();
+  });
+  $('npc-preview-btn').addEventListener('click', () => {
+    const texts = $('npc-d-lines').value.split('\n').map(s => s.trim()).filter(Boolean);
+    const text = texts[0] || '(no lines yet)';
+    state.npcPreview = { ref, text, until: Date.now() + Math.max(500, d.durationMs || 3500) };
+    needsRedraw = true;
+  });
+}
+
 function _refreshSelectedProps() {
   if (!_selPanel || !_selSection) return;
   const sel = state.selection;
@@ -1834,7 +1945,7 @@ function _refreshSelectedProps() {
   for (const [k, kname] of [
     ['enemies','enemy'],['switches','switch'],['checkpoints','checkpoint'],
     ['platforms','platform'],['sources','source'],['gates','gate'],['crates','crate'],
-    ['chests','chest'],
+    ['chests','chest'],['npcs','npc'],
   ]) {
     if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
   }
@@ -1844,6 +1955,16 @@ function _refreshSelectedProps() {
   }
   if (!kind || !ref) { _selSection.style.display = 'none'; _selPanel.innerHTML = ''; return; }
   _selSection.style.display = '';
+
+  // NPC gets a fully custom inspector, not the generic flat-field renderer
+  // below: dialogue.* fields are nested (ref.dialogue.radiusPx, etc.) and the
+  // generic renderer only ever mutates ref[key] at the top level. Lines[] is
+  // a textarea split on newlines rather than N separate line-editor rows —
+  // simplest UI that still lets Chief add/remove/reorder lines freely.
+  if (kind === 'npc') {
+    _renderNpcInspector(ref);
+    return;
+  }
 
   let badge = '', color = '#cdd', fields = [];
   if (kind === 'enemy') {

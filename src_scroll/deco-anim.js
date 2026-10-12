@@ -20,10 +20,15 @@
 let _manifest = null;          // resolved entries, keyed by directory
 let _loading  = null;
 const _frameCache = new Map(); // dir -> Image[]   loaded ONCE and shared by every instance
+let _byId = null;              // resolved RAW manifest entries, keyed by asset id
+// Shared with npc.js: NPCs resolve sprites by assetId, not by decoration src path,
+// so they need the raw manifest entry (not just the dir-template animation object
+// decorations use). Populated in the same fetch/parse pass so there is only ever
+// one manifest read, matching the "manifest IS the registry" principle above.
 
 // A manifest path looks like 'assets/sprites/generator 1/frame_{n}.png'. Reduce it to
 // its directory plus the filename pattern so a placed decoration can be matched to it.
-function parseTemplate(p) {
+export function parseTemplate(p) {
   const slash = p.lastIndexOf('/');
   return { dir: p.slice(0, slash), file: p.slice(slash + 1) };
 }
@@ -39,7 +44,7 @@ function parseTemplate(p) {
 // prop — the exact assets this module exists to animate. So: accept either form, and for
 // the literal form derive the pattern from the numeric run in the filename, preserving
 // its width. '00.png' -> 00..07,  'frame_000.png' -> frame_000..frame_007.
-function framePattern(file) {
+export function framePattern(file) {
   const tpl = file.match(/\{n(?::(\d+))?\}/);
   if (tpl) {
     const pad = tpl[1] ? Number(tpl[1]) : (/frame_/.test(file) ? 3 : 2);
@@ -59,12 +64,14 @@ export async function loadDecoAnimations(manifestUrl = 'assets/ASSET_MANIFEST.js
   if (_loading)  return _loading;
   _loading = (async () => {
     const byDir = new Map();
+    const byId  = new Map();
     try {
       const res = await fetch(manifestUrl, { cache: 'no-store' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
       const raw = await res.json();
       const list = Array.isArray(raw) ? raw : (raw.assets || Object.values(raw).find(Array.isArray) || []);
       for (const a of list) {
+        if (a && a.id) byId.set(a.id, a);          // raw entry, every asset, animated or not
         const count = Number(a.frame_count) || 1;
         if (count <= 1 || !a.path) continue;           // static assets need nothing
         const { dir, file } = parseTemplate(a.path);
@@ -83,9 +90,38 @@ export async function loadDecoAnimations(manifestUrl = 'assets/ASSET_MANIFEST.js
       console.warn('[deco-anim] manifest unavailable — decorations stay static:', err.message);
     }
     _manifest = byDir;
+    _byId = byId;
     return byDir;
   })();
   return _loading;
+}
+
+// Look up a raw manifest entry by its `id` field (not by directory/src — used by
+// npc.js, which places NPCs via `assetId`, not a decoration `src` path).
+// Returns null if the manifest has not resolved yet or the id is unknown; callers
+// must tolerate that the same way decorations tolerate a missing manifest.
+export function assetById(id) {
+  if (!_byId || !id) return null;
+  return _byId.get(id) || null;
+}
+
+// Build the same {dir, file, count, pattern, fps, loop, id} shape framesFor()/frameAt()
+// already expect, directly from a raw manifest entry (rather than from a decoration's
+// src path). Returns null for a static asset (frame_count <= 1) or a malformed path —
+// callers draw the asset's single `path` image directly in that case.
+export function animFromAsset(asset) {
+  if (!asset || !asset.path) return null;
+  const count = Number(asset.frame_count) || 1;
+  if (count <= 1) return null;
+  const { dir, file } = parseTemplate(asset.path);
+  const pattern = framePattern(file);
+  if (!pattern) return null;
+  return {
+    dir, file, count, pattern,
+    fps:  Number(asset.fps) > 0 ? Number(asset.fps) : 8,
+    loop: asset.loop !== false,
+    id:   asset.id,
+  };
 }
 
 // Match a placed decoration's src to a manifest entry by directory.
