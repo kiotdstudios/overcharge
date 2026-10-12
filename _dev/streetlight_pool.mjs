@@ -5,7 +5,7 @@ globalThis.document = { addEventListener(){}, getElementById:()=>null,
 globalThis.Image = class { constructor(){ this.complete=true; this.naturalWidth=444; this.src=''; } addEventListener(){} };
 const { ElectricalSource } = await import('../src_scroll/electricity.js');
 const { Level } = await import('../src_scroll/level.js');
-const { drawStreetlightPool, streetlightPoolIntensity } = await import('../src_scroll/source-visuals.js');
+const { drawSourceReaction, drawStreetlightPool, streetlightPoolIntensity } = await import('../src_scroll/source-visuals.js');
 let pass=0,fail=0;
 function ok(v,msg){ (v?pass++:fail++); console.log(`${v?'✓':'✗'} ${msg}`); }
 function recorder(){
@@ -29,6 +29,12 @@ const moved=recorder(); drawStreetlightPool(moved,lamp);
 ok(Math.abs(moved.origins[0][1]-beforeX-13)<1e-9, 'light follows the moved streetlight exactly');
 lamp.drain(2); lamp.update(0.1);
 const half=recorder(); drawStreetlightPool(half,lamp);
+const absorbing=recorder(); drawSourceReaction(absorbing,lamp);
+ok(absorbing.origins.length===0, 'absorbing from a streetlight adds no pop-up radial glow');
+const otherProp=recorder();
+drawSourceReaction(otherProp,{kind:'prop',sprite:'assets/objects/night-city-props/fuse-box/',
+  x:0,y:0,artW:64,artH:64,_absorbT:0.1,_t:1});
+ok(otherProp.origins.length===1, 'other powered props retain their absorption feedback');
 ok(streetlightPoolIntensity(lamp)<1 && streetlightPoolIntensity(lamp)>0,
   'absorbing charge dims the pool continuously');
 ok(half.stops[0][1]!==full.stops[0][1], 'beam alpha falls as charge is absorbed');

@@ -167,7 +167,9 @@ export function drawHvac(ctx, source) {
 // no full-screen flash, no shake. Reduced-motion collapses the pulse to a steady low glow
 // and the dry-flash ring to a flat low-alpha ring instead of animating outward.
 export function drawSourceReaction(ctx, source, reducedMotion = false) {
-  const absorbing = (source._absorbT || 0) > 0;
+  // The streetlight already communicates charge through its fading beam and pool.
+  // A second radial reaction reads as a large pop-up glow over the scene.
+  const absorbing = !isNightCityStreetlight(source) && (source._absorbT || 0) > 0;
   const dryFlash  = source._dryFlash || 0;
   if (!absorbing && dryFlash <= 0) return;
   const b  = sourceBox(source);
