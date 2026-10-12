@@ -7,7 +7,7 @@ import wave
 import numpy as np
 
 RATE = 32000
-BPM = 104
+BPM = 140
 BEAT = 60 / BPM
 BARS = 16
 LENGTH = BARS * 4 * BEAT
@@ -64,8 +64,8 @@ def pad(note, duration):
 
 def kick():
     t = np.arange(round(.43 * RATE)) / RATE
-    phase = 2 * np.pi * (48 * t + 75 * (1 - np.exp(-t * 30)) / 30)
-    return np.sin(phase) * np.exp(-t * 13) + rng.normal(0, 1, len(t)) * np.exp(-t * 80) * .08
+    phase = 2 * np.pi * (48 * t + 115 * (1 - np.exp(-t * 34)) / 34)
+    return np.sin(phase) * np.exp(-t * 10) + rng.normal(0, 1, len(t)) * np.exp(-t * 110) * .13
 
 
 def snare():
@@ -73,7 +73,8 @@ def snare():
     noise = rng.normal(0, 1, len(t))
     # Differentiate once to emphasize the papery upper register.
     bright = noise - np.roll(noise, 1) * .78
-    return (bright * .44 + np.sin(2 * np.pi * 184 * t) * .31) * np.exp(-t * 22)
+    clap = (noise - np.roll(noise, 61) + np.roll(noise, 137) * .5) * .27
+    return (bright * .44 + clap + np.sin(2 * np.pi * 184 * t) * .23) * np.exp(-t * 22)
 
 
 def hat(open_hat=False):
@@ -99,22 +100,29 @@ for bar in range(BARS):
     root = roots[bar % 4]
     for note in chords[bar % 4]:
         put(start, pad(note, 4 * BEAT), .27)
-    # Syncopated 808-like line with rests; a pickup resolves into the next bar.
-    for slot, shift, dur in [(0, 0, .72), (1.5, 0, .38), (2.5, 7, .39), (3.5, 0, .35)]:
-        put(start + slot * BEAT, bass(root + shift, dur * BEAT), .47)
-    for step in range(8):
-        swing = .038 * BEAT if step % 2 else 0
-        put(start + step * BEAT / 2 + swing, hat(step == 7 and bar % 4 == 3), .09 if step % 2 else .07)
-    for beat in (0, 2.5, 3.5 if bar % 4 == 3 else 2):
-        put(start + beat * BEAT, kick(), .67)
-    for beat in (1, 3):
-        put(start + beat * BEAT, snare(), .35)
-        put(start + beat * BEAT + .075, snare(), .07)  # short room slap
+    # Half-time trap pulse at 140 BPM: sliding 808, hard beat-three clap,
+    # double-time hats, and little 32nd-note rolls at phrase turns.
+    for slot, shift, dur in [(0, 0, 1.1), (1.5, 0, .42), (2.75, 7, .55), (3.5, 0, .38)]:
+        put(start + slot * BEAT, bass(root + shift, dur * BEAT), .61)
+    for step in range(16):
+        swing = .025 * BEAT if step % 2 else 0
+        put(start + step * BEAT / 4 + swing, hat(), .087 if step % 4 == 0 else .052)
+    if bar % 4 in (1, 3):
+        for roll in range(8):
+            put(start + (3 + roll / 8) * BEAT, hat(), .055 + .007 * roll)
+    for beat in (0, 1.5, 2.75, 3.5 if bar % 4 == 3 else 3.25):
+        put(start + beat * BEAT, kick(), .79)
+    put(start + 2 * BEAT, snare(), .56)
+    put(start + 2 * BEAT + .024, snare(), .12)  # clap width
+    if bar % 4 == 3:
+        put(start + 3.75 * BEAT, snare(), .19)
+    for slot in (.5, 2.5):
+        put(start + slot * BEAT, hat(True), .11)
     for i, (slot, note) in enumerate(melodies[bar % 4]):
         if bar % 8 in (3, 7) and i == 3:
             continue  # phrase break
         octave = 12 if bar >= 8 and i == 4 else 0
-        put(start + slot * BEAT, lead(note + octave, .48 * BEAT, .9 if i else 1), .12)
+        put(start + slot * BEAT, lead(note + octave, .48 * BEAT, .9 if i else 1), .095)
     if bar % 4 == 3:
         for n, slot in zip((67, 70, 72, 75), (3, 3.25, 3.5, 3.75)):
             put(start + slot * BEAT, lead(n, .2 * BEAT), .065)
