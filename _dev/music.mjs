@@ -19,7 +19,7 @@ class FakeAudio {
 globalThis.Audio = FakeAudio;
 const { LevelMusic } = await import('../src_scroll/music.js');
 const music = new LevelMusic();
-assert.equal(music.audio.path, 'assets/audio/level1_neon_rise.wav?v=trap2');
+assert.equal(music.audio.path, 'assets/audio/level1_neon_rise.wav?v=cinematic3');
 music.setActive(true);
 assert.equal(music.audio.plays, 0, 'no autoplay before gesture');
 music.unlock();
