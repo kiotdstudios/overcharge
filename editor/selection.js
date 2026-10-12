@@ -16,7 +16,7 @@ import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
 // that's selected. Tools (select tool, delete, copy/paste) read and write it.
 // Selection is transient (not saved with level). Cleared on level load.
 
-import { state, notify, TILE_SIZE, levelRows, worldToScreen, assetVisualBox, isOpaqueAt } from './state.js';
+import { state, notify, TILE_SIZE, levelRows, worldToScreen, assetVisualBox, isOpaqueAt, manifestItemById } from './state.js';
 
 // Move-handle visual geometry (screen-space, constant across zoom).
 export const MOVE_HANDLE_RADIUS = 6;   // dot radius in screen px (visual)
@@ -278,12 +278,28 @@ export function boundingRect(kind, ref) {
   // Chest: x,y = top-left of the runtime 32x32 hitbox.
   if (kind === 'chest')    return { x: ref.x, y: ref.y, w: 32, h: 32 };
   // NPC: x,y = FEET anchor (bottom-centre), not top-left — see LEVEL_SCHEMA.md
-  // "NPC" section. Builder has no loaded-image size at selection time, so this
-  // uses a generic standing-character box (64 wide x 128 tall) centred/bottomed
-  // on the anchor; close enough for the selection outline and move handle, and
-  // the real sprite (whatever size) draws from the same anchor so it never
-  // looks detached from the box.
-  if (kind === 'npc')      return { x: ref.x - 32, y: ref.y - 128, w: 64, h: 128 };
+  // "NPC" section. ORDER 23: selection must hit the visible sprite silhouette,
+  // not a generic placeholder box, so overlapping clicks resolve to whichever
+  // NPC's actual art is on top. Resolve real size from the manifest entry
+  // (width/height × ref.scale) and apply its trim fraction the same way
+  // assetVisualBox() does for decorations. Falls back to the old generic
+  // 64×128 box only when the manifest hasn't loaded yet or the assetId is
+  // unknown — never shrinks to zero.
+  if (kind === 'npc') {
+    const item = manifestItemById(ref.assetId);
+    if (item) {
+      const scale = ref.scale || 1;
+      const fullW = item.width * scale;
+      const fullH = item.height * scale;
+      const t = item.trim;
+      const tx = t ? t.x * fullW : 0;
+      const ty = t ? t.y * fullH : 0;
+      const tw = t ? t.w * fullW : fullW;
+      const th = t ? t.h * fullH : fullH;
+      return { x: ref.x - fullW / 2 + tx, y: ref.y - fullH + ty, w: tw, h: th };
+    }
+    return { x: ref.x - 32, y: ref.y - 128, w: 64, h: 128 };
+  }
   // SPAWN triangle points right — 14x14 rect from (x, y).
   // playerStart: 20×30 collision box, but the idle sprite is 92×92 drawn at
   // (x-36, y-48) — see renderer.js::_drawPlayerStart. Wrap the visible player.

@@ -152,14 +152,69 @@ sec('schema doc, manifest, and level1 wiring (Order 21 asset delivery)');
   ok(greet && fs.existsSync(`${R}/assets/sprites/npc-streetlamp-woman/greeting/08.png`), 'greeting frame 8 exists on disk');
 
   const level1 = JSON.parse(fs.readFileSync(`${R}/src_scroll/levels/level1.json`, 'utf8'));
-  ok(Array.isArray(level1.npcs) && level1.npcs.length === 1, 'level1 carries exactly one npcs[] entry');
-  const npcDef = level1.npcs[0];
-  ok(npcDef.assetId === 'npc_streetlamp_woman', 'level1 npc points at the idle ambient asset');
+  ok(Array.isArray(level1.npcs) && level1.npcs.length === 3, 'level1 carries 3 npcs[] entries (streetlamp woman + 2 Order-23-migrated workers)', String(level1.npcs.length));
+  const npcDef = level1.npcs.find(n => n.assetId === 'npc_streetlamp_woman');
+  ok(!!npcDef, 'level1 has the streetlamp woman npc');
   ok(npcDef.dialogue.lines.length === 5, 'level1 npc has the 5 Order-21 lines (default + 4 alternates)', String(npcDef.dialogue.lines.length));
   ok(npcDef.dialogue.enabled === true, 'level1 npc has dialogue enabled (not left dormant after placement)');
   // Clear of CP1 (x=1824, ±40 trigger) and the LAMP source hitbox (x=1664, 28x28) it's staged beside.
   ok(Math.abs(npcDef.x - 1824) > 40, 'staged npc is clear of checkpoint CP1\u2019s trigger zone');
   ok(Math.abs(npcDef.x - 1664) > 20, 'staged npc does not overlap the streetlamp charge-source hitbox');
+
+  // Order 23: both warehouse workers now live in npcs[] (migrated out of
+  // decorations[]), each carrying an `ambient` idle<->smoke config, dialogue
+  // disabled/empty by default (Chief can author a line later, same tab).
+  const workerA = level1.npcs.find(n => n.id === 'npc_smoke_break_worker_a');
+  const workerB = level1.npcs.find(n => n.id === 'npc_smoke_break_worker_b');
+  ok(!!workerA && !!workerB, 'both smoke-break workers are present in npcs[]');
+  ok(workerA.ambient && workerA.ambient.smokeAssetId === 'npc_smoke_break_worker_a_smoke', 'worker A ambient config points at its own smoke asset');
+  ok(workerB.ambient && workerB.ambient.smokeAssetId === 'npc_smoke_break_worker_b_smoke', 'worker B ambient config points at its own smoke asset');
+  ok(workerA.ambient.seed !== workerB.ambient.seed, 'workers carry different seeds so their smoke cycles do not synchronize');
+  ok(workerA.dialogue.enabled === false && workerA.dialogue.lines.length === 0, 'worker A dialogue stays optional/disabled by default');
+  ok(workerB.dialogue.enabled === false && workerB.dialogue.lines.length === 0, 'worker B dialogue stays optional/disabled by default');
+  const decoIds = (level1.decorations || []).map(d => d.id);
+  ok(!decoIds.includes('npc_smoke_break_worker_a_01') && !decoIds.includes('npc_smoke_break_worker_b_01'), 'workers no longer exist as decorations[] (fully migrated, not duplicated)');
+}
+
+sec('ambient idle<->smoke state machine (Order 23) — no dialogue, no manifest needed');
+{
+  // No fetch/manifest in this harness, so _resolveSprites() always returns
+  // null and _smokeDurationMs() falls back to its hardcoded 2000ms — exactly
+  // the "manifest not loaded yet" path real startup frames also hit, so this
+  // doubles as a test that the state machine never stalls while sprites are
+  // still resolving.
+  const amb = new Npc({
+    id: 'AMB_1', assetId: 'npc_smoke_break_worker_a', x: 0, y: 0,
+    ambient: { smokeAssetId: 'npc_smoke_break_worker_a_smoke', dwellMinMs: 500, dwellMaxMs: 500, seed: 42 },
+  });
+  ok(amb._ambState === 'idle', 'starts in the idle state');
+  ok(amb._ambTimerMs > 0, 'idle dwell timer is primed on construction (not zero/instant)');
+
+  tick(amb, null, 0.4);
+  ok(amb._ambState === 'idle', 'still idle before the 500ms dwell elapses');
+
+  tick(amb, null, 0.2);
+  ok(amb._ambState === 'smoke', 'transitions to smoke once the dwell timer runs out');
+
+  tick(amb, null, 1.0);
+  ok(amb._ambState === 'smoke', 'smoke is a one-shot — does not end early (fallback duration is 2000ms)');
+
+  tick(amb, null, 1.1);
+  ok(amb._ambState === 'idle', 'returns to idle once the one-shot smoke duration elapses');
+  ok(amb._ambTimerMs > 0, 'a fresh idle dwell is rolled immediately on return (never stuck at 0)');
+
+  const bare = new Npc({ id: 'NOAMB', assetId: 'x', x: 0, y: 0 });
+  ok(bare.ambient === null, 'an NPC with no ambient config has ambient=null (pure no-op)');
+  tick(bare, null, 5);
+  ok(bare._ambState === 'idle', 'no-ambient NPC never leaves the idle label (nothing to update)');
+
+  const seedA = new Npc({ id: 'SEED_A', assetId: 'x', x: 0, y: 0, ambient: { smokeAssetId: 's', seed: 1 } });
+  const seedB = new Npc({ id: 'SEED_B', assetId: 'x', x: 0, y: 0, ambient: { smokeAssetId: 's', seed: 2 } });
+  ok(seedA._ambTimerMs !== seedB._ambTimerMs, 'two different seeds roll two different initial dwells (no lockstep sync)');
+
+  const noSeed1 = new Npc({ id: 'worker_q', assetId: 'x', x: 0, y: 0, ambient: { smokeAssetId: 's' } });
+  const noSeed2 = new Npc({ id: 'worker_z', assetId: 'x', x: 0, y: 0, ambient: { smokeAssetId: 's' } });
+  ok(noSeed1._ambTimerMs !== noSeed2._ambTimerMs, 'omitted seed falls back to a hash of the id, so differently-named NPCs still desync');
 }
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);

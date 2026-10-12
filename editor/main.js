@@ -1869,70 +1869,177 @@ function _npcManifestOptions(currentId) {
   return items;
 }
 
+// Escapes free text before it goes into innerHTML templating below. Every
+// NPC field that can carry arbitrary user text (id, dialogue lines) is
+// author-controlled but still untrusted input (ORDER 23 TASK B: "no HTML
+// injection") — a line like `<img onerror=...>` or an id containing `"`
+// must render as literal text, never break out of its attribute/tag.
+function _escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+// ORDER 23 TASK B: the Inspector is now visibly tabbed — Character (id,
+// sprite, position, facing, scale) vs Custom Dialogue (the "what does this
+// NPC say" authoring surface, optional/disabled by default). Persisted at
+// module scope so flipping between two NPCs keeps you on the tab you were
+// using — re-selecting a different worker to keep editing dialogue
+// shouldn't bounce you back to Character every time.
+let _npcInspectorTab = 'character';
+
 function _renderNpcInspector(ref) {
   ref.dialogue = ref.dialogue || {
     enabled: false, trigger: 'player_proximity', radiusPx: 112, triggerMode: 'enter',
     cooldownMs: 6000, oncePerLevel: false, durationMs: 3500, lines: [], selectionMode: 'sequential',
   };
   const d = ref.dialogue;
-  const assetOpts = _npcManifestOptions(ref.assetId)
-    .map(it => `<option value="${it.id}" ${it.id === ref.assetId ? 'selected' : ''}>${it.name || it.id}</option>`)
-    .join('');
-  const linesText = (d.lines || []).map(l => l.text || '').join('\n');
+  if (!Array.isArray(d.lines)) d.lines = [];
 
-  _selPanel.innerHTML = `
-    <div class="prop-type-badge" style="color:#bbf6ff;border-color:#bbf6ff55">NPC</div>
-    <div class="prop-row"><span class="prop-label">id</span><input class="prop-input" id="npc-id" type="text" value="${ref.id ?? ''}"></div>
+  const tabBtn = (key, label) => `<button class="npc-tab-btn" data-tab="${key}" style="flex:1;padding:6px 4px;background:${_npcInspectorTab === key ? '#1d4a56' : '#121824'};color:${_npcInspectorTab === key ? '#8fe3ff' : '#789'};border:1px solid #2a3448;border-bottom:${_npcInspectorTab === key ? '2px solid #8fe3ff' : '1px solid #2a3448'};cursor:pointer;font-family:monospace;font-size:11px">${label}</button>`;
+
+  const assetOpts = _npcManifestOptions(ref.assetId)
+    .map(it => `<option value="${_escapeHtml(it.id)}" ${it.id === ref.assetId ? 'selected' : ''}>${_escapeHtml(it.name || it.id)}</option>`)
+    .join('');
+
+  const dialogueEmptyButEnabled = d.enabled && d.lines.length === 0;
+
+  const characterTabHtml = `
+    <div class="prop-row"><span class="prop-label">id</span><input class="prop-input" id="npc-id" type="text" value="${_escapeHtml(ref.id)}"></div>
     <div class="prop-row"><span class="prop-label">assetId</span><select class="prop-select" id="npc-assetId">${assetOpts}</select></div>
-    <div class="prop-row"><span class="prop-label">x</span><input class="prop-input" id="npc-x" type="number" step="1" value="${ref.x ?? 0}"></div>
-    <div class="prop-row"><span class="prop-label">y</span><input class="prop-input" id="npc-y" type="number" step="1" value="${ref.y ?? 0}"></div>
+    <div class="prop-row"><span class="prop-label">x</span><input class="prop-input" id="npc-x" type="number" step="1" value="${Number.isFinite(ref.x) ? ref.x : 0}"></div>
+    <div class="prop-row"><span class="prop-label">y</span><input class="prop-input" id="npc-y" type="number" step="1" value="${Number.isFinite(ref.y) ? ref.y : 0}"></div>
     <div class="prop-row"><span class="prop-label">facing</span>
       <select class="prop-select" id="npc-facing">
         <option value="right" ${ref.facing !== 'left' ? 'selected' : ''}>right</option>
         <option value="left" ${ref.facing === 'left' ? 'selected' : ''}>left</option>
       </select>
     </div>
+    <div class="prop-row"><span class="prop-label">scale</span><input class="prop-input" id="npc-scale" type="number" min="0.1" max="4" step="0.01" value="${Number.isFinite(ref.scale) ? ref.scale : 1}"></div>
+    <div style="font-size:10px;color:#567;margin-top:4px;line-height:1.4">Scale multiplies the sprite's native PNG size at draw time (not a hitbox — NPCs have none). 1 = native size.</div>
+  `;
+
+  const linesHtml = d.lines.length ? d.lines.map((l, i) => `
+    <div class="prop-row npc-line-row" data-idx="${i}" style="gap:4px">
+      <input class="prop-input npc-line-text" type="text" value="${_escapeHtml(l.text)}" style="flex:1">
+      <button class="npc-line-up" title="Move up" ${i === 0 ? 'disabled' : ''} style="flex:0;width:22px;padding:2px;background:#1a2030;color:#9ab;border:1px solid #2a3448;cursor:pointer">&#8593;</button>
+      <button class="npc-line-down" title="Move down" ${i === d.lines.length - 1 ? 'disabled' : ''} style="flex:0;width:22px;padding:2px;background:#1a2030;color:#9ab;border:1px solid #2a3448;cursor:pointer">&#8595;</button>
+      <button class="npc-line-del" title="Delete" style="flex:0;width:22px;padding:2px;background:#3a1a1a;color:#f99;border:1px solid #552;cursor:pointer">&times;</button>
+    </div>
+  `).join('') : `<div style="font-size:10px;color:#567;padding:4px 0">No lines yet — add one below.</div>`;
+
+  const dialogueTabHtml = `
     <div class="prop-row"><span class="prop-label">dialogue on</span><input id="npc-d-enabled" type="checkbox" style="flex:0;width:16px;height:16px;cursor:pointer" ${d.enabled ? 'checked' : ''}></div>
-    <div class="prop-row"><span class="prop-label">radiusPx</span><input class="prop-input" id="npc-d-radius" type="number" min="8" step="1" value="${d.radiusPx ?? 112}"></div>
-    <div class="prop-row"><span class="prop-label">durationMs</span><input class="prop-input" id="npc-d-duration" type="number" min="500" step="100" value="${d.durationMs ?? 3500}"></div>
+    <div style="font-size:12px;color:#cdd;font-weight:bold;margin:8px 0 4px">What does this NPC say when I get close?</div>
+    <div id="npc-lines-list" style="display:flex;flex-direction:column;gap:3px">${linesHtml}</div>
+    <button id="npc-line-add" style="margin-top:4px;width:100%;padding:5px;background:#1a2030;color:#8fe3ff;border:1px dashed #2a3448;border-radius:3px;cursor:pointer;font-family:monospace;font-size:11px">+ Add line</button>
+    ${dialogueEmptyButEnabled ? '<div style="font-size:10px;color:#f99;margin-top:4px">Dialogue is on but has no lines — it will never show. Add at least one line or turn it off.</div>' : ''}
+    <div class="prop-row" style="margin-top:8px"><span class="prop-label">radiusPx</span><input class="prop-input" id="npc-d-radius" type="number" min="8" step="1" value="${d.radiusPx ?? 112}"></div>
+    <div class="prop-row"><span class="prop-label">durationMs</span><input class="prop-input" id="npc-d-duration" type="number" min="500" max="30000" step="100" value="${d.durationMs ?? 3500}"></div>
     <div class="prop-row"><span class="prop-label">cooldownMs</span><input class="prop-input" id="npc-d-cooldown" type="number" min="0" step="100" value="${d.cooldownMs ?? 6000}"></div>
     <div class="prop-row"><span class="prop-label">oncePerLevel</span><input id="npc-d-once" type="checkbox" style="flex:0;width:16px;height:16px;cursor:pointer" ${d.oncePerLevel ? 'checked' : ''}></div>
-    <div class="prop-row" style="flex-direction:column;align-items:stretch;gap:4px">
-      <span class="prop-label">lines (one per row, rotates in order)</span>
-      <textarea id="npc-d-lines" rows="5" style="width:100%;background:#0a0a14;color:#f4f4f0;border:1px solid #335;font-family:monospace;font-size:11px;padding:4px">${linesText}</textarea>
-      <span id="npc-lines-count" style="font-size:10px;color:#789"></span>
+    <div class="prop-row"><span class="prop-label">repeat</span>
+      <select class="prop-select" id="npc-d-selmode">
+        <option value="sequential" ${d.selectionMode !== 'random' ? 'selected' : ''}>sequential (cycle in order)</option>
+        <option value="random" ${d.selectionMode === 'random' ? 'selected' : ''}>random</option>
+      </select>
     </div>
     <button id="npc-preview-btn" style="margin-top:6px;width:100%;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Bubble</button>
   `;
 
-  const $ = (id) => _selPanel.querySelector('#' + id);
-  const commit = () => { state.dirty = true; notify(); };
-  const lineCountEl = $('npc-lines-count');
-  const refreshLineCount = () => {
-    const n = $('npc-d-lines').value.split('\n').filter(s => s.trim().length).length;
-    lineCountEl.textContent = `${n} line${n === 1 ? '' : 's'}`;
-  };
-  refreshLineCount();
+  _selPanel.innerHTML = `
+    <div class="prop-type-badge" style="color:#bbf6ff;border-color:#bbf6ff55">NPC</div>
+    <div style="display:flex;margin-bottom:8px">${tabBtn('character', 'Character')}${tabBtn('dialogue', 'Custom Dialogue')}</div>
+    <div id="npc-tab-body">${_npcInspectorTab === 'dialogue' ? dialogueTabHtml : characterTabHtml}</div>
+  `;
 
-  $('npc-id').addEventListener('change', (e) => { ref.id = e.target.value; commit(); });
-  $('npc-assetId').addEventListener('change', (e) => { ref.assetId = e.target.value; commit(); });
-  $('npc-x').addEventListener('change', (e) => { ref.x = Number(e.target.value); commit(); });
-  $('npc-y').addEventListener('change', (e) => { ref.y = Number(e.target.value); commit(); });
-  $('npc-facing').addEventListener('change', (e) => { ref.facing = e.target.value; commit(); });
-  $('npc-d-enabled').addEventListener('change', (e) => { d.enabled = e.target.checked; commit(); });
-  $('npc-d-radius').addEventListener('change', (e) => { d.radiusPx = Number(e.target.value); commit(); });
-  $('npc-d-duration').addEventListener('change', (e) => { d.durationMs = Math.max(500, Math.min(30000, Number(e.target.value))); commit(); });
-  $('npc-d-cooldown').addEventListener('change', (e) => { d.cooldownMs = Math.max(0, Number(e.target.value)); commit(); });
-  $('npc-d-once').addEventListener('change', (e) => { d.oncePerLevel = e.target.checked; commit(); });
-  $('npc-d-lines').addEventListener('input', refreshLineCount);
-  $('npc-d-lines').addEventListener('change', (e) => {
-    const texts = e.target.value.split('\n').map(s => s.trim()).filter(Boolean);
-    d.lines = texts.map((text, i) => ({ id: `L${i + 1}`, text }));
+  const $ = (id) => _selPanel.querySelector('#' + id);
+  const $all = (sel) => Array.from(_selPanel.querySelectorAll(sel));
+  const commit = () => { state.dirty = true; notify(); };
+
+  _selPanel.querySelectorAll('.npc-tab-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      _npcInspectorTab = btn.getAttribute('data-tab');
+      _renderNpcInspector(ref);
+    });
+  });
+
+  if (_npcInspectorTab === 'character') {
+    $('npc-id').addEventListener('change', (e) => { ref.id = e.target.value; commit(); });
+    $('npc-assetId').addEventListener('change', (e) => { ref.assetId = e.target.value; commit(); });
+    $('npc-x').addEventListener('change', (e) => { ref.x = Number(e.target.value); commit(); });
+    $('npc-y').addEventListener('change', (e) => { ref.y = Number(e.target.value); commit(); });
+    $('npc-facing').addEventListener('change', (e) => { ref.facing = e.target.value; commit(); });
+    $('npc-scale').addEventListener('change', (e) => {
+      const v = Number(e.target.value);
+      ref.scale = Number.isFinite(v) && v > 0 ? v : 1;
+      commit();
+    });
+    return;
+  }
+
+  // Custom Dialogue tab wiring.
+  $('npc-d-enabled').addEventListener('change', (e) => { d.enabled = e.target.checked; commit(); _renderNpcInspector(ref); });
+  $('npc-d-radius').addEventListener('change', (e) => {
+    const v = Number(e.target.value);
+    d.radiusPx = Number.isFinite(v) && v >= 8 ? v : 112;
     commit();
   });
+  $('npc-d-duration').addEventListener('change', (e) => {
+    const v = Number(e.target.value);
+    d.durationMs = Number.isFinite(v) ? Math.max(500, Math.min(30000, v)) : 3500;
+    commit();
+  });
+  $('npc-d-cooldown').addEventListener('change', (e) => {
+    const v = Number(e.target.value);
+    d.cooldownMs = Number.isFinite(v) && v >= 0 ? v : 6000;
+    commit();
+  });
+  $('npc-d-once').addEventListener('change', (e) => { d.oncePerLevel = e.target.checked; commit(); });
+  $('npc-d-selmode').addEventListener('change', (e) => { d.selectionMode = e.target.value; commit(); });
+
+  $all('.npc-line-text').forEach((input) => {
+    input.addEventListener('change', (e) => {
+      const idx = Number(e.target.closest('.npc-line-row').getAttribute('data-idx'));
+      const text = e.target.value.trim();
+      if (!text) {
+        // Blank line text is invalid, not silently kept — drop it rather
+        // than save a dialogue entry with nothing to show.
+        d.lines.splice(idx, 1);
+      } else {
+        d.lines[idx] = { id: d.lines[idx]?.id || `L${idx + 1}`, text };
+      }
+      commit();
+      _renderNpcInspector(ref);
+    });
+  });
+  $all('.npc-line-up').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-line-row').getAttribute('data-idx'));
+      if (idx > 0) { const t = d.lines[idx - 1]; d.lines[idx - 1] = d.lines[idx]; d.lines[idx] = t; commit(); _renderNpcInspector(ref); }
+    });
+  });
+  $all('.npc-line-down').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-line-row').getAttribute('data-idx'));
+      if (idx < d.lines.length - 1) { const t = d.lines[idx + 1]; d.lines[idx + 1] = d.lines[idx]; d.lines[idx] = t; commit(); _renderNpcInspector(ref); }
+    });
+  });
+  $all('.npc-line-del').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-line-row').getAttribute('data-idx'));
+      d.lines.splice(idx, 1);
+      commit();
+      _renderNpcInspector(ref);
+    });
+  });
+  $('npc-line-add').addEventListener('click', () => {
+    d.lines.push({ id: `L${d.lines.length + 1}`, text: 'New line' });
+    commit();
+    _renderNpcInspector(ref);
+  });
   $('npc-preview-btn').addEventListener('click', () => {
-    const texts = $('npc-d-lines').value.split('\n').map(s => s.trim()).filter(Boolean);
-    const text = texts[0] || '(no lines yet)';
+    const text = (d.lines[0] && d.lines[0].text) || '(no lines yet)';
     state.npcPreview = { ref, text, until: Date.now() + Math.max(500, d.durationMs || 3500) };
     needsRedraw = true;
   });
