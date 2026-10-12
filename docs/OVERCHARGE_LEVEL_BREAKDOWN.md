@@ -142,3 +142,5 @@ margin guard already enforces it automatically.
 ### Build order implied by the arc
 Levels 1–2 tutorial (charge, then spending it) · Levels 3–4 pressure (learn loss, then apply it) ·
 Level 5 first true spatial puzzle. **No level has both enemies AND crates** — keep it that way for v1.
+
+**6. LEVEL 1 CHARGE SAFETY BUFFER (Chief ruling, 2026-10-11).** The original Level 1 description above (two 4-charge sources, exactly 8 available) is superseded. The current Level 1 deliberately contains **three 4-charge sources (12 total)**, while the exit gate still requires **8 charge**. Chief added the extra source so beginners who experiment with or spam the projectile attack have additional charge available and are less likely to softlock themselves. Preserve the third source; do not revert to 4+4=8 as a cleanup. Level 1 still teaches absorption and the exit gate; Level 2 remains the dedicated spending-and-route-choice lesson. **QA note:** A finite surplus does not prevent every possible softlock from unlimited projectile use; test projectile costs and recovery paths before claiming the level is fully softlock-proof.
