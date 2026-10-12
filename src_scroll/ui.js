@@ -3,6 +3,7 @@ import { MAX_CHARGE, MAX_BANKED_PIPS, C, W, H } from './constants.js';
 import { drawGlowRect, drawText } from './render.js';
 import { drawEnergyHUD } from './energy-hud.js';
 import { viewW, safeInsetX } from './viewport.js';
+import { isNightCityStreetlight } from './source-visuals.js';
 
 // SCREEN-SPACE HUD only. Called after the camera transform has been restored,
 // so everything in here is positioned in viewport pixels.
@@ -10,7 +11,62 @@ export function drawHUD(ctx, player, level, t) {
   _drawPlayerAvatar(ctx);
   drawEnergyHUD(ctx, player, t, { x: safeInsetX() + 84, y: 22 });
   _drawLevelBanner(ctx, level, t);
+  _drawLevelOneObjective(ctx, player, level);
   if (level.cols > 25) _drawProgressBar(ctx, player, level);
+}
+
+// Level 1's two short onboarding objectives are derived from live gameplay state.
+// A checkpoint restore therefore rewinds the checklist along with sources and gates.
+export function levelOneObjective(level, player) {
+  if (level?.number !== 1) return null;
+  const lamps = level.sources?.filter(isNightCityStreetlight) || [];
+  const exit = level.gates?.find(gate => gate.isExit);
+  if (!lamps.length || !exit) return null;
+  if (!lamps.some(lamp => lamp.charge < lamp.max - 1e-9)) {
+    return { title: 'NEED TO POWER UP', task: 'Absorb power from street lamp', checked: false };
+  }
+  const remaining = Math.max(0, exit.required - exit.charged);
+  return { title: 'POWER THE EXIT', task: 'Absorb enough energy to exit gate',
+    checked: !!exit.open || player.usableEnergy >= remaining - 1e-9 };
+}
+
+function _drawLevelOneObjective(ctx, player, level) {
+  const objective = levelOneObjective(level, player);
+  if (!objective) return;
+  const w = 302, h = 56;
+  const x = viewW() - safeInsetX() - w - 16, y = 51;
+  ctx.save();
+  ctx.fillStyle = 'rgba(4, 7, 20, 0.91)';
+  ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = '#19314e';
+  ctx.fillRect(x, y, 3, h);
+  ctx.fillStyle = '#372459';
+  ctx.fillRect(x + 3, y + h - 2, w - 3, 2);
+  ctx.strokeStyle = '#a06f37';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(x + 19, y + 15); ctx.lineTo(x + 26, y + 22);
+  ctx.lineTo(x + 19, y + 29); ctx.lineTo(x + 12, y + 22);
+  ctx.closePath(); ctx.stroke();
+  ctx.fillStyle = '#ffc070';
+  ctx.font = 'bold italic 13px monospace';
+  ctx.textAlign = 'left';
+  ctx.fillText(objective.title, x + 38, y + 26);
+  const boxX = x + 39, boxY = y + 35;
+  ctx.strokeStyle = objective.checked ? '#44ddff' : '#88a3b8';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(boxX + 0.5, boxY + 0.5, 11, 11);
+  if (objective.checked) {
+    ctx.strokeStyle = '#44ddff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(boxX + 2, boxY + 6); ctx.lineTo(boxX + 5, boxY + 9);
+    ctx.lineTo(boxX + 10, boxY + 2); ctx.stroke();
+  }
+  ctx.fillStyle = objective.checked ? '#7ecbd7' : '#c2cfda';
+  ctx.font = '10px monospace';
+  ctx.fillText(objective.task, x + 57, y + 45);
+  ctx.restore();
 }
 
 // WORLD-SPACE prompts. MUST be called INSIDE the camera translate (see
