@@ -30,7 +30,8 @@ const PROPS=['prop_ncp_fuse_box','prop_ncp_tire_sign','prop_ncp_plug_sign','prop
 sec('Manifest: HVAC and the props filter TOGETHER, and all are placeable');
 {
   const el = manifest.assets.filter(a=>(a.tags||[]).includes('electric'));
-  ok(el.length === 11, 'the Electric filter matches 11 assets', 'generator + HVAC source + 9 props');
+  ok(el.length === 12 && el.some(a => a.id === 'night_city_charge_platform'),
+    'the Electric filter includes the charge platform', 'generator + HVAC source + 9 props + platform');
   ok(el.some(a=>a.id==='source_hvac'), 'HVAC is one of them',
     'Chief: "the new electric HVAC unit and the other electric props need to be filtered together"');
   for (const id of PROPS) {
@@ -206,7 +207,8 @@ sec('Palette: HVAC and the props are in ONE filter, and nothing else leaked in')
 
   setF({ electricOnly:true });
   const el = ids();
-  ok(el.length === 11, 'the Electric filter shows exactly 11', el.join(', '));
+  ok(el.length === 12 && el.includes('night_city_charge_platform'),
+    'the Electric filter shows the charge platform alongside existing sources', el.join(', '));
   ok(el.includes('electrical_generator'), 'Generator is visible under Electric');
   ok(el.includes('source_hvac'), 'HVAC is in it — filtered TOGETHER with the props',
     'this is the literal request');

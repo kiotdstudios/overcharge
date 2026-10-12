@@ -149,6 +149,9 @@ export class Level {
     const sourcesLeft  = this.sources
       .filter(s => !s.drained)
       .reduce((sum, s) => sum + s.charge, 0);
+    const platformCharge = this.platforms
+      .filter(p => p.kind === 'charge-platform')
+      .reduce((sum, p) => sum + p.charge, 0);
     const pickupsLeft  = this.pickups
       .filter(p => !p.done)
       .reduce((sum, p) => sum + p.value, 0);
@@ -170,7 +173,7 @@ export class Level {
       .reduce((sum, c) => sum + Math.max(0, (c.reward || 0) - Math.max(0, (c.cost || 0) - (c.charged || 0))), 0);
 
     const pipCharge = player.bankedPips * MAX_CHARGE;
-    const available = player.charge + pipCharge + sourcesLeft + pickupsLeft + enemyDrops + chestNet;
+    const available = player.charge + pipCharge + sourcesLeft + platformCharge + pickupsLeft + enemyDrops + chestNet;
     // The loss screen says "All charge lost." A remaining source, pickup,
     // enemy drop, chest reward, or player charge means that is not true yet.
     return available <= 1e-9;
@@ -263,7 +266,8 @@ export class Level {
         _cooldown: e._cooldown || 0, _hitFlash: e._hitFlash || 0, _t: e._t || 0,
         ...(e.snapshotCombat?.() || {}),
       })),
-      platforms:   this.platforms.map(pl => ({ x: pl.x, vx: pl.vx })),
+      platforms:   this.platforms.map(pl => ({ x: pl.x, vx: pl.vx, direction: pl.direction,
+        charge: pl.charge, running: pl.running, drained: pl.drained })),
       // ORDER CRATE_TIMED D8 — MANDATORY, not optional. A crate's position is
       // mutable gameplay state. Without it, dying after pushing a crate rewinds
       // the player but leaves the crate moved, which is a silent soft-lock
@@ -307,6 +311,10 @@ export class Level {
     }
     for (let i = 0; i < this.platforms.length && i < snap.platforms.length; i++) {
       Object.assign(this.platforms[i], snap.platforms[i]);
+      if (this.platforms[i].kind === 'charge-platform') {
+        this.platforms[i]._reactT = 0;
+        this.platforms[i]._absorbT = 0;
+      }
     }
     // D8: guarded with `snap.crates &&` so a snapshot taken by an older build
     // (or a level with no crates) restores without throwing.

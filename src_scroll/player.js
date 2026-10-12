@@ -825,7 +825,7 @@ export class Player {
 
     // Find closest in-range source
     this.nearSource = null;
-    for (const src of level.sources) {
+    for (const src of [...level.sources, ...level.platforms.filter(pl => pl.kind === 'charge-platform')]) {
       if (!src.drained && src.inRange(this.cx, this.cy)) {
         this.nearSource = src;
         break;
@@ -1067,6 +1067,13 @@ export class Player {
       for (const ch of level.chests) {
         if (!ch.opened && ch.inRange(this.cx, this.cy)) {
           this.nearDevice = ch; break;
+        }
+      }
+    }
+    if (!this.nearDevice) {
+      for (const pl of level.platforms) {
+        if (pl.kind === 'charge-platform' && pl.charge < pl.required - 1e-9 && pl.inRange(this.cx, this.cy)) {
+          this.nearDevice = pl; break;
         }
       }
     }

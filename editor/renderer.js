@@ -935,6 +935,25 @@ function _drawPlatforms(ctx, arr) {
     const pw = (pl.w || 96) * z, ph = (pl.h || 12) * z;
     const p  = worldToScreen(pl.x, pl.y);
 
+    if (pl.kind === 'charge-platform') {
+      const img = getImage('assets/objects/night-city-props/charge-platform/base.png');
+      ctx.imageSmoothingEnabled = false;
+      if (img.complete && img.naturalWidth > 0) ctx.drawImage(img, p.x, p.y, pw, ph);
+      else { ctx.fillStyle = '#18243e'; ctx.fillRect(p.x, p.y, pw, ph); }
+      // The route and endpoint ticks remain Builder-only placement guides.
+      ctx.strokeStyle = '#00dfff'; ctx.lineWidth = 1;
+      ctx.strokeRect(p.x, p.y, pw, ph);
+      if (pl.x1 != null && pl.x2 != null) {
+        const y = p.y + ph / 2;
+        const left = worldToScreen(pl.x1, 0).x;
+        const right = worldToScreen(pl.x2, 0).x;
+        ctx.save(); ctx.setLineDash([5, 4]); ctx.globalAlpha = 0.5;
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+        ctx.restore();
+      }
+      continue;
+    }
+
     // Dark body
     ctx.fillStyle = '#2a3a4a'; ctx.globalAlpha = 0.85;
     ctx.fillRect(p.x, p.y, pw, ph);

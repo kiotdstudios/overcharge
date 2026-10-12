@@ -809,6 +809,23 @@
       "generation": { "eligible": false, "ineligible_reason": "Designer-placed charge reward" }
     },
     {
+      "id": "night_city_charge_platform",
+      "name": "Night City Charge Platform",
+      "path": "assets/objects/night-city-props/charge-platform/base.png",
+      "category": "object",
+      "tags": ["night-city", "platform", "electric", "traversal", "spawn", "placement"],
+      "frame_width": 234,
+      "frame_height": 47,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "spawnsKind": "platform",
+      "platformKind": "charge-platform",
+      "notes": "Rideable moving platform. E absorbs its stored charge and brakes it; SPACE returns charge and restarts it. Default capacity 2. Builder can edit route and speed.",
+      "generation": { "eligible": false, "ineligible_reason": "Designer-placed traversal and energy puzzle" }
+    },
+    {
       "id": "chest_relay_case",
       "name": "Relay Case (+10 charge)",
       "path": "assets/objects/chest/night-city/relay-case/closed.png",

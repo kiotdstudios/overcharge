@@ -1717,6 +1717,11 @@ function _doSpawn(e, canvas) {
   } else if (kind === 'platform') {
     const w = 96, px = _snapGrid(wx), py = _snapGrid(wy);
     obj = { x: px, y: py, w, h: 12, x1: px - 64, x2: px + 64 + w, speed: 80 };
+    if (state.pendingSpawn.asset?.platformKind === 'charge-platform') {
+      obj.kind = 'charge-platform';
+      obj.h = 20;
+      obj.charge = 2;
+    }
     arr = L.platforms || (L.platforms = []); arrLabel = 'add_platform';
   } else if (kind === 'wall-switch') {
     // Wall switch: style:'wall' preset — hitbox 22×22, art 56×56 (ORDER AKI 06)
@@ -1874,12 +1879,14 @@ function _refreshSelectedProps() {
       { label:'y ground', key:'y',  num:true },
     ];
   } else if (kind === 'platform') {
-    color = '#44aadd'; badge = 'PLATFORM';
+    color = '#44aadd'; badge = ref.kind === 'charge-platform' ? 'CHARGE PLATFORM' : 'PLATFORM';
     fields = [
       { label:'x', key:'x', num:true }, { label:'y',key:'y', num:true },
       { label:'w', key:'w', num:true, min:16 }, { label:'h',key:'h', num:true, min:4 },
       { label:'x1',key:'x1',num:true }, { label:'x2',key:'x2',num:true },
       { label:'speed',key:'speed',num:true,min:1 },
+      { label:'kind',key:'kind',sel:true,opts:['(standard)','charge-platform'] },
+      ...(ref.kind === 'charge-platform' ? [{ label:'charge',key:'charge',num:true,min:0.01 }] : []),
     ];
   } else if (kind === 'source') {
     color = '#ffee00'; badge = 'SOURCE';
