@@ -2,7 +2,7 @@
 // All enemies: contact stuns + scatters charge. Can be killed with the K attack.
 // Drops are defined as an array — { type: 'charge', value: N } for now;
 // new drop types (keys, upgrades, etc.) get added here later.
-import { TILE, STUN_DURATION, STUN_COOLDOWN, GRAVITY, CRATE_CONTACT_PAD, CRATE_SIZE, INTERACT_RADIUS } from './constants.js';
+import { TILE, STUN_DURATION, STUN_COOLDOWN, GRAVITY, CRATE_CONTACT_PAD, CRATE_SIZE, INTERACT_RADIUS, ABSORB_RADIUS } from './constants.js';
 import { ChargePickup } from './electricity.js';
 import { drawGlowRect } from './render.js';
 
@@ -349,24 +349,109 @@ export class Checkpoint {
 // ── MovingPlatform ─────────────────────────────────────────────────────
 // Slides horizontally between x1 and x2 at given speed.
 // Player stands on top and rides with it.
+const CHARGE_PLATFORM_ART = new Image();
+CHARGE_PLATFORM_ART.src = 'assets/objects/night-city-props/charge-platform/base.png';
+
 export class MovingPlatform {
-  constructor({ x, y, w = 96, h = 12, x1, x2, speed = 80 }) {
+  constructor({ x, y, w = 96, h, x1, x2, speed = 80, kind = '', charge = 2 }) {
     this.x  = x;
     this.y  = y;
     this.w  = w;
-    this.h  = h;
-    this.x1 = x1;
-    this.x2 = x2;
-    this.vx = speed;  // positive = moving right
+    this.kind = kind === 'charge-platform' ? kind : '';
+    this.h  = Number.isFinite(h) ? h : (this.kind ? 20 : 12);
+    this.x1 = Number.isFinite(x1) ? x1 : x - 64;
+    this.x2 = Number.isFinite(x2) ? x2 : x + w + 64;
+    this.speed = Math.abs(speed);
+    this.direction = 1;
+    this.max = this.kind ? Math.max(0.01, Number.isFinite(charge) ? charge : 2) : 0;
+    this.charge = this.max;
+    this.running = !this.kind || this.charge > 0;
+    this.drained = this.kind && this.charge <= 0;
+    this.vx = this.speed;
+    this._t = 0;
+    this._reactT = 0;
+    this._absorbT = 0;
+  }
+
+  get cx() { return this.x + this.w / 2; }
+  get cy() { return this.y + this.h / 2; }
+  get required() { return this.max; }
+  get charged() { return this.charge; }
+
+  inRange(px, py) {
+    const dx = px - Math.max(this.x, Math.min(px, this.x + this.w));
+    const dy = py - Math.max(this.y, Math.min(py, this.y + this.h));
+    return Math.hypot(dx, dy) < Math.min(ABSORB_RADIUS, INTERACT_RADIUS);
+  }
+
+  promptAnchor() { return { aboveY: this.y - 16, y: this.y - 29 }; }
+
+  drain(amount) {
+    if (!this.kind || this.charge <= 0) return 0;
+    const actual = Math.min(this.charge, Math.max(0, amount));
+    if (actual > 0) {
+      this.charge = Math.max(0, this.charge - actual);
+      this.drained = this.charge <= 1e-9;
+      this.running = false; // Taking any charge brakes the platform immediately.
+      this.vx = 0;
+      this._absorbT = 0.15;
+    }
+    return actual;
+  }
+
+  receive(amount) {
+    if (!this.kind || this.charge >= this.max) return 0;
+    const actual = Math.min(this.max - this.charge, Math.max(0, amount));
+    this.charge = Math.min(this.max, this.charge + actual);
+    this.drained = false;
+    this._reactT = 0.15;
+    if (this.charge >= this.max - 1e-9) {
+      this.charge = this.max;
+      this.running = true;
+      this.vx = this.speed * this.direction;
+    }
+    return actual;
   }
 
   update(dt) {
+    this._t += dt;
+    this._reactT = Math.max(0, this._reactT - dt);
+    this._absorbT = Math.max(0, this._absorbT - dt);
+    if (this.kind && !this.running) { this.vx = 0; return; }
+    this.vx = this.speed * this.direction;
     this.x += this.vx * dt;
-    if (this.x <= this.x1) { this.x = this.x1; this.vx =  Math.abs(this.vx); }
-    if (this.x + this.w >= this.x2) { this.x = this.x2 - this.w; this.vx = -Math.abs(this.vx); }
+    if (this.x <= this.x1) { this.x = this.x1; this.direction = 1; this.vx = this.speed; }
+    if (this.x + this.w >= this.x2) { this.x = this.x2 - this.w; this.direction = -1; this.vx = -this.speed; }
   }
 
   draw(ctx) {
+    if (this.kind) {
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      if (CHARGE_PLATFORM_ART.complete && CHARGE_PLATFORM_ART.naturalWidth > 0) {
+        ctx.globalAlpha = this.running ? 1 : 0.72;
+        ctx.drawImage(CHARGE_PLATFORM_ART, this.x, this.y, this.w, this.h);
+        ctx.globalAlpha = 1;
+      } else {
+        ctx.fillStyle = '#18243e'; ctx.fillRect(this.x, this.y, this.w, this.h);
+        ctx.fillStyle = '#a251db'; ctx.fillRect(this.x, this.y, this.w, 2);
+      }
+      // Four pixel poses travel through the cyan conduit. During absorption the
+      // pixels withdraw; while charging they race forward until the motor restarts.
+      if (this.running || this._reactT > 0 || this._absorbT > 0) {
+        const phase = Math.floor(this._t * 12) % 4;
+        const span = Math.max(1, this.w - 16);
+        ctx.fillStyle = this._absorbT > 0 ? '#b66cff' : '#00dfff';
+        for (let i = 0; i < 4; i++) {
+          const offset = ((i * 23 + phase * 7) % span);
+          ctx.fillRect(Math.round(this.x + 8 + offset), this.y + 4 + (i % 2) * 2, 4, 2);
+        }
+        ctx.fillStyle = '#c8faff';
+        ctx.fillRect(Math.round(this.x + 8 + (phase * 13) % span), this.y + 3, 2, 2);
+      }
+      ctx.restore();
+      return;
+    }
     // Main platform body
     ctx.fillStyle = '#2a3a4a';
     ctx.fillRect(this.x, this.y, this.w, this.h);
