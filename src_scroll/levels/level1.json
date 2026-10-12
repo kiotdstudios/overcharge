@@ -6877,9 +6877,11 @@
       "id": "NPC_STREETLAMP_01",
       "assetId": "npc_streetlamp_woman",
       "greetingAssetId": "npc_streetlamp_woman_greeting",
+      "walkAssetId": "npc_streetlamp_woman_walk",
       "x": 1740,
       "y": 320,
       "facing": "left",
+      "patrol": { "rangePx": 32, "speedPxPerSec": 22, "turnPauseSec": 0.55 },
       "dialogue": {
         "enabled": true,
         "trigger": "player_proximity",

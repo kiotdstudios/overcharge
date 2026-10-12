@@ -286,6 +286,14 @@ Do not put dialogue-bearing characters in `decorations[]`.
 
 ### Anchor & rendering
 
+Optional pacing fields for a walking NPC: `walkAssetId` names a looping
+animation in the manifest, and `patrol: { rangePx, speedPxPerSec, turnPauseSec }`
+sets a left/right route around the authored `x` feet anchor. `rangePx: 0` keeps
+the NPC stationary. The runtime flips the east-facing art when walking left,
+pauses briefly at each end, and stops pacing while a dialogue bubble is visible.
+Missing walk art falls back to the ambient animation. The Builder exposes all
+three pacing numbers in the NPC Inspector and preserves them in saved JSON.
+
 `x`/`y` are the character's **feet point** — bottom-centre of the sprite's trimmed
 art, matching the ground line it stands on (same convention as the Checkpoint's
 ground-level `y`, NOT the top-left convention Gate/Switch/Decoration use). The

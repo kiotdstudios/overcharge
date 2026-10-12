@@ -8,6 +8,7 @@ import {
   screenToWorld, levelRows, TILE_SIZE, tileIsSolid, tileSupportsStanding,
   snapPoint, effectiveSnap,
   getTile, tileAssetIdFor,
+  manifestItemById,
   setLevelBackground, currentLevelBackground,
   BG_OFFSET_LAYERS, currentBackgroundOffsets, currentBackgroundLayersHidden,
   DEFAULT_SECTION_ROWS, DEFAULT_SECTION_COLS, MAX_LEVEL_ROWS,
@@ -1758,7 +1759,9 @@ function _doSpawn(e, canvas) {
     obj = {
       id: 'npc_' + Date.now(), assetId: asset.id || null,
       greetingAssetId: (asset.raw && asset.raw.greetingAssetId) || null,
+      walkAssetId: (asset.raw && asset.raw.walkAssetId) || null,
       x: px, y: py, facing: 'right',
+      patrol: { rangePx: 0, speedPxPerSec: 22, turnPauseSec: 0.55 },
       dialogue: {
         enabled: false, trigger: 'player_proximity', radiusPx: 112,
         triggerMode: 'enter', cooldownMs: 6000, oncePerLevel: false,
@@ -1858,7 +1861,7 @@ const _selSection = document.getElementById('tp-selected-section');
 // _dev against npc.js directly.
 function _npcManifestOptions(currentId) {
   const items = (state.manifest && Array.isArray(state.manifest.items))
-    ? state.manifest.items.filter(it => it.category === 'npc')
+    ? state.manifest.items.filter(it => it.category === 'npc' && it.raw?.spawnsKind === 'npc')
     : [];
   if (currentId && !items.some(it => it.id === currentId)) {
     // Keep whatever is already on the ref selectable even if the manifest
@@ -1875,6 +1878,8 @@ function _renderNpcInspector(ref) {
     cooldownMs: 6000, oncePerLevel: false, durationMs: 3500, lines: [], selectionMode: 'sequential',
   };
   const d = ref.dialogue;
+  ref.patrol = ref.patrol || { rangePx: 0, speedPxPerSec: 22, turnPauseSec: 0.55 };
+  const patrol = ref.patrol;
   const assetOpts = _npcManifestOptions(ref.assetId)
     .map(it => `<option value="${it.id}" ${it.id === ref.assetId ? 'selected' : ''}>${it.name || it.id}</option>`)
     .join('');
@@ -1892,6 +1897,9 @@ function _renderNpcInspector(ref) {
         <option value="left" ${ref.facing === 'left' ? 'selected' : ''}>left</option>
       </select>
     </div>
+    <div class="prop-row"><span class="prop-label">pace range</span><input class="prop-input" id="npc-patrol-range" type="number" min="0" step="1" value="${patrol.rangePx ?? 0}"></div>
+    <div class="prop-row"><span class="prop-label">pace speed</span><input class="prop-input" id="npc-patrol-speed" type="number" min="0" step="1" value="${patrol.speedPxPerSec ?? 22}"></div>
+    <div class="prop-row"><span class="prop-label">turn pause</span><input class="prop-input" id="npc-patrol-pause" type="number" min="0" step="0.1" value="${patrol.turnPauseSec ?? 0.55}"></div>
     <div class="prop-row"><span class="prop-label">dialogue on</span><input id="npc-d-enabled" type="checkbox" style="flex:0;width:16px;height:16px;cursor:pointer" ${d.enabled ? 'checked' : ''}></div>
     <div class="prop-row"><span class="prop-label">radiusPx</span><input class="prop-input" id="npc-d-radius" type="number" min="8" step="1" value="${d.radiusPx ?? 112}"></div>
     <div class="prop-row"><span class="prop-label">durationMs</span><input class="prop-input" id="npc-d-duration" type="number" min="500" step="100" value="${d.durationMs ?? 3500}"></div>
@@ -1915,10 +1923,19 @@ function _renderNpcInspector(ref) {
   refreshLineCount();
 
   $('npc-id').addEventListener('change', (e) => { ref.id = e.target.value; commit(); });
-  $('npc-assetId').addEventListener('change', (e) => { ref.assetId = e.target.value; commit(); });
+  $('npc-assetId').addEventListener('change', (e) => {
+    ref.assetId = e.target.value;
+    const item = manifestItemById(ref.assetId);
+    ref.greetingAssetId = item?.raw?.greetingAssetId || null;
+    ref.walkAssetId = item?.raw?.walkAssetId || null;
+    commit();
+  });
   $('npc-x').addEventListener('change', (e) => { ref.x = Number(e.target.value); commit(); });
   $('npc-y').addEventListener('change', (e) => { ref.y = Number(e.target.value); commit(); });
   $('npc-facing').addEventListener('change', (e) => { ref.facing = e.target.value; commit(); });
+  $('npc-patrol-range').addEventListener('change', (e) => { patrol.rangePx = Math.max(0, Number(e.target.value) || 0); commit(); });
+  $('npc-patrol-speed').addEventListener('change', (e) => { patrol.speedPxPerSec = Math.max(0, Number(e.target.value) || 0); commit(); });
+  $('npc-patrol-pause').addEventListener('change', (e) => { patrol.turnPauseSec = Math.max(0, Number(e.target.value) || 0); commit(); });
   $('npc-d-enabled').addEventListener('change', (e) => { d.enabled = e.target.checked; commit(); });
   $('npc-d-radius').addEventListener('change', (e) => { d.radiusPx = Number(e.target.value); commit(); });
   $('npc-d-duration').addEventListener('change', (e) => { d.durationMs = Math.max(500, Math.min(30000, Number(e.target.value))); commit(); });

@@ -609,6 +609,8 @@ export function filteredManifestItems() {
     if (it.raw && it.raw.generation && it.raw.generation.eligible === false && !isSpawnAsset) return false;
     // Genuinely retired art stays hidden no matter what it declares.
     if (it.tags && it.tags.indexOf('retired') >= 0) return false;
+    // An NPC's walk/greeting clips are internal states of the placeable character.
+    if (it.category === 'npc' && it.raw?.spawnsKind !== 'npc') return false;
     // Background assets live in their own section — exclude from tile/object grid.
     if (it.category === 'background') return false;
     if (category !== 'all' && it.category !== category) return false;

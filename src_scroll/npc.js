@@ -38,9 +38,21 @@ export class Npc {
     this.id              = def.id || ('npc_' + Math.random().toString(36).slice(2));
     this.assetId         = def.assetId || null;
     this.greetingAssetId = def.greetingAssetId || null;
+    this.walkAssetId     = def.walkAssetId || null;
     this.x               = Number(def.x) || 0;   // feet anchor, world px (bottom-centre)
     this.y               = Number(def.y) || 0;   // ground line the feet rest on
     this.facing          = def.facing === 'left' ? 'left' : 'right';
+    const patrol = def.patrol || {};
+    this.patrol = {
+      rangePx: Number.isFinite(Number(patrol.rangePx)) ? Math.max(0, Number(patrol.rangePx)) : 0,
+      speedPxPerSec: Number.isFinite(Number(patrol.speedPxPerSec)) ? Math.max(0, Number(patrol.speedPxPerSec)) : 22,
+      turnPauseSec: Number.isFinite(Number(patrol.turnPauseSec)) ? Math.max(0, Number(patrol.turnPauseSec)) : 0.55,
+    };
+    this._homeX = this.x;
+    this._direction = this.facing === 'left' ? -1 : 1;
+    this._turnPauseT = 0;
+    this._walkClock = 0;
+    this._walking = false;
 
     const d = def.dialogue || {};
     this.dialogue = {
@@ -64,6 +76,7 @@ export class Npc {
     this._lineIdx       = 0;
     this._triggeredOnce = false; // for oncePerLevel
     this._greetT        = 0;     // seconds remaining the greeting animation plays
+    this._greetStartedAt = 0;
     this._clock         = 0;     // per-instance elapsed seconds, drives ambient frame choice
     this._sprites       = null;  // resolved lazily — see _resolveSprites()
   }
@@ -77,12 +90,14 @@ export class Npc {
     if (this._sprites) return this._sprites;
     const ambient  = assetById(this.assetId);
     const greeting = this.greetingAssetId ? assetById(this.greetingAssetId) : null;
+    const walk     = this.walkAssetId ? assetById(this.walkAssetId) : null;
     if (!ambient) return null; // manifest not loaded yet, or unknown id — retry next frame
     const anim = {
       ambient:  { asset: ambient,  frames: null, img: null },
       greeting: greeting ? { asset: greeting, frames: null, img: null } : null,
+      walk: walk ? { asset: walk, frames: null, img: null } : null,
     };
-    for (const key of ['ambient', 'greeting']) {
+    for (const key of ['ambient', 'greeting', 'walk']) {
       const slot = anim[key];
       if (!slot) continue;
       const a = slot.asset;
@@ -106,6 +121,25 @@ export class Npc {
     if (this._cooldownT > 0) this._cooldownT = Math.max(0, this._cooldownT - dt * 1000);
     if (this._bubbleT   > 0) this._bubbleT   = Math.max(0, this._bubbleT   - dt * 1000);
     if (this._greetT    > 0) this._greetT    = Math.max(0, this._greetT    - dt * 1000);
+
+    this._walking = false;
+    if (this.patrol.rangePx > 0 && this.patrol.speedPxPerSec > 0 && this._bubbleT <= 0) {
+      if (this._turnPauseT > 0) this._turnPauseT = Math.max(0, this._turnPauseT - dt);
+      else {
+        const edge = this._homeX + this._direction * this.patrol.rangePx;
+        const next = this.x + this._direction * this.patrol.speedPxPerSec * dt;
+        if ((next - edge) * this._direction >= 0) {
+          this.x = edge;
+          this._direction *= -1;
+          this.facing = this._direction < 0 ? 'left' : 'right';
+          this._turnPauseT = this.patrol.turnPauseSec;
+        } else {
+          this.x = next;
+          this._walking = true;
+          this._walkClock += dt;
+        }
+      }
+    }
 
     if (!this.dialogue.enabled || !player) { this._wasInside = false; return; }
 
@@ -136,6 +170,7 @@ export class Npc {
     this._cooldownT = this.dialogue.cooldownMs + this.dialogue.durationMs;
     this._triggeredOnce = true;
     if (this.greetingAssetId) this._greetT = this.dialogue.durationMs;
+    this._greetStartedAt = this._clock;
   }
 
   // Builder "Preview Bubble" action — fires the bubble on demand, bypassing
@@ -146,16 +181,18 @@ export class Npc {
       : (this.dialogue.lines[0] && this.dialogue.lines[0].text) || '';
     this._bubbleT = this.dialogue.durationMs;
     if (this.greetingAssetId) this._greetT = this.dialogue.durationMs;
+    this._greetStartedAt = this._clock;
   }
 
   _currentFrame() {
     const sprites = this._resolveSprites();
     if (!sprites) return null;
     const useGreeting = this._greetT > 0 && sprites.greeting;
-    const slot = useGreeting ? sprites.greeting : sprites.ambient;
+    const useWalk = !useGreeting && this._walking && sprites.walk;
+    const slot = useGreeting ? sprites.greeting : useWalk ? sprites.walk : sprites.ambient;
     if (slot.frames) {
       const fake = { frames: slot.frames, fps: slot.fps, loop: useGreeting ? false : slot.loop, phase: 0 };
-      return frameAt(fake, this._clock);
+      return frameAt(fake, useGreeting ? this._clock - this._greetStartedAt : useWalk ? this._walkClock : this._clock);
     }
     return slot.img;
   }
