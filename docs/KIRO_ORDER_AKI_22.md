@@ -1,12 +1,12 @@
 # AKI ORDER 022 — NPC Proximity Dialogue + Speech Bubble Builder Tool
 
-**Issued by:** Chief / Kiro | **Owner:** Aki (Builder UI, serialization, visual previews), Orcha (runtime NPC + trigger support) | **Target:** Reusable system, showcased by Order 021 and compatible with Order 020.
+**Issued by:** Chief / Kiro | **Owner:** Aki (Builder UI, serialization, visual previews), Aki (runtime NPC + trigger support) | **Target:** Reusable system, showcased by Order 021 and compatible with Order 020.
 
 ## Product goal
 Chief must be able to **click an NPC in the level editor and type exactly what they say when the player gets close**, then SAVE the level and see the same speech bubble trigger in the real game. This is a reusable authoring tool, not a one-off hard-coded line or decoration. Start with the streetlamp woman (Order 021); support mechanics and future ambient NPCs without code edits.
 
 ## Critical architecture gate
-Current canonical `docs/LEVEL_SCHEMA.md` lists decorations, sources, gates, switches, checkpoints, platforms, enemies but **no confirmed NPC array/dialogue contract**. Before writing JSON or modifying runtime, Aki must propose an **additive schema** and obtain Orcha runtime agreement. Do not silently add unrecognized fields or repurpose `enemies[]` / `decorations[]` in a way that loses selectability. Aki owns schema documentation; Orcha owns validation/loading/runtime proximity behavior. Coordinate a compatible change and update docs + editor + runtime together.
+Current canonical `docs/LEVEL_SCHEMA.md` lists decorations, sources, gates, switches, checkpoints, platforms, enemies but **no confirmed NPC array/dialogue contract**. Before writing JSON or modifying runtime, Aki must propose an **additive schema** and validate against the existing runtime and document the additive contract. Do not silently add unrecognized fields or repurpose `enemies[]` / `decorations[]` in a way that loses selectability. Aki owns schema documentation; Aki owns validation/loading/runtime proximity behavior. Coordinate a compatible change and update docs + editor + runtime together.
 
 ## Proposed additive data contract (illustrative; confirm names with Orcha before implementation)
 ```json
@@ -72,5 +72,9 @@ This is a **proposal**, not an established schema. Align IDs, coordinate anchors
 
 ## Delivery split and evidence
 **Aki deliverables:** editor NPC palette and inspector, controls, preview, placement/selection, validation, persistence, schema documentation, assets integration, Builder test evidence.
-**Orcha deliverables:** agreed schema implementation, NPC render/animation runtime, proximity enter/cooldown, speech bubble render and lifecycle, game regression tests. Aki should file a precise Orcha dependency/handoff if these hooks do not exist; do not silently take over gameplay code.
+**Aki runtime deliverables:** agreed schema implementation, NPC render/animation runtime, proximity enter/cooldown, speech bubble render and lifecycle, game regression tests. Aki should implement missing runtime hooks herself, document the contract, and test both editor and game end to end.
 **Evidence:** browser capture of selecting NPC → editing line → preview → save/reload → gameplay trigger; test matrix with pass/fail; changed paths; commit SHA(s); any open dependencies. No merge/publish without Chief/Kiro review.
+
+
+## Chief staffing override — 2026-10-12
+**Aki is OVERCHARGE's sole active implementation owner** for this order, including art, Builder, schema, runtime/gameplay integration, testing, and delivery. **Do not block on Orcha approval or handoff.** Orcha is retired/on-call only for a major technical problem that Chief explicitly reassigns. Preserve all schema compatibility, regression testing, review, and no-merge-without-approval requirements. This override supersedes any earlier role split or instruction to wait for Orcha in this document.
