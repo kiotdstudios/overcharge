@@ -240,10 +240,16 @@ Added 2026-10-12 (Aki, Order 22) — ADDITIVE. Old levels that omit `npcs` entir
 are treated as `npcs: []`; nothing above this line changes meaning.
 
 **Why not reuse `decorations[]`:** decorations are not individually selectable as
-semantic objects in the Builder (Order 20's smoke-break workers are intentionally
-plain decorations — cosmetic only, no dialogue). An NPC that carries dialogue needs
-its own array so the Builder can select/edit it as "an NPC", distinct from a prop.
-Do not put dialogue-bearing characters in `decorations[]`.
+semantic objects in the Builder. An NPC — even one with dialogue left disabled,
+like the two smoke-break workers below — needs its own array so the Builder can
+select/edit it as "an NPC", distinct from a prop. Do not put characters that might
+ever need a Custom Dialogue tab in `decorations[]`.
+
+Order 23 (2026-10-12) migrated Order 20's smoke-break workers OUT of
+`decorations[]` and into this array for exactly that reason: Chief wanted to be
+able to select a worker and give him a line from the same Inspector tab the
+streetlamp woman uses. A worker's `dialogue.enabled` defaults to `false` with an
+empty `lines[]` — authoring one is optional and uses the identical fields above.
 
 ```js
 {
@@ -260,6 +266,32 @@ Do not put dialogue-bearing characters in `decorations[]`.
       y:                number,   // ✅ World pixel Y — ground line the feet rest on
       facing:           string,   // ✅ "left" | "right". Sprite is authored facing
                                    //    right; "left" mirrors it at render time.
+      scale:            number,   // ⬜ optional, default 1. Draw-size multiplier
+                                   //    against the sprite's NATIVE pixel size (not
+                                   //    a footprint/collision box — NPCs have none).
+                                   //    Exists so art authored at one canvas size can
+                                   //    be placed at a different in-level scale, e.g.
+                                   //    the smoke-break workers' 176px canvas drawn at
+                                   //    ~96px to match their Order-20 decoration size.
+      ambient: {                 // ⬜ optional — idle<->smoke-style one-shot-action
+                                   //    state machine (Order 23). Omit entirely for an
+                                   //    NPC that just has one continuous idle loop
+                                   //    (e.g. the streetlamp woman) — this is a no-op
+                                   //    when absent, not a required block.
+        smokeAssetId:   string,   // ✅ (if `ambient` present) ASSET_MANIFEST.json id
+                                   //    for a NON-looping one-shot action clip, played
+                                   //    once per cycle, then control returns to the
+                                   //    `assetId` idle loop. Should start AND end on
+                                   //    the same neutral pose as the idle loop so
+                                   //    neither transition pops a visible frame.
+        dwellMinMs:     number,   // ⬜ default 4000 — shortest randomized idle dwell
+                                   //    before the next one-shot action plays
+        dwellMaxMs:     number,   // ⬜ default 9000 — longest randomized idle dwell
+        seed:           number,   // ⬜ default: a hash of `id`. Per-instance RNG seed
+                                   //    so two NPCs with `ambient` configs never
+                                   //    sync their dwell timers, even if placed at
+                                   //    the exact same position/time.
+      },
       dialogue: {
         enabled:        boolean,  // ✅ Master on/off for this NPC's bubble system
         trigger:        string,   // ✅ "player_proximity" (only mode in v1)
@@ -309,6 +341,25 @@ last frame until the ambient loop resumes. A missing/unresolvable `assetId` must
 not crash the level — fall back to drawing nothing for that NPC and `console.warn`,
 exactly like `deco-anim.js` already does for decorations.
 
+### Ambient idle<->smoke state machine (`ambient`, Order 23)
+
+When `ambient` is present, the NPC runs a tiny two-state machine independent of
+dialogue, driven entirely in `src_scroll/npc.js`'s `update()`/`_updateAmbient()`:
+
+- **idle** (default on construction): plays the `assetId` loop. A randomized
+  countdown between `dwellMinMs` and `dwellMaxMs` runs down; at zero, transitions
+  to **smoke**.
+- **smoke**: plays `smokeAssetId` ONCE (never loops, regardless of that asset's
+  own `loop` flag). When its frames finish (`frame_count / fps` seconds), the NPC
+  returns to **idle** and rolls a fresh randomized dwell.
+- The dwell RNG is a seeded, deterministic generator (mulberry32) so behaviour is
+  reproducible for debugging, while different NPCs/seeds never synchronize.
+- This state machine runs every frame regardless of dialogue/proximity — ambient
+  life never depends on the player being nearby, and keeps running while a
+  dialogue bubble is also showing (dialogue draws on top, does not pause it).
+- `ambient` and `dialogue` are fully independent; either, both, or neither may be
+  present on a given NPC.
+
 ### Dialogue runtime rules
 
 - Proximity is measured between the player's feet anchor and the NPC's `(x, y)`,
@@ -334,15 +385,13 @@ exactly like `deco-anim.js` already does for decorations.
 ### Builder authoring
 
 The Builder places NPCs from their own "NPCs" asset-bank category (manifest
-`category: "npc"`), distinct from the `npcOnly` tag-filter chip shipped for
-Order 20's purely-cosmetic decoration-based workers — that chip filters
-DECORATIONS tagged `npc`; it does not touch this array and these are not
-mutually exclusive labels (a cosmetic decoration can be tagged `npc` without
-ever appearing in `level.npcs`). Selecting a placed NPC opens the NPC Inspector
-(`editor/npc-inspector.js`) to edit every field above, including the dialogue
-lines, with changes participating in undo/redo and the normal save/reload flow
+`category: "npc"`). Selecting a placed NPC opens a dedicated, visibly-tabbed NPC
+Inspector (**Character** / **Custom Dialogue** tabs, Order 23) to edit every field
+above, with changes participating in undo/redo and the normal save/reload flow
 (`editor/persistence.js` round-trips `npcs` the same way it already round-trips
-`enemies`/`checkpoints`).
+`enemies`/`checkpoints`). Clicking an NPC hits its visible sprite silhouette, not
+just the `(x, y)` origin point; when a decoration overlaps an NPC's silhouette,
+the topmost drawn object under the cursor wins the click.
 
 
 ## Enemy

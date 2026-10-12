@@ -3182,28 +3182,6 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
-    },
-    {
-      "id": "npc_smoke_break_worker_a_01",
-      "src": "assets/sprites/npc-smoke-break/worker-a/00.png",
-      "x": 1333,
-      "y": 269,
-      "w": 96,
-      "h": 96,
-      "flipX": false,
-      "snap": 1,
-      "family": "npc_ambient"
-    },
-    {
-      "id": "npc_smoke_break_worker_b_01",
-      "src": "assets/sprites/npc-smoke-break/worker-b/00.png",
-      "x": 1389,
-      "y": 269,
-      "w": 96,
-      "h": 96,
-      "flipX": true,
-      "snap": 1,
-      "family": "npc_ambient"
     }
   ],
   "sources": [
@@ -6873,6 +6851,56 @@
     0
   ],
   "npcs": [
+    {
+      "id": "npc_smoke_break_worker_a",
+      "assetId": "npc_smoke_break_worker_a",
+      "x": 1328.0,
+      "y": 352,
+      "facing": "right",
+      "scale": 0.5455,
+      "ambient": {
+        "smokeAssetId": "npc_smoke_break_worker_a_smoke",
+        "dwellMinMs": 4000,
+        "dwellMaxMs": 9000,
+        "seed": 101
+      },
+      "dialogue": {
+        "enabled": false,
+        "trigger": "player_proximity",
+        "radiusPx": 100,
+        "triggerMode": "enter",
+        "cooldownMs": 6000,
+        "oncePerLevel": false,
+        "durationMs": 3000,
+        "selectionMode": "sequential",
+        "lines": []
+      }
+    },
+    {
+      "id": "npc_smoke_break_worker_b",
+      "assetId": "npc_smoke_break_worker_b",
+      "x": 1438.0,
+      "y": 352,
+      "facing": "left",
+      "scale": 0.5455,
+      "ambient": {
+        "smokeAssetId": "npc_smoke_break_worker_b_smoke",
+        "dwellMinMs": 4000,
+        "dwellMaxMs": 9000,
+        "seed": 907
+      },
+      "dialogue": {
+        "enabled": false,
+        "trigger": "player_proximity",
+        "radiusPx": 100,
+        "triggerMode": "enter",
+        "cooldownMs": 6000,
+        "oncePerLevel": false,
+        "durationMs": 3000,
+        "selectionMode": "sequential",
+        "lines": []
+      }
+    },
     {
       "id": "NPC_STREETLAMP_01",
       "assetId": "npc_streetlamp_woman",

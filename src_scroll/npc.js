@@ -4,10 +4,12 @@
 // `npcs` array is zero behavioural change for every level authored before
 // this order — see Level constructor.
 //
-// Distinct from Order 20's smoke-break workers: those are plain `decorations[]`
-// entries (cosmetic only, not individually selectable, no dialogue). An NPC
-// here is a first-class, Builder-selectable object with its own array,
-// because dialogue needs an identity to attach to.
+// Order 23 migrated Order 20's smoke-break workers from `decorations[]` into
+// this same `npcs[]` pipeline: a first-class, Builder-selectable object with
+// its own array, dialogue OPTIONAL (defaults disabled/empty, same as any NPC),
+// plus an `ambient` idle<->smoke state machine (see below) driving a one-shot
+// action animation between idle dwells. Any NPC may carry an `ambient` config;
+// it is independent of dialogue and of `assetId` (which remains the IDLE sprite).
 import { assetById, animFromAsset, framesFor, frameAt } from './deco-anim.js';
 
 const DEFAULT_DIALOGUE = {
@@ -33,6 +35,18 @@ function clampDuration(ms) {
   return Math.max(MIN_DURATION_MS, Math.min(MAX_DURATION_MS, n));
 }
 
+// Stable fallback seed when a level author omits `ambient.seed`: a cheap
+// string hash of the NPC's own id, so two differently-named NPCs placed at
+// the same instant never roll identical dwell timers.
+function hashSeed(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) || 1;
+}
+
 export class Npc {
   constructor(def) {
     this.id              = def.id || ('npc_' + Math.random().toString(36).slice(2));
@@ -53,6 +67,11 @@ export class Npc {
     this._turnPauseT = 0;
     this._walkClock = 0;
     this._walking = false;
+    // Draw-size multiplier against the sprite's native pixel dimensions.
+    // Lets an NPC reuse art authored at a different canvas size than its
+    // in-level footprint (e.g. the smoke-break workers' 176px canvas drawn
+    // at the same ~96px footprint their decoration-era placement used).
+    this.scale           = Number.isFinite(Number(def.scale)) && Number(def.scale) > 0 ? Number(def.scale) : 1;
 
     const d = def.dialogue || {};
     this.dialogue = {
@@ -66,6 +85,25 @@ export class Npc {
       lines:         Array.isArray(d.lines) ? d.lines.filter(l => l && typeof l.text === 'string' && l.text.length > 0) : [],
       selectionMode: d.selectionMode === 'random' ? d.selectionMode : DEFAULT_DIALOGUE.selectionMode,
     };
+
+    // Ambient idle<->smoke animation state machine (Order 23). `assetId` is
+    // always the IDLE loop; `smokeAssetId` is a one-shot action asset played
+    // once per cycle, then control returns to idle for a fresh randomized dwell.
+    // Absent/null `def.ambient` is a complete no-op — _currentFrame() falls back
+    // to the plain always-on ambient sprite exactly as before this order, so
+    // every non-ambient NPC (e.g. the streetlamp woman) is unaffected.
+    const amb = def.ambient || null;
+    this.ambient = amb ? {
+      smokeAssetId: amb.smokeAssetId || null,
+      dwellMinMs:   Number.isFinite(Number(amb.dwellMinMs)) ? Math.max(0, Number(amb.dwellMinMs)) : 4000,
+      dwellMaxMs:   Number.isFinite(Number(amb.dwellMaxMs)) ? Math.max(0, Number(amb.dwellMaxMs)) : 9000,
+      seed:         Number.isFinite(Number(amb.seed)) ? Number(amb.seed) >>> 0 : hashSeed(this.id),
+    } : null;
+    this._ambState     = 'idle';   // 'idle' | 'smoke'
+    this._ambTimerMs    = 0;        // ms remaining in the current idle dwell
+    this._smokeElapsed = 0;        // ms elapsed in the current one-shot smoke play
+    this._rngState      = this.ambient ? this.ambient.seed : 0;
+    if (this.ambient) this._ambTimerMs = this._rollDwell();
 
     // Runtime-only state. Never persisted — a save/reload or a fresh level load
     // always starts an NPC in the "never triggered" state.
@@ -81,6 +119,22 @@ export class Npc {
     this._sprites       = null;  // resolved lazily — see _resolveSprites()
   }
 
+  // Deterministic-but-varied per-instance RNG (mulberry32), seeded once from
+  // `ambient.seed` (authored or hashed from `id`). Advances on every call so
+  // repeated dwells vary, while two NPCs with different ids/seeds never sync.
+  _nextRandom() {
+    let t = (this._rngState += 0x6D2B79F5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+
+  _rollDwell() {
+    const { dwellMinMs, dwellMaxMs } = this.ambient;
+    const lo = Math.min(dwellMinMs, dwellMaxMs), hi = Math.max(dwellMinMs, dwellMaxMs);
+    return lo + this._nextRandom() * (hi - lo);
+  }
+
   // Resolves assetId/greetingAssetId against the manifest ONCE assetById has data
   // (deco-anim's loadDecoAnimations() must have been awaited before Level draws
   // any frame — same requirement decorations already have). Safe to call every
@@ -91,13 +145,15 @@ export class Npc {
     const ambient  = assetById(this.assetId);
     const greeting = this.greetingAssetId ? assetById(this.greetingAssetId) : null;
     const walk     = this.walkAssetId ? assetById(this.walkAssetId) : null;
+    const smoke    = this.ambient && this.ambient.smokeAssetId ? assetById(this.ambient.smokeAssetId) : null;
     if (!ambient) return null; // manifest not loaded yet, or unknown id — retry next frame
     const anim = {
       ambient:  { asset: ambient,  frames: null, img: null },
       greeting: greeting ? { asset: greeting, frames: null, img: null } : null,
       walk: walk ? { asset: walk, frames: null, img: null } : null,
+      smoke:    smoke    ? { asset: smoke,    frames: null, img: null } : null,
     };
-    for (const key of ['ambient', 'greeting', 'walk']) {
+    for (const key of ['ambient', 'greeting', 'walk', 'smoke']) {
       const slot = anim[key];
       if (!slot) continue;
       const a = slot.asset;
@@ -116,11 +172,48 @@ export class Npc {
     return anim;
   }
 
+  // Idle<->smoke state machine. Runs every frame regardless of dialogue/
+  // player state — ambient life should never depend on proximity. A no-op
+  // when this.ambient is null (the common case for most NPCs).
+  _updateAmbient(dt) {
+    if (!this.ambient) return;
+    const dtMs = dt * 1000;
+    if (this._ambState === 'idle') {
+      this._ambTimerMs -= dtMs;
+      if (this._ambTimerMs <= 0) {
+        this._ambState = 'smoke';
+        this._smokeElapsed = 0;
+      }
+      return;
+    }
+    // 'smoke': play the one-shot once, then return to a fresh randomized dwell.
+    this._smokeElapsed += dtMs;
+    if (this._smokeElapsed >= this._smokeDurationMs()) {
+      this._ambState = 'idle';
+      this._ambTimerMs = this._rollDwell();
+    }
+  }
+
+  // Total one-shot duration in ms, from the smoke asset's own frame_count/fps
+  // once resolved; a safe fallback keeps the state machine moving even on the
+  // first frame or two before the manifest/sprite resolution has landed.
+  _smokeDurationMs() {
+    const sprites = this._resolveSprites();
+    const slot = sprites && sprites.smoke;
+    if (slot && slot.asset) {
+      const count = Number(slot.asset.frame_count) || 1;
+      const fps   = Number(slot.asset.fps) > 0 ? Number(slot.asset.fps) : 8;
+      return (count / fps) * 1000;
+    }
+    return 2000;
+  }
+
   update(dt, player) {
     this._clock += dt;
     if (this._cooldownT > 0) this._cooldownT = Math.max(0, this._cooldownT - dt * 1000);
     if (this._bubbleT   > 0) this._bubbleT   = Math.max(0, this._bubbleT   - dt * 1000);
     if (this._greetT    > 0) this._greetT    = Math.max(0, this._greetT    - dt * 1000);
+    this._updateAmbient(dt);
 
     this._walking = false;
     if (this.patrol.rangePx > 0 && this.patrol.speedPxPerSec > 0 && this._bubbleT <= 0) {
@@ -189,10 +282,15 @@ export class Npc {
     if (!sprites) return null;
     const useGreeting = this._greetT > 0 && sprites.greeting;
     const useWalk = !useGreeting && this._walking && sprites.walk;
-    const slot = useGreeting ? sprites.greeting : useWalk ? sprites.walk : sprites.ambient;
+    const useSmoke = !useGreeting && !useWalk && this.ambient && this._ambState === 'smoke' && sprites.smoke;
+    const slot = useGreeting ? sprites.greeting : useWalk ? sprites.walk : (useSmoke ? sprites.smoke : sprites.ambient);
+    // The one-shot smoke clip is timed from its own elapsed counter (resets to
+    // 0 the instant the state machine enters 'smoke'), never from this._clock,
+    // so it always starts at frame 0 regardless of how long the NPC has existed.
+    const t = useGreeting ? this._clock - this._greetStartedAt : useWalk ? this._walkClock : useSmoke ? this._smokeElapsed / 1000 : this._clock;
     if (slot.frames) {
-      const fake = { frames: slot.frames, fps: slot.fps, loop: useGreeting ? false : slot.loop, phase: 0 };
-      return frameAt(fake, useGreeting ? this._clock - this._greetStartedAt : useWalk ? this._walkClock : this._clock);
+      const fake = { frames: slot.frames, fps: slot.fps, loop: (useGreeting || useSmoke) ? false : slot.loop, phase: 0 };
+      return frameAt(fake, t);
     }
     return slot.img;
   }
@@ -200,7 +298,7 @@ export class Npc {
   draw(ctx) {
     const img = this._currentFrame();
     if (!img || !img.complete || !img.naturalWidth) return;
-    const w = img.naturalWidth, h = img.naturalHeight;
+    const w = img.naturalWidth * this.scale, h = img.naturalHeight * this.scale;
     const drawX = this.x - w / 2;
     const drawY = this.y - h;
     ctx.save();

@@ -2902,23 +2902,49 @@
     },
     {
       "id": "npc_smoke_break_worker_a",
-      "path": "assets/sprites/npc-smoke-break/worker-a/00.png",
-      "category": "decoration",
+      "path": "assets/sprites/npc-smoke-break/worker-a/idle/00.png",
+      "category": "npc",
       "tags": [
         "npc",
         "ambient",
-        "decoration",
         "night_city",
         "animated",
         "smoke_break"
       ],
       "frame_width": 176,
       "frame_height": 176,
-      "frame_count": 13,
-      "fps": 6,
+      "frame_count": 4,
+      "fps": 3,
       "directions": null,
       "loop": true,
-      "notes": "Ambient background NPC, dark navy coveralls, leaning against wall on a smoke break. One continuous idle-breathing + raise-cigarette/drag/exhale/lower loop (no discrete named states). Purely cosmetic: no collision, no AI, no gameplay interaction.",
+      "notes": "Ambient background NPC, dark navy coveralls, leaning against wall on a smoke break. IDLE loop: relaxed standing, subtle 1px breathing settle. Order 023 split this out of the old single blended loop; the raise/drag/exhale/lower motion now lives in npc_smoke_break_worker_a_smoke, played once by the ambient state machine in src_scroll/npc.js. Purely cosmetic: no collision, no AI, no gameplay interaction.",
+      "trim": {
+        "x": 0.358,
+        "y": 0.1477,
+        "w": 0.25,
+        "h": 0.7045
+      },
+      "spawnsKind": "npc"
+    },
+    {
+      "id": "npc_smoke_break_worker_a_smoke",
+      "path": "assets/sprites/npc-smoke-break/worker-a/smoke/00.png",
+      "category": "npc",
+      "tags": [
+        "npc",
+        "ambient",
+        "night_city",
+        "animated",
+        "smoke_break",
+        "action"
+      ],
+      "frame_width": 176,
+      "frame_height": 176,
+      "frame_count": 14,
+      "fps": 6,
+      "directions": null,
+      "loop": false,
+      "notes": "One-shot smoke action for npc_smoke_break_worker_a: starts and ends on the same neutral pose as the idle loop (zero pop on either transition), raises cigarette, drags, exhales, lowers. Played once per ambient cycle by src_scroll/npc.js's idle->smoke->idle state machine, never looped. Not independently placeable (no spawnsKind), same convention as a greeting asset.",
       "trim": {
         "x": 0.358,
         "y": 0.1477,
@@ -2928,31 +2954,30 @@
     },
     {
       "id": "npc_smoke_break_worker_b",
-      "path": "assets/sprites/npc-smoke-break/worker-b/00.png",
-      "category": "decoration",
+      "path": "assets/sprites/npc-smoke-break/worker-b/idle/00.png",
+      "category": "npc",
       "tags": [
         "npc",
         "ambient",
-        "decoration",
         "night_city",
         "animated",
         "smoke_break"
       ],
       "frame_width": 176,
       "frame_height": 176,
-      "frame_count": 13,
-      "fps": 6,
+      "frame_count": 4,
+      "fps": 3,
       "directions": null,
       "loop": true,
-      "notes": "Ambient background NPC, gray/charcoal coveralls with cap, standing on a smoke break, occasional head-turn baked into the loop. One continuous idle + raise-cigarette/drag/exhale/lower loop (no discrete named states). Purely cosmetic: no collision, no AI, no gameplay interaction.",
+      "notes": "Ambient background NPC, gray/charcoal coveralls with cap, standing on a smoke break. IDLE loop: relaxed standing, subtle 1px breathing settle. Order 023 split this out of the old single blended loop; the raise/drag/exhale/lower motion now lives in npc_smoke_break_worker_b_smoke, played once by the ambient state machine in src_scroll/npc.js. Purely cosmetic: no collision, no AI, no gameplay interaction.",
       "trim": {
         "x": 0.4091,
         "y": 0.125,
         "w": 0.2443,
         "h": 0.7273
-      }
-    }
-,
+      },
+      "spawnsKind": "npc"
+    },
     {
       "id": "npc_streetlamp_woman",
       "path": "assets/sprites/npc-streetlamp-woman/idle/00.png",
@@ -2971,10 +2996,43 @@
       "trim": null
     },
     {
+      "id": "npc_smoke_break_worker_b_smoke",
+      "path": "assets/sprites/npc-smoke-break/worker-b/smoke/00.png",
+      "category": "npc",
+      "tags": [
+        "npc",
+        "ambient",
+        "night_city",
+        "animated",
+        "smoke_break",
+        "action"
+      ],
+      "frame_width": 176,
+      "frame_height": 176,
+      "frame_count": 14,
+      "fps": 6,
+      "directions": null,
+      "loop": false,
+      "notes": "One-shot smoke action for npc_smoke_break_worker_b: starts and ends on the same neutral pose as the idle loop (zero pop on either transition), raises cigarette, drags, exhales, lowers. Played once per ambient cycle by src_scroll/npc.js's idle->smoke->idle state machine, never looped. Not independently placeable (no spawnsKind), same convention as a greeting asset.",
+      "trim": {
+        "x": 0.4091,
+        "y": 0.125,
+        "w": 0.2443,
+        "h": 0.7273
+      }
+    },
+    {
       "id": "npc_streetlamp_woman_greeting",
       "path": "assets/sprites/npc-streetlamp-woman/greeting/00.png",
       "category": "npc",
-      "tags": ["ambient", "npc", "nightlife", "animated", "dialogue", "greeting"],
+      "tags": [
+        "ambient",
+        "npc",
+        "nightlife",
+        "animated",
+        "dialogue",
+        "greeting"
+      ],
       "frame_width": 236,
       "frame_height": 236,
       "frame_count": 4,
