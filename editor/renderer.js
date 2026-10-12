@@ -8,7 +8,7 @@
 import { state, TILE_SIZE, levelRows, levelPixelWidth, levelPixelHeight,
          worldToScreen, tileIsSolid, tileAssetIdFor, getTileRotation, getTileFlip } from './state.js';
 import * as Selection from './selection.js';
-import { drawHvac, sourceBox } from '../src_scroll/source-visuals.js';
+import { drawHvac, sourceBox, drawStreetlightPool, isNightCityStreetlight } from '../src_scroll/source-visuals.js';
 import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
@@ -491,6 +491,13 @@ function _drawSources(ctx, arr) {
     if (o.kind === 'prop') {
       const b = sourceBox(o);
       spriteX = b.dX; spriteY = b.dY; sw = b.dW * z; sh = b.dH * z;
+      if (isNightCityStreetlight(o)) {
+        ctx.save();
+        ctx.scale(z, z);
+        ctx.translate(-state.camera.x, -state.camera.y);
+        drawStreetlightPool(ctx, o);
+        ctx.restore();
+      }
       // Frame 00 is Aki's powered state. The Builder shows one static frame; the absorbing
       // and drained frames are runtime states and mean nothing while authoring.
       img = getImage(`${o.sprite || ''}00.png`);

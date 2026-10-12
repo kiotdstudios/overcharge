@@ -1,7 +1,7 @@
 // Electrical objects: sources, gates, switches, pickups
 import { ABSORB_RADIUS, INTERACT_RADIUS, PICKUP_GRAVITY, PICKUP_LIFETIME, TILE } from './constants.js';
 import { drawSparks, drawGlowRect, drawText } from './render.js';
-import { drawHvac, sourceBox, drawSourceReaction } from './source-visuals.js';
+import { drawHvac, sourceBox, drawSourceReaction, drawStreetlightPool, isNightCityStreetlight } from './source-visuals.js';
 
 function dist(ax, ay, bx, by) {
   const dx = ax - bx, dy = ay - by;
@@ -36,6 +36,7 @@ export class ElectricalSource {
     this.charge = Number.isFinite(charge) ? Math.max(0, charge) : 0;
     this.max    = this.charge;
     this.drained = this.charge === 0;
+    this._lightLevel = this.drained ? 0 : 1;
     this._fanSpeed = this.drained ? 0 : 1;
     this._fanPhase = 0;
     this._t      = 0;
@@ -65,6 +66,11 @@ export class ElectricalSource {
 
   update(dt) {
     this._t += dt;
+    if (isNightCityStreetlight(this)) {
+      const target = this.max > 0 ? this.charge / this.max : 0;
+      this._lightLevel += (target - this._lightLevel) * Math.min(1, dt * 5);
+      if (this._lightLevel < 0.001) this._lightLevel = 0;
+    }
     if (this._absorbT > 0) this._absorbT = Math.max(0, this._absorbT - dt);
     if (this._dryFlash > 0) this._dryFlash = Math.max(0, this._dryFlash - dt);
     // Fan: ramp speed toward target (1 = active, 0 = drained), spin phase
@@ -133,6 +139,7 @@ export class ElectricalSource {
   // if she renumbers the sheets, this comment is the contract that was broken.
   _drawProp(ctx) {
     const b = sourceBox(this);
+    if (isNightCityStreetlight(this)) drawStreetlightPool(ctx, this);
     let fi;
     if (this.drained)            fi = 6;                                    // dead
     else if (this._absorbT > 0)  fi = 2 + (Math.floor(this._t * 12) % 4);    // 2,3,4,5
