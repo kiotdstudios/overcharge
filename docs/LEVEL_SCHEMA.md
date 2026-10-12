@@ -266,13 +266,13 @@ empty `lines[]` — authoring one is optional and uses the identical fields abov
       y:                number,   // ✅ World pixel Y — ground line the feet rest on
       facing:           string,   // ✅ "left" | "right". Sprite is authored facing
                                    //    right; "left" mirrors it at render time.
-      scale:            number,   // ⬜ optional, default 1. Draw-size multiplier
-                                   //    against the sprite's NATIVE pixel size (not
-                                   //    a footprint/collision box — NPCs have none).
-                                   //    Exists so art authored at one canvas size can
-                                   //    be placed at a different in-level scale, e.g.
-                                   //    the smoke-break workers' 176px canvas drawn at
-                                   //    ~96px to match their Order-20 decoration size.
+      scale:            number,   // ⬜ optional, default 1. Multiplies the NPC
+                                   //    asset's display size. If the manifest sets
+                                   //    displayHeightPx, that is the visible figure
+                                   //    height at scale 1; otherwise native PNG size
+                                   //    remains the default for legacy NPCs.
+                                   //    Builder and game share one feet-anchored
+                                   //    visual box. NPCs have no collision box.
       ambient: {                 // ⬜ optional — idle<->smoke-style one-shot-action
                                    //    state machine (Order 23). Omit entirely for an
                                    //    NPC that just has one continuous idle loop

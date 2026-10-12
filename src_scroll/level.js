@@ -348,7 +348,7 @@ export class Level {
     this.complete = snap.complete;
   }
 
-  draw(ctx, t) {
+  draw(ctx, t, viewport) {
     // 1. Background decorations (buildings, props) - behind ground tiles.
     // Older levels have no tileLayer field and retain this drawing order.
     const drawDecorations = (layer) => {
@@ -419,6 +419,6 @@ export class Level {
     // NPCs draw last so their speech bubbles float above everything else
     // (platforms, crates, other entities) exactly like Chief would expect text
     // readability to work.
-    for (const npc  of this.npcs)     npc.draw(ctx);
+    for (const npc  of this.npcs)     npc.draw(ctx, viewport);
   }
 }

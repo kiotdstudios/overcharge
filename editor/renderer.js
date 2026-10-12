@@ -11,6 +11,7 @@ import * as Selection from './selection.js';
 import { drawHvac, sourceBox, drawStreetlightPool, isNightCityStreetlight } from '../src_scroll/source-visuals.js';
 import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
 import { drawSpeechBubble } from '../src_scroll/npc.js';
+import { npcGeometry } from '../src_scroll/npc-geometry.js';
 
 const imgCache = new Map();  // path → HTMLImageElement (lazy loaded)
 function getImage(path) {
@@ -1164,16 +1165,18 @@ function _drawNpcs(ctx, arr) {
       const fh = item.frame_height || img.naturalHeight || 64;
       ctx.imageSmoothingEnabled = false;
       if (img.complete && img.naturalWidth > 0) {
-        const drawW = fw * z, drawH = fh * z;
-        const drawX = p.x - drawW / 2, drawY = p.y - drawH;
-        topY = drawY;
+        const g = npcGeometry(item, npc.x, npc.y, npc.scale, npc.facing, item.raw?.footYByFrame?.[0]);
+        const a = worldToScreen(g.drawX, g.drawY);
+        const v = worldToScreen(g.visible.x, g.visible.y);
+        const drawW = g.drawW * z, drawH = g.drawH * z;
+        topY = v.y;
         ctx.save();
         if (npc.facing === 'left') {
           ctx.translate(p.x, 0);
           ctx.scale(-1, 1);
-          ctx.drawImage(img, 0, 0, fw, fh, -drawW / 2, drawY, drawW, drawH);
+          ctx.drawImage(img, 0, 0, fw, fh, a.x - p.x, a.y, drawW, drawH);
         } else {
-          ctx.drawImage(img, 0, 0, fw, fh, drawX, drawY, drawW, drawH);
+          ctx.drawImage(img, 0, 0, fw, fh, a.x, a.y, drawW, drawH);
         }
         ctx.restore();
       } else {

@@ -1,5 +1,6 @@
 import { sourceBox } from '../src_scroll/source-visuals.js';
 import { HERO_SIZE, HERO_FEET_Y } from '../src_scroll/hero-render.js';
+import { npcGeometry } from '../src_scroll/npc-geometry.js';
 // selection.js — tracks what is currently selected in the editor.
 //
 // Selection covers every kind of level content:
@@ -288,15 +289,7 @@ export function boundingRect(kind, ref) {
   if (kind === 'npc') {
     const item = manifestItemById(ref.assetId);
     if (item) {
-      const scale = ref.scale || 1;
-      const fullW = item.width * scale;
-      const fullH = item.height * scale;
-      const t = item.trim;
-      const tx = t ? t.x * fullW : 0;
-      const ty = t ? t.y * fullH : 0;
-      const tw = t ? t.w * fullW : fullW;
-      const th = t ? t.h * fullH : fullH;
-      return { x: ref.x - fullW / 2 + tx, y: ref.y - fullH + ty, w: tw, h: th };
+      return npcGeometry(item, ref.x, ref.y, ref.scale, ref.facing).visible;
     }
     return { x: ref.x - 32, y: ref.y - 128, w: 64, h: 128 };
   }

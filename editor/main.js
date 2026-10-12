@@ -1924,7 +1924,7 @@ function _renderNpcInspector(ref) {
     <div class="prop-row"><span class="prop-label">pace speed</span><input class="prop-input" id="npc-patrol-speed" type="number" min="0" step="1" value="${patrol.speedPxPerSec ?? 22}"></div>
     <div class="prop-row"><span class="prop-label">turn pause</span><input class="prop-input" id="npc-patrol-pause" type="number" min="0" step="0.1" value="${patrol.turnPauseSec ?? 0.55}"></div>
     <div class="prop-row"><span class="prop-label">scale</span><input class="prop-input" id="npc-scale" type="number" min="0.1" max="4" step="0.01" value="${Number.isFinite(ref.scale) ? ref.scale : 1}"></div>
-    <div style="font-size:10px;color:#567;margin-top:4px;line-height:1.4">Scale multiplies the sprite's native PNG size at draw time (not a hitbox — NPCs have none). 1 = native size.</div>
+    <div style="font-size:10px;color:#567;margin-top:4px;line-height:1.4">Scale multiplies this asset's display size (not a hitbox). 1 = its manifest display height when set, otherwise native PNG size.</div>
   `;
 
   const linesHtml = d.lines.length ? d.lines.map((l, i) => `

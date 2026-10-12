@@ -330,7 +330,7 @@ function _drawScrollGame() {
   ctx.beginPath();
   ctx.rect(0, 0, level.pxW, level.pxH);
   ctx.clip();
-  level.draw(ctx, t);
+  level.draw(ctx, t, { x: camX, y: camY + 156, w: viewW(), h: viewH() - 156 });
   player.draw(ctx);
   // World-anchored prompts belong INSIDE the camera transform — they position
   // themselves on world objects, so drawing them in screen space offset them by

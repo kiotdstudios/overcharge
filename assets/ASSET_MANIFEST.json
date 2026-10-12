@@ -2992,8 +2992,10 @@
       "fps": 4,
       "directions": null,
       "loop": true,
-      "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and six-frame heeled walk. Runtime mirrors east-facing art for left movement.",
-      "trim": null
+      "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and six-frame heeled walk. Runtime mirrors east-facing art for left movement. Shared active-animation alpha bounds x50..160 y38..223 on the 236px canvas; visible figure displays 70 world pixels high with shoes on the feet anchor.",
+      "displayHeightPx": 70,
+      "footYByFrame": [221, 221, 222, 222],
+      "trim": { "x": 0.2118644068, "y": 0.1610169492, "w": 0.4661016949, "h": 0.7838983051 }
     },
     {
       "id": "npc_smoke_break_worker_b_smoke",
@@ -3039,6 +3041,7 @@
       "fps": 6,
       "directions": null,
       "loop": false,
+      "footYByFrame": [221, 222, 221, 222],
       "notes": "Order 22 greeting animation — friendly wave/beckon gesture, plays once when this NPC's dialogue bubble triggers, then holds last frame until the ambient idle (npc_streetlamp_woman) resumes. Not independently placeable in the Builder palette (no spawnsKind) — referenced only via another NPC's greetingAssetId.",
       "trim": null
     },
@@ -3053,6 +3056,7 @@
       "fps": 8,
       "directions": null,
       "loop": true,
+      "footYByFrame": [219, 221, 223, 220, 223, 220],
       "notes": "Six-frame side-view heel-strut loop. Referenced by walkAssetId; not independently placeable in the Builder.",
       "trim": null
     }

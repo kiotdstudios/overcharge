@@ -11,6 +11,7 @@
 // action animation between idle dwells. Any NPC may carry an `ambient` config;
 // it is independent of dialogue and of `assetId` (which remains the IDLE sprite).
 import { assetById, animFromAsset, framesFor, frameAt } from './deco-anim.js';
+import { npcGeometry } from './npc-geometry.js';
 
 const DEFAULT_DIALOGUE = {
   enabled:       false,
@@ -284,6 +285,7 @@ export class Npc {
     const useWalk = !useGreeting && this._walking && sprites.walk;
     const useSmoke = !useGreeting && !useWalk && this.ambient && this._ambState === 'smoke' && sprites.smoke;
     const slot = useGreeting ? sprites.greeting : useWalk ? sprites.walk : (useSmoke ? sprites.smoke : sprites.ambient);
+    this._frameSlot = slot;
     // The one-shot smoke clip is timed from its own elapsed counter (resets to
     // 0 the instant the state machine enters 'smoke'), never from this._clock,
     // so it always starts at frame 0 regardless of how long the NPC has existed.
@@ -295,25 +297,28 @@ export class Npc {
     return slot.img;
   }
 
-  draw(ctx) {
+  draw(ctx, viewport) {
     const img = this._currentFrame();
     if (!img || !img.complete || !img.naturalWidth) return;
-    const w = img.naturalWidth * this.scale, h = img.naturalHeight * this.scale;
-    const drawX = this.x - w / 2;
-    const drawY = this.y - h;
+    const asset = this._sprites?.ambient?.asset;
+    const slot = this._frameSlot;
+    const frameIndex = slot?.frames ? slot.frames.indexOf(img) : 0;
+    const frameFootY = slot?.asset?.footYByFrame?.[frameIndex];
+    const g = npcGeometry(asset || { frame_width: img.naturalWidth, frame_height: img.naturalHeight },
+      this.x, this.y, this.scale, this.facing, frameFootY);
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     if (this.facing === 'left') {
       ctx.translate(this.x, 0);
       ctx.scale(-1, 1);
-      ctx.drawImage(img, -w / 2, drawY, w, h);
+      ctx.drawImage(img, g.drawX - this.x, g.drawY, g.drawW, g.drawH);
     } else {
-      ctx.drawImage(img, drawX, drawY, w, h);
+      ctx.drawImage(img, g.drawX, g.drawY, g.drawW, g.drawH);
     }
     ctx.restore();
 
     if (this._bubbleT > 0 && this._bubbleText) {
-      drawSpeechBubble(ctx, this.x, drawY, this._bubbleText);
+      drawSpeechBubble(ctx, this.x, g.visible.y, this._bubbleText, viewport);
     }
   }
 }
