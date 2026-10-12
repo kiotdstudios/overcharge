@@ -16,7 +16,6 @@ import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
 import { initViewport, viewW, viewH } from './viewport.js';
 import { maxCamY, camYForSpawn, nextCamY } from './camera.js';
 import { logLevelSource } from './levelsig.js';
-import { LevelMusic } from './music.js';
 
 // ── Editor-driven test mode ──────────────────────────────────────────────
 // When launched with `?test=1`, load the level def from localStorage under
@@ -99,12 +98,6 @@ let state           = STATES.TITLE;   // startup default; test mode auto-starts 
 let currentLevelIdx = 0;
 let level  = null;
 let player = null;
-const levelMusic = new LevelMusic();
-window.addEventListener('keydown', e => {
-  levelMusic.unlock();
-  if (e.code === 'KeyM' && !e.repeat) levelMusic.toggleMuted();
-});
-window.addEventListener('pointerdown', () => levelMusic.unlock());
 // Read-only browser acceptance hook, available only for the isolated QA fixture.
 export function mechanicsSnapshot() {
   if (_TEST_LEVEL?.name !== 'HERO MECHANICS QA' || !player) return null;
@@ -217,7 +210,6 @@ function loop(now) {
   lastTime = now;
   t += dt;
   _update(dt);
-  levelMusic.setActive(state === STATES.PLAYING && level?.number === 1 && !document.hidden);
   _render();
   Input.update();
 }
