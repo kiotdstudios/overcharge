@@ -411,7 +411,7 @@ export const state = {
   // and mart; in asset library on builder". The art was all on disk and in the manifest —
   // only the quick-filter chips were missing, so the four packs were reachable solely by
   // typing in the search box or by eyeballing the 20 entries under Buildings.
-  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, traversalOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false, libraryOnly: false, electronicsOnly: false, checkpointOnly: false, chestOnly: false },
+  filter: { category: 'all', search: '', purpleCityOnly: false, purpleRooftopOnly: false, blueRooftopOnly: false, hvacOnly: false, nightCityRailOnly: false, electricOnly: false, neonRiseOnly: false, pipeOnly: false, traversalOnly: false, buildingOnly: false, warehouseOnly: false, coffeeBarOnly: false, apartmentOnly: false, martOnly: false, libraryOnly: false, electronicsOnly: false, checkpointOnly: false, chestOnly: false, npcOnly: false },
 
   // UI toggles
   showGrid: true,
@@ -571,7 +571,7 @@ export function manifestCategories() {
 // Background-category assets are excluded here â€” they appear in filteredBackgroundItems().
 export function filteredManifestItems() {
   if (!state.manifest) return [];
-  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, traversalOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly, libraryOnly, electronicsOnly, checkpointOnly, chestOnly } = state.filter;
+  const { category, search, purpleCityOnly, purpleRooftopOnly, blueRooftopOnly, hvacOnly, nightCityRailOnly, electricOnly, neonRiseOnly, pipeOnly, traversalOnly, buildingOnly, warehouseOnly, coffeeBarOnly, apartmentOnly, martOnly, libraryOnly, electronicsOnly, checkpointOnly, chestOnly, npcOnly } = state.filter;
   const q = search.trim().toLowerCase();
   return state.manifest.items.filter(it => {
     // Hand-authored spawn assets stay available even when random generation
@@ -638,6 +638,8 @@ export function filteredManifestItems() {
     if (checkpointOnly  && !(it.tags && it.tags.indexOf('checkpoint') >= 0))        return false;
     // Tag-driven, same pattern — any asset tagged 'chest' joins automatically (all 4 chest variants already carry it).
     if (chestOnly       && !(it.tags && it.tags.indexOf('chest') >= 0))             return false;
+    // Tag-driven, same pattern — any asset tagged 'npc' joins automatically (ambient background NPCs like the smoke-break pair).
+    if (npcOnly          && !(it.tags && it.tags.indexOf('npc') >= 0))               return false;
     if (q && it.name.toLowerCase().indexOf(q) < 0 && it.path.toLowerCase().indexOf(q) < 0) return false;
     return true;
   });
@@ -896,3 +898,4 @@ export function addDecoration(entry) {
 export function setTraversalOnly(v) { state.filter.traversalOnly = !!v; notify(); }
 export function setCheckpointOnly(v) { state.filter.checkpointOnly = !!v; notify(); }
 export function setChestOnly(v) { state.filter.chestOnly = !!v; notify(); }
+export function setNpcOnly(v) { state.filter.npcOnly = !!v; notify(); }
