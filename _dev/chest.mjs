@@ -185,6 +185,51 @@ sec('CHIEF BUG — buying a chest must never trigger the DISCHARGED fail state')
     'an OPENED chest stops counting, so a genuine dead end is still detected',
     'no sources, chest looted, no energy -> correctly a fail state');
 }
+sec('Night City chest variants award distinct charge through the energy authority');
+for (const [variant, reward] of [['street-cache',5], ['relay-case',10], ['capacitor-vault',20]]) {
+  const lv = mkLevel({ variant, reward });
+  const p = mkPlayer(lv, 3, 0);
+  const ch = lv.chests[0];
+  p.spendEnergy(ch.receive(ch.cost));
+  ok(ch.tryOpen(p), `${variant} opens after its cost is paid`);
+  ok(Math.abs(p.charge - (3 - ch.cost + reward)) < 1e-9,
+    `${variant} grants ${reward} charge rather than a direct reserve pip`, `bar=${p.charge}`);
+  ok(p.bankedPips === 0, `${variant} leaves reserve unchanged when the bar has room`);
+  ok(ch.frameFor('closed').src.includes(`/night-city/${variant}/closed.png`), `${variant} uses its own art`);
+}
+{
+  const lv = mkLevel({variant:'capacitor-vault',reward:20});
+  const p = mkPlayer(lv, 24, 1);
+  const ch = lv.chests[0];
+  p.spendEnergy(ch.receive(ch.cost));
+  ok(ch.tryOpen(p), 'large reward crosses the bar boundary');
+  ok(p.bankedPips === 2 && Math.abs(p.charge - 17) < 1e-9,
+    'overflow banks one pip and preserves remaining charge', `pips=${p.bankedPips}, bar=${p.charge}`);
+}
+sec('Each Night City chest has a distinct animated electrical charge path');
+{
+  const signatures = new Set();
+  for (const variant of ['street-cache','relay-case','capacitor-vault']) {
+    const ch = mkLevel({variant}).chests[0];
+    const pixels = [];
+    const ctx = { save(){}, restore(){}, drawImage(){}, fillText(){},
+      fillRect(x,y,w,h){ pixels.push([this.fillStyle,x,y,w,h]); } };
+    ch.receive(0.25);
+    ch.draw(ctx);
+    const first = JSON.stringify(pixels);
+    pixels.length = 0;
+    ch.update(1/12);
+    ch.draw(ctx);
+    const second = JSON.stringify(pixels);
+    ok(first !== second, `${variant} electrical pixels animate while charging`);
+    signatures.add(first);
+    pixels.length = 0;
+    ch.update(0.2);
+    ch.draw(ctx);
+    ok(pixels.length === 2, `${variant} electric overlay stops after transfer ends`);
+  }
+  ok(signatures.size === 3, 'all three charging effects have different pixel layouts');
+}
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
 if(fail===0) console.log('ALL TESTS PASS \u2713');
 process.exit(fail===0?0:1);
