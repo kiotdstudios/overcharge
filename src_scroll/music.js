@@ -1,7 +1,7 @@
 // Level music begins only after gameplay starts. Browser autoplay rules mean
 // TEST mode may stay silent until the first key press/click.
 export class LevelMusic {
-  constructor(path = 'assets/audio/level1_neon_rise.wav?v=trap2') {
+  constructor(path = 'assets/audio/level1_neon_rise.wav?v=cinematic3') {
     this.audio = new Audio(path);
     this.audio.loop = true;
     this.audio.volume = 0.34; // keep attacks and electrical cues in front

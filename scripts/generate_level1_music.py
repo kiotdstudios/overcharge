@@ -1,4 +1,4 @@
-"""Render the original, seamless Level 1 arcade/hip-hop instrumental.
+"""Render the original, seamless Level 1 cinematic-trap instrumental.
 
 No samples or third-party recordings are used. Run with Python + NumPy.
 """
@@ -62,6 +62,35 @@ def pad(note, duration):
     return tone * env * .12
 
 
+def brass(note, duration):
+    """Dark synthetic brass swell with orchestral-style attack."""
+    t = np.arange(round((duration + .23) * RATE)) / RATE
+    f = hz(note)
+    phase = 2 * np.pi * f * t
+    tone = sum(np.sin(phase * harmonic) / harmonic for harmonic in range(1, 7))
+    tone += .18 * np.sin(phase * .5)
+    env = (1 - np.exp(-t * 35)) * np.minimum(1, (duration + .23 - t) / .22)
+    return np.tanh(tone * .68) * env
+
+
+def strings(note, duration):
+    """Short detuned string pulse, kept beneath the drums."""
+    t = np.arange(round((duration + .08) * RATE)) / RATE
+    f = hz(note)
+    phase = 2 * np.pi * f * t
+    tone = np.sin(phase) + .32 * np.sin(phase * 2.006) + .15 * np.sin(phase * 3.992)
+    env = (1 - np.exp(-t * 80)) * np.exp(-t * 7)
+    env *= np.clip((duration + .08 - t) / .08, 0, 1)
+    return tone * env
+
+
+def impact():
+    t = np.arange(round(.8 * RATE)) / RATE
+    phase = 2 * np.pi * (42 * t + 95 * (1 - np.exp(-t * 18)) / 18)
+    noise = rng.normal(0, 1, len(t))
+    return np.sin(phase) * np.exp(-t * 6) + noise * np.exp(-t * 35) * .14
+
+
 def kick():
     t = np.arange(round(.43 * RATE)) / RATE
     phase = 2 * np.pi * (48 * t + 115 * (1 - np.exp(-t * 34)) / 34)
@@ -85,47 +114,47 @@ def hat(open_hat=False):
     return bright * np.exp(-t * (24 if open_hat else 70))
 
 
-# Four-chord minor-key cycle. The two 8-bar phrases vary in melody and drums.
+# Four-chord minor-key cycle. Original three-note calls leave room for SFX.
 roots = [41, 37, 44, 39]  # F2, Db2, Ab2, Eb2
 chords = [(53, 56, 60), (49, 53, 56), (56, 60, 63), (51, 55, 58)]
-melodies = [
-    [(0, 72), (.75, 68), (1.5, 65), (2.25, 68), (3.5, 72)],
-    [(0, 73), (1, 72), (1.75, 68), (2.75, 65), (3.25, 68)],
-    [(0, 75), (.75, 72), (1.5, 68), (2.5, 72), (3.5, 75)],
-    [(0, 70), (.75, 67), (1.5, 63), (2.25, 67), (3.25, 70)],
-]
+calls = [(0, 72), (1.5, 68), (3, 65)]
 
 for bar in range(BARS):
     start = bar * 4 * BEAT
     root = roots[bar % 4]
+    breakdown = bar in (0, 1, 8, 9)
     for note in chords[bar % 4]:
-        put(start, pad(note, 4 * BEAT), .27)
-    # Half-time trap pulse at 140 BPM: sliding 808, hard beat-three clap,
-    # double-time hats, and little 32nd-note rolls at phrase turns.
-    for slot, shift, dur in [(0, 0, 1.1), (1.5, 0, .42), (2.75, 7, .55), (3.5, 0, .38)]:
-        put(start + slot * BEAT, bass(root + shift, dur * BEAT), .61)
-    for step in range(16):
-        swing = .025 * BEAT if step % 2 else 0
-        put(start + step * BEAT / 4 + swing, hat(), .087 if step % 4 == 0 else .052)
-    if bar % 4 in (1, 3):
-        for roll in range(8):
-            put(start + (3 + roll / 8) * BEAT, hat(), .055 + .007 * roll)
-    for beat in (0, 1.5, 2.75, 3.5 if bar % 4 == 3 else 3.25):
-        put(start + beat * BEAT, kick(), .79)
-    put(start + 2 * BEAT, snare(), .56)
-    put(start + 2 * BEAT + .024, snare(), .12)  # clap width
-    if bar % 4 == 3:
-        put(start + 3.75 * BEAT, snare(), .19)
-    for slot in (.5, 2.5):
-        put(start + slot * BEAT, hat(True), .11)
-    for i, (slot, note) in enumerate(melodies[bar % 4]):
-        if bar % 8 in (3, 7) and i == 3:
-            continue  # phrase break
-        octave = 12 if bar >= 8 and i == 4 else 0
-        put(start + slot * BEAT, lead(note + octave, .48 * BEAT, .9 if i else 1), .095)
-    if bar % 4 == 3:
-        for n, slot in zip((67, 70, 72, 75), (3, 3.25, 3.5, 3.75)):
-            put(start + slot * BEAT, lead(n, .2 * BEAT), .065)
+        put(start, pad(note, 4 * BEAT), .23 if breakdown else .43)
+    if bar % 4 == 0:
+        put(start, impact(), .35 if breakdown else .55)
+    # Brass answers the 8-bit signal rather than copying any film cue.
+    if bar % 2 == 0:
+        for note in (root + 12, root + 19):
+            put(start + .06 * BEAT, brass(note, 1.45 * BEAT), .09 if breakdown else .16)
+        put(start + 2.7 * BEAT, brass(root + 15, .85 * BEAT), .08 if breakdown else .13)
+    else:
+        put(start + 1.8 * BEAT, brass(root + 12, 1.1 * BEAT), .08 if breakdown else .13)
+    if not breakdown:
+        for slot in (.75, 1.75, 2.75, 3.75):
+            put(start + slot * BEAT, strings(root + 24, .35 * BEAT), .13)
+    bass_pattern = [(0, 0, 1.35)] if breakdown else [(0, 0, 1.35), (1.75, 0, .45), (3.25, 7, .5)]
+    for slot, shift, dur in bass_pattern:
+        put(start + slot * BEAT, bass(root + shift, dur * BEAT), .42 if breakdown else .64)
+    # Trap is in the half-time weight and syncopation; hats stay restrained.
+    kicks = (0,) if breakdown else (0, 1.75, 3.25 if bar % 4 else 3.5)
+    for slot in kicks:
+        put(start + slot * BEAT, kick(), .8)
+    if not (breakdown and bar % 2 == 0):
+        put(start + 2 * BEAT, snare(), .56)
+        put(start + 2 * BEAT + .025, snare(), .1)
+    if not breakdown:
+        for slot in (.5, 1.5, 2.5, 3.5):
+            put(start + slot * BEAT, hat(slot == 3.5 and bar % 4 == 3), .035)
+    for i, (slot, note) in enumerate(calls):
+        if breakdown and i == 2:
+            continue
+        pitch = note + (roots[bar % 4] - roots[0])
+        put(start + slot * BEAT, lead(pitch, .5 * BEAT), .053)
 
 # Gentle bus saturation keeps retro edges while controlling simultaneous hits.
 mix = np.tanh(mix * 1.55)
