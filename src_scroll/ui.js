@@ -11,7 +11,7 @@ export function drawHUD(ctx, player, level, t) {
   _drawPlayerAvatar(ctx);
   drawEnergyHUD(ctx, player, t, { x: safeInsetX() + 84, y: 22 });
   _drawLevelBanner(ctx, level, t);
-  _drawLevelOneObjective(ctx, player, level);
+  _drawLevelOneObjective(ctx, player, level, t);
   if (level.cols > 25) _drawProgressBar(ctx, player, level);
 }
 
@@ -23,50 +23,113 @@ export function levelOneObjective(level, player) {
   const exit = level.gates?.find(gate => gate.isExit);
   if (!lamps.length || !exit) return null;
   if (!lamps.some(lamp => lamp.charge < lamp.max - 1e-9)) {
-    return { title: 'NEED TO POWER UP', task: 'Absorb power from street lamp', checked: false };
+    return { stage: 0, title: 'NEED TO POWER UP', task: 'Absorb power from street lamp', checked: false };
   }
   const remaining = Math.max(0, exit.required - exit.charged);
-  return { title: 'POWER THE EXIT', task: 'Absorb enough energy to exit gate',
+  return { stage: 1, title: 'POWER THE EXIT', task: 'Absorb enough energy to exit gate',
     checked: !!exit.open || player.usableEnergy >= remaining - 1e-9 };
 }
 
-function _drawLevelOneObjective(ctx, player, level) {
+// Keep the checked first step visible long enough to read before the next prompt
+// charges in. Time comes from the game clock, so pause and frame rate are respected.
+export function advanceLevelOneObjectivePresentation(state, objective, t) {
+  if (!state || objective.stage < state.stage) {
+    return { stage: objective.stage, enteredAt: t, checked: objective.checked,
+      sparkAt: -Infinity, nextAt: null };
+  }
+  if (state.nextAt !== null && objective.stage === state.stage) {
+    state.nextAt = null;
+    state.checked = objective.checked;
+    state.sparkAt = -Infinity;
+  }
+  if (objective.stage > state.stage && state.nextAt === null) {
+    state.checked = true;
+    state.sparkAt = t;
+    state.nextAt = t + 0.8;
+  }
+  if (state.nextAt !== null && t >= state.nextAt) {
+    state.stage = objective.stage;
+    state.enteredAt = t;
+    state.checked = objective.checked;
+    state.sparkAt = objective.checked ? t : -Infinity;
+    state.nextAt = null;
+  } else if (state.nextAt === null && state.checked !== objective.checked) {
+    state.checked = objective.checked;
+    if (state.checked) state.sparkAt = t;
+  }
+  return state;
+}
+
+const _objectivePresentations = new WeakMap();
+function _drawLevelOneObjective(ctx, player, level, t) {
   const objective = levelOneObjective(level, player);
   if (!objective) return;
-  const w = 302, h = 56;
+  const state = advanceLevelOneObjectivePresentation(_objectivePresentations.get(level), objective, t);
+  _objectivePresentations.set(level, state);
+  const second = state.stage === 1;
+  const title = second ? 'POWER THE EXIT' : 'NEED TO POWER UP';
+  const task = second ? 'Absorb enough energy to exit gate' : 'Absorb power from street lamp';
+  const reducedMotion = !!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const reveal = reducedMotion ? 1 : Math.min(1, Math.max(0, (t - state.enteredAt) / 0.42));
+  const w = 302, h = 62;
   const x = viewW() - safeInsetX() - w - 16, y = 51;
   ctx.save();
+  ctx.beginPath(); ctx.rect(x, y, w * reveal, h); ctx.clip();
   ctx.fillStyle = 'rgba(4, 7, 20, 0.91)';
   ctx.fillRect(x, y, w, h);
-  ctx.fillStyle = '#19314e';
+  ctx.fillStyle = second ? '#7150ae' : '#b77d3b';
   ctx.fillRect(x, y, 3, h);
-  ctx.fillStyle = '#372459';
+  ctx.fillStyle = second ? '#412875' : '#263f60';
   ctx.fillRect(x + 3, y + h - 2, w - 3, 2);
-  ctx.strokeStyle = '#a06f37';
+  ctx.fillStyle = second ? '#7ccaff' : '#ffc070';
+  ctx.font = 'bold 8px monospace';
+  ctx.fillText(second ? '02 / 02' : '01 / 02', x + 13, y + 12);
+  ctx.strokeStyle = second ? '#9a6be0' : '#a06f37';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(x + 19, y + 15); ctx.lineTo(x + 26, y + 22);
-  ctx.lineTo(x + 19, y + 29); ctx.lineTo(x + 12, y + 22);
+  ctx.moveTo(x + 19, y + 20); ctx.lineTo(x + 26, y + 27);
+  ctx.lineTo(x + 19, y + 34); ctx.lineTo(x + 12, y + 27);
   ctx.closePath(); ctx.stroke();
-  ctx.fillStyle = '#ffc070';
+  ctx.fillStyle = second ? '#c29aff' : '#ffc070';
   ctx.font = 'bold italic 13px monospace';
   ctx.textAlign = 'left';
-  ctx.fillText(objective.title, x + 38, y + 26);
-  const boxX = x + 39, boxY = y + 35;
-  ctx.strokeStyle = objective.checked ? '#44ddff' : '#88a3b8';
+  ctx.fillText(title, x + 38, y + 30);
+  const boxX = x + 39, boxY = y + 40;
+  ctx.strokeStyle = state.checked ? '#44ddff' : '#88a3b8';
   ctx.lineWidth = 1;
   ctx.strokeRect(boxX + 0.5, boxY + 0.5, 11, 11);
-  if (objective.checked) {
+  if (state.checked) {
     ctx.strokeStyle = '#44ddff';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(boxX + 2, boxY + 6); ctx.lineTo(boxX + 5, boxY + 9);
     ctx.lineTo(boxX + 10, boxY + 2); ctx.stroke();
   }
-  ctx.fillStyle = objective.checked ? '#7ecbd7' : '#c2cfda';
+  ctx.fillStyle = state.checked ? '#7ecbd7' : '#c2cfda';
   ctx.font = '10px monospace';
-  ctx.fillText(objective.task, x + 57, y + 45);
+  ctx.fillText(task, x + 57, y + 50);
+  // Square pixel sparks radiate from the checkbox only when it becomes checked.
+  const age = t - state.sparkAt;
+  if (!reducedMotion && age >= 0 && age < 0.55) {
+    const distance = 5 + age * 31;
+    ctx.globalAlpha = 1 - age / 0.55;
+    for (let i = 0; i < 8; i++) {
+      const angle = i * Math.PI / 4;
+      ctx.fillStyle = i % 2 ? '#a565ef' : '#44ddff';
+      ctx.fillRect(Math.round(boxX + 6 + Math.cos(angle) * distance),
+        Math.round(boxY + 6 + Math.sin(angle) * distance), 3, 3);
+    }
+    ctx.globalAlpha = 1;
+  }
   ctx.restore();
+  // The reveal edge flickers in pixel steps, then disappears once fully charged in.
+  if (!reducedMotion && reveal > 0 && reveal < 1) {
+    ctx.save();
+    ctx.fillStyle = second ? '#a565ef' : '#44ddff';
+    const edge = x + Math.round(w * reveal);
+    for (let i = 0; i < 4; i++) ctx.fillRect(edge + (i % 2) * 3, y + 8 + i * 12, 3, 4);
+    ctx.restore();
+  }
 }
 
 // WORLD-SPACE prompts. MUST be called INSIDE the camera translate (see
