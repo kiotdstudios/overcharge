@@ -796,7 +796,13 @@
       "name": "Street Cache (+5 charge)",
       "path": "assets/objects/chest/night-city/street-cache/closed.png",
       "category": "object",
-      "tags": ["chest", "night-city", "reward", "spawn", "placement"],
+      "tags": [
+        "chest",
+        "night-city",
+        "reward",
+        "spawn",
+        "placement"
+      ],
       "frame_width": 128,
       "frame_height": 128,
       "frame_count": 1,
@@ -806,14 +812,24 @@
       "spawnsKind": "chest",
       "chestVariant": "street-cache",
       "defaultReward": 5,
-      "generation": { "eligible": false, "ineligible_reason": "Designer-placed charge reward" }
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Designer-placed charge reward"
+      }
     },
     {
       "id": "night_city_charge_platform",
       "name": "Night City Charge Platform",
       "path": "assets/objects/night-city-props/charge-platform/base.png",
       "category": "object",
-      "tags": ["night-city", "platform", "electric", "traversal", "spawn", "placement"],
+      "tags": [
+        "night-city",
+        "platform",
+        "electric",
+        "traversal",
+        "spawn",
+        "placement"
+      ],
       "frame_width": 234,
       "frame_height": 47,
       "frame_count": 1,
@@ -823,14 +839,23 @@
       "spawnsKind": "platform",
       "platformKind": "charge-platform",
       "notes": "Rideable moving platform. E absorbs its stored charge and brakes it; SPACE returns charge and restarts it. Default capacity 2. Builder can edit route and speed.",
-      "generation": { "eligible": false, "ineligible_reason": "Designer-placed traversal and energy puzzle" }
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Designer-placed traversal and energy puzzle"
+      }
     },
     {
       "id": "chest_relay_case",
       "name": "Relay Case (+10 charge)",
       "path": "assets/objects/chest/night-city/relay-case/closed.png",
       "category": "object",
-      "tags": ["chest", "night-city", "reward", "spawn", "placement"],
+      "tags": [
+        "chest",
+        "night-city",
+        "reward",
+        "spawn",
+        "placement"
+      ],
       "frame_width": 128,
       "frame_height": 128,
       "frame_count": 1,
@@ -840,14 +865,23 @@
       "spawnsKind": "chest",
       "chestVariant": "relay-case",
       "defaultReward": 10,
-      "generation": { "eligible": false, "ineligible_reason": "Designer-placed charge reward" }
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Designer-placed charge reward"
+      }
     },
     {
       "id": "chest_capacitor_vault",
       "name": "Capacitor Vault (+20 charge)",
       "path": "assets/objects/chest/night-city/capacitor-vault/closed.png",
       "category": "object",
-      "tags": ["chest", "night-city", "reward", "spawn", "placement"],
+      "tags": [
+        "chest",
+        "night-city",
+        "reward",
+        "spawn",
+        "placement"
+      ],
       "frame_width": 128,
       "frame_height": 128,
       "frame_count": 1,
@@ -857,7 +891,10 @@
       "spawnsKind": "chest",
       "chestVariant": "capacitor-vault",
       "defaultReward": 20,
-      "generation": { "eligible": false, "ineligible_reason": "Designer-placed charge reward" }
+      "generation": {
+        "eligible": false,
+        "ineligible_reason": "Designer-placed charge reward"
+      }
     },
     {
       "id": "checkpoint",
@@ -2862,6 +2899,58 @@
       "frame_count": 1,
       "loop": false,
       "notes": "Hold G within 240px with clear line of sight to pull toward this anchor; release to drop. Matches Night City pipe art."
+    },
+    {
+      "id": "npc_smoke_break_worker_a",
+      "path": "assets/sprites/npc-smoke-break/worker-a/00.png",
+      "category": "decoration",
+      "tags": [
+        "npc",
+        "ambient",
+        "decoration",
+        "night_city",
+        "animated",
+        "smoke_break"
+      ],
+      "frame_width": 176,
+      "frame_height": 176,
+      "frame_count": 13,
+      "fps": 6,
+      "directions": null,
+      "loop": true,
+      "notes": "Ambient background NPC, dark navy coveralls, leaning against wall on a smoke break. One continuous idle-breathing + raise-cigarette/drag/exhale/lower loop (no discrete named states). Purely cosmetic: no collision, no AI, no gameplay interaction.",
+      "trim": {
+        "x": 0.358,
+        "y": 0.1477,
+        "w": 0.25,
+        "h": 0.7045
+      }
+    },
+    {
+      "id": "npc_smoke_break_worker_b",
+      "path": "assets/sprites/npc-smoke-break/worker-b/00.png",
+      "category": "decoration",
+      "tags": [
+        "npc",
+        "ambient",
+        "decoration",
+        "night_city",
+        "animated",
+        "smoke_break"
+      ],
+      "frame_width": 176,
+      "frame_height": 176,
+      "frame_count": 13,
+      "fps": 6,
+      "directions": null,
+      "loop": true,
+      "notes": "Ambient background NPC, gray/charcoal coveralls with cap, standing on a smoke break, occasional head-turn baked into the loop. One continuous idle + raise-cigarette/drag/exhale/lower loop (no discrete named states). Purely cosmetic: no collision, no AI, no gameplay interaction.",
+      "trim": {
+        "x": 0.4091,
+        "y": 0.125,
+        "w": 0.2443,
+        "h": 0.7273
+      }
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
