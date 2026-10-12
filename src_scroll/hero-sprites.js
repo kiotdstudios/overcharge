@@ -110,6 +110,7 @@ export class PlayerSprites{
   }
  }
  update(dt,moving,right,absorbing,running,airborne,discharging,speed=0,vy=0,wallBlocked=false,status={}){
+  this._footfall=false;
   let state;const attackStart=status.attacking&&!this._attackHeld;this._attackHeld=!!status.attacking;
   if(status.dead)state='death';
   else if(status.hurt)state='hurt';
@@ -137,10 +138,19 @@ export class PlayerSprites{
   // Both gaits advance with traveled distance; sprint acceleration stays in sync.
   const k=this.fpsScale;
   this._current.fps=state==='walk'?Math.max(1,speed/11)*k:state==='run'?Math.max(1,speed/14)*k:HERO_STATES[state][0]*k;
+  const before=this._current._frame;
   this._current.update(dt);
+  if((state==='walk'||state==='run')&&speed>20){
+   const half=Math.floor(this._current.frames.length/2);
+   const after=this._current._frame;
+   this._footfall=after!==before&&(after===0||after===half);
+  }
  }
  get currentFrame(){
   const img=this._current.image;if(img.complete&&img.naturalWidth)return img;
   return this.get('idle',this.dir).frames.find(f=>f.complete&&f.naturalWidth)||img;
  }
+  // A foot lands at the start and midpoint of each locomotion loop. Read this
+  // after update(), so audio follows the displayed frame even as speed ramps.
+  get footfall(){return this._footfall || false;}
 }

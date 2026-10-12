@@ -16,6 +16,9 @@ import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
 import { initViewport, viewW, viewH } from './viewport.js';
 import { maxCamY, camYForSpawn, nextCamY } from './camera.js';
 import { logLevelSource } from './levelsig.js';
+import { unlockFootsteps, playFootstep } from './footsteps.js';
+
+window.addEventListener('keydown', unlockFootsteps, { once: true });
 
 // ── Editor-driven test mode ──────────────────────────────────────────────
 // When launched with `?test=1`, load the level def from localStorage under
@@ -222,7 +225,8 @@ function _update(dt) {
 
     case STATES.PLAYING:
       player.update(dt, level);
-      level.update(dt, player);
+      if (player._sprites.footfall && player.grounded) playFootstep();
+      level.update(dt, player, viewW());
       _updateCamera();
       _cpFlash = Math.max(0, _cpFlash - dt);
 

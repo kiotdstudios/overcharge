@@ -7,6 +7,7 @@ import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
 import { Npc } from './npc.js';
+import { StreetLitter } from './street-litter.js';
 
 export const CLIMBABLE_LADDER_SRC = 'assets/objects/night-city-props/ladder/ladder.png';
 export const GRAPPLE_ANCHOR_SRC = 'assets/objects/night-city-props/grapple-anchor/anchor.png';
@@ -72,6 +73,7 @@ export class Level {
     // every level authored before this order — same discipline as crates/chests.
     this.npcs        = (def.npcs        || []).map(d => new Npc(d));
     this.pickups  = [];
+    this.streetLitter = new StreetLitter();
 
     // Background decoration sprites (buildings, props) drawn behind tiles.
     //
@@ -183,7 +185,8 @@ export class Level {
     return available <= 1e-9;
   }
 
-  update(dt, player) {
+  update(dt, player, viewWidth = 800) {
+    if (player) this.streetLitter.update(dt, this, player, viewWidth);
     for (const src  of this.sources)  src.update(dt);
     for (const pl   of this.platforms) pl.update(dt);
     // Crates settle AFTER movers (so a crate resting on one sees its new y) and
@@ -401,6 +404,7 @@ export class Level {
 
     // Art explicitly moved above the ground in Builder stays above it in TEST.
     drawDecorations('front');
+    this.streetLitter.draw(ctx);
 
     // 3. Moving platforms
     for (const pl of this.platforms) pl.draw(ctx);
