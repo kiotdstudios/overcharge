@@ -47,3 +47,7 @@ Optional scene dressing: a small toolbox or oil drum and a dim/flickering securi
 
 ## Delivery
 Follow **EDIT → TEST → COMMIT → PUSH → STATUS → REVIEW**. Work from the latest canonical live branch and deliver via Aki's branch for Kiro review. Do not merge, overwrite unrelated level data, or publish without approval.
+
+
+## Chief staffing override — 2026-10-12
+**Aki is OVERCHARGE's sole active implementation owner** for this order, including art, Builder, schema, runtime/gameplay integration, testing, and delivery. **Do not block on Orcha approval or handoff.** Orcha is retired/on-call only for a major technical problem that Chief explicitly reassigns. Preserve all schema compatibility, regression testing, review, and no-merge-without-approval requirements. This override supersedes any earlier role split or instruction to wait for Orcha in this document.
