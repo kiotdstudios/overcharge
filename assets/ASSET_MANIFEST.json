@@ -21,10 +21,10 @@
       "fps": 8,
       "directions": null,
       "loop": true,
-      "notes": "Single direction (no dir subfolder). 9 frames: frame_000.png–frame_008.png. Path template uses {n} — editor expands to zero-padded 3-digit frame index. Drawn at 64x64 world units, sprite centred horizontally above 28x28 hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") — URL-encodes to %20 on HTTP. Recommend renaming to \"generator_1\" (coord with Orcha).",
+      "notes": "Single direction (no dir subfolder). 9 frames: frame_000.pngâ€“frame_008.png. Path template uses {n} â€” editor expands to zero-padded 3-digit frame index. Drawn at 64x64 world units, sprite centred horizontally above 28x28 hitbox. PATH NOTE: folder name has a literal space (\"generator 1\") â€” URL-encodes to %20 on HTTP. Recommend renaming to \"generator_1\" (coord with Orcha).",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object â€” requires scripted placement by level designer"
       }
     },
     {
@@ -43,10 +43,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Palette entry for the gate object (ONE entry — Chief ruling). Sprite: 64x128, drawn bottom-aligned. Runtime state files gate_electric_spritesheet.png, gate_electric_open.png, gate_electric_dead.png are NOT palette entries — they are wired in electricity.js. Do not add them to this manifest.",
+      "notes": "Palette entry for the gate object (ONE entry â€” Chief ruling). Sprite: 64x128, drawn bottom-aligned. Runtime state files gate_electric_spritesheet.png, gate_electric_open.png, gate_electric_dead.png are NOT palette entries â€” they are wired in electricity.js. Do not add them to this manifest.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — linked to generator/switches by ID"
+        "ineligible_reason": "Puzzle-critical electrical object â€” linked to generator/switches by ID"
       }
     },
     {
@@ -64,7 +64,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. mid_a — medium purple rooftop, avg RGB (40,24,69). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. mid_a â€” medium purple rooftop, avg RGB (40,24,69). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px â€” all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -92,7 +92,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. mid_b — darker mid variant, avg RGB (29,20,49). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. mid_b â€” darker mid variant, avg RGB (29,20,49). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px â€” all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -120,7 +120,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. mid_c — medium-dark rooftop, avg RGB (34,26,72). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. mid_c â€” medium-dark rooftop, avg RGB (34,26,72). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px â€” all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": true,
         "roles": [
@@ -148,7 +148,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. purple_a — brighter purple, partial (219/256), edge tile. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. purple_a â€” brighter purple, partial (219/256), edge tile. 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px â€” all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": false,
         "roles": [
@@ -159,7 +159,7 @@
         "layer": "midground",
         "density": "dense",
         "stackable": true,
-        "ineligible_reason": "Retired edge tile — removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
+        "ineligible_reason": "Retired edge tile â€” removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
       }
     },
     {
@@ -177,7 +177,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset. accent_a — accent tile from alternate sheet region, avg RGB (20,21,50). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px — all multiples of 16, not 32). Tile ID locked permanently.",
+      "notes": "Purple Rooftop tileset. accent_a â€” accent tile from alternate sheet region, avg RGB (20,21,50). 16x16, rendered at 32x32 by drawTile(). Cell size confirmed by row-gap pixel analysis (row gaps 64/48/16px â€” all multiples of 16, not 32). Tile ID locked permanently.",
       "generation": {
         "eligible": false,
         "roles": [
@@ -188,7 +188,7 @@
         "layer": "midground",
         "density": "dense",
         "stackable": true,
-        "ineligible_reason": "Retired edge tile — removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
+        "ineligible_reason": "Retired edge tile â€” removed from palette (Chief 2026-09-19). Registry entry kept for existing level data."
       }
     },
     {
@@ -206,7 +206,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r2 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r2 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -234,7 +234,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r2 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r2 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -262,7 +262,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r2 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r2 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -290,7 +290,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r3 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -318,7 +318,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r3 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -346,7 +346,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r3 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -374,7 +374,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c4. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r3 c4. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -402,7 +402,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c5. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r3 c5. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -430,7 +430,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r3 c6. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r3 c6. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -458,7 +458,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c1. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c1. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -486,7 +486,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c2. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c2. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -514,7 +514,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c3. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c3. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -542,7 +542,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c4. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c4. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -570,7 +570,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c5. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c5. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -598,7 +598,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c6. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c6. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -626,7 +626,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c11. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c11. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -654,7 +654,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c12. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c12. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -682,7 +682,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Purple Rooftop tileset — rooftop building section r4 c13. 16x16, rendered at 32x32 by drawTile().",
+      "notes": "Purple Rooftop tileset â€” rooftop building section r4 c13. 16x16, rendered at 32x32 by drawTile().",
       "generation": {
         "eligible": true,
         "roles": [
@@ -711,10 +711,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Palette entry for the wall switch object (ONE entry per device — ORDER AKI 06). Art: switch_off.png (unpowered state — reads as not-yet-activated, correct thumbnail for a freshly placed switch). Hitbox 22×22, sprite 56×56 drawn centred on hitbox cx, bottom-aligned to hitbox bottom. Runtime states (switch_on, destroyed, burn_anim) are in _runtime_state_sprites[], not here.",
+      "notes": "Palette entry for the wall switch object (ONE entry per device â€” ORDER AKI 06). Art: switch_off.png (unpowered state â€” reads as not-yet-activated, correct thumbnail for a freshly placed switch). Hitbox 22Ã—22, sprite 56Ã—56 drawn centred on hitbox cx, bottom-aligned to hitbox bottom. Runtime states (switch_on, destroyed, burn_anim) are in _runtime_state_sprites[], not here.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object â€” requires scripted placement by level designer"
       }
     },
     {
@@ -737,7 +737,7 @@
       "notes": "Night City electric fence with red-capped posts and three animated blue strands. Default Builder spawn: 128x64, blockOnly:true, required:1. Existing saved fences retain their dimensions and collision. Runtime live/dead states are separate entries.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object â€” requires scripted placement by level designer"
       }
     },
     {
@@ -764,7 +764,7 @@
       "notes": "Flying replacement for legacy drone. 64x64 rendered art, feet anchor (192,360) in 384x384 frame. Collider 40x36. Eight animation frames; only this palette entry is placeable.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
+        "ineligible_reason": "Enemy placement â€” requires designer intent for patrol range and position"
       },
       "name": "Sky Sentry"
     },
@@ -785,10 +785,10 @@
       "directions": null,
       "loop": false,
       "spawnsKind": "chest",
-      "notes": "Palette entry for the chest object. Clicking enters spawn mode — sets pendingSpawn:{kind:'chest'}. Art: closed.png (128x128 canvas, 104x104 content, botPad=12). Hitbox is content box 104x104. Default cost:2, reward:10 (Chief-ratified full pip). State frames (open_empty.png, opening/frame_000..008) are in _runtime_state_sprites[], NOT here — Chief must never be able to place an already-opened chest.",
+      "notes": "Palette entry for the chest object. Clicking enters spawn mode â€” sets pendingSpawn:{kind:'chest'}. Art: closed.png (128x128 canvas, 104x104 content, botPad=12). Hitbox is content box 104x104. Default cost:2, reward:10 (Chief-ratified full pip). State frames (open_empty.png, opening/frame_000..008) are in _runtime_state_sprites[], NOT here â€” Chief must never be able to place an already-opened chest.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical reward object — requires designer placement"
+        "ineligible_reason": "Puzzle-critical reward object â€” requires designer placement"
       }
     },
     {
@@ -913,10 +913,10 @@
       "directions": null,
       "loop": true,
       "spawnsKind": "checkpoint",
-      "notes": "Palette entry for the checkpoint flag object. Clicking enters spawn mode — sets pendingSpawn:{kind:'checkpoint'}. Art: frame_000..008.png (128x128 canvas each). Frame 0 = dark/inactive, frames 1-8 cycle at 8fps once activated (see src_scroll/entities.js Checkpoint, CP_FRAMES/CP_FPS). Runtime draws scaled by CP_SCALE (art height 56px on screen) and ground-anchored at CP_BOX_BOT, NOT the raw 128x128 canvas — do not treat frame dims as the on-screen size.",
+      "notes": "Palette entry for the checkpoint flag object. Clicking enters spawn mode â€” sets pendingSpawn:{kind:'checkpoint'}. Art: frame_000..008.png (128x128 canvas each). Frame 0 = dark/inactive, frames 1-8 cycle at 8fps once activated (see src_scroll/entities.js Checkpoint, CP_FRAMES/CP_FPS). Runtime draws scaled by CP_SCALE (art height 56px on screen) and ground-anchored at CP_BOX_BOT, NOT the raw 128x128 canvas â€” do not treat frame dims as the on-screen size.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical level-structure marker — requires designer placement, see src_scroll/level.js checkpoint snapshot/restore model"
+        "ineligible_reason": "Puzzle-critical level-structure marker â€” requires designer placement, see src_scroll/level.js checkpoint snapshot/restore model"
       }
     },
     {
@@ -1112,7 +1112,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "notes": "Retired rooftop tile â€” removed from asset bank by Chief 2026-09-20.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Retired by Chief 2026-09-20"
@@ -1134,7 +1134,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "notes": "Retired rooftop tile â€” removed from asset bank by Chief 2026-09-20.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Retired by Chief 2026-09-20"
@@ -1156,7 +1156,7 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Retired rooftop tile — removed from asset bank by Chief 2026-09-20.",
+      "notes": "Retired rooftop tile â€” removed from asset bank by Chief 2026-09-20.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Retired by Chief 2026-09-20"
@@ -1174,7 +1174,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — sky layer. Factor 0.03. Tiles horizontally at 1672px period."
+      "notes": "Night City Rail â€” sky layer. Factor 0.03. Tiles horizontally at 1672px period."
     },
     {
       "id": "bg_ncr_track",
@@ -1188,7 +1188,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — elevated track layer. Factor 0.35. Track top at y=661 source-px."
+      "notes": "Night City Rail â€” elevated track layer. Factor 0.35. Track top at y=661 source-px."
     },
     {
       "id": "bg_ncr_train",
@@ -1202,7 +1202,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — train canvas layer. Moves at 95px/s. Opaque box [561,536,1124,661]."
+      "notes": "Night City Rail â€” train canvas layer. Moves at 95px/s. Opaque box [561,536,1124,661]."
     },
     {
       "id": "bg_ncr_front_skyline",
@@ -1216,7 +1216,7 @@
       ],
       "frame_width": 1672,
       "frame_height": 941,
-      "notes": "Night City Rail — dark front buildings/rooftops. Factor 0.45. Hard alpha only."
+      "notes": "Night City Rail â€” dark front buildings/rooftops. Factor 0.45. Hard alpha only."
     },
     {
       "id": "source_hvac",
@@ -1237,10 +1237,10 @@
       "directions": null,
       "loop": false,
       "spawnsKind": "source-hvac",
-      "notes": "Palette entry for the HVAC powered source. Clicking enters spawn mode — sets pendingSpawn:{kind:'source-hvac'}. Places an ElectricalSource with kind:'hvac', charge:4. Art: hvac_a.png (66x52) anchored so unit base lands on the tile floor. Fan animation driven by _fanSpeed/_fanPhase in electricity.js. Appears under the HVAC quick-filter in the asset browser.",
+      "notes": "Palette entry for the HVAC powered source. Clicking enters spawn mode â€” sets pendingSpawn:{kind:'source-hvac'}. Places an ElectricalSource with kind:'hvac', charge:4. Art: hvac_a.png (66x52) anchored so unit base lands on the tile floor. Fan animation driven by _fanSpeed/_fanPhase in electricity.js. Appears under the HVAC quick-filter in the asset browser.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Puzzle-critical electrical object — requires scripted placement by level designer"
+        "ineligible_reason": "Puzzle-critical electrical object â€” requires scripted placement by level designer"
       }
     },
     {
@@ -1835,7 +1835,7 @@
       "notes": "Grounded patrol with plasma burst. 64x64 rendered art, feet anchor (192,360) in 384x384 frame. Collider 38x34. Only this palette entry is placeable.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Enemy placement — requires designer intent for patrol range and position"
+        "ineligible_reason": "Enemy placement â€” requires designer intent for patrol range and position"
       },
       "name": "Wheel Drone"
     },
@@ -2865,7 +2865,7 @@
       "notes": "Palette entry for the player spawn point. Exactly one per level; placement sets playerStart. Art: hero-v3 idle at the shared 80px runtime feet anchor.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Player spawn — exactly one per level, placed via spawn mode not decoration"
+        "ineligible_reason": "Player spawn â€” exactly one per level, placed via spawn mode not decoration"
       }
     },
     {
@@ -2993,7 +2993,7 @@
       "directions": null,
       "loop": true,
       "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and six-frame heeled walk. Runtime mirrors east-facing art for left movement. Shared active-animation alpha bounds x50..160 y38..223 on the 236px canvas; visible figure displays 70 world pixels high with shoes on the feet anchor.",
-      "displayHeightPx": 70,
+      "displayHeightPx": 60,
       "footYByFrame": [221, 221, 222, 222],
       "trim": { "x": 0.2118644068, "y": 0.1610169492, "w": 0.4661016949, "h": 0.7838983051 }
     },
@@ -3042,7 +3042,7 @@
       "directions": null,
       "loop": false,
       "footYByFrame": [221, 222, 221, 222],
-      "notes": "Order 22 greeting animation — friendly wave/beckon gesture, plays once when this NPC's dialogue bubble triggers, then holds last frame until the ambient idle (npc_streetlamp_woman) resumes. Not independently placeable in the Builder palette (no spawnsKind) — referenced only via another NPC's greetingAssetId.",
+      "notes": "Order 22 greeting animation â€” friendly wave/beckon gesture, plays once when this NPC's dialogue bubble triggers, then holds last frame until the ambient idle (npc_streetlamp_woman) resumes. Not independently placeable in the Builder palette (no spawnsKind) â€” referenced only via another NPC's greetingAssetId.",
       "trim": null
     },
     {
@@ -3063,7 +3063,7 @@
       "trim": null
     }
   ],
-  "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable — they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible — that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
+  "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable â€” they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible â€” that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
   "_runtime_state_sprites": [
     {
       "id": "wall_switch_off",
@@ -3082,10 +3082,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — default switch, uncharged/unfired state. 56x56, drawn centred on hitbox cx, bottom-aligned to hitbox bottom (dX=x-17, dY=y-34). NOT a palette entry. Wired in editor/renderer.js _drawSwitches.",
+      "notes": "Runtime state sprite â€” default switch, uncharged/unfired state. 56x56, drawn centred on hitbox cx, bottom-aligned to hitbox bottom (dX=x-17, dY=y-34). NOT a palette entry. Wired in editor/renderer.js _drawSwitches.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js and editor renderer, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite â€” wired in electricity.js and editor renderer, not palette-placeable"
       }
     },
     {
@@ -3106,10 +3106,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — wall switch, powered/live state. 56x56, same anchor as switch_off. NOT a palette entry.",
+      "notes": "Runtime state sprite â€” wall switch, powered/live state. 56x56, same anchor as switch_off. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js and editor renderer, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite â€” wired in electricity.js and editor renderer, not palette-placeable"
       }
     },
     {
@@ -3129,10 +3129,10 @@
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Runtime state sprite — wall switch settled end state after overcharge/burn. frame_000.png is byte-identical to this file — animate only frames 001-008. NOT a palette entry.",
+      "notes": "Runtime state sprite â€” wall switch settled end state after overcharge/burn. frame_000.png is byte-identical to this file â€” animate only frames 001-008. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite â€” wired in electricity.js, not palette-placeable"
       }
     },
     {
@@ -3153,10 +3153,10 @@
       "fps": 12,
       "directions": null,
       "loop": false,
-      "notes": "Burn/destroy animation for wall switch. 8 frames: frame_001..frame_008 (SKIP frame_000 — byte-identical to switch_destroyed.png). NOT a palette entry.",
+      "notes": "Burn/destroy animation for wall switch. 8 frames: frame_001..frame_008 (SKIP frame_000 â€” byte-identical to switch_destroyed.png). NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime animation — wired in electricity.js Switch._drawWall, not palette-placeable"
+        "ineligible_reason": "Runtime animation â€” wired in electricity.js Switch._drawWall, not palette-placeable"
       }
     },
     {
@@ -3181,7 +3181,7 @@
       "notes": "Runtime shorted/passable state of the Night City three-strand fence. Static slack wires. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime state sprite — wired in electricity.js PowerGate._drawFence, not palette-placeable"
+        "ineligible_reason": "Runtime state sprite â€” wired in electricity.js PowerGate._drawFence, not palette-placeable"
       }
     },
     {
@@ -3207,13 +3207,13 @@
       "notes": "Live/blocking Night City fence animation: 4 frames with three jagged blue strands between red-capped posts. NOT a palette entry.",
       "generation": {
         "eligible": false,
-        "ineligible_reason": "Runtime animation — wired in electricity.js PowerGate._drawFence, not palette-placeable"
+        "ineligible_reason": "Runtime animation â€” wired in electricity.js PowerGate._drawFence, not palette-placeable"
       }
     },
     {
       "id": "chest_open_empty",
       "src": "assets/objects/chest/open_empty.png",
-      "notes": "Final resting state after chest reward is taken. Runtime-only — not placeable."
+      "notes": "Final resting state after chest reward is taken. Runtime-only â€” not placeable."
     },
     {
       "id": "chest_opening_frame_000",

@@ -7,6 +7,72 @@ export function exposedRoof(level, tx, ty){
     (level.solidAt(tx,ty)||level.tileAt(tx,ty)===2)&&level.tileAt(tx,ty-1)===0;
 }
 
+// Each piece is drawn pixel-by-pixel from a small jagged-silhouette sprite so
+// it reads as debris (torn paper / curled receipt / tipped cup), not as a
+// flat colored block. Two frames per kind give the tumble its animation.
+// originX/originY are the grid cell that lands exactly on the piece's (x,y)
+// ground anchor, so position/footprint matches the physics unchanged.
+const LITTER_SPRITES = [
+  { // kind 0: folded newspaper scrap
+    originX: 2, originY: 4,
+    palette: { A: '#8f9aab', B: '#33465d' },
+    a: [
+      '.AA..',
+      'AAAAB',
+      '.BBB.',
+    ],
+    b: [
+      '.BBB.',
+      'AAAAB',
+      '.AA..',
+    ],
+  },
+  { // kind 1: pale curled receipt
+    originX: 1, originY: 5,
+    palette: { A: '#b3a7a2', B: '#394859' },
+    a: [
+      '.A.',
+      'AAB',
+      'AAB',
+      '.B.',
+    ],
+    b: [
+      '.B.',
+      'BAA',
+      'BAA',
+      '.A.',
+    ],
+  },
+  { // kind 2: tipped takeaway cup
+    originX: 1, originY: 5,
+    palette: { A: '#788597', C: '#b9a39b', D: '#302d47' },
+    a: [
+      'CDA',
+      'AAA',
+      'AAA',
+      '.A.',
+    ],
+    b: [
+      'ADC',
+      'AAA',
+      'AAA',
+      '.A.',
+    ],
+  },
+];
+
+function drawLitterSprite(ctx, def, rows, baseX, baseY){
+  for(let ry=0; ry<rows.length; ry++){
+    const row = rows[ry];
+    for(let rx=0; rx<row.length; rx++){
+      const ch = row[rx];
+      if(ch==='.')continue;
+      ctx.fillStyle = def.palette[ch];
+      ctx.fillRect(baseX+rx-def.originX, baseY+ry-def.originY, 1, 1);
+    }
+  }
+}
+
 export class StreetLitter {
   constructor(){this.pieces=[];this.nextSpawn=4+Math.random()*5;}
   update(dt,level,player,viewWidth){
@@ -46,17 +112,8 @@ export class StreetLitter {
       const flip=Math.sin(p.age*10+p.phase)>0;
       // A one-pixel ground shadow keeps the scrap visually attached to the roof.
       ctx.fillStyle='#080e1d';ctx.fillRect(x-4,y-1,9,1);
-      if(p.kind===0){ // folded newspaper
-        ctx.fillStyle='#8f9aab';ctx.fillRect(x-4,y-(flip?6:4),8,3);
-        ctx.fillStyle='#33465d';ctx.fillRect(x-2,y-(flip?5:3),5,1);
-      }else if(p.kind===1){ // pale receipt
-        ctx.fillStyle='#b3a7a2';ctx.fillRect(x-3,y-(flip?6:5),6,4);
-        ctx.fillStyle='#394859';ctx.fillRect(x-2,y-3,3,1);
-      }else{ // tipped takeaway cup
-        ctx.fillStyle='#788597';ctx.fillRect(x-3,y-5,6,4);
-        ctx.fillStyle='#b9a39b';ctx.fillRect(x-4,y-5,1,4);
-        ctx.fillStyle='#302d47';ctx.fillRect(x+3,y-5,1,4);
-      }
+      const def=LITTER_SPRITES[p.kind];
+      drawLitterSprite(ctx,def,flip?def.b:def.a,x,y);
     }
     ctx.restore();
   }
