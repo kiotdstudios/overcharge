@@ -454,13 +454,23 @@ export const pointerTool = {
       }
       state.dragMove = null;
       state.snapIndicator = null;   // clear magnetic overlay on drag end
+      // notify() only fires when a real move/drag happened above (dragMove/
+      // snapIndicator actually changed, or a terrain/object move was committed).
+      // It used to run unconditionally on EVERY mouseup, including ones that
+      // never touched the canvas at all - this handler is wired on `window`,
+      // not `canvas` (main.js), so releasing a click on ANY input/button
+      // anywhere in the UI while the Pointer tool was active triggered a full
+      // notify()-driven inspector-panel rebuild, which destroyed whatever
+      // input you'd just clicked into (focus silently reverted to <body>).
+      // That's the "can't type into the dialogue box" bug: typing itself
+      // wasn't broken, every mouseup anywhere was quietly nuking focus first.
+      import('./state.js').then(m => m.notify());
     }
     this._mode = null;
     this._origPositions = null;
     this._tileDrag = null;
     this._startWorld = null;
     this._snap = null;
-    import('./state.js').then(m => m.notify());
   },
 };
 
@@ -907,7 +917,19 @@ export function placeAssetAt(asset, worldX, worldY) {
   const isWall = asset.category === 'wall';
   const autoSnap = isWall ? TILE_SIZE : snapForAsset(asset);
   const snap     = effectiveSnap(autoSnap);            // Chief override wins
-  let   pos      = snapPoint(worldX, worldY, snap);
+  // Walls are tile-sized and meant to behave exactly like terrain paint (see
+  // comment above): clicking anywhere inside a cell should fill THAT cell.
+  // snapPoint() rounds the raw click point to the NEAREST grid line, which for
+  // a click past a cell's midpoint snaps to the far edge — i.e. the NEXT cell
+  // over, not the one under the cursor. That's "wall tiles land far from
+  // where the mouse places them". Terrain's own paint tool never had this bug
+  // because it floors to the containing cell (tileUnderMouse / Math.floor);
+  // walls need the same floor semantics, not the round-to-nearest one that
+  // freeform decorations use (round is correct there — see snapPoint's own
+  // comment — this is scoped to walls only).
+  let   pos      = isWall
+    ? { x: Math.floor(worldX / snap) * snap, y: Math.floor(worldY / snap) * snap }
+    : snapPoint(worldX, worldY, snap);
   const img      = getCachedImage(asset.path);
   const nativeDims = decoDimensions(asset, img);
   const dims   = isWall ? { w: TILE_SIZE, h: TILE_SIZE } : nativeDims;

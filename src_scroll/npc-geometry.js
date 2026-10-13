@@ -10,8 +10,17 @@ export function npcGeometry(asset, x, y, authoredScale = 1, facing = 'right', fr
   const scale = (Number.isFinite(authoredScale) && authoredScale > 0 ? authoredScale : 1)
     * (targetH > 0 && t.h > 0 ? targetH / (frameH * t.h) : 1);
   const drawW = frameW * scale, drawH = frameH * scale;
-  const anchorX = targetH > 0 ? (t.x + t.w / 2) * drawW : drawW / 2;
-  const anchorY = targetH > 0 ? (t.y + t.h) * drawH : drawH;
+  // Anchor to the TRIM box's bottom-centre, not the raw canvas edge, regardless
+  // of whether displayHeightPx is set. Bug: every current NPC manifest entry
+  // (smoke-break workers, streetlamp woman) ships a non-identity `trim` (visible
+  // art is a sub-rect of the padded PNG canvas) but none set displayHeightPx, so
+  // this used to fall into the "legacy" branch and anchor at the full canvas
+  // bottom — placing the FEET up to (1 - trim.y - trim.h) * frameH px above the
+  // ground tile the NPC was actually placed on ("players float above the
+  // ground"). trim defaults to {x:0,y:0,w:1,h:1} when an asset has none, so this
+  // is a no-op for anything that was already anchoring correctly.
+  const anchorX = (t.x + t.w / 2) * drawW;
+  const anchorY = (t.y + t.h) * drawH;
   const drawX = x - anchorX, drawY = y - anchorY;
   const visible = {
     x: drawX + t.x * drawW,

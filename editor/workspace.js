@@ -134,16 +134,19 @@ export function mountWorkspace() {
     const decorations = state.selection?.decorations?.size || 0;
     facadeButton.disabled = !(state.selection?.tiles?.size > 0);
     const tiles = state.selection?.tiles?.size || 0;
+    // NPCs don't rotate (no rotation semantic), but DO flip — facing left/right
+    // mirrors the sprite exactly like decorations/tiles mirror. Without this,
+    // selecting an NPC left Flip permanently disabled even though _applyFlip()
+    // (main.js) knows how to flip one.
+    const npcs = state.selection?.npcs?.size || 0;
     for (const id of ['btn-layer-front', 'btn-layer-forward', 'btn-layer-backward', 'btn-layer-back']) {
       byId(id).disabled = !decorations;
       byId(id).title = decorations ? 'Change selected scenery drawing order' : 'Select scenery to change its drawing order';
     }
-    for (const id of ['btn-rotate', 'btn-flip']) {
-      byId(id).disabled = !decorations && !tiles;
-      byId(id).title = id === 'btn-rotate'
-        ? (decorations || tiles ? 'Rotate selected tiles or scenery 90° (R; Shift+R reverses)' : 'Select tiles or scenery first, then press R to rotate')
-        : (decorations || tiles ? 'Flip selected tiles or scenery (F)' : 'Select tiles or scenery first');
-    }
+    byId('btn-rotate').disabled = !decorations && !tiles;
+    byId('btn-rotate').title = (decorations || tiles) ? 'Rotate selected tiles or scenery 90° (R; Shift+R reverses)' : 'Select tiles or scenery first, then press R to rotate';
+    byId('btn-flip').disabled = !decorations && !tiles && !npcs;
+    byId('btn-flip').title = (decorations || tiles || npcs) ? 'Flip selected tiles, scenery, or NPC facing (F)' : 'Select tiles, scenery, or an NPC first';
   };
   subscribe(update);
   new MutationObserver(update).observe(byId('tp-selected-section'), { attributes: true, attributeFilter: ['style'] });

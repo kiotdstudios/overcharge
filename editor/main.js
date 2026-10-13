@@ -248,6 +248,7 @@ btnRotate?.addEventListener('click', () => _applyRotate(90));
 function _applyFlip() {
   const decs  = Selection.selectedDecorations();
   const cells = Selection.selectedTiles();
+  const npcs  = Selection.selectedNpcs();
   let applied = false;
   if (decs.length > 0) {
     const a = Actions.flipDecorations(decs);
@@ -256,6 +257,17 @@ function _applyFlip() {
   if (cells.length > 0) {
     const a = Actions.flipTiles(cells);
     if (a) { History.apply(a); applied = true; }
+  }
+  if (npcs.length > 0) {
+    // NPCs mirror via the SAME facing field renderer.js and src_scroll/npc.js
+    // already read ('left'/'right') — no separate flipX flag needed. The
+    // Character tab's facing <select> edits this exact field, so Flip and
+    // that dropdown always agree. No History entry (facing edits elsewhere
+    // in the inspector are also undo-exempt, same precedent).
+    for (const npc of npcs) npc.facing = (npc.facing === 'left') ? 'right' : 'left';
+    state.dirty = true;
+    notify();
+    applied = true;
   }
   if (!applied) console.info('[editor] flip — nothing flippable in selection');
 }
@@ -2021,13 +2033,27 @@ function _renderNpcInspector(ref) {
       const text = e.target.value.trim();
       if (!text) {
         // Blank line text is invalid, not silently kept — drop it rather
-        // than save a dialogue entry with nothing to show.
+        // than save a dialogue entry with nothing to show. This is a
+        // structural change (a row disappears) so it needs a full
+        // re-render to update the DOM.
         d.lines.splice(idx, 1);
+        commit();
+        _renderNpcInspector(ref);
       } else {
+        // IMPORTANT: do NOT call _renderNpcInspector here. This field can
+        // fire a native 'change' event more than once while the user is
+        // still typing (not only on blur) — rebuilding the whole panel
+        // replaces this very <input> with a fresh DOM node that has no
+        // focus, which looks exactly like "can't type into the dialogue
+        // box": each keystroke commits then instantly loses focus. Just
+        // update the data model; the input already shows the typed value,
+        // so no DOM rebuild is needed for a same-row text edit. The
+        // add/up/down/delete row buttons below still re-render, which is
+        // correct since those genuinely change the DOM structure.
         d.lines[idx] = { id: d.lines[idx]?.id || `L${idx + 1}`, text };
+        _skipNextNpcRefresh = true;
+        commit();
       }
-      commit();
-      _renderNpcInspector(ref);
     });
   });
   $all('.npc-line-up').forEach((btn) => {
@@ -2062,6 +2088,16 @@ function _renderNpcInspector(ref) {
   });
 }
 
+// Set to true for exactly one notify()-triggered refresh to skip rebuilding
+// the NPC inspector panel. The dialogue line-text input commits on every
+// keystroke (not just blur - see its own listener for why), and this
+// function is itself a notify() subscriber, so without this flag every
+// keystroke would blow away and recreate the very <input> being typed
+// into, which kills focus and makes the field feel unusable after one
+// character. Structural edits (add/remove/reorder a line) don't set this
+// flag and still get a full, correct rebuild.
+let _skipNextNpcRefresh = false;
+
 function _refreshSelectedProps() {
   if (!_selPanel || !_selSection) return;
   const sel = state.selection;
@@ -2086,6 +2122,7 @@ function _refreshSelectedProps() {
   // a textarea split on newlines rather than N separate line-editor rows —
   // simplest UI that still lets Chief add/remove/reorder lines freely.
   if (kind === 'npc') {
+    if (_skipNextNpcRefresh) { _skipNextNpcRefresh = false; return; }
     _renderNpcInspector(ref);
     return;
   }
