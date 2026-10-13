@@ -10,7 +10,7 @@ import {
   currentLevelBackground,
   setFilterCategory, setFilterSearch, setSelectedAsset,
   setPurpleRooftopOnly, setBlueRooftopOnly, setHvacOnly, setNightCityRailOnly, setElectricOnly, setNeonRiseOnly, setPipeOnly, setTraversalOnly, setBuildingOnly,
-  setWarehouseOnly, setCoffeeBarOnly, setApartmentOnly, setMartOnly, setLibraryOnly, setElectronicsOnly, setCheckpointOnly, setChestOnly, setNpcOnly,
+  setWarehouseOnly, setCoffeeBarOnly, setApartmentOnly, setMartOnly, setLibraryOnly, setElectronicsOnly, setCheckpointOnly, setChestOnly, setNpcOnly, setLitterOnly,
   setLevelBackground,
   setTool,
 } from './state.js';
@@ -129,6 +129,7 @@ export function mountAssetBrowser(container) {
     { id: 'ab-checkpoint-only', label: 'Checkpoint', color: '#4f8', getter: () => !!state.filter.checkpointOnly, setter: setCheckpointOnly },
     { id: 'ab-chest-only', label: 'Chests', color: '#fc6', getter: () => !!state.filter.chestOnly, setter: setChestOnly },
     { id: 'ab-npc-only', label: 'NPCs', color: '#bbf', getter: () => !!state.filter.npcOnly, setter: setNpcOnly },
+    { id: 'ab-litter-only', label: 'Trash/Litter', color: '#a8b0a0', getter: () => !!state.filter.litterOnly, setter: setLitterOnly },
   ];
 
   filterCheckboxes = [];

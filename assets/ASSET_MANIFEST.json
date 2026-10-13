@@ -2985,7 +2985,13 @@
       "spawnsKind": "npc",
       "greetingAssetId": "npc_streetlamp_woman_greeting",
       "walkAssetId": "npc_streetlamp_woman_walk",
-      "tags": ["ambient", "npc", "nightlife", "animated", "dialogue"],
+      "tags": [
+        "ambient",
+        "npc",
+        "nightlife",
+        "animated",
+        "dialogue"
+      ],
       "frame_width": 236,
       "frame_height": 236,
       "frame_count": 4,
@@ -2994,8 +3000,18 @@
       "loop": true,
       "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and six-frame heeled walk. Runtime mirrors east-facing art for left movement. Shared active-animation alpha bounds x50..160 y38..223 on the 236px canvas; visible figure displays 70 world pixels high with shoes on the feet anchor.",
       "displayHeightPx": 60,
-      "footYByFrame": [221, 221, 222, 222],
-      "trim": { "x": 0.2118644068, "y": 0.1610169492, "w": 0.4661016949, "h": 0.7838983051 }
+      "footYByFrame": [
+        221,
+        221,
+        222,
+        222
+      ],
+      "trim": {
+        "x": 0.2118644068,
+        "y": 0.1610169492,
+        "w": 0.4661016949,
+        "h": 0.7838983051
+      }
     },
     {
       "id": "npc_smoke_break_worker_b_smoke",
@@ -3041,7 +3057,12 @@
       "fps": 6,
       "directions": null,
       "loop": false,
-      "footYByFrame": [221, 222, 221, 222],
+      "footYByFrame": [
+        221,
+        222,
+        221,
+        222
+      ],
       "notes": "Order 22 greeting animation â€” friendly wave/beckon gesture, plays once when this NPC's dialogue bubble triggers, then holds last frame until the ambient idle (npc_streetlamp_woman) resumes. Not independently placeable in the Builder palette (no spawnsKind) â€” referenced only via another NPC's greetingAssetId.",
       "trim": null
     },
@@ -3049,18 +3070,116 @@
       "id": "npc_streetlamp_woman_walk",
       "path": "assets/sprites/npc-streetlamp-woman/walk/00.png",
       "category": "npc",
-      "tags": ["ambient", "npc", "nightlife", "animated", "walk"],
+      "tags": [
+        "ambient",
+        "npc",
+        "nightlife",
+        "animated",
+        "walk"
+      ],
       "frame_width": 236,
       "frame_height": 236,
       "frame_count": 6,
       "fps": 8,
-      "frameOrder": [0, 1, 2, 4, 3, 4, 2, 1],
+      "frameOrder": [
+        0,
+        1,
+        2,
+        4,
+        3,
+        4,
+        2,
+        1
+      ],
       "walkFrameStepPx": 3,
       "directions": null,
       "loop": true,
-      "footYByFrame": [219, 221, 223, 220, 223, 220],
+      "footYByFrame": [
+        219,
+        221,
+        223,
+        220,
+        223,
+        220
+      ],
       "notes": "Side-view heel strut. Eight playback poses use the smoothest five source frames in a forward/reverse contact cycle; cadence advances every three world pixels walked. Source PNGs remain unchanged. Referenced by walkAssetId; not independently placeable in the Builder.",
       "trim": null
+    },
+    {
+      "id": "prop_ncp_street_litter_newspaper",
+      "path": "assets/objects/night-city-props/street-litter/newspaper.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "litter",
+        "trash",
+        "decoration",
+        "ambient"
+      ],
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Ambient street litter: crumpled folded newspaper scrap. PixelLab-generated, Night City Props palette (style_image locked from vending-machine/00.png). Used by StreetLitter (src_scroll/street-litter.js) as kind 0, drawn small via drawImage. Not independently placeable in Builder (no spawnsKind) -- purely a palette/reference entry so the trash/litter filter chip can surface it."
+    },
+    {
+      "id": "prop_ncp_street_litter_receipt",
+      "path": "assets/objects/night-city-props/street-litter/receipt.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "litter",
+        "trash",
+        "decoration",
+        "ambient"
+      ],
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Ambient street litter: curled pale paper receipt scrap. PixelLab-generated, Night City Props palette. Used by StreetLitter as kind 1."
+    },
+    {
+      "id": "prop_ncp_street_litter_cup",
+      "path": "assets/objects/night-city-props/street-litter/cup.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "litter",
+        "trash",
+        "decoration",
+        "ambient"
+      ],
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Ambient street litter: tipped-over empty takeaway coffee cup. PixelLab-generated, Night City Props palette. Used by StreetLitter as kind 2."
+    },
+    {
+      "id": "prop_ncp_street_litter_can",
+      "path": "assets/objects/night-city-props/street-litter/can.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "litter",
+        "trash",
+        "decoration",
+        "ambient"
+      ],
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": null,
+      "directions": null,
+      "loop": false,
+      "notes": "Ambient street litter: crushed flattened aluminum soda can. PixelLab-generated, Night City Props palette. Used by StreetLitter as kind 3 (new 4th variant added alongside newspaper/receipt/cup)."
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable â€” they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible â€” that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -3351,5 +3470,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 123
+  "count": 138
 }
