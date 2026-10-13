@@ -2,6 +2,9 @@
 
 **Issued by:** Chief | **Assigned to:** Aki — sole active OVERCHARGE developer | **Priority:** HIGH — visual bug and character-scale polish | **Target:** Level 1 and any shared renderer/effect systems responsible | **Status:** Work order; implementation not yet complete
 
+## Document commit scope
+This commit records AKI Order 025 only. Commit only `docs/KIRO_ORDER_AKI_25.md` on `agent/orcha-gameplay`; do not implement the tasks or merge any branch as part of issuing this order. The implementation and evidence requirements below are Aki's subsequent deliverables.
+
 ## Chief's exact observations
 - Three unwanted **small moving rectangles** appear across two gameplay screenshots: **one near the traffic cone** and **two in the second scene**.
 - The adult streetlamp woman NPC is still slightly taller than the playable hero. **Chief requires the reverse: the player must be visibly slightly taller than the girl when both stand on the same ground plane.**
@@ -13,7 +16,7 @@
 ### Reproduce and identify
 1. Start from latest `origin/agent/orcha-gameplay`; reproduce in the **actual running game**, not only the Builder.
 2. Locate the screenshot scene containing the traffic cone and identify the rectangle beside it. Locate the second screenshot scene and identify **both** additional rectangles. If screenshot coordinates are unavailable, walk the level, inspect nearby decor, and capture a diagnostic recording; request Chief's original screenshots only if location remains ambiguous.
-3. Observe for at least **60 seconds per location**, including movement, spawning, disappearing, and respawning; test player motion and camera scrolling to distinguish world-space from screen-space artifacts.
+3. Observe for at least **60 seconds per location**, including complete movement/effect/animation cycles, spawning, disappearing, and respawning; extend observation beyond 60 seconds when necessary to see full cycles; test player motion and camera scrolling to distinguish world-space from screen-space artifacts.
 4. Trace each rectangle to the precise originating object, asset, animation frame, effect instance, or rendering function. Inspect recent street-litter, wind, footstep, particles, animation and decoration changes, as well as any placeholder/fallback sprite draw calls. Inspect layer order and camera transforms.
 5. Instrument temporarily if necessary: log object/asset IDs, world/screen coordinates, frame index, source path and draw function; use temporary debug outlines or toggles locally to establish identity. Remove diagnostic instrumentation before final commit unless it is an intentionally reusable dev-only tool.
 6. **Report root cause for each of the three instances**, including whether they share a single cause. Provide filenames, entity/effect names, and explanation of why they appeared. Do not guess or label as fixed without identification.
