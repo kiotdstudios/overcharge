@@ -3116,13 +3116,13 @@
         "decoration",
         "ambient"
       ],
-      "frame_width": 32,
-      "frame_height": 32,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
       "loop": false,
-      "notes": "Ambient street litter: crumpled folded newspaper scrap. PixelLab-generated, Night City Props palette (style_image locked from vending-machine/00.png). Used by StreetLitter (src_scroll/street-litter.js) as kind 0, drawn small via drawImage. Not independently placeable in Builder (no spawnsKind) -- purely a palette/reference entry so the trash/litter filter chip can surface it."
+      "notes": "Ambient street litter: crumpled folded newspaper scrap. PixelLab-generated, Night City Props palette (style_image locked from vending-machine/00.png). Used by StreetLitter (src_scroll/street-litter.js) as kind 0, drawn small via drawImage. Placeable in Builder via the generic decoration path (category 'decoration', frame_count 1 -- no spawnsKind needed, same as chest/vending-machine single-frame props). Sized down to 16x16 placed (native art is 32x32) to match the small ambient-debris scale the StreetLitter system already draws at ~10px, so a manually placed piece doesn't look like an oversized tile-sized prop."
     },
     {
       "id": "prop_ncp_street_litter_receipt",
@@ -3135,8 +3135,8 @@
         "decoration",
         "ambient"
       ],
-      "frame_width": 32,
-      "frame_height": 32,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
@@ -3154,8 +3154,8 @@
         "decoration",
         "ambient"
       ],
-      "frame_width": 32,
-      "frame_height": 32,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,
@@ -3173,8 +3173,8 @@
         "decoration",
         "ambient"
       ],
-      "frame_width": 32,
-      "frame_height": 32,
+      "frame_width": 16,
+      "frame_height": 16,
       "frame_count": 1,
       "fps": null,
       "directions": null,

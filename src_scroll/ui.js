@@ -82,8 +82,6 @@ function _drawLevelOneObjective(ctx, player, level, t) {
   ctx.fillStyle = second ? '#412875' : '#263f60';
   ctx.fillRect(x + 3, y + h - 2, w - 3, 2);
   ctx.fillStyle = second ? '#7ccaff' : '#ffc070';
-  ctx.font = 'bold 8px monospace';
-  ctx.fillText(second ? '02 / 02' : '01 / 02', x + 13, y + 12);
   ctx.strokeStyle = second ? '#9a6be0' : '#a06f37';
   ctx.lineWidth = 2;
   ctx.beginPath();
