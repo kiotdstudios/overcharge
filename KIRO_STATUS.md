@@ -2132,3 +2132,25 @@ The pack-dependent values (`sprite`, `PACK_SPEC`, `FOOT_ANCHOR`, `HAND_ABOVE_FEE
 ### Verified, in a real headless browser
 - New toggle check, 27/0: the click switches the art (512px/8f vs 128px/16f), the buttons and HUD show the active pack, and the URL updates without a reload. Position is kept, and an unsaved painted tile survives. Override labels are re-marked, V toggles back, the override state and relative frame carry across (8/16 to 4/8), and a hang survives a switch with its height re-derived (-0.47px). The choice is remembered after a refresh and the URL overrides it. No console errors, no failed requests.
 - Lab suite 72/0, v6 state pass 130/0, centring 4/0, hero_pack 131/0, module_parse 135/0.
+## 2026-09-06 - Game Design V2 and Level Design V2
+Chief declared the old GDD and level breakdown law, then asked for a rework: V2 docs, old docs archived, Level 1 finished first, Levels 2-6 paused. Chief answered the design questions in a decisions document; V2 follows it.
+### What changed (docs and one test only; no level or gameplay code)
+- Written: `docs/GAME_DESIGN_V2.md` and `docs/LEVEL_DESIGN_V2.md`. Every statement is tagged CONFIRMED (Chief), CARRIED (GDD v1), BUILT (verified in code), RECOMMENDED (Kiro), CONCEPT or OPEN, so a recommendation cannot pass as a decision.
+- Archived unchanged with `git mv` to `docs/archive/` (SHA-256 verified identical): the GDD PDF, `OVERCHARGE_LEVEL_BREAKDOWN.md`, `LEVEL3_DESIGN_BRIEF.md`, `LEVEL4_5_DESIGN_BRIEF.md`, `LEVEL5_DESIGN_BRIEF.md`, `KIRO_WORLD_BUILD_PLAN_LEVEL1.md`, `LEVEL1_HIGH_LOW_ROUTE_PREVIEW.md`. `docs/archive/README.md` maps old paths to new sections. Rulings, technical references, orders and status files stay active.
+- New test `_dev/pip_gate_spend.mjs`, 53/0: how pips and the 8-charge gate interact.
+### Headline findings
+- Pips only pay a gate while SPACE is held, grounded and in range. They do not open gates on approach. One pip pays three 8-gates. The bar is spent before pips.
+- Level 1 can be left unwinnable without the game noticing: `Level.isFailState` is false whenever usable energy is above 0. Absorb all 12, fire a 17th bolt, and 7.75 is left with no way to pay the 8. Only the column 26 pit or a reload recovers.
+- A refused chest keeps the energy it was paid (the code comments say refund). Not a Level 1 issue.
+- The moving platform is horizontal only, so it can ferry across a gap but not lift the player to a raised gate.
+- `completability.mjs` and `level2_fork.mjs` hard-code 18 rows, so their Level 2 failures are false.
+- A sky sentry sees 240 px sideways and 340 px up, so a "distant drone" must be decoration, not an enemy.
+### Level 1 target
+About 4,420 px (139 columns) for a 90-120 s main route. Computed budget: 106.8 s walking, first absorb about 5.9 s, first spend about 10.4 s, longest walk without a beat 6.4 s.
+### Movement baseline recorded (before any retune)
+Walk 75 px/s, sprint 127.5 px/s, jump 99.17 px, airtime 0.933 s, max gap 1 tile walking and 3 sprinting, terminal fall 700 px/s. `PLAYER_MOVEMENT_METRICS.md` is stale (says 450 px and 14 rows; the screen is 800x578, 18 rows).
+### Verified
+- 82 claims in the docs checked against code, 85 total checks. The 3 reported failures were checker mistakes (lamp ordering; a comment inside `ElectricalSource` containing the word `receive()`). The claims themselves hold.
+- Regression run: 2617 passed, 24 failed across 58 suites. Failures are `camera_vertical` 5, `completability` 3, `level2_fork` 11, `level_height` 2, `npc_dialogue` 3. `npc_dialogue` fails because `level1.json` has the "New line" placeholder in both smoke workers, which is Chief's Builder data; I did not touch that file. `pip_gate_spend` 53/0. `module_parse` 143/0.
+### Open for Chief
+Listed in `GAME_DESIGN_V2.md` section 13 and `LEVEL_DESIGN_V2.md` section 9. Nothing is built until those are answered.
