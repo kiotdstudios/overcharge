@@ -1,0 +1,32 @@
+[
+  {
+    "skill": "probing-web-game-mechanics",
+    "repository": "https://github.com/abagames/agentic-gamedev-skills",
+    "commit": "72309959e3422acdcb95d30e3b0ffd9ed2bd149d",
+    "source_path": ".agents/skills/probing-web-game-mechanics",
+    "local_changes": [
+      "Repository integration guidance added to SKILL.md"
+    ]
+  },
+  {
+    "skill": "platformer-game-testing",
+    "repository": "https://github.com/mylesdebastion/playwright-skill-gamedev",
+    "commit": "8ff224f43d225cfc766aa83faa6e9745aa25332b",
+    "source_path": "skills/playwright-skill",
+    "local_changes": [
+      "Repository integration guidance added to SKILL.md",
+      "Normalized skill name for agent discovery",
+      "Removed upstream trailing whitespace"
+    ]
+  },
+  {
+    "skill": "openai-develop-web-game",
+    "repository": "https://github.com/trailofbits/skills-curated",
+    "commit": "6d05be4889017b06fb15069f371afd220daffb62",
+    "source_path": "plugins/openai-develop-web-game/skills/openai-develop-web-game",
+    "local_changes": [
+      "Repository integration guidance added to SKILL.md",
+      "Removed upstream trailing whitespace"
+    ]
+  }
+]
