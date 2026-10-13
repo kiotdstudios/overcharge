@@ -7,6 +7,9 @@
 - On Windows, use PowerShell literal paths and command-specific `safe.directory` when required. Account changes between `CodexSandboxOnline` and `CodexSandboxOffline` require rechecking credential access; do not repeat a Git authentication path that has already crashed.
 - In Chief's checkout, publish with `git push origin HEAD:agent/orcha-gameplay`. The repo config supplies a scoped SSH deploy key through `core.sshCommand` and an SSH `pushurl`; an explicit HTTPS URL or `GIT_SSH_COMMAND` override bypasses that working setup.
 
+## GitHub document-only work
+- Fetch the exact target file and applicable `AGENTS.md` files first; if directory discovery is needed, output only filtered paths rather than the full API payload. Check whether the requested new file already exists before choosing create versus update.
+
 ## Session retro
 - After finishing a unit of work, offer: "Run /retro? (records this session's friction)".
 - Offer it before clearing context or starting a new session. Run it when requested.
