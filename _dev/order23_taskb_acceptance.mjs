@@ -80,9 +80,23 @@ await page.locator('#npc-d-enabled').check();
 await page.waitForTimeout(150);
 await page.locator('#npc-line-add').click();
 await page.waitForTimeout(100);
+const newLineReady = await page.evaluate(() => {
+  const input = [...document.querySelectorAll('.npc-line-text')].at(-1);
+  return input === document.activeElement && input.selectionStart === 0 &&
+    input.selectionEnd === input.value.length;
+});
+ok(newLineReady, 'Add line focuses and selects placeholder for replacement');
 const firstLineInput = page.locator('.npc-line-text').first();
-await firstLineInput.fill('Third blackout this week.');
-await firstLineInput.dispatchEvent('change');
+await firstLineInput.click();
+await firstLineInput.press('ControlOrMeta+A');
+await firstLineInput.pressSequentially('Third blackout this week.', { delay: 30 });
+const keptFocus = await page.evaluate(async () => {
+  const before = document.activeElement;
+  (await import('/editor/state.js')).notify();
+  return before?.isConnected && document.activeElement === before;
+});
+ok(keptFocus, 'dialogue input keeps focus through state refresh');
+await firstLineInput.press('Tab');
 await page.waitForTimeout(150);
 
 const afterFirstEdit = await page.evaluate(async () => {
