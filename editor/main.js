@@ -1902,8 +1902,10 @@ function _escapeHtml(s) {
 // using — re-selecting a different worker to keep editing dialogue
 // shouldn't bounce you back to Character every time.
 let _npcInspectorTab = 'character';
+let _renderedNpcRef = null;
 
 function _renderNpcInspector(ref) {
+  _renderedNpcRef = ref;
   ref.dialogue = ref.dialogue || {
     enabled: false, trigger: 'player_proximity', radiusPx: 112, triggerMode: 'enter',
     cooldownMs: 6000, oncePerLevel: false, durationMs: 3500, lines: [], selectionMode: 'sequential',
@@ -2028,6 +2030,13 @@ function _renderNpcInspector(ref) {
   $('npc-d-selmode').addEventListener('change', (e) => { d.selectionMode = e.target.value; commit(); });
 
   $all('.npc-line-text').forEach((input) => {
+    // Keep the model current while the field has focus. In particular, a
+    // separate editor notification must not restore the previous line text.
+    input.addEventListener('input', (e) => {
+      const idx = Number(e.target.closest('.npc-line-row').getAttribute('data-idx'));
+      d.lines[idx] = { id: d.lines[idx]?.id || `L${idx + 1}`, text: e.target.value };
+      commit();
+    });
     input.addEventListener('change', (e) => {
       const idx = Number(e.target.closest('.npc-line-row').getAttribute('data-idx'));
       const text = e.target.value.trim();
@@ -2040,18 +2049,9 @@ function _renderNpcInspector(ref) {
         commit();
         _renderNpcInspector(ref);
       } else {
-        // IMPORTANT: do NOT call _renderNpcInspector here. This field can
-        // fire a native 'change' event more than once while the user is
-        // still typing (not only on blur) — rebuilding the whole panel
-        // replaces this very <input> with a fresh DOM node that has no
-        // focus, which looks exactly like "can't type into the dialogue
-        // box": each keystroke commits then instantly loses focus. Just
-        // update the data model; the input already shows the typed value,
-        // so no DOM rebuild is needed for a same-row text edit. The
-        // add/up/down/delete row buttons below still re-render, which is
-        // correct since those genuinely change the DOM structure.
+        // Keep this edit in place; replacing the input would lose focus.
+        // Structural add/remove/reorder actions rebuild the rows separately.
         d.lines[idx] = { id: d.lines[idx]?.id || `L${idx + 1}`, text };
-        _skipNextNpcRefresh = true;
         commit();
       }
     });
@@ -2080,6 +2080,9 @@ function _renderNpcInspector(ref) {
     d.lines.push({ id: `L${d.lines.length + 1}`, text: 'New line' });
     commit();
     _renderNpcInspector(ref);
+    const newInput = $all('.npc-line-text').at(-1);
+    newInput?.focus();
+    newInput?.select();
   });
   $('npc-preview-btn').addEventListener('click', () => {
     const text = (d.lines[0] && d.lines[0].text) || '(no lines yet)';
@@ -2087,16 +2090,6 @@ function _renderNpcInspector(ref) {
     needsRedraw = true;
   });
 }
-
-// Set to true for exactly one notify()-triggered refresh to skip rebuilding
-// the NPC inspector panel. The dialogue line-text input commits on every
-// keystroke (not just blur - see its own listener for why), and this
-// function is itself a notify() subscriber, so without this flag every
-// keystroke would blow away and recreate the very <input> being typed
-// into, which kills focus and makes the field feel unusable after one
-// character. Structural edits (add/remove/reorder a line) don't set this
-// flag and still get a full, correct rebuild.
-let _skipNextNpcRefresh = false;
 
 function _refreshSelectedProps() {
   if (!_selPanel || !_selSection) return;
@@ -2122,7 +2115,11 @@ function _refreshSelectedProps() {
   // a textarea split on newlines rather than N separate line-editor rows —
   // simplest UI that still lets Chief add/remove/reorder lines freely.
   if (kind === 'npc') {
-    if (_skipNextNpcRefresh) { _skipNextNpcRefresh = false; return; }
+    // Any notification can arrive mid-edit (including one unrelated to this
+    // field). Preserve the focused control until selection or focus changes.
+    const active = document.activeElement;
+    if (ref === _renderedNpcRef && active && _selPanel.contains(active) &&
+        active.matches('input, textarea, select')) return;
     _renderNpcInspector(ref);
     return;
   }
