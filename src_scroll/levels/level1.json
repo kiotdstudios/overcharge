@@ -6854,7 +6854,7 @@
     {
       "id": "npc_smoke_break_worker_a",
       "assetId": "npc_smoke_break_worker_a",
-      "x": 1328.0,
+      "x": 1392,
       "y": 352,
       "facing": "right",
       "scale": 0.5455,
@@ -6865,7 +6865,7 @@
         "seed": 101
       },
       "dialogue": {
-        "enabled": false,
+        "enabled": true,
         "trigger": "player_proximity",
         "radiusPx": 100,
         "triggerMode": "enter",
@@ -6873,13 +6873,23 @@
         "oncePerLevel": false,
         "durationMs": 3000,
         "selectionMode": "sequential",
-        "lines": []
+        "lines": [
+          {
+            "id": "L1",
+            "text": "New line"
+          }
+        ]
+      },
+      "patrol": {
+        "rangePx": 0,
+        "speedPxPerSec": 22,
+        "turnPauseSec": 0.55
       }
     },
     {
       "id": "npc_smoke_break_worker_b",
       "assetId": "npc_smoke_break_worker_b",
-      "x": 1438.0,
+      "x": 1470,
       "y": 352,
       "facing": "left",
       "scale": 0.5455,
@@ -6899,6 +6909,11 @@
         "durationMs": 3000,
         "selectionMode": "sequential",
         "lines": []
+      },
+      "patrol": {
+        "rangePx": 0,
+        "speedPxPerSec": 22,
+        "turnPauseSec": 0.55
       }
     },
     {
@@ -6906,10 +6921,14 @@
       "assetId": "npc_streetlamp_woman",
       "greetingAssetId": "npc_streetlamp_woman_greeting",
       "walkAssetId": "npc_streetlamp_woman_walk",
-      "x": 1740,
+      "x": 1741,
       "y": 320,
       "facing": "left",
-      "patrol": { "rangePx": 32, "speedPxPerSec": 22, "turnPauseSec": 0.55 },
+      "patrol": {
+        "rangePx": 32,
+        "speedPxPerSec": 22,
+        "turnPauseSec": 0.55
+      },
       "dialogue": {
         "enabled": true,
         "trigger": "player_proximity",
@@ -6920,10 +6939,6 @@
         "durationMs": 3500,
         "selectionMode": "sequential",
         "lines": [
-          {
-            "id": "L1",
-            "text": "Hey, cutie... you look like trouble. The fun kind."
-          },
           {
             "id": "L2",
             "text": "Hey, handsome. You always light up the block like that?"
