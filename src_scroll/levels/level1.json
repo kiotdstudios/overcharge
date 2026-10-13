@@ -6889,7 +6889,7 @@
     {
       "id": "npc_smoke_break_worker_b",
       "assetId": "npc_smoke_break_worker_b",
-      "x": 1470,
+      "x": 1438,
       "y": 352,
       "facing": "left",
       "scale": 0.5455,
@@ -6900,7 +6900,7 @@
         "seed": 907
       },
       "dialogue": {
-        "enabled": false,
+        "enabled": true,
         "trigger": "player_proximity",
         "radiusPx": 100,
         "triggerMode": "enter",
@@ -6908,7 +6908,12 @@
         "oncePerLevel": false,
         "durationMs": 3000,
         "selectionMode": "sequential",
-        "lines": []
+        "lines": [
+          {
+            "id": "L1",
+            "text": "New line"
+          }
+        ]
       },
       "patrol": {
         "rangePx": 0,
