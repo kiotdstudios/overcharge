@@ -29,6 +29,7 @@ import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
 import { facadeAction } from './facade.js';
 import { validateLevelShape } from './level-shape.js';
+import { sourceFields } from './inspector-fields.js';
 
 mountWorkspace();
 document.getElementById('btn-landable-facade')?.addEventListener('click', () => {
@@ -2169,11 +2170,7 @@ function _refreshSelectedProps() {
     ];
   } else if (kind === 'source') {
     color = '#ffee00'; badge = 'SOURCE';
-    fields = [
-      { label:'label', key:'label', text:true },
-      { label:'charge',key:'charge',num:true,min:1 },
-      { label:'x',     key:'x',     num:true }, { label:'y',key:'y',num:true },
-    ];
+    fields = sourceFields(ref);
   } else if (kind === 'gate') {
     const isTimed = !!ref.timed;
     color = ref.isExit ? '#ff44ff' : (ref.blockOnly ? '#ff8800' : (isTimed ? '#ff44aa' : '#44ccff'));
