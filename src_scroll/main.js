@@ -336,7 +336,7 @@ function _render() {
       break;
     case STATES.GAME_OVER:
       _drawScrollGame();
-      drawGameOver(ctx, t);
+      drawGameOver(ctx, t, player);
       break;
   }
 }
@@ -375,12 +375,10 @@ function _drawDevBar() {
   ctx.fillStyle = '#3a5060';
   ctx.font      = '10px monospace';
   ctx.textAlign = 'center';
-  ctx.fillText(
-    (_DEV_MODE && _DEV_LEVELS.length > 1
-    ? '\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K MELEE   L BOLT   [F2] skip   [[] PREV   []] NEXT'
-    : '\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   E ABSORB   SPACE CHARGE   K MELEE   L BOLT   [F2] skip   [P] +charge'),
-    viewW() / 2, 13
-  );
+  const attacks = `${level.abilities.melee ? '   K MELEE' : ''}${level.abilities.bolt ? '   L BOLT' : ''}`;
+  const controls = `\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   \u2193/S DUCK   E ABSORB   SPACE CHARGE${attacks}`;
+  ctx.fillText(controls + (_DEV_MODE && _DEV_LEVELS.length > 1
+    ? '   [F2] skip   [[] PREV   []] NEXT' : '   [F2] skip   [P] +charge'), viewW() / 2, 13);
 }
 
 function _drawCpFlash() {

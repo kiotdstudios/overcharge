@@ -8,7 +8,7 @@ import { existsSync } from 'node:fs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const presets = {
   gameplay: ['pip_gate_spend.mjs', 'energy_authority.mjs'],
-  editor: ['save_publish.mjs', 'npc_dialogue.mjs'],
+  editor: ['save_publish.mjs'],
   all: ['run_all.mjs'],
 };
 const args = process.argv.slice(2);

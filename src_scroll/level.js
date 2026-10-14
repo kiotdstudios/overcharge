@@ -16,6 +16,7 @@ export class Level {
   constructor(def) {
     this.name    = def.name || 'LEVEL';
     this.number  = def.number || 1;
+    this.abilities = { melee: def.abilities?.melee !== false, bolt: def.abilities?.bolt !== false };
     this.tiles          = def.tiles;
     // Parallel rotation array (0/90/180/270 degrees). Optional in the JSON —
     // missing / short array renders as all-zero rotation (backward-compatible).
@@ -146,12 +147,7 @@ export class Level {
     const needed = exit.required - exit.charged;
     if (needed <= 0) return false;
 
-    // A shortfall against the exit price is not the same as being discharged.
-    // In particular, firing at 8 charge leaves 7.75 after a 0.25-cost shot;
-    // ending the run on that frame hides the projectile and reports zero charge
-    // while the player still has some. Keep play active while usable energy remains.
-    if (player.usableEnergy > 1e-9) return false;
-    // Let a final shot finish travelling before showing the loss screen.
+    // Let a final shot finish travelling before evaluating an exit shortfall.
     if (player._bolts?.some(b => b.alive)) return false;
 
     const sourcesLeft  = this.sources
@@ -182,9 +178,8 @@ export class Level {
 
     const pipCharge = player.bankedPips * MAX_CHARGE;
     const available = player.charge + pipCharge + sourcesLeft + platformCharge + pickupsLeft + enemyDrops + chestNet;
-    // The loss screen says "All charge lost." A remaining source, pickup,
-    // enemy drop, chest reward, or player charge means that is not true yet.
-    return available <= 1e-9;
+    // Remaining energy counts even when it is held by an object or pickup.
+    return available + 1e-9 < needed;
   }
 
   update(dt, player, viewWidth = 800) {

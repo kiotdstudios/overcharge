@@ -23,6 +23,8 @@ export const PLAYER_SPEED = 75;
 export const JUMP_FORCE   = -430;
 export const PLAYER_W     = 20;
 export const PLAYER_H     = 30;
+// Ducking is 12px shorter: a 30px standing target becomes 18px tall.
+export const PLAYER_DUCK_H = 18;
 
 // Electricity
 export const MAX_CHARGE      = 25;    // Chief 2026-10-09: raised from 10 to 25

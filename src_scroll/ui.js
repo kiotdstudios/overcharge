@@ -465,7 +465,7 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.restore();
   }
 
-  if (player.nearEnemy && player.nearEnemy.alive) {
+  if (player.nearEnemy && player.nearEnemy.alive && player.levelAbilities?.melee !== false) {
     const e = player.nearEnemy;
     ctx.save();
     ctx.globalAlpha = pulse;
@@ -960,7 +960,7 @@ export function drawTitleScreen(ctx, t) {
 }
 
 // ── Game over screen ──────────────────────────
-export function drawGameOver(ctx, t) {
+export function drawGameOver(ctx, t, player = null) {
   ctx.fillStyle = 'rgba(5,8,15,0.92)';
   ctx.fillRect(0, 0, viewW(), 450);
 
@@ -974,7 +974,7 @@ export function drawGameOver(ctx, t) {
 
   ctx.fillStyle = '#5a7a8a';
   ctx.font      = '14px monospace';
-  ctx.fillText('All charge lost.', viewW() / 2, 240);
+  ctx.fillText(player?.dead ? 'All charge lost.' : 'Not enough charge to power the exit.', viewW() / 2, 240);
 
   const pulse = 0.6 + 0.4 * Math.sin(t * 3);
   ctx.globalAlpha = pulse;

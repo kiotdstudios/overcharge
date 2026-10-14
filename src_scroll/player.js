@@ -1,7 +1,7 @@
 // Player: movement, jumping, absorb (E) / charge (SPACE) / attack (K), charge meter
 import {
   TILE, COLS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
-  PLAYER_W, PLAYER_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, chargeTransferRate, C,
+  PLAYER_W, PLAYER_H, PLAYER_DUCK_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, chargeTransferRate, C,
   RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS,
   PROJECTILE_CHARGE_COST
 } from './constants.js';
@@ -71,6 +71,7 @@ export class Player {
     this.vy      = 0;
     this.w       = PLAYER_W;
     this.h       = PLAYER_H;
+    this.ducking = false;
     this.grounded = false;
     this.charge  = 0;
 
@@ -138,6 +139,7 @@ export class Player {
 
   // ── Update ────────────────────────────────────
   update(dt, level) {
+    this.levelAbilities = level.abilities;
     this._t             += dt;
     this._stunTime       = Math.max(0, this._stunTime       - dt);
     this._hurtFlash      = Math.max(0, this._hurtFlash      - dt);
@@ -192,6 +194,7 @@ export class Player {
     this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy, this._wallBlocked, {
       dead: this.dead, hurt: this._hurtFlash > 0, stunned: this._stunTime > 0,
       attacking: this._attackFx > 0, projectile: this._attackAnimationProjectile,
+      ducking: this.ducking,
       traversal: this._ladder ? (this._ladderDirection > 0 ? 'ladder-down' : 'ladder-up') :
         this._ledgeClimb ? 'ledge-climb' : this._grapple ? 'grapple' : null,
       traversalPaused: (!!this._ladder && this._ladderDirection === 0) || (!!this._grapple && this.vx === 0 && this.vy === 0),
@@ -437,6 +440,7 @@ export class Player {
       }
     }
     if (canEnter && shaftClear && !(left || right)) {
+      this._standIfClear(level);
       this._ladder = ladder;
       this._ladderDirection = up ? -1 : down ? 1 : 0;
       this.x = ladder.x + (ladder.w - this.w) / 2;
@@ -455,10 +459,20 @@ export class Player {
     this._ladderDirection = 0;
     // Jump: Up / W only. SPACE is the charge button, K is attack.
     const jump = Input.pressedAny('ArrowUp', 'KeyW');
+    const dropping = down && jump && this.grounded && this._onOneWay(level);
+    if (dropping) {
+      this._dropTimer = 0.25;
+      this.vy = Math.max(this.vy, 60);
+      this.grounded = false;
+      this._coyote = 0;
+      this._jumpBuf = 0;
+    }
+    if (down && !dropping && (this.grounded || this.ducking)) this._duck();
+    else if (!down) this._standIfClear(level);
 
     const shift      = Input.heldAny('ShiftLeft', 'ShiftRight');
     const wasRampedUp = this._sprintRamp > 0.6;
-    this.running      = shift && (left || right);
+    this.running      = !this.ducking && shift && (left || right);
 
     // Smooth acceleration: reaches full sprint in ~0.14s, slides out in ~0.25s
     const rampTarget = this.running ? 1 : 0;
@@ -473,12 +487,13 @@ export class Player {
 
     const speed = PLAYER_SPEED * (1 + (RUN_MULTIPLIER - 1) * this._sprintRamp);
 
-    if (left)  { this.vx = -speed; this._facingRight = false; }
+    if (this.ducking) { this.vx *= 0.75; if (Math.abs(this.vx) < 5) this.vx = 0; }
+    else if (left)  { this.vx = -speed; this._facingRight = false; }
     else if (right) { this.vx =  speed; this._facingRight = true; }
     // Ground friction only — preserve horizontal momentum through jump arcs
     else if (this.grounded) { this.vx *= 0.75; if (Math.abs(this.vx) < 5) this.vx = 0; }
 
-    if (jump) this._jumpBuf = JUMP_BUFFER;
+    if (jump && !down && !this.ducking) this._jumpBuf = JUMP_BUFFER;
     this._jumpBuf = Math.max(0, this._jumpBuf - dt);
 
     if (this._jumpBuf > 0 && (this.grounded || this._coyote > 0)) {
@@ -487,6 +502,32 @@ export class Player {
       this._coyote   = 0;
       this._jumpBuf  = 0;
     }
+  }
+
+  _onOneWay(level) {
+    const feet = this.y + this.h;
+    const row = Math.round(feet / TILE);
+    if (Math.abs(feet - row * TILE) > 2) return false;
+    for (let tx = Math.floor(this.x / TILE); tx <= Math.floor((this.x + this.w - 1) / TILE); tx++)
+      if (level.tileAt(tx, row) === 2) return true;
+    return false;
+  }
+
+  _duck() {
+    if (this.ducking) return;
+    this.y += this.h - PLAYER_DUCK_H;
+    this.h = PLAYER_DUCK_H;
+    this.ducking = true;
+  }
+
+  _standIfClear(level) {
+    if (!this.ducking) return true;
+    const y = this.y - (PLAYER_H - this.h);
+    if (!this._bodyClearAt(level, this.x, y, PLAYER_H)) return false;
+    this.y = y;
+    this.h = PLAYER_H;
+    this.ducking = false;
+    return true;
   }
 
   // ── Physics + AABB tilemap collision ─────────
@@ -558,10 +599,7 @@ export class Player {
 
     // Drop-through one-way platforms: press Down/S while grounded to open a 0.25s window.
     // A small downward nudge gets the player moving before the window closes.
-    if (Input.pressedAny('ArrowDown', 'KeyS') && wasGrounded) {
-      this._dropTimer = 0.25;
-      this.vy = Math.max(this.vy, 60); // nudge past the platform surface
-    }
+    // Drop window starts only from Down+jump on a one-way tile.
     this._dropTimer = Math.max(0, this._dropTimer - dt);
     const dropDown  = this._dropTimer > 0;
 
@@ -590,13 +628,13 @@ export class Player {
     }
   }
 
-  _bodyClearAt(level, x, y) {
-    if (x < 0 || y < 0 || x + this.w > level.pxW || y + this.h > level.pxH) return false;
-    for (let ty = Math.floor(y / TILE); ty <= Math.floor((y + this.h - 0.01) / TILE); ty++)
+  _bodyClearAt(level, x, y, h = this.h) {
+    if (x < 0 || y < 0 || x + this.w > level.pxW || y + h > level.pxH) return false;
+    for (let ty = Math.floor(y / TILE); ty <= Math.floor((y + h - 0.01) / TILE); ty++)
       for (let tx = Math.floor(x / TILE); tx <= Math.floor((x + this.w - 0.01) / TILE); tx++)
         if (level.solidAt(tx, ty)) return false;
     return ![...level.gates.filter(g => !g.open && !g.isExit), ...level.crates].some(o =>
-      x < o.x + o.w && x + this.w > o.x && y < o.y + o.h && y + this.h > o.y);
+      x < o.x + o.w && x + this.w > o.x && y < o.y + o.h && y + h > o.y);
   }
 
   _ropeClear(level, anchor) {
@@ -862,14 +900,14 @@ export class Player {
   _updateAttack(dt, level) {
     if (this._stunTime > 0) return;
     if (this._attackCooldown > 0) return;
-    if (Input.pressed('KeyK')) {
+    if (level.abilities?.melee !== false && Input.pressed('KeyK')) {
       this._attackAnimationProjectile = false;
       if (this.nearEnemy) this.nearEnemy.hit(level);
       this._attackCooldown = ATTACK_COOLDOWN;
       this._attackFx = 0.15;
       return;
     }
-    if (!Input.pressed('KeyL')) return;
+    if (level.abilities?.bolt === false || !Input.pressed('KeyL')) return;
 
     // Fire an electric bolt in aimed direction (8-directional)
     // Direction: held arrow/WASD keys at moment of L press; fallback = _facingRight.
