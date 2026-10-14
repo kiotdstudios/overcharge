@@ -16,10 +16,10 @@ const tick = (p, l, keys = [], frames = 1) => {
   const feet = p.y + p.h;
   tick(p, l, ['ArrowDown', 'ArrowRight']);
   check(p.ducking && p.h === PLAYER_DUCK_H, 'Down ducks to the shorter hitbox');
-  check(p._sprites.state === 'duck' && /\/jump\/east\/frame_00[06]\.png$/.test(p._sprites.currentFrame.src), 'Down shows a crouched hero pose');
+  check(p._sprites.state === 'duck' && /\/jump\/east\/frame_000\.png$/.test(p._sprites.currentFrame.src), 'Down shows the crouched hero pose');
   const firstPose = p._sprites.currentFrame.src;
   tick(p, l, ['ArrowDown'], 25);
-  check(p._sprites.currentFrame.src !== firstPose, 'duck animation cycles between crouched poses');
+  check(p._sprites.currentFrame.src === firstPose, 'duck holds one pose while stationary');
   check(Math.abs(p.y + p.h - feet) < 0.01, 'duck preserves foot position');
   check(p.vx === 0, 'walking input does not move while ducked');
   tick(p, l, []);
