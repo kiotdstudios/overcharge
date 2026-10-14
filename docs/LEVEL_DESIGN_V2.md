@@ -62,7 +62,7 @@ The 12-versus-8 economy stays safe only if optional spending cannot strand the p
 
 | Class | Behaviour | Counts against the 4 spare? |
 |---|---|---|
-| **Reclaimable toy** | Charge goes in, the prop reacts, E drains it back out. | No, provided the player can always reach it again, or it returns the charge itself (see 3.3). |
+| **Reclaimable toy** | Charge goes in, the prop reacts, E drains it back out. | Only if the player takes it back. Charge left in a prop when the player exits is lost (CONFIRMED round 2, see 3.3), so abandoned toys count. |
 | **Permanent payoff** | Charge is consumed for a lasting reward. | **Yes.** The sum of all permanent costs in the level must be **at most 4.** |
 | **Mandatory spend** (the exit, or a required platform) | Required to finish. | Counted in the 8, or documented as reducing the spare. |
 
@@ -124,8 +124,9 @@ crates" rule and the "no enemies with crates" rule are therefore enforced by tes
 | Chest (1 pip) | **Not recommended** | Level 1 never fills the 25-unit bar, so a pip has no context there, and the chest has the open refusal bug (GAME_DESIGN_V2 3.7). |
 | The cost of a decision | **Already satisfied** by reclaimable toys | Toys teach "charge is something you spend" without a punishing choice. |
 
-**RECOMMENDED: keep Level 2 separate.** Level 1 borrows its *tools* (a switch, a barrier) for the secret
-route, and Level 2 keeps its *lesson*. **OPEN for Chief:** agree, or name which Level 2 parts you want merged.
+**CONFIRMED (round 2): keep Level 2 separate.** Level 1 borrows its *tools* (a switch, a barrier) for the
+secret route, and Level 2 keeps its *lesson*. Chief adds: Level 1 must become **more in depth and dynamic**,
+through **ladders and vertical traversal.**
 
 ---
 
@@ -170,15 +171,20 @@ interaction needs a clear payoff.**
 | Roller shutter (market) | Give 2 | The shutter rises, revealing a lit shop interior and a hint poster | Reclaimable | **NEW** receiver plus an animated reveal |
 | AC unit (secret) | Give 2 | A hatch or fire-escape ladder reveals a hidden route and a trophy | Permanent | **BUILDABLE TODAY** as a Switch linked to a `blockOnly` barrier; art needed |
 | Streetlights | Already absorbable | The light pool dims as they drain | n/a | **BUILT** |
-| Charge platform ferry | Give 2 | Carries the player across a gap (section 4.5) | Reclaimable at the far shore | **BUILT** |
+| Charge platform (lift) | Give 2 | Carries the player up to the raised gate (section 4.5) | Reclaimable if taken back | Horizontal **BUILT**; vertical **NEW** |
 
-**How a toy should keep or return its charge (OPEN, with a recommendation):**
-- (a) *Stays until reclaimed.* Simple, and matches the charge platform. But every toy must be reachable
-  again, and Level 1 has a 160 px drop with no way back up except the stairs.
-- (b) *Returns when the player leaves.* The prop stays lit while the player is within range, then fades and
-  hands the charge back. It can never strand anyone.
-- **RECOMMENDED: (b) for the first two toys in the level,** so a new player cannot hurt themselves while
-  learning, and (a) later where the level guarantees a way back. Verify "can always return" in the prover.
+**How a toy keeps its charge (CONFIRMED round 2: option (a)):** a charged prop **keeps its charge until the
+player takes it back.** If the player leaves through the exit gate first, the charge is **gone for good.**
+That is final; the return-on-leaving option (b) is dropped.
+- **Consequence for design:** every toy the player can charge must be reachable again, or its cost counts
+  against the 4 spare. Level 1 has a 160 px drop with no way back except the stairs, so each toy needs a way
+  back, or is accepted as a permanent cost.
+- **Consequence for the economy:** the total of all toys a player could leave charged must stay at or under
+  4. Three toys at 3 + 2 + 2 = 7 could strand a player who charges all and abandons them. So either some
+  toys are cheap, or the level guarantees recovery before the exit, or the HUD tells the player that the
+  charge stays in the prop. **RECOMMENDED:** a short "charge stored: take it back with E" tag on each toy.
+- **To verify in the prover:** that for every toy, a route back exists from where the player would
+  reach the exit.
 
 ### 3.4 City life (CONFIRMED: "substantially more"; counts and placement RECOMMENDED)
 
@@ -191,6 +197,12 @@ interaction needs a clear payoff.**
 | Passing cars | 2 | Cross the background street, never the player's lane | **NEW:** a drifting ambient actor |
 | Birds, steam, flickering signs, rooftop dishes | several | Fill sky and edges | **BUILT** for animated decorations; drift is **NEW** |
 
+**NPC roles (CONFIRMED round 2):** it depends on the NPC. Some are **filler** (atmosphere), some **drive
+story**, and some give hints. **There is no story for the game yet,** so the story-driving NPCs cannot be
+written until one exists. The tone question (the woman's flirtatious lines) is therefore closed as
+"per NPC", and the next step is a **story bible** (premise, setting, who the hero is, why the city is dark,
+what the drones are) written with Chief. **Until then, story NPCs stay as placeholders.**
+
 Rules: **one readable event per ten seconds of walking;** keep ambient actors out of the player's lane so
 the route is never crowded (CONFIRMED: "without overcrowding the playable route").
 
@@ -202,7 +214,13 @@ Each describes something the player can *observe*, and none names a button.
 
 ### 3.5 Foreshadowing a threat (CONFIRMED allowed; method RECOMMENDED)
 CONFIRMED: Level 1 may foreshadow a threat **safely,** for example a distant drone.
-**RECOMMENDED: make it a decoration or ambient actor, not an enemy.** A real Sky Sentry sees 240 px
+**CONFIRMED (round 2): tell it through story, not a live enemy.** Chief's options: an NPC who shares
+knowledge (possibly a cutscene before the level that shows the real enemy), a sign that says "beware of
+drones," or graffiti on a wall.
+**Engine status:** an NPC line, a sign and graffiti are all **buildable today** (dialogue, decorations).
+A **cutscene is new engine work** (no cutscene system exists). **RECOMMENDED:** start with graffiti plus one
+NPC line, which cost nothing new, and leave a cutscene for when the story exists.
+**Earlier recommendation, still true:** do not use a real enemy. A real Sky Sentry sees 240 px
 sideways and 340 px up and fires a laser, so it cannot be made safe by distance alone. As an ambient actor it
 cannot attack by construction, and it does not trigger the rule that levels with enemies need positive
 margin or the "no enemies and crates" rule.
@@ -236,12 +254,20 @@ Height changes are at most 64 px, so every climb fits a walking jump (99 px). No
 - The high/low fork is cosmetic: lamp 3 is surplus, so skipping it changes nothing.
 
 ### 4.3 Target layout (RECOMMENDED; width OPEN)
-Sections 5 and 6 are built from this layout. It keeps everything Chief already built (the pillar, shaft,
-rooftop, fork and step block) and adds three new stretches and a ferry.
+> **SUPERSEDED IN PART (round 2, 2026-09-06): Chief chose VERTICAL.** The horizontal 139-column diagram and
+> the timing in section 5.1 below describe the abandoned option and are kept only as a record of the beats.
+> A vertical layout (ladders, a vertical platform, floors stacked in the empty rows 0 to 9) has to be
+> **redrawn from scratch** and re-timed. Not done yet. The beats, zones and teaching rules still apply.
+> **Engine facts that shape it:** the camera must follow the Y axis (the level is 18 rows tall; a taller
+> level needs more rows, and the prover assumes 18, see 2.3); the death plane is tied to the camera; ladders
+> work today but need ladder decorations.
 
-**Target width: about 4,400 px (139 columns).** At 75 px/s that is the 90 to 120 second target. The same
-beats could instead be fitted into the current 100 columns by stacking vertically (the sky is empty), which
-costs more Builder work and a taller camera. **OPEN for Chief: lengthen, or go vertical?**
+Sections 5 and 6 were built from the horizontal layout. It keeps everything Chief already built (the pillar,
+shaft, rooftop, fork and step block) and adds three new stretches and a ferry.
+
+**Target width (SUPERSEDED): about 4,400 px (139 columns).** At 75 px/s that is the 90 to 120 second target.
+The vertical version trades width for height, so the walking distance falls and the **climbing** time has to
+make up the 90 to 120 seconds. Ladder speed is 105 px/s, so a 10-tile climb is about 3 seconds.
 
 ```
 x(px)  0     400  680  900       1500  1600     2112 2430    3230   3630  4010 4420
@@ -257,21 +283,29 @@ The gate is 4,300 px from the spawn, far off-screen. Two ways to show it:
 | **A: beacon** (RECOMMENDED) | A tall light pylon and a glow above the skyline, visible from the spawn, drawn as ordinary decorations. The card also names the exit. | Cheap; **buildable today.** The player sees *something* distant, not the gate itself. |
 | **B: exit above the spawn** | The gatehouse stands on a high rooftop directly above the start. The player does a long loop, then returns to charge it. | The whole level becomes real backtracking (GAME_DESIGN_V2 pillar 3), but the return trip risks empty walking and needs a return path. |
 
-**OPEN for Chief.** Option A is the safe tutorial choice. Option B is the stronger design and could be
-saved for a later level.
+**CONFIRMED (round 2): option A, the beacon decoration.** Option B is saved for a later level. In a
+vertical Level 1 the beacon should sit at the top of the level, so the beacon also says "up".
 
 ### 4.5 Traversal in Level 1
-- **Moving platform to reach the gate (CONFIRMED as "consider").** **BUILT constraint: the charge platform is
-  horizontal only; its height never changes.** So it can carry the player *across* a gap near the gatehouse,
-  as the 320 px ferry in section 5, but it **cannot lift** them to a raised gate. Either the gate is at the
-  platform's height (recommended), or a vertical mode is new engine work.
-  The ferry's 2 charge must be recoverable at the far shore, or the spare drops from 4 to 2 (section 1.4).
-  A fall into the gap must respawn at a nearby checkpoint (RECOMMENDED: one at the near shore).
+- **Moving platform to reach the gate (CONFIRMED round 2: it moves vertically too).** The "ferry" in
+  earlier drafts meant the charge platform carrying the player sideways across a gap. Chief wants it to
+  **lift** the player, so it becomes the lift to the raised exit gate. **BUILT constraint: today the platform
+  is horizontal only.** The vertical mode is **new engine work** (GAME_DESIGN_V2 4.5), and Level 1 cannot be
+  built around it until that exists. It needs: a vertical axis, riders carried, and a defined result when
+  charge runs out mid-ride.
+  The platform's charge cost (2) is reclaimable only if the player takes it back. Under the round 2
+  persistence rule (charge stays until reclaimed, lost on exit), a lift the player abandons costs 2 for good,
+  so it counts against the 4 spare (section 1.4).
+  A fall from the lift must land somewhere safe, or respawn at a nearby checkpoint (RECOMMENDED).
 - **A charged wire the player glides along (CONFIRMED as "an additional concept to investigate").**
   Nothing like it exists. It is **not** in the layout. If it is later approved it would replace the ferry as
   the final set piece. Open questions are in GAME_DESIGN_V2 section 4.5.
-- **Existing traversal** (ladder, ledge climb, grapple) is available but unused. **RECOMMENDED:** do not add
-  them to Level 1. Teaching a ladder, a grapple and absorb in one level breaks rule T7.
+- **Ladders are IN Level 1 (CONFIRMED round 2, overriding my earlier recommendation against them).** The
+  player traverses vertically. **RECOMMENDED sequencing to protect rule T7:** teach the ladder alone, in a
+  place with nothing else to do (a short, safe climb with a visible reward at the top), before the first
+  lift or the AC secret. The grapple and ledge climb stay unused in Level 1.
+  **Needs:** ladder decorations placed in the level (the engine ladder works only on a ladder decoration),
+  a prompt for climbing, and art for any ladder that is not the existing one.
 
 ### 4.6 The fork and the secret (CONFIRMED: keep the fork as an exploration reward; secret = a possibility)
 - **Fork.** High route: lamp 3 (the spare), the woman, the checkpoint and an overlook. Low route: the
@@ -281,9 +315,14 @@ saved for a later level.
 - **Secret (CONFIRMED: "could reveal a previously hidden route, trophy, or Easter egg").** Powering an AC unit
   on the rooftop (permanent cost 2) opens a hidden route to a trophy.
   **Buildable today:** a Switch (cost 2) linked to a `blockOnly` barrier that seals the alcove.
-  **OPEN:** what is the trophy? A cosmetic collectible, an Easter egg, or a pip? A pip would demonstrate the
-  reserve, but a pip is 25 charge, which dwarfs Level 1's whole 12. If it is a pip, it must not be
-  *required*, and the HUD would need to explain it.
+  **Trophy question, answered by Chief with "you tell me":** the point was a reason to go back. **No
+  achievement or trophy system exists in the game** (searched `src_scroll`: nothing), so a literal in-game
+  trophy is a new feature. **RECOMMENDED:** do not make the level run backwards (it conflicts with the
+  early beacon and the vertical layout). Instead, put the AC-unit secret **above and behind the spawn**,
+  reachable by a ladder the player passed at the start. The reward is an **Easter egg plus a story
+  clue** (a poster or graffiti that tells the first piece of the world's story), which costs no new system.
+  Add a real achievement system later, once the game has more than one level that wants it. A pip as the
+  reward is not recommended: a pip is 25 charge, which dwarfs Level 1's whole 12.
 
 ### 4.7 Checkpoints (RECOMMENDED)
 Level 1 has one, at x 1824. With a longer route it needs at least three: before the shaft jump, at the
@@ -302,7 +341,7 @@ while dressing.** Adding more *sources* is not authorized by anything here.
 CONFIRMED: **90 to 120 seconds is the proposed main-route target,** longer exploration allowed, and a
 meaningful absorb-carry-spend loop **inside the first minute.**
 
-### 5.1 Time budget for the section 4.3 layout (RECOMMENDED, computed)
+### 5.1 Time budget for the section 4.3 layout (SUPERSEDED: horizontal; re-time after the vertical redraw)
 Assumptions: the player walks at 75 px/s, absorbs at 3 units/s, and each "beat" time is the measured time
 for that interaction plus a short look at the payoff. Produced by a throwaway script (not committed; the
 inputs are the table below) so the sums are arithmetic, not hand-added.
@@ -470,21 +509,31 @@ Merging parts of Level 2 (RECOMMENDED against); a moving-platform route to the g
 horizontal); a charged-wire glide (not in the layout); the AC-unit secret and its trophy; passing cars.
 
 ### RECOMMENDED by Kiro
-Teaching rules T1 to T7; the movement envelope in 1.3; prop cost classes in 1.4; zones in 3.2; toy return
-behaviour (b) in 3.3; the city-life counts in 3.4; the foreshadow as an ambient actor in 3.5; the layout and
-width in 4.3; beacon A in 4.4; three checkpoints in 4.7; the timing budget in 5.1; the fail-state fix in 6.2;
+Teaching rules T1 to T7; the movement envelope in 1.3; prop cost classes in 1.4; zones in 3.2; the toy
+reclaim tag in 3.3; the city-life counts in 3.4; graffiti plus one NPC line for the foreshadow in 3.5; the
+ladder-first sequencing and the no-backwards trophy in 4.5 and 4.6; three checkpoints in 4.7 (to be redone
+for the vertical layout); the timing budget in 5.1 (superseded, to be redone); the fail-state fix in 6.2;
 the work list ordering in 8.
 
+### CONFIRMED by Chief (round 2, 2026-09-06)
+- Level 1 goes **vertical**, with **ladders** and a **vertical** charge platform (the lift). (4.3, 4.5)
+- The exit is shown early with the **beacon decoration** (option A). (4.4)
+- A prop's charge stays until reclaimed; leaving through the exit forfeits it. (3.3)
+- The foreshadow is told through **story** (an NPC, a sign, graffiti). (3.5)
+- **Level 2 stays separate.** (2.4)
+- NPC tone depends on the NPC (filler, hint, story). **The game needs a story.** (3.4)
+- Bolt and melee hidden in Level 1; "Charge gate to open." is a world label above exit gates; pip use is
+  instant and separate from charging (all in GAME_DESIGN_V2 section 13).
+
 ### OPEN questions (need Chief)
-1. **Lengthen Level 1 to about 139 columns, or stack it vertically?** (4.3)
-2. **Exit early: beacon A, or exit above the spawn B?** (4.4)
-3. **Do toys return charge when you leave (b), or hold it until you take it back (a)?** (3.3)
-4. **What is the trophy?** Cosmetic, an Easter egg, or a pip? (4.6)
-5. **Is the foreshadow drone a decoration (recommended) or a real enemy?** (3.5)
-6. **Is a required platform ferry wanted at all,** given it reduces the spare unless recoverable? (4.5)
-7. **Agree to keep Level 2 separate,** or name the parts to merge? (2.4)
-8. **Which tone for NPC lines?** The existing streetlamp woman's lines are flirtatious; confirm that is the
-   intended voice for the city. (3.4)
+1. **Redraw the vertical layout.** Needs Chief's go-ahead, and the lift (engine work) decides where the gate
+   sits. (4.3)
+2. **The trophy.** Recommended: no achievement system; an Easter egg plus a story clue above and behind
+   the spawn, reached by the opening ladder. Accept, or want a real trophy system? (4.6)
+3. **Story.** Write a story bible with Chief before story NPCs are authored. (3.4)
+4. **Toy cost.** Total of toys that can be abandoned must stay at or under 4. Which toys, at what prices?
+   (3.3)
+5. **Cutscene.** Not buildable today; skip for now? (3.5)
 
 ---
 

@@ -2154,3 +2154,20 @@ Walk 75 px/s, sprint 127.5 px/s, jump 99.17 px, airtime 0.933 s, max gap 1 tile 
 - Regression run: 2617 passed, 24 failed across 58 suites. Failures are `camera_vertical` 5, `completability` 3, `level2_fork` 11, `level_height` 2, `npc_dialogue` 3. `npc_dialogue` fails because `level1.json` has the "New line" placeholder in both smoke workers, which is Chief's Builder data; I did not touch that file. `pip_gate_spend` 53/0. `module_parse` 143/0.
 ### Open for Chief
 Listed in `GAME_DESIGN_V2.md` section 13 and `LEVEL_DESIGN_V2.md` section 9. Nothing is built until those are answered.
+## 2026-09-06 - V2 docs: Chief's round 2 decisions recorded
+Docs only. No code or level files changed.
+### Confirmed and written into `GAME_DESIGN_V2.md` (section 13, items 15-22) and `LEVEL_DESIGN_V2.md` (section 9)
+- Pip use is instant, through a separate input (new key or double-tap SPACE; still open). Level 1 never banks a pip (12 available, bar holds 25).
+- A charged prop keeps its charge until reclaimed; leaving through the exit forfeits it. This makes abandoned toys a permanent cost against the 4 spare.
+- The charge platform must also move vertically. Today it is horizontal only, so this is new engine work.
+- Level 1 goes vertical, with ladders. The old 139-column horizontal layout and its timing table are marked SUPERSEDED. A vertical layout is not drawn yet.
+- Exit shown early with a beacon decoration. Level 2 stays separate.
+- "Charge gate to open." is a world label above exit gates.
+- Bolt and melee hidden in Level 1. Ducking and double jump are real abilities needing art; double jump is unlockable.
+- Foreshadow told through story (NPC line, sign, graffiti). The game has no story yet; a story bible is the next design step.
+### Findings
+- "The more charge you have, the faster things charge and absorb" is not in the game or in GDD v1. Absorb and charge are fixed at 3 units/s.
+- No achievement or trophy system exists. Recommendation: skip it; use an Easter egg plus a story clue.
+- Cutscenes do not exist in the engine.
+### Verified
+Link and section check on both docs passes (the one "BAD" is a regex artifact on "section 2."). No em dashes.

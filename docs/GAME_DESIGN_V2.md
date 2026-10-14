@@ -112,18 +112,32 @@ Rules these results establish:
 8. **A hit costs 1 unit and a bolt costs 0.25.** Both come from the same pool, so at bar 0 with 1 pip,
    either one breaks the pip into the bar (24 and 24.75 respectively).
 
-### 3.3 "Pips can automatically open gates" (CONFIRMED intent, partly BUILT, OPEN)
-- **CONFIRMED.** Pips can automatically open gates. Special pathways and chests are possible later uses.
+### 3.3 Pips open gates instantly (CONFIRMED round 2, NOT BUILT; input OPEN)
+- **CONFIRMED (round 2, supersedes the reading below).** **Using a pip opens a gate instantly, with no
+  waiting to charge.** The input is a **separate action**, either a new key or a double-tap of SPACE.
+  **OPEN: which one.** **RECOMMENDED: a dedicated key (Q is free).** Reason: holding SPACE already means
+  "charge", so the first tap of a double-tap begins a charge and spends bar before the second tap lands.
+  A single key has no such ambiguity and cannot fire by accident.
+- **RECOMMENDED consequence:** the pip pays the gate's price (8) and the other 17 returns to the bar, which
+  is exactly what the current tested behaviour does (see `_dev/pip_gate_spend.mjs`). If the bar cannot hold
+  the 17, the surplus is lost, so the prompt should say so.
+- **Not in Level 1.** Level 1 holds 12 charge and the bar is 25, so no pip is ever banked there. Pips
+  first matter in a level with more than 25 charge available.
+- **Charge speed scaling is NOT BUILT, and not in v1.** Absorb and charge are fixed at 3 units/s
+  (`ABSORB_RATE`, `DISCHARGE_RATE`); holding more charge changes nothing. **OPEN:** Chief expects "the more
+  charge you have, the faster things charge and absorb". That would be a new mechanic. Needs a definition.
+- **CONFIRMED (earlier).** Special pathways and chests are possible later uses for pips.
+- **Historical reading (superseded for gates, kept as the BUILT behaviour):** pips pay a gate automatically
+  once SPACE is held.
+- **CONFIRMED (earlier).** Pips can automatically open gates. Special pathways and chests are possible later uses.
 - **BUILT.** Pips are *drawn on automatically*: the player never manages them, and a pip feeds the bar
   mid-charge without any pause.
 - **BUILT, and contrary to a literal reading.** **Nothing opens a gate without the player holding SPACE**,
   in range, standing on the ground. Tested: five pips, no SPACE, five seconds beside the gate: the gate
   stays closed and the energy is untouched.
-- **OPEN (needs Chief):** did you mean (a) the current behaviour, where pips pay automatically once you
-  start charging, or (b) a new behaviour where standing at a gate with enough stored energy opens it?
-  - **RECOMMENDED: (a).** The codebase deliberately forbids one-press completion ("No button may complete
-    a gate in one press"), and (b) would let a player drain a pip by accident just by walking past.
-    If (b) is wanted, it should cost the gate's price (8), not a whole pip.
+- **ANSWERED by round 2:** Chief wants an explicit, instant pip use (see top of this section). The code
+  comment "No button may complete a gate in one press" (`player.js`) now conflicts with that intent and
+  must be amended by whoever builds it. SPACE-hold charging stays gradual for ordinary charge.
 
 ### 3.4 Charge loss (CARRIED, BUILT)
 Being hit stuns the player (0.75 s, with knockback) and scatters 1 unit as recoverable pickups. If
@@ -136,9 +150,15 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 - **BUILT today:** the only thing that can be charged *and* drained back is the **charge platform**
   (SPACE gives, E takes back). Lamps, fuse boxes, signs and vending machines **cannot be given charge**:
   `ElectricalSource` has no receive path. This is new engine work.
+- **CONFIRMED (round 2):** a charged prop's charge **stays in the prop until the player takes it back.** If
+  the player leaves through the exit gate first, it is **lost for good.** (This is option (a), not the
+  return-on-leaving option.)
+- **Consequence (derived):** an unreclaimed toy is a permanent cost, so toys are not free against the spare.
+  The total a player can leave behind in Level 1 must stay at or under the 4 spare units. Toy prompts
+  should say "take it back" while the player is in range.
 - **RECOMMENDED semantics, for Chief to approve:**
-  - *Reclaimable toys*: charge goes in, the prop reacts, and holding E drains it back out. They can
-    never strand the player, so they cost nothing against the 4 spare units.
+  - *Reclaimable toys*: charge goes in, the prop reacts, and holding E drains it back out. Reclaimed, they
+    cost nothing; left behind, they cost what was given.
   - *Permanent payoffs*: charge is consumed for a lasting reward. Their total cost in Level 1 should
     never exceed the 4 spare units, so a player who buys them all still has 8 for the exit.
   - Reclaiming returns the full amount given. No fee, no decay.
@@ -166,8 +186,9 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   energy but cannot pay the 8 exit. Measured: 16 bolts leaves exactly 8, a 17th leaves 7.75, and the game
   reports no fail state. The only recovery is the column 26 pit (the restore refills the lamps) or a
   reload; there is no in-play respawn key. **OPEN: fix it?** Recommended yes: treat "usable energy below the
-  cost of the cheapest remaining mandatory spend, with no source left" as a fail state. It matters most if
-  the bolt stays available in Level 1 (see the bolt question in section 13).
+  cost of the cheapest remaining mandatory spend, with no source left" as a fail state. Hiding the bolt in
+  Level 1 (CONFIRMED round 2, section 6) removes the path that triggers it there, but the check is still
+  worth having for later levels, and for toys left charged.
 - Dormant code: `spendPip()` has no runtime caller, `_pipFlash` is never set above 0, and several
   comments still say `MAX_CHARGE = 10`.
 
@@ -230,12 +251,15 @@ and 18 rows) and will be regenerated after the retune.
   - *Camera*: the X axis is hard-locked to the player today. Add a smoothed look-ahead in the facing
     direction. Leave the Y axis unsmoothed, because the death-plane logic in `camera.js` depends on it.
 
-### 4.4 New movement abilities (CONCEPT, deliberately unsettled)
-- **CONFIRMED (work list).** Add **ducking** and **double-jump animations.**
-- **CONFIRMED (boundary).** An animation request **does not settle a new ability.** Neither crouching nor
-  double jumping exists as a mechanic, and nothing here promises either.
-- **OPEN:** are ducking and double jump intended abilities, or animation art only (for example a flourish
-  on a coyote jump)? Both would change the movement envelope that every level was proved against.
+### 4.4 New movement abilities (CONFIRMED round 2 as real abilities; NOT BUILT)
+- **CONFIRMED (round 2).** **Ducking and double jump are real abilities, so each needs animation art.**
+- **CONFIRMED (round 2).** **Double jump is unlockable, at least for now.** It is not available from the
+  first frame. **OPEN:** what unlocks it, where, and whether the unlock persists across levels and saves.
+- **OPEN:** does ducking also unlock, and what does it do (pass under low gaps, dodge a laser)?
+- **RECOMMENDED:** because double jump is gated, the movement envelope that every level was proved against
+  stays valid until the unlock, and no level may require it before the unlock exists. Ducking, if it only
+  adds passages, does not shrink any existing route. Each ability needs the harness re-run (Appendix A).
+- **Art work list:** duck (enter, hold, exit), double jump (second-jump flourish), and an unlock moment.
 
 ### 4.5 Traversal (BUILT, plus concepts)
 - **BUILT:** ladders, ledge climbing and the grapple. The grapple is a **pull to a fixed point**: it has
@@ -243,10 +267,14 @@ and 18 rows) and will be regenerated after the retune.
 - **CONCEPT, to investigate (CONFIRMED as "an additional concept to investigate"):** a **charged wire the
   player glides along.** Nothing like it exists. Questions to answer before building: does it consume
   charge, does it need a powered state, can the player drop off, what is its speed, and is it a one-way ride?
-- **CONCEPT, to consider (CONFIRMED as "consider"):** use the **powered moving platform** to reach the
-  exit gate. **Constraint found:** the platform is **horizontal only**; its height never changes. So it can
-  carry the player *across* a gap or *along* a route to a gate, but it cannot lift them to a higher one.
-  Either the gate is placed at the platform's height, or the platform needs a vertical mode (new work).
+- **CONFIRMED (round 2):** **the powered platform must also move vertically.** Chief wants it to lift the
+  player to a raised gate. **BUILT constraint (still true today):** `MovingPlatform` is horizontal only, so
+  this is **new engine work**: a vertical (and ideally freely routed) travel axis, riders carried with it,
+  a stop at each end, and the charge-while-riding rule (what happens when it runs dry mid-ride).
+  **RECOMMENDED:** specify before building: does it return home when unpowered, can the player jump off, and
+  does it crush or push against ceilings.
+- **CONFIRMED (round 2):** **ladders are in Level 1,** and the player traverses it vertically (see
+  `LEVEL_DESIGN_V2`). The ladder already exists in the engine and needs a ladder decoration in the level.
 
 ---
 
@@ -275,9 +303,12 @@ and 18 rows) and will be regenerated after the retune.
   Enemies have no knockback and no death effects.
 - **CONFIRMED.** **The bolt's combat role is introduced in Level 3.** Level 1 may **foreshadow** a threat
   safely, for example a distant drone that cannot reach the player.
-- **OPEN:** the bolt (L) and melee (K) are usable from the first frame, with nothing to hit in Level 1.
-  Should they be hidden from the prompts and the dev bar until Level 3? The bolt's charge cost is also
-  what the "12 versus 8" buffer is guarding against, so hiding it removes the risk instead of buffering it.
+- **CONFIRMED (round 2):** **hide the bolt and melee in Level 1** to keep it simple. Hiding them removes
+  the risk the "12 versus 8" buffer guarded against, and it also closes the unwinnable-state path in 3.7
+  (the bolt was the only way to waste charge on purpose). Today L and K work from the first frame, so
+  **hiding means disabling them for Level 1 and removing them from prompts and the dev bar.** Needs a
+  per-level ability list (see `LEVEL_DESIGN_V2` section 8). **OPEN:** does the hero see them introduced in
+  Level 3 by a prompt, an unlock or a tutorial beat?
 
 ---
 
@@ -313,9 +344,11 @@ change together: `levelOneObjective` (lines 26 and 29) and the renderer `_drawLe
 `_dev/level1_objective.mjs` asserts the **titles**, so changing a title means updating that test too.
 Gate prompts live at `ui.js` lines 446 (`[E] ABSORB`), 511 (`[SPACE] CHARGE`) and 518 to 521
 (`POWER REQUIRED` / `ABSORB MORE ENERGY`).
-- **OPEN:** does "Charge gate to open." replace the stage 2 *task line*, the stage 2 *title*, or the
-  in-world `[SPACE] CHARGE` prompt? **RECOMMENDED:** replace the task line only, keep the title as the
-  objective's name, so no existing test assertion has to change.
+- **CONFIRMED (round 2):** **"Charge gate to open." appears as text above exit gates in the world.** It is
+  a new world label, not a replacement of an existing string. It should show once the gate is in view.
+- **OPEN (plain question):** should the objective card's stage 2 task line, today "Absorb enough energy to
+  exit gate", change at all? **RECOMMENDED:** leave the card as it is, so no existing test assertion has to
+  change, and let the gate label carry the new wording.
 
 ### 8.3 Showing what a device costs (CARRIED, RECOMMENDED)
 The bar is 25 wide and the exit costs 8, so the cost does not read at a glance. v1 asks for "clear
@@ -404,15 +437,32 @@ Every effect must return to rest and must respect `prefers-reduced-motion`.
 - Passing cars.
 
 ### RECOMMENDED by Kiro (awaiting Chief)
-Pip meaning (a) in 3.3; reclaimable-toy and permanent-payoff rules in 3.5; refund on a refused chest in
-3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
+A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-toy and permanent-payoff rules in 3.5; refund
+on a refused chest in 3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
 card-versus-world pairing and string placement in 8; the bar cost marker in 8.3; the juice order in 9.
 
+### CONFIRMED by Chief (round 2, 2026-09-06)
+15. Using a pip opens a gate **instantly**, through a separate input (new key or double-tap). (3.3)
+16. A charged prop keeps its charge until reclaimed; leaving through the exit forfeits it. (3.5)
+17. The charge platform also moves **vertically.** (4.5)
+18. Level 1 gets **ladders** and vertical traversal. (4.5)
+19. **"Charge gate to open."** is a text label above exit gates in the world. (8.2)
+20. **Hide the bolt and melee in Level 1.** (6)
+21. **Ducking and double jump are real abilities** needing art; double jump is **unlockable.** (4.4)
+22. Level 2 stays separate from Level 1. Level 1 goes **vertical.** The exit is shown early with a **beacon
+    decoration.** The foreshadow is told through **story** (an NPC line, a sign or graffiti), not a live
+    enemy. NPC voice depends on the NPC: some are filler, some drive story. The game has no story yet, so
+    one must be built. (see `LEVEL_DESIGN_V2`)
+
 ### OPEN questions (need Chief)
-1. Pips: automatic payment once charging starts (current), or open-on-approach? (3.3)
-2. Should a vending machine ever dispense a pip? (3.5)
-3. Fix the refused-chest energy loss? (3.7)
-4. Are ducking and double jump intended abilities, or animation only? (4.4)
-5. Should the platform gain a vertical mode, or should the gate sit at its height? (4.5)
-6. Hide the bolt and melee until Level 3? (6)
-7. Which string does "Charge gate to open." replace? (8.2)
+1. Pip input: a dedicated key (recommended: Q) or double-tap SPACE? (3.3)
+2. "The more charge you have, the faster things charge and absorb": this is not in the game or in v1. Do you
+   want it as a new mechanic? (3.3)
+3. Should a vending machine ever dispense a pip? (3.5)
+4. Fix the refused-chest energy loss? Recommended yes. (3.7)
+5. Should the objective card's stage 2 task line change, or only the new gate label carry the wording? (8.2)
+6. What unlocks double jump, and does ducking unlock too? (4.4)
+7. How does the player first meet the bolt in Level 3? (6)
+
+(Closed by round 2: pip meaning (a) vs (b); platform vertical mode; hide the bolt; double jump and ducking as
+abilities; which string "Charge gate to open." replaces.)
