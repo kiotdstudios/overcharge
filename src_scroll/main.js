@@ -123,6 +123,8 @@ export function mechanicsSnapshot() {
 }
 let t      = 0;
 let completeTimer = 0;
+// Keep the gate and its electrical opening fully visible before the completion card.
+const EXIT_REVEAL_SECONDS = 4;
 
 // Camera
 let camX = 0;
@@ -294,7 +296,7 @@ function _update(dt) {
     case STATES.LEVEL_COMPLETE:
       completeTimer += dt;
       level.update(dt, player);
-      if (completeTimer > 0.5 && Input.pressedAny('Space', 'Enter')) advanceLevel();
+      if (completeTimer > EXIT_REVEAL_SECONDS + 0.5 && Input.pressedAny('Space', 'Enter')) advanceLevel();
       break;
 
     case STATES.GAME_OVER:
@@ -329,7 +331,8 @@ function _render() {
     case STATES.LEVEL_COMPLETE:
       _drawScrollGame();
       drawHUD(ctx, player, level, t);
-      drawLevelComplete(ctx, level, completeTimer, t);
+      if (completeTimer >= EXIT_REVEAL_SECONDS)
+        drawLevelComplete(ctx, level, completeTimer - EXIT_REVEAL_SECONDS, t);
       break;
     case STATES.GAME_OVER:
       _drawScrollGame();
