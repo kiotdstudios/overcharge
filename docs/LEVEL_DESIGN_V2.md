@@ -636,6 +636,15 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/STORY_BIBLE_DRAFT.md` |
 | 33 | "Charge gate to open." world label above exit gates | Runtime | none | CONFIRMED |
 
+### 8.1 Who does what (issued 2026-10-14)
+| Owner | Order | Rows |
+|---|---|---|
+| Codex | `KIRO_ORDER_CODEX_01.md` | 3 (fail state), 7 (two-way objects), 18 (chest and pip pickup), 21 (Q pip), 22 (charge speed), 23 (path platforms), 28 (abilities), 29 (duck; double jump not yet), 33 (gate label), 39 (objectives), plus reactive NPC dialogue (37) and player events for juice |
+| Aki | `KIRO_ORDER_AKI_26.md` | 24 (path tool), 25 (rows), 26 (ladder test), 34 to 36 (apartment, window NPC, AC recolour), 38 (Uncharged checkbox and readout), 27 and 31 (pip pickup, pylon, cable, beacon art), 16 (hatch and room dressing) |
+| Orcha | `KIRO_ORDER_ORCHA_19.md` | 15 and 32 (story, premises, dialogue). Writing only. |
+| Kiro | this document | 2 (prover rows), 5 and 6 (retune and route checks, after Codex), 8 (juice module), 12 and 13 (audio bus, music), hero duck and double-jump frames, review of every order's output |
+| Chief | the Builder | 1 and 14 (placing everything in Level 1, removing "New line"), tuning the lift and charge curve in play, approving art and story |
+
 Out of scope until Chief says otherwise: Levels 2 to 6, a charged-wire glide, new movement abilities,
 passing the replacement music into the build.
 

@@ -2213,3 +2213,11 @@ Chief was confused by "new Level 1 charged objects default to uncharged". The th
 ## 2026-09-06 - Round 9: no fixed charge total per level (docs only)
 Chief: Level 1 does not "only have 12 charge"; every level has whatever charge he sets. The earlier CONFIRMED "12 available" is marked SUPERSEDED. The 12 stays in the docs only as a description of Level 1 as built. Still true: every exit costs 8, and every level must be completable from zero carried charge.
 Builder: placing a charged object is charged by default, with an "Uncharged" checkbox he ticks if and when he wants an empty one. This replaces my "default uncharged" recommendation. The level-total readout is now a readout and a check, not a cap.
+## 2026-10-14 - Orders issued for Level 1 (docs only)
+Chief said nobody is working, so orders went out.
+- `docs/KIRO_ORDER_CODEX_01.md`: runtime, in three phases. A: two-way charged objects (`charge` stays capacity, new `uncharged` boolean), Q pip use, charge-speed scaling, chest at the pip cap with a pickup. B: duck and Down+jump drop, per-level abilities, fail-state detection. C: path-based platforms, the "Charge gate to open." label, per-level objectives, reactive NPC dialogue, player events for juice.
+- `docs/KIRO_ORDER_AKI_26.md`: Builder tools (Uncharged checkbox, level-total readout, platform path tool, reactive NPC fields, adding rows, abilities, ladder test) and eight art pieces with mandatory pixel checks and Chief's approval before registering.
+- `docs/KIRO_ORDER_ORCHA_19.md`: story only, writing only. Three premises first, then stop for Chief to pick.
+- Shared data fields are listed in the Aki order so both builders agree. Neither order touches level files; Chief places everything.
+- `LEVEL_DESIGN_V2.md` section 8.1 maps the work list to owners. Kiro keeps the prover rows, retune and route checks, the juice module, the audio bus and music, hero duck and double-jump frames, and review.
+- The derived `AGENT_BOARD.md` is stale (last generated 2026-10-01) and not regenerated here.
