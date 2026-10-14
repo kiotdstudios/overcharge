@@ -97,6 +97,19 @@ sec('Q SPENDS ONE PIP INSTANTLY AT A PAYABLE GATE');
   ok(g.open && near(g.charged, 8), 'Q opens the 8-cost gate in one frame');
   ok(p.bankedPips === 0 && near(p.charge, 17), 'the remaining 17 returns to the bar');
   ok(near(before - p.usableEnergy, 8), 'Q conserves charge across pip spend');
+  ok(p._pipSurgeT > 0 && p._pipSurgeTarget === g && g._pipFlash > 0,
+    'a distinct one-shot electric surge starts at the gate');
+  const ctx = new Proxy({}, { get: () => () => {} });
+  let burstDrawn = false;
+  g._drawPipBurst = () => { burstDrawn = true; };
+  g.draw(ctx);
+  ok(burstDrawn, 'the pip burst still draws after the gate opens');
+}
+{
+  const { L, p, g } = rig(0, 1);
+  p.grounded = false;
+  held(['KeyQ']); p._updatePipSpend(L); held([]);
+  ok(g.open, 'Q works in range while airborne');
 }
 {
   const { L, p, g } = rig(0, 0);

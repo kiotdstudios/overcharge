@@ -37,7 +37,7 @@ const loadFxFrames = (folder, prefix) => Array.from({ length: 4 }, (_, i) => {
 const transferFrames = loadFxFrames('energy-transfer', 'fx');
 const arrivalFrames = loadFxFrames('energy-arrival', 'impact');
 
-function drawTransfer(ctx, x1, y1, x2, y2, time, phase = 0) {
+function drawTransfer(ctx, x1, y1, x2, y2, time, phase = 0, width = 28) {
   const frame = transferFrames[Math.floor(time * 12 + phase) % transferFrames.length];
   if (!frame?.complete || !frame.naturalWidth) return;
   const dx = x2 - x1, dy = y2 - y1;
@@ -49,17 +49,17 @@ function drawTransfer(ctx, x1, y1, x2, y2, time, phase = 0) {
   ctx.imageSmoothingEnabled = false;
   // The generated frame has a common 96px canvas; its electric ribbon lies
   // in this 32px-high center strip. Nearest-neighbor scaling keeps hard pixels.
-  ctx.drawImage(frame, 0, 32, 96, 32, 0, -14, Math.round(distance), 28);
+  ctx.drawImage(frame, 0, 32, 96, 32, 0, -Math.round(width / 2), Math.round(distance), width);
   ctx.restore();
 }
 
-function drawArrival(ctx, x, y, time, alpha = 1) {
+function drawArrival(ctx, x, y, time, alpha = 1, size = 32) {
   const frame = arrivalFrames[Math.floor(time * 14) % arrivalFrames.length];
   if (!frame?.complete || !frame.naturalWidth) return;
   ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(frame, Math.round(x - 16), Math.round(y - 16), 32, 32);
+  ctx.drawImage(frame, Math.round(x - size / 2), Math.round(y - size / 2), size, size);
   ctx.restore();
 }
 
@@ -87,6 +87,8 @@ export class Player {
     this.bankedPips  = 0;
     this._pipBankFx  = 0;  // flash when a pip is banked
     this._pipSpendFx = 0;  // flash when a pip is spent
+    this._pipSurgeT = 0;
+    this._pipSurgeTarget = null;
 
     // Visual
     this._t          = 0;
@@ -146,6 +148,7 @@ export class Player {
     this._attackFx       = Math.max(0, this._attackFx       - dt);
     this._pipBankFx      = Math.max(0, this._pipBankFx      - dt);
     this._pipSpendFx     = Math.max(0, this._pipSpendFx     - dt);
+    this._pipSurgeT      = Math.max(0, this._pipSurgeT      - dt);
     this._sprintSquash   = Math.max(0, this._sprintSquash   - dt);
     // Decay after-image alphas; fully-faded ghosts are dropped
     for (const img of this._afterImages) img.alpha -= dt * 4;
@@ -157,7 +160,7 @@ export class Player {
     this._updateAbsorb(dt, level);    // hold E near source  → absorb
     this._updateAttack(dt, level);    // K melee; L charged projectile
     this._updateBolts(dt, level);     // advance + cull live bolts
-    this._updatePipSpend();           // Q spends one reserve pip at a gate or switch
+    this._updatePipSpend(level);      // Q spends one reserve pip at a gate or switch
     this._updateDischarge(dt, level); // hold SPACE near gate/switch → gradual charge
     this._collectPickups(level);
 
@@ -927,15 +930,24 @@ export class Player {
   //    the transfer never visibly stalls at a pip boundary.
   //  • Affordability is asked via `usableEnergy` — same authority the HUD
   //    prompt uses, so UI and gameplay can never disagree.
-  _updatePipSpend() {
-    if (!Input.pressed('KeyQ') || !this.grounded || this.bankedPips <= 0) return;
-    const target = this.nearDevice;
+  _updatePipSpend(level) {
+    if (!Input.pressed('KeyQ') || this.bankedPips <= 0) return;
+    const target = this.nearDevice instanceof PowerGate || this.nearDevice instanceof Switch
+      ? this.nearDevice
+      : [...(level?.gates || []), ...(level?.switches || [])]
+          .find(device => device.inRange(this.cx, this.cy) && !device.blockOnly);
     if (!(target instanceof PowerGate || target instanceof Switch)) return;
+    if (!target.inRange(this.cx, this.cy)) return;
+    if (target.blockOnly || target.open || target.on) return;
     const needed = target.required - target.charged;
     if (needed <= 1e-9 || needed > MAX_CHARGE + 1e-9) return;
     const pip = this.spendPip();
     const opened = target.receive(needed);
     this.giveEnergy(pip - needed);
+    this._pipSpendFx = 0.75;
+    this._pipSurgeT = 0.75;
+    this._pipSurgeTarget = target;
+    target._pipFlash = 0.75;
     if (opened && target.isExit) target._justOpenedByPlayer = true;
   }
 
@@ -1238,6 +1250,25 @@ export class Player {
         const ty = tgt.y + tgt.h / 2 + Math.sin(t * 7 + i * 2.3) * (tgt.h * 0.28);
         drawTransfer(ctx, handX, handY, tx, ty, t, i);
       }
+    }
+
+    // A reserve pip arrives in one burst. Reuse the authored pixel-electric
+    // ribbon and impact frames at a larger scale; the timer outlives the gate's
+    // closed state, so the surge remains visible through its opening flash.
+    if (this._pipSurgeT > 0 && this._pipSurgeTarget) {
+      const gate = this._pipSurgeTarget;
+      const life = Math.min(1, this._pipSurgeT / 0.75);
+      const impactX = gate.cx;
+      const impactY = gate.cy;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, life * 1.4);
+      for (let i = 0; i < 5; i++) {
+        const spread = (i - 2) * Math.min(12, gate.h * 0.15);
+        drawTransfer(ctx, handX, handY, impactX + spread * 0.45,
+          impactY + spread, t, i, 38);
+      }
+      drawArrival(ctx, impactX, impactY, t, life, 72);
+      ctx.restore();
     }
 
     // Attack arc: player → enemy on swing

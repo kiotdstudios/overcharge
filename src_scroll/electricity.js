@@ -611,6 +611,27 @@ export class PowerGate {
     ctx.restore();
   }
 
+  _drawPipBurst(ctx) {
+    if (this._pipFlash <= 0) return;
+    const life = Math.min(1, this._pipFlash / 0.75);
+    const box = this.spriteBox();
+    const cx = Math.round(this.cx);
+    const cy = Math.round(box.dY + box.dH / 2);
+    const spread = Math.round((1 - life) * 24);
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, life * 1.5);
+    for (let i = 0; i < 10; i++) {
+      const side = i % 2 ? 1 : -1;
+      const yy = cy - 42 + i * 9 + (Math.floor(this._t * 24 + i) % 3) * 2;
+      const xx = cx + side * (box.dW / 2 + 3 + spread);
+      ctx.fillStyle = i % 3 ? '#64ddff' : '#f1c9ff';
+      ctx.fillRect(Math.round(xx), Math.round(yy), side * 10, 2);
+      ctx.fillRect(Math.round(xx + side * 10), Math.round(yy - 6), 2, 8);
+      ctx.fillRect(Math.round(xx + side * 10), Math.round(yy - 6), side * 8, 2);
+    }
+    ctx.restore();
+  }
+
   draw(ctx) {
     // Style branch FIRST. A fence is blockOnly, so it never shows a charge bar,
     // never shows a [SPACE] prompt, and never reaches the gate/dormancy art path
@@ -644,6 +665,7 @@ export class PowerGate {
       // faded out).
       if (age >= 1.0) {
         if (this.timed && this._timeLeft > 0) this._drawCountdown(ctx);
+        this._drawPipBurst(ctx);
         return;
       }
       const alpha = age < 0.5 ? 1.0 : Math.max(0, 1.0 - (age - 0.5) / 0.5);
@@ -664,6 +686,7 @@ export class PowerGate {
         drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
       }
       ctx.restore();
+      this._drawPipBurst(ctx);
       if (this.timed && this._timeLeft > 0) this._drawCountdown(ctx);
       return;
     }
@@ -792,16 +815,7 @@ export class PowerGate {
     }
 
     // Pip-spend flash: bright white burst over the gate
-    if (this._pipFlash > 0) {
-      const alpha = this._pipFlash * 1.8;  // fades out quickly
-      ctx.save();
-      ctx.globalAlpha = Math.min(0.85, alpha);
-      ctx.shadowBlur  = 40;
-      ctx.shadowColor = '#ffffff';
-      ctx.fillStyle   = '#cc44ff';
-      ctx.fillRect(this.x - 2, this.y, this.w + 4, this.h);
-      ctx.restore();
-    }
+    this._drawPipBurst(ctx);
   }
 
   // ── D9: timed countdown readout ────────────────────────────────────
