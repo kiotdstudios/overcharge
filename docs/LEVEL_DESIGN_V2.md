@@ -607,7 +607,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 9 | Charged-object payoffs: vending machine, fuse box and sign, shutter, AC unit | Art + runtime | 7 | CONFIRMED direction |
 | 10 | Ambient actors: pedestrians, passing cars, drifting birds | Runtime + art | none | CONFIRMED direction |
 | 11 | Ducking and double-jump **animations** (no ability implied) | Art | none | CONFIRMED |
-| 12 | Audio bus and effects: absorb hum, gate open, charged objects, land, ambience | Runtime + audio | none | GAME_DESIGN_V2 sections 9 and 10 |
+| 12 | Audio bus and effects: absorb hum, gate open, charged objects, land, ambience | Runtime + audio | none | **FIRST PASS BUILT round 10** (`audio.js`, 34 tests, not yet heard by a person). Ambience and the charged-object reactions are still to do. |
 | 13 | Replacement Level 1 music | Audio (Kiro) | 12 | CONFIRMED; pending assets |
 | 14 | Lengthen or stack Level 1; place zones, NPCs, props, beacon | Content | 1, 4, 7, 9, 10 | Chief |
 | 15 | Hint copy and NPC role tags | Content | 14 | RECOMMENDED |
