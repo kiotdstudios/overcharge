@@ -62,7 +62,7 @@ The 12-versus-8 economy stays safe only if optional spending cannot strand the p
 
 | Class | Behaviour | Counts against the 4 spare? |
 |---|---|---|
-| **Reclaimable toy** | Charge goes in, the prop reacts, E drains it back out. | Only if the player takes it back. Charge left in a prop when the player exits is lost (CONFIRMED round 2, see 3.3), so abandoned toys count. |
+| **Reclaimable charged object** | Charge goes in, the prop reacts, E drains it back out. | Only if the player takes it back. Charge left in a prop when the player exits is lost (CONFIRMED round 2, see 3.3), so abandoned charged objects count. |
 | **Permanent payoff** | Charge is consumed for a lasting reward. | **Yes.** The sum of all permanent costs in the level must be **at most 4.** |
 | **Mandatory spend** (the exit, or a required platform) | Required to finish. | Counted in the 8, or documented as reducing the spare. |
 
@@ -122,7 +122,7 @@ crates" rule and the "no enemies with crates" rule are therefore enforced by tes
 | The fork | **Already there.** Level 1 has a high/low split at x about 1500. | Keep it as an exploration reward (CONFIRMED). |
 | Switch plus fence | **Not recommended** | It is a costly decision ("spend 2 or skip"). That lesson belongs to Level 2, and a mandatory 2 would cut Level 1's spare. A *secret* built from a switch and a barrier is fine (section 4.6). |
 | Chest (1 pip) | **Not recommended** | Level 1 never fills the 25-unit bar, so a pip has no context there, and the chest has the open refusal bug (GAME_DESIGN_V2 3.7). |
-| The cost of a decision | **Already satisfied** by reclaimable toys | Toys teach "charge is something you spend" without a punishing choice. |
+| The cost of a decision | **Already satisfied** by reclaimable charged objects | Charged objects teach "charge is something you spend" without a punishing choice. |
 
 **CONFIRMED (round 2): keep Level 2 separate.** Level 1 borrows its *tools* (a switch, a barrier) for the
 secret route, and Level 2 keeps its *lesson*. Chief adds: Level 1 must become **more in depth and dynamic**,
@@ -156,11 +156,11 @@ One identity per zone, so the player always knows where they are. All families b
 | Walkway | after lamp 1 | apartment block, streetlights | First spend, a pedestrian NPC |
 | Rooftops | the raised block | warehouse bays, the smoke-break NPCs | Hint dialogue, fuse box and sign |
 | High strip and low street | the fork | blue-rooftop backdrop (already there) | Lamp 3, the woman, the checkpoint |
-| Market street | NEW | convenience store, Garry's Electronics, coffee bar, tire shop | Shutter toy, hint NPC, a passing car |
+| Market street | NEW | convenience store, Garry's Electronics, coffee bar, tire shop | Shutter charged object, hint NPC, a passing car |
 | Overpass | NEW | the rail and train from the parallax, close up | Distant drone foreshadow |
 | Gatehouse | end | brick gatehouse and the library | The payoff |
 
-### 3.3 Powered props and toys (CONFIRMED direction; details RECOMMENDED)
+### 3.3 Powered props and charged objects (CONFIRMED direction; details RECOMMENDED)
 CONFIRMED: signs, fuse boxes, shutters, lights and other props **visibly react when charged,** and **each
 interaction needs a clear payoff.**
 
@@ -169,21 +169,21 @@ interaction needs a clear payoff.**
 | Vending machine | Give 3 | Lights up, hums, a can drops, its sign flickers on | Reclaimable (the Chief's example) | **NEW:** a prop that can receive and return charge |
 | Fuse box and neon sign | Give 2 | The box sparks, the sign above it lights and animates | Reclaimable | **NEW** receiver plus a linked reaction |
 | Roller shutter (market) | Give 2 | The shutter rises, revealing a lit shop interior and a hint poster | Reclaimable | **NEW** receiver plus an animated reveal |
-| AC unit (secret) | Give 2 | A hatch or fire-escape ladder reveals a hidden route and a trophy | Permanent | **BUILDABLE TODAY** as a Switch linked to a `blockOnly` barrier; art needed |
+| AC unit (secret, recoloured) | Give 2 | Fan spins up, the window NPC thanks heaven it is back on, a hatch opens to an Easter egg and a story clue | Permanent | **NEW** receiver, **NEW** reactive NPC line; the hatch is **BUILDABLE TODAY** as a Switch linked to a `blockOnly` barrier |
 | Streetlights | Already absorbable | The light pool dims as they drain | n/a | **BUILT** |
 | Charge platform (lift) | Give 2 | Carries the player up to the raised gate (section 4.5) | Reclaimable if taken back | Horizontal **BUILT**; vertical **NEW** |
 
-**How a toy keeps its charge (CONFIRMED round 2: option (a)):** a charged prop **keeps its charge until the
+**How a charged object keeps its charge (CONFIRMED round 2: option (a)):** a charged prop **keeps its charge until the
 player takes it back.** If the player leaves through the exit gate first, the charge is **gone for good.**
 That is final; the return-on-leaving option (b) is dropped.
-- **Consequence for design:** every toy the player can charge must be reachable again, or its cost counts
-  against the 4 spare. Level 1 has a 160 px drop with no way back except the stairs, so each toy needs a way
+- **Consequence for design:** every charged object the player can charge must be reachable again, or its cost counts
+  against the 4 spare. Level 1 has a 160 px drop with no way back except the stairs, so each charged object needs a way
   back, or is accepted as a permanent cost.
-- **Consequence for the economy:** the total of all toys a player could leave charged must stay at or under
-  4. Three toys at 3 + 2 + 2 = 7 could strand a player who charges all and abandons them. So either some
-  toys are cheap, or the level guarantees recovery before the exit, or the HUD tells the player that the
-  charge stays in the prop. **RECOMMENDED:** a short "charge stored: take it back with E" tag on each toy.
-- **To verify in the prover:** that for every toy, a route back exists from where the player would
+- **Consequence for the economy:** the total of all charged objects a player could leave charged must stay at or under
+  4. Three charged objects at 3 + 2 + 2 = 7 could strand a player who charges all and abandons them. So either some
+  charged objects are cheap, or the level guarantees recovery before the exit, or the HUD tells the player that the
+  charge stays in the prop. **RECOMMENDED:** a short "charge stored: take it back with E" tag on each charged object.
+- **To verify in the prover:** that for every charged object, a route back exists from where the player would
   reach the exit.
 
 ### 3.4 City life (CONFIRMED: "substantially more"; counts and placement RECOMMENDED)
@@ -271,7 +271,7 @@ make up the 90 to 120 seconds. Ladder speed is 105 px/s, so a 10-tile climb is a
 
 ```
 x(px)  0     400  680  900       1500  1600     2112 2430    3230   3630  4010 4420
-       |plaza | L1 |toy |pillar/  |roof |fork    |step |market W | E    |over|ferry|gate
+       |plaza | L1 |obj |pillar/  |roof |fork    |step |market W | E    |over|ferry|gate
        |      |    |    |shaft L2 |work |high L3 |block|shutter  | NPC  |pass|     |
 ```
 
@@ -288,14 +288,14 @@ Heights are tiles above the spawn street surface (h0 = y 480 today, row 31 after
 | Zone | Columns | Height | What is there | Teaches |
 |---|---|---|---|---|
 | Plaza | 0 to 11 | h0 | Spawn, pedestrian, **opening ladder at col 8** (6 tiles up to a fire escape, h+6), relay pylon at col 14 | Orient. The ladder is optional and visible. |
-| Walkway | 12 to 23 | h+1 | **Lamp 1** (x 451), **vending machine toy (3)** | First absorb, then first spend |
+| Walkway | 12 to 23 | h+1 | **Lamp 1** (x 451), **vending machine (3)** | First absorb, then first spend |
 | Pillar and shaft | 24 to 26 | h+3, a 1-tile pit | Existing | Jump |
-| Rooftop | 27 to 46 | h+4 | **Lamp 2** (x 933), smoke workers, **fuse box + sign toy (2)**, **ladder lesson at col 45** | Dialogue, cause and effect, climb |
+| Rooftop | 27 to 46 | h+4 | **Lamp 2** (x 933), smoke workers, **fuse box + sign (2)**, **ladder lesson at col 45** | Dialogue, cause and effect, climb |
 | Upper roof | 40 to 52 | h+10 | Sign payoff, hint NPC, a view of the tower | Reward for climbing |
 | Fork | 47 to 65 | h+5 and h-1 | Existing: high strip (lamp 3, the woman, **CP1**), low street shortcut and stairs | Choice |
 | Tower base | 76 to 87 | h0 | **CP2**, the foot of the tower | Rest before the climb |
 | Tower floor 1 | 84 to 99 | h+5 | Ledge walk, drone graffiti, ladder at col 97 | Foreshadow |
-| Tower floor 2 | 88 to 99 | h+11 | **Shutter toy (2)**, hint NPC, **CP3**, the lift's foot | Last toy before the gate |
+| Tower floor 2 | 88 to 99 | h+11 | **Shutter (2)**, hint NPC, **CP3**, the lift's foot | Last charged object before the gate |
 | **Lift** | cols 86 to 88 | h+11 to h+19 | **Charge platform (2), vertical path** | The set piece |
 | Gatehouse roof | 80 to 90 | h+19 | **Exit gate** (cost 8), beacon top | The payoff |
 
@@ -318,15 +318,29 @@ the tower.** The pylon is on screen at the start; the cable climbs out of the to
 leads the eye to the tower. The beacon on the gatehouse roof is the same colour. All of this is ordinary
 decoration (buildable today; the cable and pylon art are new).
 
-**The AC secret (answered): above and behind the spawn.** The opening ladder at col 8 leads to a fire
-escape at h+6 with an AC unit. The player starts with 0 charge, so a curious player must **leave, absorb,
-and come back**: that is the backtracking incentive, with no backwards level. Giving the AC unit 2 (a
-Switch linked to a `blockOnly` barrier, **buildable today**) opens a hatch to a small room with the
-**Easter egg and the first story clue** (graffiti or a poster; the text comes from the story bible).
+**The AC secret (CONFIRMED round 4): above and behind the spawn, hinted by a window NPC.**
+- **The hint (Chief's design).** An **apartment building** in the Night City prop colour palette stands by
+  the plaza. In one window an **NPC complains about the heat.** That line is the hint: it tells the player
+  something up there needs power, with no tutorial text.
+- **The object.** The opening ladder at col 8 leads to a fire escape at h+6 with the **AC unit**. Chief wants
+  the existing Night City AC unit **recoloured, with the same look and the same behaviour** (the fan and
+  animation unchanged). It must be a **charged object** the player gives 2 to, not an absorbable source like
+  today's HVAC (`kind: 'hvac'`, charge 4). Off state: fan still. On state: fan spinning.
+- **The payoff.** When the AC unit is powered, **the window NPC's text changes to thanking God it is back on**,
+  and (RECOMMENDED, a Switch linked to a `blockOnly` barrier, **buildable today**) a hatch opens to a small
+  room with the **Easter egg and the first story clue** (graffiti or a poster; the text comes from the story
+  bible, which is Orcha's to write).
+- **The backtracking incentive.** The player starts with 0 charge, so a curious player must **leave, absorb,
+  and come back.** There is no backwards level.
+- **New art and work this needs:** (1) the apartment building facade in the Night City prop palette, with a
+  window the NPC can stand in; (2) the window NPC sprite and pose; (3) the AC unit recolour with its fan
+  frames; (4) the AC as a charged object (the receiver work, row 7); (5) **reactive NPC dialogue** (the NPC's
+  lines switch when the linked AC is powered, which does not exist: `GAME_DESIGN_V2` section 7); (6) the
+  hatch and room art.
 
-**Toys and their reclaim paths (round 3 price rule: give-cost = charge held when full):**
+**Charged objects and their reclaim paths (round 4: charged objects have their own cost system, scaled to size):**
 
-| Toy | Cost | Where | Way back to it from the gate |
+| Charged object | Cost | Where | Way back to it from the gate |
 |---|---|---|---|
 | Vending machine | 3 | Walkway, h+1 | The street is reachable by the tower ladders and the lift |
 | Fuse box + sign | 2 | Rooftop, h+4 | Ladders and stairs; no one-way drop |
@@ -336,13 +350,13 @@ Switch linked to a `blockOnly` barrier, **buildable today**) opens a hatch to a 
 
 The worst case where the player buys the permanent AC payoff (2) and the lift (2) and reclaims everything
 else is 12 - 2 - 2 = 8, exactly enough. A player who leaves the shutter charged must ride down and take it
-back before the exit; the fail-state check has to count stored toy charge (see section 8).
+back before the exit; the fail-state check has to count the charge stored in charged objects (see section 8).
 
 **Checkpoints:** CP1 (existing, high strip), CP2 (tower base), CP3 (tower floor 2 at the lift). A fall off the
 tower lands on the street, which is safe; the pit at col 26 stays the only death plane.
 
 **What the Builder needs for this level** (all items to be confirmed with Aki): extra rows, ladder
-decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the toy props (not built, GAME_DESIGN_V2 3.5),
+decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the charged-object props (not built, GAME_DESIGN_V2 3.5),
 the pylon and cable art, and the AC hatch art.
 
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
@@ -383,8 +397,9 @@ vertical Level 1 the beacon should sit at the top of the level, so the beacon al
   sunken street, reached by dropping 160 px, a short-cut that skips lamp 3 and the checkpoint. **Both must
   complete the level from zero** (rule 3), so lamp 3 stays genuinely optional. Make the high route the
   *rewarding* one (extra life and a checkpoint) and the low route the *fast* one.
-- **Secret (CONFIRMED: "could reveal a previously hidden route, trophy, or Easter egg").** Powering an AC unit
-  on the rooftop (permanent cost 2) opens a hidden route to a trophy.
+- **Secret (CONFIRMED round 4; full spec in 4.3a).** Powering the AC unit (permanent cost 2) changes the
+  window NPC's line, opens a hidden room and gives an Easter egg plus a story clue. The "trophy" is that
+  in-game collectible; there is no separate achievement system yet.
   **Buildable today:** a Switch (cost 2) linked to a `blockOnly` barrier that seals the alcove.
   **Trophy question, answered by Chief with "you tell me":** the point was a reason to go back. **No
   achievement or trophy system exists in the game** (searched `src_scroll`: nothing), so a literal in-game
@@ -425,7 +440,7 @@ inputs are the table below) so the sums are arithmetic, not hand-added.
 | 4 | Walkway and pedestrian NPC (flavor) | 210 | 2.8 | 3.0 | 5.8 |
 | 5 | Pillar, shaft jump, onto the rooftop | 130 | 1.7 | 2.0 | 3.7 |
 | 6 | Lamp 2: ABSORB | 0 | 0 | 1.3 | 1.3 |
-| 7 | Rooftop run: fuse box and sign (reclaimable toy) | 457 | 6.1 | 4.0 | 10.1 |
+| 7 | Rooftop run: fuse box and sign (reclaimable charged object) | 457 | 6.1 | 4.0 | 10.1 |
 | 8 | Smoke workers: hint dialogue | 0 | 0 | 3.5 | 3.5 |
 | 9 | Approach to the fork | 114 | 1.5 | 0 | 1.5 |
 | 10 | High route A: climb to the strip, lamp 3 (the spare) | 160 | 2.1 | 2.8 | 4.9 |
@@ -433,7 +448,7 @@ inputs are the table below) so the sums are arithmetic, not hand-added.
 | 12 | High route C: checkpoint flag | 83 | 1.1 | 1.0 | 2.1 |
 | 13 | High route D: strip-end overlook onto the street below | 288 | 3.8 | 1.5 | 5.3 |
 | 14 | Step block and drop to the street | 320 | 4.3 | 2.0 | 6.3 |
-| 15 | NEW Market street, west half: shutter toy | 400 | 5.3 | 4.0 | 9.3 |
+| 15 | NEW Market street, west half: shutter charged object | 400 | 5.3 | 4.0 | 9.3 |
 | 16 | NEW Market street, east half: hint NPC and passing car | 400 | 5.3 | 3.5 | 8.8 |
 | 17 | NEW Overpass: distant drone foreshadow | 400 | 5.3 | 2.0 | 7.3 |
 | 18 | NEW Ferry gap: charge platform ride (320 px gap) | 380 | 5.1 | 7.0 | 12.1 |
@@ -452,7 +467,7 @@ inputs are the table below) so the sums are arithmetic, not hand-added.
 | Level length | about 4,420 px (139 columns) including the 320 px the platform carries |
 
 The first minute therefore holds: absorb, carry, spend, reclaim, a pedestrian, the pillar and shaft, the
-second absorb and the rooftop toy. A second spend (the shutter) comes at about 1:25.
+second absorb and the rooftop charged object. A second spend (the shutter) comes at about 1:25.
 Note the first version of this table had a 10.7 s walk with no beat; splitting it was a design change the
 computation forced, which is why the arithmetic is scripted.
 
@@ -469,7 +484,7 @@ the 4.3a table, so **they must be re-measured once the tiles exist.**
 | 3 | Vending machine: first spend (give 3) | 130 | 0 | 0 | 1.7 | 4.0 | 5.7 |
 | 4 | Walkway, pillar, shaft jump | 330 | 0 | 0 | 4.4 | 1.5 | 5.9 |
 | 5 | Rooftop, lamp 2 (absorb 4) | 180 | 0 | 0 | 2.4 | 2.8 | 5.2 |
-| 6 | Smoke workers + fuse box toy (give 2) | 420 | 0 | 0 | 5.6 | 6.5 | 12.1 |
+| 6 | Smoke workers + fuse box (give 2) | 420 | 0 | 0 | 5.6 | 6.5 | 12.1 |
 | 7 | Ladder lesson: rooftop to upper roof | 90 | 192 | 0 | 3.0 | 3.0 | 6.0 |
 | 8 | Upper roof: sign payoff + hint NPC | 260 | 0 | 0 | 3.5 | 3.5 | 7.0 |
 | 9 | Fork: drop to the high strip, lamp 3 | 240 | 0 | 0 | 3.2 | 2.8 | 6.0 |
@@ -478,7 +493,7 @@ the 4.3a table, so **they must be re-measured once the tiles exist.**
 | 12 | Tower floor 1: ladder (5 tiles) | 70 | 160 | 0 | 2.5 | 1.5 | 4.0 |
 | 13 | Tower floor 1: ledge walk, drone graffiti | 300 | 0 | 0 | 4.0 | 4.0 | 8.0 |
 | 14 | Tower floor 2: ladder (6 tiles) | 60 | 192 | 0 | 2.6 | 1.5 | 4.1 |
-| 15 | Tower floor 2: shutter toy (give 2) | 220 | 0 | 0 | 2.9 | 6.0 | 8.9 |
+| 15 | Tower floor 2: shutter (give 2) | 220 | 0 | 0 | 2.9 | 6.0 | 8.9 |
 | 16 | Lift: charge the platform (give 2), ride 8 tiles | 80 | 0 | 256 | 5.1 | 3.0 | 8.1 |
 | 17 | Gatehouse roof: approach the gate | 200 | 0 | 0 | 2.7 | 1.0 | 3.7 |
 | 18 | Gate: discharge 8, gate-open payoff | 0 | 0 | 0 | 0.0 | 5.7 | 5.7 |
@@ -494,7 +509,7 @@ if it feels slow, raise its speed rather than shorten the ride.
 
 ### 5.2 What this table cannot tell us
 It is a model. **It must be checked with a timed run** by a person or a scripted walker. New players dawdle,
-read, or get lost, which adds time; skilled players skip optional toys, which removes it.
+read, or get lost, which adds time; skilled players skip optional charged objects, which removes it.
 
 ---
 
@@ -503,7 +518,7 @@ read, or get lost, which adds time; skilled players skip optional toys, which re
 ### 6.1 Trace from zero (BUILT numbers, CONFIRMED rules)
 - Sources: lamp 1 (4), lamp 2 (4), lamp 3 (4) = **12.** Exit **8.** Spare **4.**
 - **The main route needs only lamps 1 and 2** (4 + 4 = 8) before the fork, so lamp 3 is a genuine spare.
-- Reclaimable toys return their charge, so they cost nothing net.
+- Reclaimable charged objects return their charge, so they cost nothing net.
 - Permanent costs (section 1.4): the AC secret (2) and, worst case, the unreclaimed ferry (2) = 4.
   12 - 4 = 8, so even a player who buys every permanent payoff can still pay the exit.
 - **Level 1 never fills the 25-unit bar:** the player can hold at most 12. So no pip is banked and **the
@@ -554,7 +569,7 @@ exist yet.
 
 **Economy and safety**
 8. Sources total 12; exit 8; permanent optional costs leave at least 8 for the exit. (test)
-9. Every toy can be reached again from the gate by two-way paths only (ladder, stairs, lift), never only by a
+9. Every charged object can be reached again from the gate by two-way paths only (ladder, stairs, lift), never only by a
    one-way drop. (test) This replaces "the sum of permanent costs is at most 4".
 10. A stuck player is detected and offered a retry. (needs the fail-state fix)
 
@@ -587,14 +602,18 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 6 | Route verification across all six levels | Test | 2, 5 | CONFIRMED |
 | 7 | Reclaimable-charge props (receiver, reaction, drain) | Runtime | none | NEW; blocks 9 |
 | 8 | Juice module (particles, shake, hit-stop) and land/jump feedback | Runtime | 5 | RECOMMENDED |
-| 9 | Toy payoffs: vending machine, fuse box and sign, shutter | Art + runtime | 7 | CONFIRMED direction |
+| 9 | Charged-object payoffs: vending machine, fuse box and sign, shutter, AC unit | Art + runtime | 7 | CONFIRMED direction |
 | 10 | Ambient actors: pedestrians, passing cars, drifting birds | Runtime + art | none | CONFIRMED direction |
 | 11 | Ducking and double-jump **animations** (no ability implied) | Art | none | CONFIRMED |
-| 12 | Audio bus and effects: absorb hum, gate open, toys, land, ambience | Runtime + audio | none | GAME_DESIGN_V2 sections 9 and 10 |
+| 12 | Audio bus and effects: absorb hum, gate open, charged objects, land, ambience | Runtime + audio | none | GAME_DESIGN_V2 sections 9 and 10 |
 | 13 | Replacement Level 1 music | Audio (Kiro) | 12 | CONFIRMED; pending assets |
 | 14 | Lengthen or stack Level 1; place zones, NPCs, props, beacon | Content | 1, 4, 7, 9, 10 | Chief |
 | 15 | Hint copy and NPC role tags | Content | 14 | RECOMMENDED |
-| 16 | The AC-unit secret (switch plus barrier) and trophy | Content + art | 14 | CONCEPT |
+| 16 | The AC-unit secret: hatch (switch plus barrier), room, Easter egg and clue | Content + art | 14 | CONFIRMED round 4 |
+| 34 | **Apartment building in the Night City prop palette**, with a window NPC position | Art (Aki) | none | CONFIRMED round 4 |
+| 35 | **Window NPC** sprite (complaining pose, thankful pose) | Art | 34 | CONFIRMED round 4 |
+| 36 | **AC unit recolour**, same animation and behaviour, as a charged object | Art + runtime | 7 | CONFIRMED round 4 |
+| 37 | **Reactive NPC dialogue**: a second line set shown while a linked object is powered; rewinds on checkpoint | Runtime + Builder | 7 | NEW, CONFIRMED round 4 |
 | 17 | Level 1 pacing, economy and coverage tests | Test | 14 | RECOMMENDED |
 | 18 | Chest at the pip cap: "CHARGE FULL", pip drops as a pickup (replaces "refund") | Runtime + art | none | CONFIRMED design, reading OPEN |
 | 19 | Gate the dev keys (`P`, `F2`, `[`, `]`) | Runtime | none | RECOMMENDED |
@@ -608,7 +627,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 27 | Pip pickup object and art | Art + runtime | 18 | NEW |
 | 28 | Per-level ability list: hide bolt and melee in Level 1, prompts and dev bar | Runtime | none | CONFIRMED round 3 |
 | 29 | Ducking and unlockable double jump: abilities, art, unlock rule | Runtime + art | 5 | CONFIRMED real; unlock rule OPEN |
-| 30 | Toy pricing table applied to props; stored toy charge counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
+| 30 | Charged-object pricing applied to props; charge stored in objects counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
 | 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED |
 | 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/STORY_BIBLE_DRAFT.md` |
 | 33 | "Charge gate to open." world label above exit gates | Runtime | none | CONFIRMED |
@@ -631,7 +650,7 @@ Merging parts of Level 2 (RECOMMENDED against); a moving-platform route to the g
 horizontal); a charged-wire glide (not in the layout); the AC-unit secret and its trophy; passing cars.
 
 ### RECOMMENDED by Kiro
-Teaching rules T1 to T7; the movement envelope in 1.3; prop cost classes in 1.4; zones in 3.2; the toy
+Teaching rules T1 to T7; the movement envelope in 1.3; prop cost classes in 1.4; zones in 3.2; the charged object
 reclaim tag in 3.3; the city-life counts in 3.4; graffiti plus one NPC line for the foreshadow in 3.5; the
 ladder-first sequencing and the no-backwards trophy in 4.5 and 4.6; three checkpoints in 4.7 (to be redone
 for the vertical layout); the timing budget in 5.1 (superseded, to be redone); the fail-state fix in 6.2;
@@ -647,6 +666,15 @@ the work list ordering in 8.
 - Bolt and melee hidden in Level 1; "Charge gate to open." is a world label above exit gates; pip use is
   instant and separate from charging (all in GAME_DESIGN_V2 section 13).
 
+### CONFIRMED by Chief (round 4, 2026-09-06)
+- The word is **charged object**, not "toy".
+- Charged objects have their own cost system, separate from the source power system.
+- The secret's hint is a **window NPC** in a Night City palette apartment building; powering the recoloured
+  AC unit changes her line and opens the secret. (4.3a)
+- Tower position and lift speed: Kiro's call (east end; 64 px/s), to be tuned in play.
+- Story is Orcha's. Drained lamps do not relight at level end.
+- Q does nothing with no pip; the chest still takes its payment; double jump comes after the tutorial levels.
+
 ### CONFIRMED by Chief (round 3, 2026-09-06)
 - Draw the vertical layout (done as a draft, 4.3a). The secret is an Easter egg plus a story clue as an
   in-game collectible, above and behind the spawn, reached by the opening ladder. (4.6)
@@ -655,12 +683,11 @@ the work list ordering in 8.
 - Start the story bible. (`docs/STORY_BIBLE_DRAFT.md`)
 
 ### OPEN questions (need Chief)
-1. **Check the 4.3a draft.** Zone heights, the 34-row total, the lift's route, the pylon-and-cable signpost.
-2. **Lift speed.** I assumed 64 px/s. Faster, or the engine's 80?
-3. **Where does the tower go?** I put it at the east end (cols 76 to 99). A west tower above the spawn is
-   possible but changes the whole route.
-4. **Cutscene.** Not buildable today; skip for now? (3.5)
-5. **Story direction.** Pick a premise from `STORY_BIBLE_DRAFT.md`.
+1. **Check the 4.3a draft** in the Builder: zone heights, the 34-row total, the lift's route, the
+   pylon-and-cable signpost. Chief has not reviewed it yet. The lift speed and tower position are Kiro's
+   call for now (64 px/s; east end) and need playtesting.
+2. **Cutscene.** Not buildable today; skip for now? (3.5) Not answered.
+3. **Story direction.** Chief will pick; Orcha writes. (`STORY_BIBLE_DRAFT.md`)
 
 ---
 

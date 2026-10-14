@@ -5,6 +5,18 @@ name, line and plot beat below is a **proposal** until Chief marks it. Tags: **F
 **PROPOSAL** (Kiro), **QUESTION** (needs Chief). This file is a working draft and is not part of the design
 documents' law until Chief says so.
 
+**HANDOFF (round 4):** Chief is giving the story to **Orcha** and will decide the premise, the hero's name and
+the city's name himself. He said "I'll think of something" on the premise, so none of A, B or C below is
+chosen. Chief said the tone should be **Static Shock inspired**. This draft is the starting material for
+Orcha, not a plan Kiro will keep writing. Kiro keeps only the engine facts (what the game can show) and the
+Level 1 hooks that the design needs (the window NPC below).
+
+**Tone (Chief, round 4): "Static Shock inspired, something along that realm."** In practice that means a
+young, relatable street-level hero, humour alongside real stakes, a neighbourhood that feels lived in, and
+problems that come from the city (power, money, neglect) rather than from space. **IP caution:** inspired is
+fine; copying is not. The hero, name, city, powers' look and supporting cast must be original (flagged in
+`GAME_DESIGN_V2` identity). No character, name or plot of the original show should appear.
+
 Written for a game with **no cutscene system** (checked: none exists). So story reaches the player through
 things the engine already does: NPC speech bubbles, signs and graffiti, posters, the objective card, the
 level-complete banner, level names and the title screen.
@@ -57,9 +69,8 @@ district to district, **borrowing power from what still has it to restore what d
   line already exists, and it explains why lamps and vending machines are low on charge and why a person who
   stores electricity matters. Gates that keep their power while the street is dark is a clean question for
   the player to ask: *who gets to be powered?*
-- *Drained lamps:* in B the hero is **moving** power, not stealing it. **Idea:** when a level completes, every
-  lamp the player drained relights, because the circuit is closed. That makes "CIRCUIT CLOSED // POWER
-  RESTORED" literal, and gives each exit a visible payoff across the whole level.
+- *Drained lamps:* in B the hero is **moving** power, not stealing it. (Relighting lamps at the end of a
+  level was **rejected by Chief**: the player cannot return to the level, so nobody would see it.)
 - *Risk:* a blackout is a familiar premise, so the specific "who kept the gates on, and why" matters.
 
 ### C. "The Failsafe" (wild card)
@@ -124,16 +135,15 @@ objective card is the only text.
 - A sign: **"LOAD MONITORING IN PROGRESS. UNITS ON PATROL."**
 - Hint NPC: "If something small and square hovers over you, you're drawing too much."
 
-**The AC-unit secret room** (above and behind the spawn, reached by the opening ladder): a small hideout.
-A poster on the wall is the first story clue the player can find. Candidates:
-1. A hand-drawn map of the city with districts crossed out and **one circle, labelled "WHERE IT GOES".**
-2. A utility notice: **"PRIORITY LINES REMAIN ENERGISED. RESIDENTIAL LINES: NO ETA."**
-3. A child's drawing of the hero with lightning gloves, captioned **"Light-Maker"** (suggests the city has been
-   waiting for someone).
-It is an Easter egg *and* the first clue, as Chief asked. **QUESTION:** which of the three, or all?
+**The window NPC and the AC unit (CONFIRMED design by Chief, round 4; wording is a PROPOSAL for Orcha).**
+An apartment building near the plaza has an NPC in a window who complains about the heat. The AC unit on the
+fire escape above and behind the spawn is the answer. When the player powers it, her line changes to thanks.
+- Before: "It's an oven in here. Somebody fix that AC!" (or) "Third night with no air. I'm melting."
+- After: "Oh, thank God. It's back on." (or) "Finally! Whoever you are, bless you."
+This is also the Level 1 proof that the player's power changes real people's lives, in one line. The secret
+room behind the hatch holds the Easter egg and the first story clue; its content depends on the premise.
 
-**Level complete.** Keep the banner. **Idea:** every lamp the player drained relights, so the whole block lights
-up when the gate opens.
+**Level complete.** Keep the banner as it is.
 
 ---
 
@@ -145,8 +155,7 @@ up when the gate opens.
 3. **Hero:** a name? Does the city know who they are? Do they have family nearby?
 4. **City name:** one of mine, or yours?
 5. **The utility:** an invented company, or no named company at all (just "the grid")?
-6. **Relighting at the end of a level:** do drained lamps come back on? (Great payoff; changes what "drained"
-   means for any later level.)
+6. ~~Relighting at the end of a level~~ (answered: no).
 7. **Delivery:** only NPCs, signs and cards, or do you want to invest in a cutscene tool later?
 8. **How much story:** a thin line (the hero, the dark city, the gates) or a full arc across ten levels?
 9. **Who writes what:** I can draft every NPC line for your pass, or you tell me the voice for each NPC and

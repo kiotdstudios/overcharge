@@ -118,8 +118,7 @@ Rules these results establish:
   Double-tap SPACE was rejected: holding SPACE already means "charge", so the first tap of a double-tap
   would begin a charge and spend bar before the second tap lands. Q is unbound today (checked against the
   bindings table in section 4.1). **Q while near a payable gate or switch with at least one pip banked
-  opens it at once.** **OPEN (small):** what Q does with no pip, or away from a device (RECOMMENDED: a
-  short "no pip" or "nothing to open" tell and no cost).
+  opens it at once.** **CONFIRMED (round 4): with no pip banked, Q does nothing.** No tell, no cost.
 - **RECOMMENDED consequence:** the pip pays the gate's price (8) and the other 17 returns to the bar, which
   is exactly what the current tested behaviour does (see `_dev/pip_gate_spend.mjs`). If the bar cannot hold
   the 17, the surplus is lost, so the prompt should say so.
@@ -164,17 +163,19 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 - **CONFIRMED (round 2):** a charged prop's charge **stays in the prop until the player takes it back.** If
   the player leaves through the exit gate first, it is **lost for good.** (This is option (a), not the
   return-on-leaving option.)
-- **Consequence (derived):** an unreclaimed toy is a permanent cost, so toys are not free against the spare.
-  The total a player can leave behind in Level 1 must stay at or under the 4 spare units. Toy prompts
+- **Consequence (derived):** an unreclaimed charged object is a permanent cost, so charged objects are not free against the spare.
+  The total a player can leave behind in Level 1 must stay at or under the 4 spare units. Charged-object prompts
   should say "take it back" while the player is in range.
 - **CONFIRMED (round 3): prices follow the prop's size and power.** Chief: a generator is about 10, a
   vending machine 3, and "4 was just a set value from game testing, not a real number." The 4-unit spare is
-  therefore a *design check*, not a law (see below). **RECOMMENDED rule: a prop's give-cost equals the charge
-  it holds when full**, so giving and absorbing are mirror images and the player learns one number per prop.
+  therefore a *design check*, not a law (see below). **CONFIRMED (round 4): charged objects have their own
+  cost system, separate from the source power system.** A prop's give-cost is its own number, scaled to its
+  size and power, and is not tied to how much charge the same prop yields when absorbed. Existing sources keep
+  the values they were authored with. (This replaces my earlier "give-cost equals the charge it holds" rule.)
 
   | Prop | Give-cost | Level 1? | Notes |
   |---|---|---|---|
-  | Security camera | 1 | optional | tiny, a good first toy |
+  | Security camera | 1 | optional | tiny, a good first charged object |
   | Neon sign / fuse box | 2 | yes | the sign lights when its fuse box is fed |
   | Roller shutter | 2 | yes | rises, reveals a shop |
   | AC unit (secret) | 2 | yes | permanent (opens a hatch) |
@@ -184,17 +185,16 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   | Billboard / large neon sign | 5 | later | |
   | Generator | 10 | later levels only | more than Level 1's whole 12 |
 
-  Generators cannot appear as Level 1 toys: giving 10 of 12 would leave 2, and the exit costs 8. They need
-  a level with more sources. Existing generators/HVAC/props hold 4 or 5 when absorbed (editor defaults), so
-  absorb values would also change if the mirror rule is adopted. **OPEN:** apply the mirror rule to the
-  existing sources, or keep them as authored and only price new toys.
+  Generators cannot appear as Level 1 charged objects: giving 10 of 12 would leave 2, and the exit costs 8. They need
+  a level with more sources. Existing generators, HVAC units and props hold 4 or 5 when absorbed
+  (editor defaults); that is unchanged, because the two systems are now separate.
 - **The real stranding rule (derived, replaces my earlier "total must be 4 or less").** A player can only
-  lose charge to an abandoned toy by choosing to leave through the gate with it uncollected, and the gate
-  costs 8 to open, so they cannot leave while short. The true risk is **a toy the player cannot get back
-  to**. So the rule is: *from the gate, every toy remains reachable by two-way paths (ladders, stairs, the
+  lose charge to an abandoned charged object by choosing to leave through the gate with it uncollected, and the gate
+  costs 8 to open, so they cannot leave while short. The true risk is **a charged object the player cannot get back
+  to**. So the rule is: *from the gate, every charged object remains reachable by two-way paths (ladders, stairs, the
   lift), never only by a one-way drop.* The 4-unit spare then only matters for permanent payoffs and mistakes.
 - **RECOMMENDED semantics, for Chief to approve:**
-  - *Reclaimable toys*: charge goes in, the prop reacts, and holding E drains it back out. Reclaimed, they
+  - *Reclaimable charged objects*: charge goes in, the prop reacts, and holding E drains it back out. Reclaimed, they
     cost nothing; left behind, they cost what was given.
   - *Permanent payoffs*: charge is consumed for a lasting reward. Their total cost in Level 1 should
     never exceed the 4 spare units, so a player who buys them all still has 8 for the exit.
@@ -220,10 +220,9 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   **Chief's design:** the chest must not take charge it cannot reward. When the reserve is full the chest
   shows **"CHARGE FULL"** and the **pip pops out as a world object** on or beside the chest. The player can
   **pick it up once they have room** (a free pip slot). It waits for them; **leaving the level forfeits it.**
-  **My reading, flagged for correction (OPEN, one question):** the player pays the chest's 2 as normal and
-  the chest opens; only the *reward* is held back as a pickup because the reserve is full. That removes
-  refusal entirely, so the bug cannot happen. The other reading (the chest refuses payment while the
-  reserve is full) is simpler but gives no reward to see. **NEW WORK:** a pip pickup object with its own
+  **CONFIRMED (round 4): the player still pays.** If the player chooses to open the chest, they pay the 2 as
+  normal and the chest opens; only the *reward* is held back as a pickup because the reserve is full. That
+  removes refusal entirely, so the bug cannot happen. **NEW WORK:** a pip pickup object with its own
   art (no pip-pickup art exists yet; the pip HUD icon is the only pip art), a "CHARGE FULL" tell, a
   pickup rule (needs a free slot, stays until taken, not time-limited like the 6-second charge pickups),
   and checkpoint rules (a pip pickup should survive a respawn, since it is not scattered loot). Not a
@@ -235,7 +234,7 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   reload; there is no in-play respawn key. **OPEN: fix it?** Recommended yes: treat "usable energy below the
   cost of the cheapest remaining mandatory spend, with no source left" as a fail state. Hiding the bolt in
   Level 1 (CONFIRMED round 2, section 6) removes the path that triggers it there, but the check is still
-  worth having for later levels, and for toys left charged.
+  worth having for later levels, and for charged objects left charged.
 - Dormant code: `spendPip()` has no runtime caller, `_pipFlash` is never set above 0, and several
   comments still say `MAX_CHARGE = 10`.
 
@@ -302,7 +301,9 @@ and 18 rows) and will be regenerated after the retune.
 ### 4.4 New movement abilities (CONFIRMED round 2 as real abilities; NOT BUILT)
 - **CONFIRMED (round 2).** **Ducking and double jump are real abilities, so each needs animation art.**
 - **CONFIRMED (round 2).** **Double jump is unlockable, at least for now.** It is not available from the
-  first frame. **OPEN:** what unlocks it, where, and whether the unlock persists across levels and saves.
+  first frame. **Round 4 (Chief, "maybe Level 5 or something after the tutorial levels"):** the unlock
+  comes after the tutorial levels, probably around Level 5. Not final. **OPEN (later):** what unlocks it and
+  whether the unlock persists across levels and saves. Nothing in Levels 1 to 4 may require it.
 - **OPEN:** does ducking also unlock, and what does it do (pass under low gaps, dodge a laser)?
 - **RECOMMENDED:** because double jump is gated, the movement envelope that every level was proved against
   stays valid until the unlock, and no level may require it before the unlock exists. Ducking, if it only
@@ -387,6 +388,12 @@ and 18 rows) and will be regenerated after the retune.
   idle/smoke state machine, proximity-triggered speech bubbles and per-NPC dialogue. Decorations can
   animate from the asset manifest. Rain, lightning, a train and windblown litter run in the background.
 - **BUILT, a defect:** both smoke workers have dialogue enabled with the placeholder line `"New line"`.
+- **NEW WORK (round 4), reactive NPC dialogue.** An NPC's lines are fixed today (`npc.js`: a `lines` array
+  chosen sequentially or at random, triggered by proximity only). Chief wants a **window NPC whose lines change
+  when a linked object is powered** (complaining about the heat, then thanking God it is back on). That needs
+  a second line set plus a link to a charged object, switched when that object's state changes. It should be a
+  general Builder field ("lines when powered"), not a one-off, so story NPCs elsewhere can react to the
+  world. The state must rewind on checkpoint restore, like the other level state.
 - **RECOMMENDED:** NPC dialogue gets a role tag in the Builder (`hint` or `flavor`) so hints can be
   audited. The rule for hint lines: they must describe an *observation* ("that lamp still hums"), never
   an instruction, so they teach without becoming text tutorials.
@@ -505,9 +512,25 @@ Every effect must return to rest and must respect `prefers-reduced-motion`.
 - Passing cars.
 
 ### RECOMMENDED by Kiro (awaiting Chief)
-A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-toy and permanent-payoff rules in 3.5; refund
+A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-object and permanent-payoff rules in 3.5; refund
 on a refused chest in 3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
 card-versus-world pairing and string placement in 8; the bar cost marker in 8.3; the juice order in 9.
+
+### CONFIRMED by Chief (round 4, 2026-09-06)
+31. **Wording:** an object the player gives charge to is a **charged object** (or "charged asset"), never a
+    "toy". The docs now use "charged object" throughout.
+32. Charged objects have **their own cost system, separate from the source power system.** (3.5)
+33. With no pip banked, **Q does nothing.** (3.3)
+34. The chest still takes its payment when the player chooses to open it; the pip waits as a pickup if the
+    reserve is full. (3.7)
+35. Double jump unlocks after the tutorial levels, probably around Level 5. (4.4)
+36. The story is Orcha's to write. The tone is **Static Shock inspired** (see `STORY_BIBLE_DRAFT.md`). The
+    premise, hero name and city name are not decided; Chief will decide.
+37. The hint for the AC-unit secret is a **window NPC** in an apartment building who complains about the
+    heat; powering the AC unit changes what she says to thanks that it is back on. (`LEVEL_DESIGN_V2` 4.6)
+38. The tower goes at the east end and the lift speed starts at 64 px/s, to be tuned in play. (`LEVEL_DESIGN_V2`)
+39. Drained lamps do **not** relight at level end (the player cannot return to the level, so there is no one
+    to see it).
 
 ### CONFIRMED by Chief (round 3, 2026-09-06)
 23. Objective card: the stage 1 line now reads "Try absorbing power from a street lamp" (built); stage 2
@@ -538,15 +561,15 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     one must be built. (see `LEVEL_DESIGN_V2`)
 
 ### OPEN questions (need Chief)
-1. Charge-speed formula: `1 + held / 25` (3 to 6 units/s), or another curve? (3.3)
-2. Chest at the pip cap: does the player pay and the *reward* wait as a pickup (my reading), or does the
-   chest refuse payment? (3.7)
-3. Should a vending machine ever dispense a pip? (3.5)
-4. Apply "give-cost = the charge it holds when full" to the existing sources too? (3.5)
-5. What unlocks double jump, and does ducking unlock too? (4.4)
-6. How does the player first meet the bolt in Level 3? (6)
-7. Is "a street lamp" the ending you meant for the stage 1 line? (8.2)
-8. What does Q do with no pip banked? (3.3)
+1. Charge-speed formula: `1 + held / 25` (3 to 6 units/s), or another curve? (3.3) Chief did not answer;
+   the formula stays RECOMMENDED until he tunes it in play.
+2. Should a vending machine ever dispense a pip? (3.5) Not answered.
+3. Does ducking unlock too, and what does it do? (4.4) Not answered.
+4. How does the player first meet the bolt in Level 3? (6) Not answered.
+5. Is "a street lamp" the ending you meant for the stage 1 line? (8.2) Built on that reading; no objection yet.
+
+(Closed by round 4: Q with no pip does nothing; the chest still takes its payment and the pip waits as a
+pickup; charged objects have their own cost system; double jump unlocks after the tutorial levels.)
 
 (Closed by round 2: pip meaning (a) vs (b); platform vertical mode; hide the bolt; double jump and ducking as
 abilities; which string "Charge gate to open." replaces.)

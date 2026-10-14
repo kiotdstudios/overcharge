@@ -2185,3 +2185,12 @@ Chief answered the open questions. One code change, the rest docs.
 - No fall damage in `src_scroll`.
 - My earlier rule "abandoned toys must total 4 or less" was wrong. The gate costs 8, so a player cannot leave short. The real rule: every toy must stay reachable by two-way paths.
 - Not done: no Level 1 JSON was edited (Chief's file), no engine change beyond the string.
+## 2026-09-06 - Round 4: Chief's answers recorded (docs only)
+- Wording: "toy" is gone from the design docs; the term is **charged object**.
+- Charged objects have their own cost system, separate from the source power system (the earlier "give-cost = charge held" rule is withdrawn).
+- Q with no pip does nothing. The chest still takes its payment; the pip waits as a pickup when the reserve is full. Double jump unlocks after the tutorial levels (about Level 5).
+- Drained lamps do not relight at level end (the level cannot be revisited).
+- The AC secret now has a hint: a window NPC in a Night City palette apartment building complains about the heat; powering the recoloured AC unit changes her line to thanks. This adds four pieces of work: the apartment facade, the window NPC art, the AC recolour as a charged object, and reactive NPC dialogue (an engine feature that does not exist; NPC lines are fixed today).
+- Tower position (east end) and lift speed (64 px/s) are my calls, to be tuned in play.
+- Story is Orcha's. Tone is Static Shock inspired. `STORY_BIBLE_DRAFT.md` carries a handoff note and an IP caution; premise, hero name and city name are Chief's to decide.
+- No code touched this round.
