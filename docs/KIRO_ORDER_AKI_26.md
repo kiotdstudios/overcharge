@@ -98,7 +98,7 @@ reactions (a later order, after Chief reviews these), or any music.
 - [ ] Each Part 1 item working in the Builder, with a short screen recording of Chief's workflow for 1.1, 1.3 and 1.4.
 - [ ] Old levels load and save unchanged (diff a round trip of every level JSON and show it is empty).
 - [ ] New tests for the checkbox round trip, the readout, path editing with undo and redo, and NPC fields.
-- [ ] Suite totals versus the baseline in CODEX 01 (2617 passed, 24 failed before this order). Name every new failure.
+- [ ] Suite totals versus the baseline in CODEX 01 (2709 passed, 5 failed before this order). Name every new failure.
 - [ ] Each art piece: the checks above, a contact sheet and in-game screenshots, shown to Chief before registering.
 - [ ] Commit and push everything, with SHA, file list and the build URL Chief should test.
 

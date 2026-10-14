@@ -21,8 +21,13 @@ sec('DECISION 5 — no migration: the five shipped levels are untouched');
 for (const n of [1,2,3,4,5]) {
   const def = JSON.parse(fs.readFileSync(`src_scroll/levels/level${n}.json`,'utf8'));
   const lv = new Level(def);
-  ok(lv.rows === 18, `level${n} still derives to 18 rows`, `pxH ${lv.pxH}`);
-  ok(lv.pxH === 18*32, `level${n} pxH unchanged at 576`, `${lv.pxH}`);
+  // Level 2 was rebuilt as a 36-row level (Chief, 2026-10-11), so "still 18 rows" is no longer true
+  // of it. The guarantee that matters is that rows are DERIVED from the level's own tile data and
+  // that every level still at the old height is untouched.
+  const authoredRows = Math.round(def.tiles.length / def.cols);
+  ok(lv.rows === authoredRows, `level${n} derives ${authoredRows} rows from its own tile data`, `pxH ${lv.pxH}`);
+  ok(lv.pxH === authoredRows*32, `level${n} pxH follows its rows`, `${lv.pxH}`);
+  if (authoredRows === 18) ok(lv.pxH === 18*32, `level${n} (an 18-row level) pxH unchanged at 576`, `${lv.pxH}`);
 }
 
 sec('DECISION 1 — height is PER-LEVEL and derived, symmetric with cols');

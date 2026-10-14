@@ -2221,3 +2221,23 @@ Chief said nobody is working, so orders went out.
 - Shared data fields are listed in the Aki order so both builders agree. Neither order touches level files; Chief places everything.
 - `LEVEL_DESIGN_V2.md` section 8.1 maps the work list to owners. Kiro keeps the prover rows, retune and route checks, the juice module, the audio bus and music, hero duck and double-jump frames, and review.
 - The derived `AGENT_BOARD.md` is stale (last generated 2026-10-01) and not regenerated here.
+## 2026-10-14 - Kiro's own items: prover fixes, juice module, audio bus
+### Prover (work list row 2)
+- `completability.mjs` hard-coded 18 rows, so it scanned only the top half of the 36-row Level 2 and called 62% of it void. It now reads rows from the level data: 42 passed, 0 failed (was 39/3).
+- `reach.mjs` (the real-physics reachability prover) had two bugs on tall levels: it settled the spawn for a fixed 40 frames (Level 2 spawns high), and it threw away every state that was still falling after 70 frames, so the search could never leave the top of Level 2 (94 states). It now settles until grounded and follows long drops. Level 2's fence checks now pass for real: gate closed, chest unreachable (533 states); gate open, reachable; the lower route reaches the exit.
+- `camera_vertical.mjs` and `level_height.mjs` asserted that Level 2 is 18 rows. It is 36 now (Chief, 2026-10-11). Both keep the "pinned" guarantee for levels that fit the screen and test tall levels for scroll room instead.
+- **Genuine finding:** Level 5's fence can be bypassed. The real-physics prover reaches the exit with the fence CLOSED (382 states, via a running jump at x=3001). Level 5 is paused and Chief's; not fixed. The 2 remaining `level2_fork` failures are this.
+### Juice and audio (work list rows 8 and 12), first pass
+- New `src_scroll/juice.js`: particles (pooled, capped at 400), screen shake (capped at 6 px), hit-stop (capped at 0.12 s), all returning to rest. It only watches the game, so it needs no changes in `player.js`. `_dev/juice.mjs`: 32/0, including one that proves 60 observed frames leave the player identical.
+- New `src_scroll/audio.js`: synthesised sounds, no files. `_dev/audio_bus.mjs`: 34/0 against a fake AudioContext. Caught and fixed one real bug on the way (switching audio off did not stop the loops).
+- `main.js`: four small hooks. A shake translate was added as a separate line so the existing structural guard in `camera_vertical` still matches. `?juice=off`, `?audio=off` and `prefers-reduced-motion` switch the pieces off.
+- Real headless-browser run of the opening of Level 1: no page errors with the default, `?juice=off` and `?juice=off&audio=off`. The objective card shows "Try absorbing power from a street lamp" and the text fits.
+- `node scripts/version_editor.mjs` was run per `AGENTS.md`; it regenerated the import map in `index.html`, `editor.html`, `hero-lab.html`.
+### Not verified
+Nobody has heard the sounds or judged the particles in motion; the headless browser has no audio output and a still frame cannot show motion. Chief should play the first minute with and without `?juice=off`.
+### Suite
+2709 passed, 5 failed across 60 suites (was 2617/24): `level2_fork` 2 (Level 5 fence), `npc_dialogue` 3 (the "New line" placeholders), and `npc_geometry` and `order23_taskb_acceptance` crash before reporting, as they already did.
+### Orders
+Baselines in `KIRO_ORDER_CODEX_01.md` and `KIRO_ORDER_AKI_26.md` updated to 2709/5.
+### Still mine and not started
+Hero duck and double-jump frames (needs a PixelLab key; none is in the repo), Level 1 music, and the movement retune and six-level route check (after Codex's duck work).

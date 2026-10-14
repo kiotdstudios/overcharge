@@ -500,6 +500,18 @@ sound, or death/respawn transition. v1 section 9 required "tactile sound design:
 whines, power-down thumps, relay clicks, and escalating audio as the player approaches maximum charge."
 So the feedback layer is a **v1 requirement that was never built**, not a stretch goal.
 
+**BUILT (round 10, first pass):** `src_scroll/juice.js` (particles, screen shake, hit-stop) and
+`src_scroll/audio.js` (a synthesised sound bus), wired into `main.js` with four small hooks. They only
+listen to the game, never change it. Switches: `?juice=off` (visuals), `?audio=off` (sound), and
+`prefers-reduced-motion` (no shake or hit-stop, fewer particles). Effects so far: dust on jump and landing
+(scaled by fall speed, shake on long falls), spark streams while absorbing and charging, a burst, shake and
+short hit-stop when a gate opens, checkpoint, chest and lamp-runs-dry bursts, and a hit reaction. Sounds so
+far: jump, land, gate open, checkpoint, chest, lamp power-down, hurt, and two loops (absorb, charge) whose
+pitch rises with the transfer rate. **Not yet:** ladder, lift, duck and double jump (their mechanics do not
+exist), music, ambience under the rain, and the footstep still uses its own separate audio context.
+**Not heard by a person yet:** the sounds are tested for structure (they start, stop, scale and never clip),
+not for taste. Chief must listen and say what to change.
+
 **RECOMMENDED order of work:** (1) movement retune, (2) a shared juice module for particles, shake and
 hit-stop, (3) landing and jump feedback, (4) absorb, discharge and gate-open payoffs, (5) the audio bus.
 Every effect must return to rest and must respect `prefers-reduced-motion`.

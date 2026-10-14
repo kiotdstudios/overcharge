@@ -597,13 +597,13 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | # | Work | Kind | Depends on | Status |
 |---|---|---|---|---|
 | 1 | Remove the two `"New line"` placeholder lines | Content | none | CONFIRMED defect |
-| 2 | Fix the prover's hard-coded 18 rows | Test infra | none | RECOMMENDED |
+| 2 | Fix the prover's hard-coded 18 rows | Test infra | none | **DONE round 10**: `completability` 42/0, `level2_fork` 44/2, plus the reachability prover now settles until grounded and follows long drops. Two stale 18-row guards (`camera_vertical`, `level_height`) updated for the 36-row Level 2. |
 | 3 | Fail-state fix, in-play respawn, and "out of charge" prompt | Runtime | none | RECOMMENDED |
 | 4 | Objective-card stage 1 line (two places) | Runtime | none | **DONE round 3** ("Try absorbing power from a street lamp"). The "Charge gate to open." world label above exit gates is still to build. |
 | 5 | Movement retune with before and after (Appendix A) | Runtime | 2 | CONFIRMED authorized |
 | 6 | Route verification across all six levels | Test | 2, 5 | CONFIRMED |
 | 7 | **Two-way charged objects**: `capacity` plus `startCharge` on every source, a `receive()` that revives a drained object, conservation test, checkpoint snapshot | Runtime | none | CONFIRMED round 5; blocks 9 |
-| 8 | Juice module (particles, shake, hit-stop) and land/jump feedback | Runtime | 5 | RECOMMENDED |
+| 8 | Juice module (particles, shake, hit-stop) and land/jump feedback | Runtime | 5 | **FIRST PASS BUILT round 10** (`juice.js`, 32 tests); needs Chief's eyes and tuning |
 | 9 | Charged-object payoffs: vending machine, fuse box and sign, shutter, AC unit | Art + runtime | 7 | CONFIRMED direction |
 | 10 | Ambient actors: pedestrians, passing cars, drifting birds | Runtime + art | none | CONFIRMED direction |
 | 11 | Ducking and double-jump **animations** (no ability implied) | Art | none | CONFIRMED |

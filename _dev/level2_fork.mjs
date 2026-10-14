@@ -17,7 +17,9 @@ const exitDef  = L2.gates.find(g=>g.isExit);
 const sw       = L2.switches[0];
 
 // Surface y of the first solid tile below a given row, at a column.
-const surfaceAt = (col, fromRow) => { for(let r=fromRow;r<18;r++) if(solid(L2.tiles[r*C+col])) return r*T; return null; };
+// Rows come from the level's own data (Level 2 is 36 rows; a hard-coded 18 scanned only its top half).
+const L2ROWS = Math.round(L2.tiles.length / C);
+const surfaceAt = (col, fromRow) => { for(let r=fromRow;r<L2ROWS;r++) if(solid(L2.tiles[r*C+col])) return r*T; return null; };
 
 sec("EXIT PORTALS PERMIT EXPLORATION — Chief revised ruling");
 {
@@ -126,7 +128,7 @@ sec('RULING A2 — a blockOnly gate must FILL A BOUNDED OPENING (every level, no
       // (3) THE ASSERTION THAT WOULD HAVE CAUGHT THE JUMP.
       // A JUMPING body at apex, not a standing one. The ceiling clamps the head, so
       // the real apex is whichever is lower: free-flight apex, or the ceiling underside.
-      const surface = (() => { for (let r = Math.floor((g.y+g.h)/32); r < 18; r++) if (sol(L.tiles[r*cols+col])) return r*32; return null; })();
+      const surface = (() => { const lRows = Math.round(L.tiles.length / cols); for (let r = Math.floor((g.y+g.h)/32); r < lRows; r++) if (sol(L.tiles[r*cols+col])) return r*32; return null; })();
       if (surface !== null) {
         let ceil = 0;
         for (let r = topRow - 1; r >= 0; r--) if (sol(L.tiles[r*cols + col])) { ceil = (r+1)*32; break; }
@@ -170,7 +172,7 @@ sec('RULING A3 — REACHABILITY, proven by walking the level with real physics')
   const chCol = Math.floor(ch.x/32), chRow = Math.floor(ch.y/32);
   let ceilBottom = 0;
   for (let r=chRow; r>=0; r--) if (solid(L2.tiles[r*C+chCol])) { ceilBottom=(r+1)*32; break; }
-  const floorTop = (() => { for(let r=chRow+1;r<18;r++) if(solid(L2.tiles[r*C+chCol])) return r*32; })();
+  const floorTop = (() => { for(let r=chRow+1;r<L2ROWS;r++) if(solid(L2.tiles[r*C+chCol])) return r*32; })();
   ok(floorTop - ceilBottom >= PLAYER_H,
     'the pocket has standing room (not a sealed box)',
     `${floorTop-ceilBottom}px between ceiling ${ceilBottom} and floor ${floorTop}, player ${PLAYER_H}px`);

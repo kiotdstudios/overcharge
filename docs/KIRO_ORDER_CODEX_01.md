@@ -21,9 +21,15 @@ OPEN (do not build until Chief answers).
 - Run `node scripts/version_editor.mjs` before committing any Builder JavaScript (see `AGENTS.md`).
 - Do not touch `ui.js` objective strings except where a task below says so (`levelOneObjective` and
   `_drawLevelOneObjective` are duplicated; change both together).
-- Known pre-existing failures, so you can tell yours from mine: `camera_vertical` 5, `completability` 3,
-  `level2_fork` 11, `level_height` 2, `npc_dialogue` 3 (the last because both smoke workers say "New line").
-  Total at the time of writing: 2617 passed, 24 failed. Do not "fix" these by loosening assertions.
+- Known pre-existing failures, so you can tell yours from mine (updated 2026-10-14 after Kiro fixed the
+  stale provers): `level2_fork` 2 (a genuine finding: Level 5's fence can be jumped over; Level 5 is paused and
+  not yours to fix) and `npc_dialogue` 3 (both smoke workers say "New line"; Chief's Builder data).
+  `npc_geometry` and `order23_taskb_acceptance` crash before reporting and were already crashing.
+  Total at the time of writing: **2709 passed, 5 failed**, across 60 suites. Do not "fix" these by loosening
+  assertions.
+- Kiro added `src_scroll/juice.js` and `src_scroll/audio.js` (feedback and sound) and four lines of hooks in
+  `main.js`. They only listen. Keep those hooks when you merge `main.js`. `?juice=off` and `?audio=off` switch
+  them off for playtests.
 - Prefer small commits, one per task. Report each as `Task N: PASS/FAIL, SHA, tests`.
 
 ## Phase A: the energy rules (do these first; Aki's Builder work depends on them)
@@ -92,8 +98,9 @@ the K/L entries leave the prompts and the dev bar. Level 1 will turn both off (C
 stuck and nothing says so. Make it count: the player's usable energy, every absorbable source's remaining
 charge, and **charge stored in charged objects the player can still reach** (see A1). When the total cannot pay
 the cheapest remaining mandatory spend, `main.js` already moves to `STATES.GAME_OVER` ("DISCHARGED", around
-line 266) when `isFailState` is true, so the fix is the **detection**. Make sure that screen offers a restart
-from the last checkpoint, and add an in-play respawn key only if it is not enough (a single key). The probe
+line 266) when `isFailState` is true, so the fix is the **detection**. That screen already restores the last
+checkpoint with **R** (`main.js`, the GAME_OVER state), so a new respawn key is probably not needed; add one only if
+Chief asks. The probe
 `_kiro_tools/failstate_probe.mjs` is on Kiro's machine, not in the repo; the case is: absorb all the charge,
 spend it on bolts until 7.75 remains against an 8 exit (16 bolts leaves 8, a 17th leaves 7.75).
 

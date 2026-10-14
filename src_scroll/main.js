@@ -17,8 +17,22 @@ import { initViewport, viewW, viewH } from './viewport.js';
 import { maxCamY, camYForSpawn, nextCamY } from './camera.js';
 import { logLevelSource } from './levelsig.js';
 import { unlockFootsteps, playFootstep } from './footsteps.js';
+import { createJuice } from './juice.js';
+import { createAudio } from './audio.js';
 
 window.addEventListener('keydown', unlockFootsteps, { once: true });
+
+// Feedback layer (docs/GAME_DESIGN_V2.md section 9). It only listens to the game, so ?juice=off
+// removes the particles, shake and hit-stop, and ?audio=off removes the synthesised sound,
+// leaving the game exactly as before. prefers-reduced-motion turns shake and hit-stop off.
+const _fxParams = new URLSearchParams(globalThis.location?.search || '');
+const juice = createJuice({
+  enabled: _fxParams.get('juice') !== 'off',
+  reducedMotion: !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+});
+const sfx = createAudio({ enabled: _fxParams.get('audio') !== 'off' });
+juice.on(sfx.handle);
+window.addEventListener('keydown', () => sfx.unlock(), { once: true });
 
 // ── Editor-driven test mode ──────────────────────────────────────────────
 // When launched with `?test=1`, load the level def from localStorage under
@@ -202,6 +216,7 @@ function advanceLevel() {
 
 function _respawn() {
   _applySnapshot();
+  juice.clear();
 }
 
 // ── Loop ───────────────────────────────────────
@@ -224,9 +239,12 @@ function _update(dt) {
       break;
 
     case STATES.PLAYING:
+      juice.update(dt);
+      if (juice.frozen()) break;          // hit-stop: hold the world for a few frames
       player.update(dt, level);
       if (player._sprites.footfall && player.grounded) playFootstep();
       level.update(dt, player, viewW());
+      juice.observe(player, level, dt);
       _updateCamera();
       _cpFlash = Math.max(0, _cpFlash - dt);
 
@@ -329,6 +347,8 @@ function _drawScrollGame() {
   // World: translate by camera before drawing level + player
   ctx.save();
   ctx.translate(-Math.round(camX), -Math.round(camY));
+  const _shake = juice.shakeOffset();          // whole-pixel screen shake, (0, 0) at rest
+  ctx.translate(_shake.x, _shake.y);
   // Clip placed art and world sprites to the authored level, not the viewport.
   // The player, collisions and saved object positions stay untouched.
   ctx.beginPath();
@@ -336,6 +356,7 @@ function _drawScrollGame() {
   ctx.clip();
   level.draw(ctx, t, { x: camX, y: camY + 156, w: viewW(), h: viewH() - 156 });
   player.draw(ctx);
+  juice.draw(ctx);
   // World-anchored prompts belong INSIDE the camera transform — they position
   // themselves on world objects, so drawing them in screen space offset them by
   // camX. Screen-space HUD (charge meter, banner, pips) stays in drawHUD().
