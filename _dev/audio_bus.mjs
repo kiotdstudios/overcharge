@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 // audio_bus.mjs - src_scroll/audio.js with a recording fake AudioContext, plus the juice -> audio wiring.
 import { Player, Level, held, step, flat } from './support/headless.mjs';
 import { createAudio } from '../src_scroll/audio.js';
@@ -124,6 +125,53 @@ sec('WIRED TO THE REAL GAME THROUGH juice.on()');
   const gate3 = { open: false, x: 0, y: 0, w: 32, h: 64 }; const lv3 = { gates: [gate3], checkpoints: [], chests: [], sources: [] };
   j3.observe(p, lv3, 1 / 60); gate3.open = true; j3.observe(p, lv3, 1 / 60);
   ok(a3.soundsPlayed === 1 && j3.particleCount === 0, '?juice=off removes the visuals but keeps the sound');
+}
+
+sec('REGRESSION: the charge hum must not outlive the level (Chief: gate sfx kept going into Level 2)');
+{
+  held([]);
+  const mk = () => { const a = createAudio({ contextFactory: () => fakeContext().ctx }); a.unlock(); const j = createJuice({ rng: () => 0.5 }); j.on(a.handle); return { a, j }; };
+  const p = new Player(100, 418);
+  const lvA = { gates: [], checkpoints: [], chests: [], sources: [] }, lvB = { gates: [], checkpoints: [], chests: [], sources: [] };
+  const charging = () => { p.discharging = true; p.dischargeTarget = { cx: 300, cy: 400 }; };
+  const idle = () => { p.discharging = false; p.dischargeTarget = null; };
+
+  // 1. The real failure: charging the exit completes the level, observe() stops being called
+  //    (game state leaves PLAYING), and the "stopped charging" edge was never seen.
+  { const { a, j } = mk();
+    charging(); j.observe(p, lvA, 1 / 60);
+    ok(a.activeLoops.includes('charge'), 'charging the gate starts the hum');
+    // level complete: no more observe() calls. main.js calls stopLoops() while not PLAYING.
+    j.stopLoops();
+    ok(a.activeLoops.length === 0, 'stopLoops() ends the hum when play stops'); }
+
+  // 2. A new level never inherits the last level's loop, even if nothing stopped it.
+  { const { a, j } = mk();
+    charging(); j.observe(p, lvA, 1 / 60);
+    idle(); j.observe(p, lvB, 1 / 60);
+    ok(a.activeLoops.length === 0, 'moving to a new level ends any loop left running'); }
+
+  // 3. Checkpoint rewind and switching the visuals off both clear it.
+  { const { a, j } = mk();
+    charging(); j.observe(p, lvA, 1 / 60); j.clear();
+    ok(a.activeLoops.length === 0, 'clear() (used on a checkpoint rewind) ends the loops');
+    charging(); j.observe(p, lvA, 1 / 60); ok(a.activeLoops.includes('charge'), 'and the hum can start again afterwards');
+    j.setEnabled(false);
+    ok(a.activeLoops.length === 0, 'switching the module off ends the loops'); }
+
+  // 4. Absorb loop too, and calling stopLoops with nothing playing is harmless.
+  { const { a, j } = mk();
+    p.absorbing = true; p.absorbTarget = { cx: 120, cy: 400 }; j.observe(p, lvA, 1 / 60);
+    ok(a.activeLoops.includes('absorb'), 'absorb hum starts');
+    j.stopLoops(); j.stopLoops();
+    p.absorbing = false; p.absorbTarget = null;
+    ok(a.activeLoops.length === 0, 'and stops, twice-called stop is harmless'); }
+
+  // 5. The wiring in main.js: structural, because main.js boots the game on import.
+  const mainSrc = fs.readFileSync(new URL('../src_scroll/main.js', import.meta.url), 'utf8');
+  ok(/if \(state !== STATES\.PLAYING\) juice\.stopLoops\(\);/.test(mainSrc),
+    'main.js stops the loops in every state except PLAYING (level complete, game over, title)');
+  ok(/function _respawn\(\) \{\s*_applySnapshot\(\);\s*juice\.clear\(\);/.test(mainSrc), 'and clears them on a checkpoint rewind');
 }
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);

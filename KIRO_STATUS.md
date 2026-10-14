@@ -2241,3 +2241,9 @@ Nobody has heard the sounds or judged the particles in motion; the headless brow
 Baselines in `KIRO_ORDER_CODEX_01.md` and `KIRO_ORDER_AKI_26.md` updated to 2709/5.
 ### Still mine and not started
 Hero duck and double-jump frames (needs a PixelLab key; none is in the repo), Level 1 music, and the movement retune and six-level route check (after Codex's duck work).
+## 2026-10-14 - Fix: charge hum kept playing into Level 2
+Chief: "sfx for gate still going even until on level 2".
+Cause: the charge hum is a loop. `juice.observe()` only runs while the game state is PLAYING. Charging the exit gate to completion ends the level that same frame, so the state left PLAYING and the "stopped charging" edge was never seen. The loop was never told to stop, and a new level reset the observer's memory without sending a stop either.
+Fix: `juice.stopLoops()` ends any absorb or charge loop. It is called every frame that is not PLAYING (level complete, game over, title), on a level change, on a checkpoint rewind (`clear()`), and when the module is switched off. `main.js` has the one-line hook.
+Tests: `_dev/audio_bus.mjs` 44/0, now with a regression block: level complete, level change, rewind, module off, absorb loop, and structural checks that `main.js` carries both hooks. Against the previous code the block fails (`stopLoops` did not exist). Suite 2719 passed, 5 failed (the same 5 as before).
+Not verified: I cannot hear it. The headless browser run is clean (no page errors), but only Chief can confirm the hum now stops when the gate opens and stays off in Level 2.

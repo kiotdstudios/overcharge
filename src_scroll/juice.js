@@ -175,12 +175,24 @@ export function createJuice(opts = {}) {
     ctx.restore();
   }
 
+  // Tell the audio bus to end any absorb/charge loop. Called when play stops (level complete, game over,
+  // title), on a level change, on a checkpoint rewind and when the module is switched off. Without it the
+  // charge hum started at the exit gate kept playing into the next level, because observe() only runs
+  // while the game state is PLAYING and so never saw the player stop charging.
+  function stopLoops() {
+    const s = state.seen;
+    if (!s) return;
+    if (s.absorbOn) { s.absorbOn = false; emit('absorb', { active: false, rate: 0 }); }
+    if (s.chargeOn) { s.chargeOn = false; emit('charge', { active: false, rate: 0 }); }
+  }
+
   // Watches the game and fires the effects. Reads only; never writes to player or level.
   function observe(player, level, dt) {
     if (!player || !level) return;
     const feetX = player.x + player.w / 2, feetY = player.y + player.h;
     let s = state.seen;
     if (!s || s.level !== level) {
+      stopLoops();                       // a new level must never inherit the last level's hum
       s = state.seen = { level, grounded: !!player.grounded, vy: player.vy || 0, hurt: player._hurtFlash || 0,
                          laddered: !!player._ladder, gates: new Map(), cps: new Map(), chests: new Map(),
                          drained: new Map(), streamT: 0, peakFall: 0, absorbOn: false, chargeOn: false, absorbRate: 0, chargeRate: 0 };
@@ -246,7 +258,8 @@ export function createJuice(opts = {}) {
     on(fn) { state.listeners.push(fn); return () => { state.listeners = state.listeners.filter(f => f !== fn); }; },
     setEnabled(v) { state.enabled = !!v; if (!v) this.clear(); },
     setReducedMotion(v) { state.reducedMotion = !!v; if (v) { state.shakeT = 0; state.shakeAmp = 0; state.hitStopT = 0; } },
-    clear() { state.particles.length = 0; state.shakeT = 0; state.shakeAmp = 0; state.hitStopT = 0; state.seen = null; },
+    stopLoops,
+    clear() { stopLoops(); state.particles.length = 0; state.shakeT = 0; state.shakeAmp = 0; state.hitStopT = 0; state.seen = null; },
     // inspection (tests and the dev overlay)
     get particleCount() { return state.particles.length; },
     get enabled() { return state.enabled; },

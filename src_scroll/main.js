@@ -233,6 +233,8 @@ function loop(now) {
 }
 
 function _update(dt) {
+  // Absorb and charge hums only belong to live play. Level complete, game over and the title all end them.
+  if (state !== STATES.PLAYING) juice.stopLoops();
   switch (state) {
     case STATES.TITLE:
       if (Input.pressedAny('Space', 'Enter')) startGame();
