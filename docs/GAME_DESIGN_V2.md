@@ -114,18 +114,29 @@ Rules these results establish:
 
 ### 3.3 Pips open gates instantly (CONFIRMED round 2, NOT BUILT; input OPEN)
 - **CONFIRMED (round 2, supersedes the reading below).** **Using a pip opens a gate instantly, with no
-  waiting to charge.** The input is a **separate action**, either a new key or a double-tap of SPACE.
-  **OPEN: which one.** **RECOMMENDED: a dedicated key (Q is free).** Reason: holding SPACE already means
-  "charge", so the first tap of a double-tap begins a charge and spends bar before the second tap lands.
-  A single key has no such ambiguity and cannot fire by accident.
+  waiting to charge.** **CONFIRMED (round 3): the input is the Q key,** a separate action from SPACE.
+  Double-tap SPACE was rejected: holding SPACE already means "charge", so the first tap of a double-tap
+  would begin a charge and spend bar before the second tap lands. Q is unbound today (checked against the
+  bindings table in section 4.1). **Q while near a payable gate or switch with at least one pip banked
+  opens it at once.** **OPEN (small):** what Q does with no pip, or away from a device (RECOMMENDED: a
+  short "no pip" or "nothing to open" tell and no cost).
 - **RECOMMENDED consequence:** the pip pays the gate's price (8) and the other 17 returns to the bar, which
   is exactly what the current tested behaviour does (see `_dev/pip_gate_spend.mjs`). If the bar cannot hold
   the 17, the surplus is lost, so the prompt should say so.
 - **Not in Level 1.** Level 1 holds 12 charge and the bar is 25, so no pip is ever banked there. Pips
   first matter in a level with more than 25 charge available.
-- **Charge speed scaling is NOT BUILT, and not in v1.** Absorb and charge are fixed at 3 units/s
-  (`ABSORB_RATE`, `DISCHARGE_RATE`); holding more charge changes nothing. **OPEN:** Chief expects "the more
-  charge you have, the faster things charge and absorb". That would be a new mechanic. Needs a definition.
+- **Charge-speed scaling: CONFIRMED as a NEW mechanic (round 3), NOT BUILT.** "The more charge you have,
+  the faster things charge and get absorbed." It was never in v1 or in code: absorb and charge are fixed
+  at 3 units/s (`ABSORB_RATE`, `DISCHARGE_RATE`). **RECOMMENDED definition for Chief to approve or tune:**
+  both rates are multiplied by `1 + held / MAX_CHARGE`, where `held` is the bar (not pips), so the rate is
+  3 units/s on an empty bar, 4.5 at 12 held (the most Level 1 allows), and 6 at a full bar of 25.
+  *Why this shape:* it is linear, easy to read, never zero, and the ceiling (2x) cannot break the 12-versus-8
+  economy because it changes speed, not quantity. *Side effects to handle:* (1) Level 1 beats get about
+  1.2x faster at mid-bar, so the timing table is re-run after it lands; (2) `energy_authority` and
+  `pip_gate_spend` assert exact per-frame amounts and will need updated expectations; (3) the HUD should show
+  the multiplier (a brighter bar), or players will not notice it; (4) a pip (25) should not count toward
+  `held`, or a banked pip makes everything instant. **OPEN:** the curve (linear, stepped, or capped lower)
+  and whether it also speeds the lift's ride, which RECOMMENDED says no.
 - **CONFIRMED (earlier).** Special pathways and chests are possible later uses for pips.
 - **Historical reading (superseded for gates, kept as the BUILT behaviour):** pips pay a gate automatically
   once SPACE is held.
@@ -156,6 +167,32 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 - **Consequence (derived):** an unreclaimed toy is a permanent cost, so toys are not free against the spare.
   The total a player can leave behind in Level 1 must stay at or under the 4 spare units. Toy prompts
   should say "take it back" while the player is in range.
+- **CONFIRMED (round 3): prices follow the prop's size and power.** Chief: a generator is about 10, a
+  vending machine 3, and "4 was just a set value from game testing, not a real number." The 4-unit spare is
+  therefore a *design check*, not a law (see below). **RECOMMENDED rule: a prop's give-cost equals the charge
+  it holds when full**, so giving and absorbing are mirror images and the player learns one number per prop.
+
+  | Prop | Give-cost | Level 1? | Notes |
+  |---|---|---|---|
+  | Security camera | 1 | optional | tiny, a good first toy |
+  | Neon sign / fuse box | 2 | yes | the sign lights when its fuse box is fed |
+  | Roller shutter | 2 | yes | rises, reveals a shop |
+  | AC unit (secret) | 2 | yes | permanent (opens a hatch) |
+  | Charge platform (the lift/ferry) | 2 | yes | already built at 2 |
+  | Vending machine | 3 | yes | Chief's example |
+  | ATM | 3 | later | |
+  | Billboard / large neon sign | 5 | later | |
+  | Generator | 10 | later levels only | more than Level 1's whole 12 |
+
+  Generators cannot appear as Level 1 toys: giving 10 of 12 would leave 2, and the exit costs 8. They need
+  a level with more sources. Existing generators/HVAC/props hold 4 or 5 when absorbed (editor defaults), so
+  absorb values would also change if the mirror rule is adopted. **OPEN:** apply the mirror rule to the
+  existing sources, or keep them as authored and only price new toys.
+- **The real stranding rule (derived, replaces my earlier "total must be 4 or less").** A player can only
+  lose charge to an abandoned toy by choosing to leave through the gate with it uncollected, and the gate
+  costs 8 to open, so they cannot leave while short. The true risk is **a toy the player cannot get back
+  to**. So the rule is: *from the gate, every toy remains reachable by two-way paths (ladders, stairs, the
+  lift), never only by a one-way drop.* The 4-unit spare then only matters for permanent payoffs and mistakes.
 - **RECOMMENDED semantics, for Chief to approve:**
   - *Reclaimable toys*: charge goes in, the prop reacts, and holding E drains it back out. Reclaimed, they
     cost nothing; left behind, they cost what was given.
@@ -179,8 +216,18 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   the chest. Holding SPACE repeats it, so a player at the pip cap loses their whole bar. Then the bar is
   empty, a pip breaks, a slot frees, and the chest opens anyway (tested: bar 10 and 5 pips ends bar 23 and
   5 pips after 5 refusals, 10 charge destroyed). This contradicts `CHIEF_RULING_CHEST_PIP_RESERVE`
-  ("the player can return"). **OPEN: fix it?** Recommended yes: refund on refusal. Not a Level 1 blocker,
-  since Level 1 has no chest.
+  ("the player can return"). **CONFIRMED (round 3): fix it, with a better design than a refund.**
+  **Chief's design:** the chest must not take charge it cannot reward. When the reserve is full the chest
+  shows **"CHARGE FULL"** and the **pip pops out as a world object** on or beside the chest. The player can
+  **pick it up once they have room** (a free pip slot). It waits for them; **leaving the level forfeits it.**
+  **My reading, flagged for correction (OPEN, one question):** the player pays the chest's 2 as normal and
+  the chest opens; only the *reward* is held back as a pickup because the reserve is full. That removes
+  refusal entirely, so the bug cannot happen. The other reading (the chest refuses payment while the
+  reserve is full) is simpler but gives no reward to see. **NEW WORK:** a pip pickup object with its own
+  art (no pip-pickup art exists yet; the pip HUD icon is the only pip art), a "CHARGE FULL" tell, a
+  pickup rule (needs a free slot, stays until taken, not time-limited like the 6-second charge pickups),
+  and checkpoint rules (a pip pickup should survive a respawn, since it is not scattered loot). Not a
+  Level 1 blocker, since Level 1 has no chest.
 - **Level 1 can be left unwinnable without the game noticing.** `Level.isFailState` returns false whenever
   `usableEnergy > 0`. A player who absorbs all 12, then fires bolts (0.25 each) until 7.75 is left, holds
   energy but cannot pay the 8 exit. Measured: 16 bolts leaves exactly 8, a 17th leaves 7.75, and the game
@@ -209,6 +256,7 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 | Melee | K | Free. Radius 65 px, 0.35 s cooldown. |
 | Bolt | L | Costs 0.25. Aimed in 8 directions, 320 px/s. |
 | Ladder | Up / Down at a ladder | 105 px/s. Needs a ladder decoration in the level. |
+| Use a pip | **Q** (CONFIRMED round 3, NOT BUILT) | Opens a payable gate at once, no charging. See 3.3. |
 | Ledge climb | Up + direction into a wall, airborne | A scripted 0.8 s climb onto ledges 6 to 48 px up. |
 | Grapple | G (hold) | Pulls to the nearest anchor within 240 px at 180 px/s. See 4.3. |
 
@@ -267,12 +315,29 @@ and 18 rows) and will be regenerated after the retune.
 - **CONCEPT, to investigate (CONFIRMED as "an additional concept to investigate"):** a **charged wire the
   player glides along.** Nothing like it exists. Questions to answer before building: does it consume
   charge, does it need a powered state, can the player drop off, what is its speed, and is it a one-way ride?
-- **CONFIRMED (round 2):** **the powered platform must also move vertically.** Chief wants it to lift the
-  player to a raised gate. **BUILT constraint (still true today):** `MovingPlatform` is horizontal only, so
-  this is **new engine work**: a vertical (and ideally freely routed) travel axis, riders carried with it,
-  a stop at each end, and the charge-while-riding rule (what happens when it runs dry mid-ride).
-  **RECOMMENDED:** specify before building: does it return home when unpowered, can the player jump off, and
-  does it crush or push against ceilings.
+- **CONFIRMED (round 3): the platform does both, sideways (the "ferry") and up/down (the "lift"), and the
+  author sets its path in the Builder.** Chief likes the name "ferry"; I keep both words: *ferry* = a
+  sideways route, *lift* = an up/down route, *platform* = the object. **BUILT, so you can judge the gap
+  (`entities.js` `MovingPlatform`):** the constructor takes `x1`, `x2` only, `update()` moves `x` between
+  them, and `player._resolvePlatforms` carries a rider with `pl.x += pl.vx * dt` (horizontal only). The
+  Builder places a platform with a default 96 px width and shows `x1`, `x2` and `speed` as **number boxes
+  in the inspector**, with a dashed horizontal line on the canvas. There is **no way to draw a path.**
+  `LEVEL_SCHEMA.md` already lists "vertical moving platforms" as unsupported.
+  **RECOMMENDED design (NEW WORK, nothing built):**
+  - **Data:** a `path` list of waypoints `[{x,y}, ...]` plus `mode` (`pingpong` or `loop`), keeping `x1`/`x2`
+    working as a two-point horizontal shorthand so no existing level changes.
+  - **Runtime:** replace the left/right bounce in `update()` with movement along path segments at `speed`,
+    and expose `vx` **and `vy`** each frame. The rider carry in the player must add `vy` too, and a lift
+    moving *up* must not let the player fall through; one moving *down* must not leave the player hovering.
+  - **Charge rule (kept as built):** the platform runs only while it holds its full charge; taking any charge
+    brakes it at once. Chief's persistence rule applies: charge stays in the platform until taken back.
+  - **Builder:** a path tool: select a platform, click to add waypoints, drag to move them, a visible line
+    with numbered dots, and a mode switch. The renderer's `_drawPlatforms` and the clipboard, selection and
+    move code already treat a platform as one object, so the new tool is additive.
+  - **Safety:** the prover and `completability` must understand a mover so a required lift is checked
+    (a player at the top with the lift drained must still be able to come back down).
+  - **Open sub-questions:** does a platform stop at each waypoint, how long, and can the player jump off in
+    mid-air (RECOMMENDED yes, and no crushing: a platform that meets the ceiling simply stops).
 - **CONFIRMED (round 2):** **ladders are in Level 1,** and the player traverses it vertically (see
   `LEVEL_DESIGN_V2`). The ladder already exists in the engine and needs a ladder decoration in the level.
 
@@ -346,9 +411,12 @@ Gate prompts live at `ui.js` lines 446 (`[E] ABSORB`), 511 (`[SPACE] CHARGE`) an
 (`POWER REQUIRED` / `ABSORB MORE ENERGY`).
 - **CONFIRMED (round 2):** **"Charge gate to open." appears as text above exit gates in the world.** It is
   a new world label, not a replacement of an existing string. It should show once the gate is in view.
-- **OPEN (plain question):** should the objective card's stage 2 task line, today "Absorb enough energy to
-  exit gate", change at all? **RECOMMENDED:** leave the card as it is, so no existing test assertion has to
-  change, and let the gate label carry the new wording.
+- **CONFIRMED (round 3):** the card's stage 2 stays as it is ("POWER THE EXIT", "Absorb enough energy to
+  exit gate"). **Only the stage 1 task line changed**, from "Absorb power from street lamp" to **"Try
+  absorbing power from a street lamp"** (the "..." in Chief's note was read as "a street lamp"; tell me if
+  another ending was meant). **BUILT** in both copies in `src_scroll/ui.js` (the `levelOneObjective` return
+  and the `_drawLevelOneObjective` renderer). `_dev/level1_objective.mjs` asserts titles only, so it still
+  passes. The text is 38 characters, which fits the 10 px monospace card (about 40 characters wide).
 
 ### 8.3 Showing what a device costs (CARRIED, RECOMMENDED)
 The bar is 25 wide and the exit costs 8, so the cost does not read at a glance. v1 asks for "clear
@@ -441,6 +509,21 @@ A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-toy and permanent-
 on a refused chest in 3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
 card-versus-world pairing and string placement in 8; the bar cost marker in 8.3; the juice order in 9.
 
+### CONFIRMED by Chief (round 3, 2026-09-06)
+23. Objective card: the stage 1 line now reads "Try absorbing power from a street lamp" (built); stage 2
+    stays as it is. (8.2)
+24. In-game collectible "achievable objects" for secrets: an Easter egg plus a story clue in Level 1, no
+    separate achievement system yet. (`LEVEL_DESIGN_V2` 4.6)
+25. Moving platforms do both sideways and up/down, and the author sets their paths in the Builder. (4.5)
+26. A chest at the pip cap shows "CHARGE FULL" and drops the pip as a pickup the player collects once
+    they have room; it is forfeited on leaving the level. Nothing is refused or lost. (3.7)
+27. Pip use is the **Q** key. (3.3)
+28. Charge speed scales with the charge held (new mechanic; formula RECOMMENDED). (3.3)
+29. Prop prices follow size and power (generator ~10, vending machine 3); the 4-unit spare is a check, not a
+    law. Kiro sets the numbers. (3.5)
+30. Start the story bible now (`docs/STORY_BIBLE_DRAFT.md`). Level 1 is redrawn vertically (`LEVEL_DESIGN_V2`
+    section 4.3).
+
 ### CONFIRMED by Chief (round 2, 2026-09-06)
 15. Using a pip opens a gate **instantly**, through a separate input (new key or double-tap). (3.3)
 16. A charged prop keeps its charge until reclaimed; leaving through the exit forfeits it. (3.5)
@@ -455,14 +538,15 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     one must be built. (see `LEVEL_DESIGN_V2`)
 
 ### OPEN questions (need Chief)
-1. Pip input: a dedicated key (recommended: Q) or double-tap SPACE? (3.3)
-2. "The more charge you have, the faster things charge and absorb": this is not in the game or in v1. Do you
-   want it as a new mechanic? (3.3)
+1. Charge-speed formula: `1 + held / 25` (3 to 6 units/s), or another curve? (3.3)
+2. Chest at the pip cap: does the player pay and the *reward* wait as a pickup (my reading), or does the
+   chest refuse payment? (3.7)
 3. Should a vending machine ever dispense a pip? (3.5)
-4. Fix the refused-chest energy loss? Recommended yes. (3.7)
-5. Should the objective card's stage 2 task line change, or only the new gate label carry the wording? (8.2)
-6. What unlocks double jump, and does ducking unlock too? (4.4)
-7. How does the player first meet the bolt in Level 3? (6)
+4. Apply "give-cost = the charge it holds when full" to the existing sources too? (3.5)
+5. What unlocks double jump, and does ducking unlock too? (4.4)
+6. How does the player first meet the bolt in Level 3? (6)
+7. Is "a street lamp" the ending you meant for the stage 1 line? (8.2)
+8. What does Q do with no pip banked? (3.3)
 
 (Closed by round 2: pip meaning (a) vs (b); platform vertical mode; hide the bolt; double jump and ducking as
 abilities; which string "Charge gate to open." replaces.)

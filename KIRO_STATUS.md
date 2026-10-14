@@ -2171,3 +2171,17 @@ Docs only. No code or level files changed.
 - Cutscenes do not exist in the engine.
 ### Verified
 Link and section check on both docs passes (the one "BAD" is a regex artifact on "section 2."). No em dashes.
+## 2026-09-06 - Round 3: vertical Level 1 draft, story bible draft, objective line
+Chief answered the open questions. One code change, the rest docs.
+### Code (one string, two places)
+- `src_scroll/ui.js`: Level 1 objective stage 1 task line "Absorb power from street lamp" is now "Try absorbing power from a street lamp" (`levelOneObjective` and `_drawLevelOneObjective`). Stage 2 untouched. `level1_objective` (titles only) passes, `module_parse` 143/0, `pip_gate_spend` 53/0. I read Chief's "try absorbing power from..." as "a street lamp"; the ending is flagged in the docs.
+### Docs
+- `GAME_DESIGN_V2.md`: Q key for pips (instant gate open), charge-speed scaling confirmed as a NEW mechanic with a recommended formula (rate x 1 + held/25), chest at the pip cap shows "CHARGE FULL" and drops the pip as a pickup, prop prices follow size (generator about 10, vending machine 3), platforms do both axes with Builder-set paths. Ledger items 23-30.
+- `LEVEL_DESIGN_V2.md`: section 4.3a is a vertical layout draft (34 rows, tower, ladders, a lift), the early-exit signpost is a pylon plus cable, the AC secret sits above and behind the spawn. Section 5.1a is a computed time budget: 109.9 s, first absorb 8.0 s, first spend 12.2 s, longest run without a beat 6.9 s. Work list rows 21-33 added.
+- `STORY_BIBLE_DRAFT.md` (new): inventory of what the repo already says (no premise, hero name, city or villain exists), three premises, a recommended outline, Level 1 story beats and nine questions. All proposals.
+### Findings
+- The platform has only `x1`/`x2` and the Builder edits them as number boxes. No path tool exists.
+- No shipped level uses a ladder. The ladder art must be exactly `assets/objects/night-city-props/ladder/ladder.png`; it is 128 x 605 and resizable. Untested in a real level.
+- No fall damage in `src_scroll`.
+- My earlier rule "abandoned toys must total 4 or less" was wrong. The gate costs 8, so a player cannot leave short. The real rule: every toy must stay reachable by two-way paths.
+- Not done: no Level 1 JSON was edited (Chief's file), no engine change beyond the string.

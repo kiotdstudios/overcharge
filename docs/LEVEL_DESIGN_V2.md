@@ -275,8 +275,79 @@ x(px)  0     400  680  900       1500  1600     2112 2430    3230   3630  4010 4
        |      |    |    |shaft L2 |work |high L3 |block|shutter  | NPC  |pass|     |
 ```
 
+### 4.3a The vertical layout (RECOMMENDED draft, round 3; geometry not yet checked against tiles)
+
+**Chief said go ahead (round 3).** This replaces the horizontal plan above. It follows the rule *keep what
+Chief already built*: the 100-column street stays as the ground floor, and **16 rows are added on top**
+(18 to 34 rows, 576 to 1,088 px). `_kiro_tools/expand_vertical.mjs` already exists for adding rows at the
+top; whoever edits the JSON must shift every decoration's `y` by +512 px. **Chief owns the level files, so
+nothing here touches them; this is a spec for the Builder.**
+
+Heights are tiles above the spawn street surface (h0 = y 480 today, row 31 after the shift).
+
+| Zone | Columns | Height | What is there | Teaches |
+|---|---|---|---|---|
+| Plaza | 0 to 11 | h0 | Spawn, pedestrian, **opening ladder at col 8** (6 tiles up to a fire escape, h+6), relay pylon at col 14 | Orient. The ladder is optional and visible. |
+| Walkway | 12 to 23 | h+1 | **Lamp 1** (x 451), **vending machine toy (3)** | First absorb, then first spend |
+| Pillar and shaft | 24 to 26 | h+3, a 1-tile pit | Existing | Jump |
+| Rooftop | 27 to 46 | h+4 | **Lamp 2** (x 933), smoke workers, **fuse box + sign toy (2)**, **ladder lesson at col 45** | Dialogue, cause and effect, climb |
+| Upper roof | 40 to 52 | h+10 | Sign payoff, hint NPC, a view of the tower | Reward for climbing |
+| Fork | 47 to 65 | h+5 and h-1 | Existing: high strip (lamp 3, the woman, **CP1**), low street shortcut and stairs | Choice |
+| Tower base | 76 to 87 | h0 | **CP2**, the foot of the tower | Rest before the climb |
+| Tower floor 1 | 84 to 99 | h+5 | Ledge walk, drone graffiti, ladder at col 97 | Foreshadow |
+| Tower floor 2 | 88 to 99 | h+11 | **Shutter toy (2)**, hint NPC, **CP3**, the lift's foot | Last toy before the gate |
+| **Lift** | cols 86 to 88 | h+11 to h+19 | **Charge platform (2), vertical path** | The set piece |
+| Gatehouse roof | 80 to 90 | h+19 | **Exit gate** (cost 8), beacon top | The payoff |
+
+**Reach checks (all against the BUILT envelope, `LEVEL_DESIGN_V2` Appendix A):**
+- Any climb up to 3 tiles is a jump (jump height 3.1 tiles). Every other climb here is a ladder, the stairs
+  (existing), or the lift. **The upper roof (h+10 from h+4) is 6 tiles, so it needs the ladder.**
+- Every drop is a plain fall: no fall damage exists (searched `src_scroll`). Terminal fall speed is 700 px/s,
+  so the longest drop here (the tower top to the street, 19 tiles) takes under a second and a half.
+- **Ladders are exact:** the engine only treats a decoration as a ladder if its `src` is
+  `assets/objects/night-city-props/ladder/ladder.png` (`level.js` line 12). The art is 128 x 605 px and
+  resizable in the Builder. The player grabs it with Up or Down within its x range and climbs at 105 px/s,
+  and steps off at the top onto a real supporting tile. **A ladder top needs a solid tile (or one-way) at its
+  top end, or the player cannot stand.** No shipped level has a ladder yet, so this is **untested in a real
+  level**: build the opening ladder first and test it.
+
+**The exit shown early, in a vertical level (replaces the beacon note in 4.4).** The gate sits at h+19, 19
+tiles above the start and 2,500 px east, outside the first screen (18 rows tall). A lone beacon cannot be seen.
+**RECOMMENDED: a relay pylon in the plaza plus a visible cable of lit decorations running up the skyline to
+the tower.** The pylon is on screen at the start; the cable climbs out of the top of the first screen and
+leads the eye to the tower. The beacon on the gatehouse roof is the same colour. All of this is ordinary
+decoration (buildable today; the cable and pylon art are new).
+
+**The AC secret (answered): above and behind the spawn.** The opening ladder at col 8 leads to a fire
+escape at h+6 with an AC unit. The player starts with 0 charge, so a curious player must **leave, absorb,
+and come back**: that is the backtracking incentive, with no backwards level. Giving the AC unit 2 (a
+Switch linked to a `blockOnly` barrier, **buildable today**) opens a hatch to a small room with the
+**Easter egg and the first story clue** (graffiti or a poster; the text comes from the story bible).
+
+**Toys and their reclaim paths (round 3 price rule: give-cost = charge held when full):**
+
+| Toy | Cost | Where | Way back to it from the gate |
+|---|---|---|---|
+| Vending machine | 3 | Walkway, h+1 | The street is reachable by the tower ladders and the lift |
+| Fuse box + sign | 2 | Rooftop, h+4 | Ladders and stairs; no one-way drop |
+| Shutter | 2 | Tower floor 2 | On the way to the lift |
+| AC unit (permanent) | 2 | Plaza fire escape | Not reclaimed by design |
+| Lift (mandatory) | 2 | Tower | Rides down while charged |
+
+The worst case where the player buys the permanent AC payoff (2) and the lift (2) and reclaims everything
+else is 12 - 2 - 2 = 8, exactly enough. A player who leaves the shutter charged must ride down and take it
+back before the exit; the fail-state check has to count stored toy charge (see section 8).
+
+**Checkpoints:** CP1 (existing, high strip), CP2 (tower base), CP3 (tower floor 2 at the lift). A fall off the
+tower lands on the street, which is safe; the pit at col 26 stays the only death plane.
+
+**What the Builder needs for this level** (all items to be confirmed with Aki): extra rows, ladder
+decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the toy props (not built, GAME_DESIGN_V2 3.5),
+the pylon and cable art, and the AC hatch art.
+
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
-The gate is 4,300 px from the spawn, far off-screen. Two ways to show it:
+(For the vertical layout, see 4.3a: pylon plus cable.) In the horizontal draft the gate was 4,300 px from
+the spawn, far off-screen. Two ways to show it:
 
 | Option | Description | Trade-off |
 |---|---|---|
@@ -385,6 +456,42 @@ second absorb and the rooftop toy. A second spend (the shutter) comes at about 1
 Note the first version of this table had a 10.7 s walk with no beat; splitting it was a design change the
 computation forced, which is why the arithmetic is scripted.
 
+### 5.1a Time budget for the vertical layout in 4.3a (RECOMMENDED, computed)
+Same assumptions as 5.1 (walk 75 px/s, ladder 105 px/s) plus a **proposed lift speed of 64 px/s** (a slow,
+readable ride; the engine default for platforms is 80). Beats are my estimates, not measurements. Produced by
+a throwaway script (`v1_vertical_timing.mjs`, not committed); the walking distances are rough readings of
+the 4.3a table, so **they must be re-measured once the tiles exist.**
+
+| # | Segment | walk px | ladder px | lift px | move s | beat s | total s |
+|---|---|---|---|---|---|---|---|
+| 1 | Plaza: orient, beacon, pedestrian | 387 | 0 | 0 | 5.2 | 1.5 | 6.7 |
+| 2 | Lamp 1: first absorb (4 units) | 0 | 0 | 0 | 0.0 | 2.8 | 2.8 |
+| 3 | Vending machine: first spend (give 3) | 130 | 0 | 0 | 1.7 | 4.0 | 5.7 |
+| 4 | Walkway, pillar, shaft jump | 330 | 0 | 0 | 4.4 | 1.5 | 5.9 |
+| 5 | Rooftop, lamp 2 (absorb 4) | 180 | 0 | 0 | 2.4 | 2.8 | 5.2 |
+| 6 | Smoke workers + fuse box toy (give 2) | 420 | 0 | 0 | 5.6 | 6.5 | 12.1 |
+| 7 | Ladder lesson: rooftop to upper roof | 90 | 192 | 0 | 3.0 | 3.0 | 6.0 |
+| 8 | Upper roof: sign payoff + hint NPC | 260 | 0 | 0 | 3.5 | 3.5 | 7.0 |
+| 9 | Fork: drop to the high strip, lamp 3 | 240 | 0 | 0 | 3.2 | 2.8 | 6.0 |
+| 10 | Woman NPC + checkpoint | 160 | 0 | 0 | 2.1 | 3.5 | 5.6 |
+| 11 | Walk to the tower base | 330 | 0 | 0 | 4.4 | 0.0 | 4.4 |
+| 12 | Tower floor 1: ladder (5 tiles) | 70 | 160 | 0 | 2.5 | 1.5 | 4.0 |
+| 13 | Tower floor 1: ledge walk, drone graffiti | 300 | 0 | 0 | 4.0 | 4.0 | 8.0 |
+| 14 | Tower floor 2: ladder (6 tiles) | 60 | 192 | 0 | 2.6 | 1.5 | 4.1 |
+| 15 | Tower floor 2: shutter toy (give 2) | 220 | 0 | 0 | 2.9 | 6.0 | 8.9 |
+| 16 | Lift: charge the platform (give 2), ride 8 tiles | 80 | 0 | 256 | 5.1 | 3.0 | 8.1 |
+| 17 | Gatehouse roof: approach the gate | 200 | 0 | 0 | 2.7 | 1.0 | 3.7 |
+| 18 | Gate: discharge 8, gate-open payoff | 0 | 0 | 0 | 0.0 | 5.7 | 5.7 |
+| | **Total** | **3457** | **544** | **256** | **55.3** | **54.6** | **109.9** |
+
+Results: the route takes **about 110 s**, inside the 90 to 120 s target. The first absorb lands at **8.0 s**
+and the first spend at **12.2 s** (the first-minute loop is met). The longest run without a beat is **6.9 s**
+(under the 8 s rule). Sprinting everything and skipping every beat takes **36.3 s**, so the floor is short;
+exploration (the opening ladder, the AC secret, the low route) is what adds time, as intended.
+**Charge-speed scaling (GAME_DESIGN_V2 3.3) shortens the absorb and charge beats by about 15 to 30 percent,
+so re-run this table after it lands.** The lift (segment 16) is the single new thing the player waits for;
+if it feels slow, raise its speed rather than shorten the ride.
+
 ### 5.2 What this table cannot tell us
 It is a model. **It must be checked with a timed run** by a person or a scripted walker. New players dawdle,
 read, or get lost, which adds time; skilled players skip optional toys, which removes it.
@@ -446,13 +553,15 @@ exist yet.
 7. Hints read as observations. (Chief review)
 
 **Economy and safety**
-8. Sources total 12; exit 8; the sum of permanent optional costs is at most 4. (test)
-9. Every optional charge cost is reclaimable or bounded, and the player can always return to it. (test)
+8. Sources total 12; exit 8; permanent optional costs leave at least 8 for the exit. (test)
+9. Every toy can be reached again from the gate by two-way paths only (ladder, stairs, lift), never only by a
+   one-way drop. (test) This replaces "the sum of permanent costs is at most 4".
 10. A stuck player is detected and offered a retry. (needs the fail-state fix)
 
 **Engine and content**
 11. Reclaimable-charge props exist, react visibly and audibly, and have a regression test. (NEW engine)
-12. The objective card reads "Charge gate to open." with its test updated. (strings, GAME_DESIGN_V2 8.2)
+12. The text "Charge gate to open." appears above exit gates in the world, and the stage 1 card reads
+    "Try absorbing power from a street lamp" (done). (GAME_DESIGN_V2 8.2)
 13. Movement is retuned, with Appendix A's before and after both filled in.
 14. Every route in all six levels is re-verified after the retune.
 15. Replacement music exists, or Level 1 ships silent by Chief's choice.
@@ -473,7 +582,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 1 | Remove the two `"New line"` placeholder lines | Content | none | CONFIRMED defect |
 | 2 | Fix the prover's hard-coded 18 rows | Test infra | none | RECOMMENDED |
 | 3 | Fail-state fix, in-play respawn, and "out of charge" prompt | Runtime | none | RECOMMENDED |
-| 4 | Objective-card strings (two places) plus test | Runtime | none | CONFIRMED wording |
+| 4 | Objective-card stage 1 line (two places) | Runtime | none | **DONE round 3** ("Try absorbing power from a street lamp"). The "Charge gate to open." world label above exit gates is still to build. |
 | 5 | Movement retune with before and after (Appendix A) | Runtime | 2 | CONFIRMED authorized |
 | 6 | Route verification across all six levels | Test | 2, 5 | CONFIRMED |
 | 7 | Reclaimable-charge props (receiver, reaction, drain) | Runtime | none | NEW; blocks 9 |
@@ -487,9 +596,22 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 15 | Hint copy and NPC role tags | Content | 14 | RECOMMENDED |
 | 16 | The AC-unit secret (switch plus barrier) and trophy | Content + art | 14 | CONCEPT |
 | 17 | Level 1 pacing, economy and coverage tests | Test | 14 | RECOMMENDED |
-| 18 | Refund on a refused chest | Runtime | none | OPEN |
+| 18 | Chest at the pip cap: "CHARGE FULL", pip drops as a pickup (replaces "refund") | Runtime + art | none | CONFIRMED design, reading OPEN |
 | 19 | Gate the dev keys (`P`, `F2`, `[`, `]`) | Runtime | none | RECOMMENDED |
 | 20 | Regenerate `PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
+| 21 | **Q pip use**: instant gate open, amend the "no one-press" comment, update `pip_gate_spend` | Runtime + test | none | CONFIRMED round 3 |
+| 22 | **Charge-speed scaling** (rate x `1 + held / 25`) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
+| 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
+| 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
+| 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |
+| 26 | Test a ladder in a real level (none exists); ladder art and tops | Content + test | none | RECOMMENDED |
+| 27 | Pip pickup object and art | Art + runtime | 18 | NEW |
+| 28 | Per-level ability list: hide bolt and melee in Level 1, prompts and dev bar | Runtime | none | CONFIRMED round 3 |
+| 29 | Ducking and unlockable double jump: abilities, art, unlock rule | Runtime + art | 5 | CONFIRMED real; unlock rule OPEN |
+| 30 | Toy pricing table applied to props; stored toy charge counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
+| 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED |
+| 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/STORY_BIBLE_DRAFT.md` |
+| 33 | "Charge gate to open." world label above exit gates | Runtime | none | CONFIRMED |
 
 Out of scope until Chief says otherwise: Levels 2 to 6, a charged-wire glide, new movement abilities,
 passing the replacement music into the build.
@@ -525,15 +647,20 @@ the work list ordering in 8.
 - Bolt and melee hidden in Level 1; "Charge gate to open." is a world label above exit gates; pip use is
   instant and separate from charging (all in GAME_DESIGN_V2 section 13).
 
+### CONFIRMED by Chief (round 3, 2026-09-06)
+- Draw the vertical layout (done as a draft, 4.3a). The secret is an Easter egg plus a story clue as an
+  in-game collectible, above and behind the spawn, reached by the opening ladder. (4.6)
+- The platform does both sideways and up/down with author-set paths. (GAME_DESIGN_V2 4.5)
+- Prices follow prop size; Kiro sets them. (GAME_DESIGN_V2 3.5)
+- Start the story bible. (`docs/STORY_BIBLE_DRAFT.md`)
+
 ### OPEN questions (need Chief)
-1. **Redraw the vertical layout.** Needs Chief's go-ahead, and the lift (engine work) decides where the gate
-   sits. (4.3)
-2. **The trophy.** Recommended: no achievement system; an Easter egg plus a story clue above and behind
-   the spawn, reached by the opening ladder. Accept, or want a real trophy system? (4.6)
-3. **Story.** Write a story bible with Chief before story NPCs are authored. (3.4)
-4. **Toy cost.** Total of toys that can be abandoned must stay at or under 4. Which toys, at what prices?
-   (3.3)
-5. **Cutscene.** Not buildable today; skip for now? (3.5)
+1. **Check the 4.3a draft.** Zone heights, the 34-row total, the lift's route, the pylon-and-cable signpost.
+2. **Lift speed.** I assumed 64 px/s. Faster, or the engine's 80?
+3. **Where does the tower go?** I put it at the east end (cols 76 to 99). A west tower above the spawn is
+   possible but changes the whole route.
+4. **Cutscene.** Not buildable today; skip for now? (3.5)
+5. **Story direction.** Pick a premise from `STORY_BIBLE_DRAFT.md`.
 
 ---
 
