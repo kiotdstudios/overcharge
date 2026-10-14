@@ -16,12 +16,10 @@ export class ElectricalSource {
   // vending machine) are absorbable sources. They arrive as kind:'prop' carrying their own
   // sprite folder and frame geometry, because the runtime never loads ASSET_MANIFEST.json.
   constructor({ id, x, y, charge = 4, label = '', kind = 'generator', onDepletedGate = '',
-                sprite = '', frames = 8, artW = 64, artH = 64 }) {
+                sprite = '', frames = 8, artW = 64, artH = 64, uncharged = false }) {
     this.id     = id;
     this.x      = x; this.y = y;
     this.w      = 28; this.h = 28;  // logical hitbox; sprite is drawn larger, above
-    this.charge = charge;
-    this.max    = charge;
     this.label  = label;
     // 'prop' added to the whitelist. Without it a prop source silently coerced to
     // 'generator' and drew generator art — absorbable, but wearing the wrong face.
@@ -33,8 +31,8 @@ export class ElectricalSource {
     this._absorbT = 0;   // seconds left on the "being drained right now" tell
     this._dryFlash = 0;  // AKI_17: one-shot "ran dry" settle timer, set in drain()
     this.onDepletedGate = onDepletedGate;
-    this.charge = Number.isFinite(charge) ? Math.max(0, charge) : 0;
-    this.max    = this.charge;
+    this.max    = Number.isFinite(charge) ? Math.max(0, charge) : 0;
+    this.charge = uncharged ? 0 : this.max;
     this.drained = this.charge === 0;
     this._lightLevel = this.drained ? 0 : 1;
     this._fanSpeed = this.drained ? 0 : 1;
@@ -132,6 +130,18 @@ export class ElectricalSource {
     // nothing owns that. 0.12s outlives one frame at any sane framerate and lapses on release.
     if (actual > 0) this._absorbT = 0.12;
     return actual;
+  }
+
+  // Sources keep the player's transferred energy until it is absorbed again.
+  // `max` is capacity even when an authored source starts uncharged.
+  receive(amount) {
+    const accepted = Math.min(Math.max(0, amount), this.max - this.charge);
+    if (accepted <= 0) return 0;
+    this.charge += accepted;
+    this.drained = false;
+    this._dryFlash = 0;
+    this._frame = 1;
+    return accepted;
   }
 
   // Prop source art (CHIEF 2026-09-26). Frame semantics are Aki's, straight from her
@@ -1038,6 +1048,35 @@ export class Switch {
 // ──────────────────────────────────────────────
 // ChargePickup: burst out on damage, can be recollected
 // ──────────────────────────────────────────────
+export class PipPickup {
+  constructor(x, y, id = null) {
+    this.x = x;
+    this.y = y;
+    this.id = id;
+    this.done = false;
+    this._t = 0;
+  }
+
+  update(dt) { this._t += dt; }
+  inRange(x, y) { return dist(x, y, this.x, this.y) < 30; }
+
+  draw(ctx) {
+    const x = Math.round(this.x);
+    const y = Math.round(this.y + Math.sin(this._t * 3) * 2);
+    ctx.save();
+    ctx.fillStyle = '#201034';
+    ctx.fillRect(x - 7, y - 9, 14, 18);
+    ctx.fillStyle = '#a441f2';
+    ctx.fillRect(x - 6, y - 8, 12, 16);
+    ctx.fillStyle = '#e9b8ff';
+    ctx.fillRect(x - 4, y - 6, 8, 12);
+    ctx.fillStyle = '#7030c0';
+    ctx.fillRect(x - 1, y - 5, 3, 5);
+    ctx.fillRect(x - 3, y, 4, 5);
+    ctx.restore();
+  }
+}
+
 export class ChargePickup {
   // vx/vy: override initial velocity for directional scatter (null = random)
   constructor(x, y, value = 1, vx = null, vy = null) {

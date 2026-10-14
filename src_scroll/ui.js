@@ -4,6 +4,7 @@ import { drawGlowRect, drawText } from './render.js';
 import { drawEnergyHUD } from './energy-hud.js';
 import { viewW, safeInsetX } from './viewport.js';
 import { isNightCityStreetlight } from './source-visuals.js';
+import { PowerGate, Switch } from './electricity.js';
 
 // SCREEN-SPACE HUD only. Called after the camera transform has been restored,
 // so everything in here is positioned in viewport pixels.
@@ -23,7 +24,7 @@ export function levelOneObjective(level, player) {
   const exit = level.gates?.find(gate => gate.isExit);
   if (!lamps.length || !exit) return null;
   if (!lamps.some(lamp => lamp.charge < lamp.max - 1e-9)) {
-    return { stage: 0, title: 'NEED TO POWER UP', task: 'Try absorbing power from a street lamp', checked: false };
+    return { stage: 0, title: 'NEED TO POWER UP', task: 'Absorb power from street lamp', checked: false };
   }
   const remaining = Math.max(0, exit.required - exit.charged);
   return { stage: 1, title: 'POWER THE EXIT', task: 'Absorb enough energy to exit gate',
@@ -68,7 +69,7 @@ function _drawLevelOneObjective(ctx, player, level, t) {
   _objectivePresentations.set(level, state);
   const second = state.stage === 1;
   const title = second ? 'POWER THE EXIT' : 'NEED TO POWER UP';
-  const task = second ? 'Absorb enough energy to exit gate' : 'Try absorbing power from a street lamp';
+  const task = second ? 'Absorb enough energy to exit gate' : 'Absorb power from street lamp';
   const reducedMotion = !!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
   const reveal = reducedMotion ? 1 : Math.min(1, Math.max(0, (t - state.enteredAt) / 0.42));
   const w = 302, h = 62;
@@ -82,6 +83,8 @@ function _drawLevelOneObjective(ctx, player, level, t) {
   ctx.fillStyle = second ? '#412875' : '#263f60';
   ctx.fillRect(x + 3, y + h - 2, w - 3, 2);
   ctx.fillStyle = second ? '#7ccaff' : '#ffc070';
+  ctx.font = 'bold 8px monospace';
+  ctx.fillText(second ? '02 / 02' : '01 / 02', x + 13, y + 12);
   ctx.strokeStyle = second ? '#9a6be0' : '#a06f37';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -450,6 +453,18 @@ function _drawContextPrompts(ctx, player, t) {
   // ── Near an enemy: [K] ATTACK ──
   // No longer "overrides" the gate prompt: charge is SPACE and attack is K, so
   // both prompts can coexist truthfully. Kept visually distinct instead.
+  if (player.nearChargeSource) {
+    const src = player.nearChargeSource;
+    const anchor = typeof src.promptAnchor === 'function' ? src.promptAnchor() : null;
+    ctx.save();
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#b981f3';
+    ctx.font = 'bold 11px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('[SPACE] CHARGE', src.cx, anchor ? anchor.belowY : src.y + src.h + 12);
+    ctx.restore();
+  }
+
   if (player.nearEnemy && player.nearEnemy.alive) {
     const e = player.nearEnemy;
     ctx.save();
@@ -526,14 +541,14 @@ function _drawContextPrompts(ctx, player, t) {
     // pips still feed the bar automatically while charging (spendEnergy →
     // _pullReserve), so the player needs to know the reserve is there and is
     // being counted by the affordability check above.
-    if (player.bankedPips > 0) {
+    if (player.bankedPips > 0 && (dev instanceof PowerGate || dev instanceof Switch)) {
       const pipPulse = 0.7 + 0.3 * Math.sin(t * 5);
       ctx.globalAlpha = pulse * pipPulse;
       ctx.fillStyle   = '#ffcc00';
       ctx.font        = 'bold 10px monospace';
       ctx.shadowBlur  = 8;
       ctx.shadowColor = '#ffaa00';
-      ctx.fillText(`RESERVE: ${player.bankedPips} PIP${player.bankedPips === 1 ? '' : 'S'}`, cx, cy - lineOff + 26);
+      ctx.fillText(`[Q] SPEND PIP (${player.bankedPips})`, cx, cy - lineOff + 26);
     }
     ctx.restore();
   }

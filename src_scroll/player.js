@@ -1,13 +1,13 @@
 // Player: movement, jumping, absorb (E) / charge (SPACE) / attack (K), charge meter
 import {
   TILE, COLS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
-  PLAYER_W, PLAYER_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, C,
+  PLAYER_W, PLAYER_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, chargeTransferRate, C,
   RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS,
   PROJECTILE_CHARGE_COST
 } from './constants.js';
 import * as Input from './input.js';
 import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
-import { ChargePickup } from './electricity.js';
+import { ChargePickup, ElectricalSource, PowerGate, Switch } from './electricity.js';
 import { ElectricBolt } from './entities.js';
 import { PlayerSprites } from './hero-sprites.js';
 import { HERO_SIZE, HERO_FEET_Y } from './hero-render.js';
@@ -157,6 +157,7 @@ export class Player {
     this._updateAbsorb(dt, level);    // hold E near source  → absorb
     this._updateAttack(dt, level);    // K melee; L charged projectile
     this._updateBolts(dt, level);     // advance + cull live bolts
+    this._updatePipSpend();           // Q spends one reserve pip at a gate or switch
     this._updateDischarge(dt, level); // hold SPACE near gate/switch → gradual charge
     // ORDER SPACE_CHARGE: _updatePipSpend() is GONE. No button may complete a
     // gate in one press. The spendPip() authority function is retained (the
@@ -839,7 +840,8 @@ export class Player {
     if (holdE && this.nearSource && this.energyHeadroom > 1e-9) {
       this.absorbing    = true;
       this.absorbTarget = this.nearSource;
-      const request  = Math.min(ABSORB_RATE * dt, this.nearSource.charge, this.energyHeadroom);
+      const request  = Math.min(ABSORB_RATE * chargeTransferRate(this.charge) * dt,
+        this.nearSource.charge, this.energyHeadroom);
       const drained  = this.nearSource.drain(request);
       const accepted = this.giveEnergy(drained);
       // Refund whatever wouldn't fit — energy is conserved, never deleted.
@@ -929,6 +931,18 @@ export class Player {
   //    the transfer never visibly stalls at a pip boundary.
   //  • Affordability is asked via `usableEnergy` — same authority the HUD
   //    prompt uses, so UI and gameplay can never disagree.
+  _updatePipSpend() {
+    if (!Input.pressed('KeyQ') || !this.grounded || this.bankedPips <= 0) return;
+    const target = this.nearDevice;
+    if (!(target instanceof PowerGate || target instanceof Switch)) return;
+    const needed = target.required - target.charged;
+    if (needed <= 1e-9 || needed > MAX_CHARGE + 1e-9) return;
+    const pip = this.spendPip();
+    const opened = target.receive(needed);
+    this.giveEnergy(pip - needed);
+    if (opened && target.isExit) target._justOpenedByPlayer = true;
+  }
+
   _updateDischarge(dt, level) {
     const holdCharge = Input.heldAny('Space');
 
@@ -949,6 +963,9 @@ export class Player {
       target   = this.crateTarget;
       viaCrate = this.nearCrate;
     }
+    // Devices and valid crate bridges win over a nearby source. This keeps an
+    // exit payable even when its streetlight overlaps the interaction radius.
+    if (!target) target = this.nearChargeSource;
     // D4 / D5: a crate bridging NOTHING, or bridging AMBIGUOUSLY, leaves `target`
     // null — so the guard below refuses and the player keeps every unit of
     // energy. Refusal is silent in the arithmetic and LOUD in the HUD
@@ -961,7 +978,9 @@ export class Player {
       return;
     }
 
-    const needed = target.required - target.charged;
+    const needed = target instanceof ElectricalSource
+      ? target.max - target.charge
+      : target.required - target.charged;
     if (needed <= 1e-9) {
       this.discharging     = false;
       this.dischargeTarget = null;
@@ -979,7 +998,7 @@ export class Player {
     // so dormancy wake, _reactT, charged/open and conservation are identical to
     // charging the device directly. There is deliberately no second transfer
     // path for crates.
-    const want       = Math.min(DISCHARGE_RATE * dt, needed);
+    const want       = Math.min(DISCHARGE_RATE * chargeTransferRate(this.charge) * dt, needed);
     const frameSpend = this.spendEnergy(want);
 
     if (frameSpend > 1e-9) {
@@ -996,7 +1015,7 @@ export class Player {
       // defines tryOpen, so gates and switches are untouched. tryOpen() returns false
       // at MAX_BANKED_PIPS and refunds its own accumulation, so a full-reserve player
       // is never billed for a chest that did not open (Chief's cap ruling).
-      if (target.tryOpen) target.tryOpen(this);
+      if (target.tryOpen) target.tryOpen(this, level);
       if (viaCrate) viaCrate._bridgeFx = 0.15;   // visual only
     } else {
       this.discharging     = false;
@@ -1026,6 +1045,9 @@ export class Player {
   // Also routes through giveEnergy() so a pickup that tops the bar out
   // banks a pip exactly like source absorption does.
   _collectPickups(level) {
+    for (const p of level.pipPickups || []) {
+      if (!p.done && p.inRange(this.cx, this.cy) && this.bankPip()) p.done = true;
+    }
     for (const p of level.pickups) {
       if (p.done || !p.collectable) continue;
       if (!p.inRange(this.cx, this.cy)) continue;
@@ -1112,6 +1134,15 @@ export class Player {
               `A crate must bridge exactly ONE device.`);
           }
           if (b.state !== 'ambiguous') cr._warnedAmbiguous = false;
+          break;
+        }
+      }
+    }
+    this.nearChargeSource = null;
+    if (!this.nearDevice && !this.crateTarget) {
+      for (const src of level.sources) {
+        if (src.charge < src.max - 1e-9 && src.inRange(this.cx, this.cy)) {
+          this.nearChargeSource = src;
           break;
         }
       }
