@@ -668,6 +668,10 @@ the work list ordering in 8.
 - Bolt and melee hidden in Level 1; "Charge gate to open." is a world label above exit gates; pip use is
   instant and separate from charging (all in GAME_DESIGN_V2 section 13).
 
+### CONFIRMED by Chief (round 6, 2026-09-06)
+- Level 1 stays as is: 12 available charge. New Level 1 charged objects default to uncharged. The charge-speed
+  formula is Kiro's recommendation, to be tuned in play.
+
 ### CONFIRMED by Chief (round 5, 2026-09-06)
 - Every charged object works both ways (absorb and charge) and the Builder places it charged or uncharged.
   **Consequence for Level 1:** every object placed charged adds to the level's available charge, so Level 1's
@@ -696,8 +700,7 @@ the work list ordering in 8.
 1. **Check the 4.3a draft** in the Builder: zone heights, the 34-row total, the lift's route, the
    pylon-and-cable signpost. Chief has not reviewed it yet. The lift speed and tower position are Kiro's
    call for now (64 px/s; east end) and need playtesting.
-2. **Charged-object economy in the Builder.** With two-way objects, how should a Level 1 prop that is charged
-   by default count toward the 12? (RECOMMENDED: new props default uncharged, and the Builder shows the total.)
+2. **Duck key** (GAME_DESIGN_V2 4.4): hold Down to duck, Down + jump to drop through? Awaiting Chief.
 3. **Story direction.** Chief will pick; Orcha writes. (`STORY_BIBLE_DRAFT.md`)
 
 ---

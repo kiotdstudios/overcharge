@@ -336,9 +336,19 @@ and 18 rows) and will be regenerated after the retune.
   enemies), so ducking is there from the start but nothing needs it until Level 3.
 - **What this implies (derived, not yet specified):** a duck needs a **shorter hitbox**, so a laser or
   projectile aimed at standing height misses. Sky Sentry lasers lock their aim, so the duck must happen
-  during the 0.55 s warning. The **key is OPEN:** Down/S is already "drop through a one-way platform" while
-  grounded (`player.js`), so ducking needs either a different key, or a rule such as *tap Down to drop, hold
-  Down to duck*. Moving while ducked (crouch-walk) is also undecided. The enemy tests (`drone_sensing`,
+  during the 0.55 s warning. The **key is still being decided:** Down/S is already "drop through a one-way platform" while
+  grounded (`player.js`), so ducking cannot also be a plain Down press.
+  **Chief asked "how does Mario do it?"** In the Mario games, holding **Down** is the duck; the hero cannot
+  walk while ducked (momentum can carry a slide) and the hitbox is shorter. Mario has no quick "drop through":
+  in Super Mario Bros. 3 you can only fall through a white block by crouching on it for about five or six
+  seconds ([Super Mario Wiki, White Block](https://www.mariowiki.com/White_Block_(platform))). So Mario
+  offers the duck half of the answer, not the conflict half.
+  **RECOMMENDED:** **hold Down/S = duck** (Mario-style: no walking while ducked, shorter hitbox), and
+  **Down + jump = drop through** a one-way platform. That separates the two uses of one key without a
+  timer. **Cost:** the existing drop-through (a plain Down press, taught nowhere today) changes, so Level 1's
+  high strip and low street fork need the player to know it; the prompt or the NPC hint must say so. The
+  ladder is unaffected, because Down on a ladder climbs down before this rule applies. **Awaiting Chief's
+  yes or no.** The enemy tests (`drone_sensing`,
   `drone_weapons`) assert aim heights and will need updated expectations.
 - **RECOMMENDED:** because double jump is gated, the movement envelope that every level was proved against
   stays valid until the unlock, and no level may require it before the unlock exists. Ducking, if it only
@@ -554,6 +564,11 @@ A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-object and permane
 on a refused chest in 3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
 card-versus-world pairing and string placement in 8; the bar cost marker in 8.3; the juice order in 9.
 
+### CONFIRMED by Chief (round 6, 2026-09-06)
+46. **Level 1 stays as is** (read as: its available charge stays 12, so new Level 1 charged objects default to
+    **uncharged**). (3.5)
+47. **Charge-speed formula: Kiro's recommendation `1 + held / 25` is adopted, to be tuned in play.** (3.3)
+
 ### CONFIRMED by Chief (round 5, 2026-09-06)
 40. **Every charged object works both ways:** the player can absorb from it and charge it. The Builder places
     any of them charged or uncharged, with a toggle button. (3.5)
@@ -609,12 +624,10 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     one must be built. (see `LEVEL_DESIGN_V2`)
 
 ### OPEN questions (need Chief)
-1. Charge-speed formula: `1 + held / 25` (3 to 6 units/s), or another curve? (3.3) Chief did not answer;
-   the formula stays RECOMMENDED until he tunes it in play.
-2. Duck key: Down/S already means "drop through". Tap-to-drop and hold-to-duck, or a separate key? And can the
-   hero move while ducked? (4.4)
-3. Two-way objects: do they default to charged or uncharged in the Builder? (3.5; I recommend uncharged in
-   Level 1 so the total stays 12.)
+1. Charge-speed formula: Chief adopted `1 + held / 25` (3 to 6 units/s) for now; **to be tuned in play.**
+   (3.3) Closed until playtest.
+2. Duck key: Chief asked how Mario does it; my answer and recommendation are in 4.4 (hold Down to duck,
+   Down + jump to drop through). **Awaiting Chief's yes or no.**
 (The stage 1 line "Try absorbing power from a street lamp" is kept as built: Chief did not object. Cutscenes
 are skipped until the story exists.)
 

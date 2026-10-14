@@ -2202,3 +2202,7 @@ Chief answered the open questions. One code change, the rest docs.
 - The Level 3 objective card teaches the bolt. The card exists only for Level 1, so a per-level objective system is on the work list.
 - Cutscenes are skipped until the story exists. The stage 1 card line stays as built.
 - Work list rows 7, 29 updated; rows 38 and 39 added. No code touched.
+## 2026-09-06 - Round 6: duck key answer, defaults (docs only)
+- Chief asked how Mario ducks. In the Mario games holding Down is the duck, the hero cannot walk while ducked, and the hitbox is shorter. There is no quick drop-through (Super Mario Bros. 3 needs about five or six seconds of crouching on a white block). My recommendation: hold Down to duck, Down plus jump to drop through a one-way platform. Awaiting Chief's yes or no.
+- Level 1 stays as is: 12 available charge, new Level 1 charged objects default to uncharged (my reading of "lvl 1 stays as is").
+- The charge-speed formula `1 + held / 25` is adopted for now, to be tuned in play.
