@@ -3,7 +3,7 @@
 // Drops are defined as an array — { type: 'charge', value: N } for now;
 // new drop types (keys, upgrades, etc.) get added here later.
 import { TILE, STUN_DURATION, STUN_COOLDOWN, GRAVITY, CRATE_CONTACT_PAD, CRATE_SIZE, INTERACT_RADIUS, ABSORB_RADIUS } from './constants.js';
-import { ChargePickup } from './electricity.js';
+import { ChargePickup, PipPickup } from './electricity.js';
 import { drawGlowRect } from './render.js';
 
 function _resolveDrops(drops, cx, cy, level) {
@@ -1235,15 +1235,21 @@ export class Chest {
   // chest DOES NOT OPEN, so the reward is not destroyed and the player can return
   // after spending a pip. The accumulated `charged` is also rolled back, so he is
   // not billed 2 for nothing.
-  tryOpen(player) {
+  tryOpen(player, level = null) {
     if (this.opened || this.charged < this.cost - 1e-9) return false;
-    const canAccept = this.variant ? player.energyHeadroom + 1e-9 >= this.reward : player.bankPip();
-    if (!canAccept) {
-      this.charged   = 0;        // refund the accumulation, do not bill him
-      this._refusedFx = 0.6;     // visible "reserve full" tell
-      return false;
+    if (this.variant) {
+      if (player.energyHeadroom + 1e-9 < this.reward) {
+        this.charged = 0;
+        this._refusedFx = 0.6;
+        return false;
+      }
+      player.giveEnergy(this.reward);
+    } else if (!player.bankPip()) {
+      if (!level) level = this._level;
+      if (!level) return false;
+      level.pipPickups.push(new PipPickup(this.cx + 28, this.y + this.h - 12, this.id));
+      this._refusedFx = 0.6;
     }
-    if (this.variant) player.giveEnergy(this.reward);
     this.opened = true;
     this._openT = 0;
     return true;
@@ -1270,7 +1276,7 @@ export class Chest {
       ctx.fillStyle = '#ff4455';
       ctx.font = 'bold 9px monospace';
       ctx.textAlign = 'center';
-      ctx.fillText(this.variant ? 'CHARGE FULL' : 'RESERVE FULL', this.cx, sb.dY - 6);
+      ctx.fillText('CHARGE FULL', this.cx, sb.dY - 6);
       ctx.globalAlpha = 1;
     }
     if (img && img.complete && img.naturalWidth > 0) {

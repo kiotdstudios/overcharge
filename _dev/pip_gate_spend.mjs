@@ -89,6 +89,45 @@ sec('SETUP SANITY — the player really is grounded and in range (no vacuous pas
 }
 
 // ───────────────────────────────────────────────────────────────────────────
+sec('Q SPENDS ONE PIP INSTANTLY AT A PAYABLE GATE');
+{
+  const { L, p, g } = rig(0, 1);
+  const before = p.usableEnergy;
+  held(['KeyQ']); step(p, L); held([]);
+  ok(g.open && near(g.charged, 8), 'Q opens the 8-cost gate in one frame');
+  ok(p.bankedPips === 0 && near(p.charge, 17), 'the remaining 17 returns to the bar');
+  ok(near(before - p.usableEnergy, 8), 'Q conserves charge across pip spend');
+  ok(p._pipSurgeT > 0 && p._pipSurgeTarget === g && g._pipFlash > 0,
+    'a distinct one-shot electric surge starts at the gate');
+  const ctx = new Proxy({}, { get: () => () => {} });
+  let burstDrawn = false;
+  g._drawPipBurst = () => { burstDrawn = true; };
+  g.draw(ctx);
+  ok(burstDrawn, 'the pip burst still draws after the gate opens');
+}
+{
+  const { L, p, g } = rig(0, 1);
+  p.grounded = false;
+  held(['KeyQ']); p._updatePipSpend(L); held([]);
+  ok(g.open, 'Q works in range while airborne');
+}
+{
+  const { L, p, g } = rig(0, 0);
+  held(['KeyQ']); step(p, L); held([]);
+  ok(!g.open && g.charged === 0, 'Q with no pip has no effect');
+}
+{
+  const { L, p, g } = rig(0, 1);
+  p.x = 10;
+  held(['KeyQ']); step(p, L); held([]);
+  ok(!g.open && p.bankedPips === 1, 'Q away from a device spends nothing');
+}
+{
+  const { L, p, g } = rig(MAX_CHARGE, MAX_BANKED_PIPS);
+  held(['KeyQ']); step(p, L); held([]);
+  ok(g.open && near(p.usableEnergy, 6 * MAX_CHARGE - 8), 'Q returns surplus even when the bar begins full');
+}
+
 sec('ORDINARY 8-CHARGE GATE, PAID FROM THE BAR (no pips)');
 {
   const { L, p, g } = rig(10, 0);
@@ -96,7 +135,7 @@ sec('ORDINARY 8-CHARGE GATE, PAID FROM THE BAR (no pips)');
   ok(r.open, 'bar 10 / 0 pips: gate opens');
   ok(near(r.bar, 2) && r.pips === 0, 'ends at bar 2, 0 pips', `bar=${f(r.bar)} pips=${r.pips}`);
   ok(near(r.spent, 8), 'exactly 8 left the player', f(r.spent));
-  ok(r.frames >= 158 && r.frames <= 166, 'takes about 2.67s of holding (8 / 3 per s)', `${r.frames} frames`);
+  ok(r.frames >= 125 && r.frames <= 135, 'takes about 2.17s as the bar-dependent rate slows', `${r.frames} frames`);
 }
 {
   const { L, p, g } = rig(24, 0);
@@ -118,7 +157,7 @@ sec('PIPS PAY AN 8-CHARGE GATE — a pip is promoted INTO THE BAR, then the gate
   ok(r.pips === 0, 'the pip is consumed', `pips=${r.pips}`);
   ok(near(r.bar, 17), 'the other 17 stay in the BAR (25 - 8), not wasted and not re-banked', `bar=${f(r.bar)}`);
   ok(near(r.spent, 8), 'usable energy fell by exactly 8', f(r.spent));
-  ok(r.maxDelta <= DISCHARGE_RATE / 60 + 1e-9, 'payment never exceeds 3/s on any frame', f(r.maxDelta));
+  ok(r.maxDelta <= 2 * DISCHARGE_RATE / 60 + 1e-9, 'payment never exceeds 6/s on any frame', f(r.maxDelta));
 }
 {
   const { L, p, g } = rig(3, 1);
@@ -127,7 +166,7 @@ sec('PIPS PAY AN 8-CHARGE GATE — a pip is promoted INTO THE BAR, then the gate
   ok(near(r.bar, 20) && r.pips === 0, 'bar pays 3, the pip promotes MID-HOLD, bar pays 5 more: ends bar 20, 0 pips', `bar=${f(r.bar)} pips=${r.pips}`);
   ok(near(r.spent, 8), 'exactly 8 left the player', f(r.spent));
   ok(r.frames <= 166, 'no pause at the pip boundary (still about 2.67s)', `${r.frames} frames`);
-  ok(r.maxDelta <= DISCHARGE_RATE / 60 + 1e-9, 'no frame jumped, so the boundary is invisible to the gate', f(r.maxDelta));
+  ok(r.maxDelta <= 2 * DISCHARGE_RATE / 60 + 1e-9, 'no frame jumps beyond the scaled rate at a pip boundary', f(r.maxDelta));
 }
 {
   const { L, p, g } = rig(0, 5);
@@ -239,52 +278,25 @@ sec('HITS AND BOLTS DRAW FROM THE SAME POOL (authority level)');
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-sec('KNOWN ISSUE (characterized, NOT fixed): a refused chest does not refund the energy it was paid');
+sec('PIP CHEST AT RESERVE CAP — OPEN AND DROP THE REWARD');
 {
   const chest = { id: 'CH1', x: 128, y: 480, cost: 2, reward: 10 };
   const L = mkLevel({ gates: 0, chest });
   const p = new Player(96, 480); settle(p, L);
-  p.setEnergyState(10, MAX_BANKED_PIPS);          // reserve is full, so the pip reward is refused
+  p.setEnergyState(10, MAX_BANKED_PIPS);
   const ch = L.chests[0];
   const before = p.usableEnergy;
-  ok(p.nearDevice === ch, 'player is in range of the chest');
-
-  // Watch for each refusal as it happens. _refusedFx is set to 0.6 inside tryOpen and
-  // then decays, so a frame where it RISES is a refusal.
   held(['Space']);
-  let refusals = 0, prevFx = 0, atFirst = null, openedAt = -1;
-  for (let i = 0; i < 900 && !ch.opened; i++) {
-    step(p, L);
-    if (ch._refusedFx > prevFx + 1e-9) {
-      refusals++;
-      if (atFirst === null) atFirst = { usable: p.usableEnergy, pips: p.bankedPips, charged: ch.charged, opened: ch.opened };
-    }
-    prevFx = ch._refusedFx;
-    if (ch.opened) openedAt = i;
-  }
+  for (let i = 0; i < 900 && !ch.opened; i++) step(p, L);
   held([]);
-
-  ok(atFirst !== null, 'a full reserve refuses the chest');
-  ok(atFirst && !atFirst.opened && atFirst.pips === MAX_BANKED_PIPS, 'at the first refusal the chest is closed and the reserve is still full');
-  ok(atFirst && atFirst.charged === 0, 'the chest\'s own accumulation is reset to 0 on refusal');
-
-  const lostAtFirst = before - atFirst.usable;
-  if (lostAtFirst > 1e-6) {
-    console.log(`    KNOWN ISSUE: the first refusal left the player ${f(lostAtFirst)} charge poorer. The cost is spent`);
-    console.log('    through spendEnergy, the chest then resets itself, and nothing gives the energy back.');
-    console.log('    entities.js tryOpen says "refund the accumulation, do not bill him"; it only zeroes the chest.');
-    ok(true, 'observed: a refusal DESTROYS the paid cost (characterized, fix is out of scope here)', `lost=${f(lostAtFirst)} of cost ${chest.cost}`);
-  } else {
-    ok(true, 'observed: a refusal returns the paid cost (issue appears FIXED)', `lost=${f(lostAtFirst)}`);
-  }
-
-  // What holding SPACE does over time. The refusals keep spending the bar. When the
-  // bar reaches 0 the next spend promotes a pip, the reserve is no longer full, and
-  // the chest opens.
-  ok(ch.opened, 'holding SPACE keeps paying and refusing until the chest eventually opens', `after ${refusals} refusals`);
-  ok(refusals === Math.floor(10 / chest.cost), 'it refuses once for every cost the starting bar could cover', `${refusals} refusals for a bar of 10 at cost ${chest.cost}`);
-  ok(p.bankedPips === MAX_BANKED_PIPS && near(p.charge, MAX_CHARGE - chest.cost), 'it opens by breaking a pip into the bar and then banking the reward: reserve full again, bar 23', `bar=${f(p.charge)} pips=${p.bankedPips}`);
-  console.log(`    net effect of the whole sequence: ${f(before)} -> ${f(p.usableEnergy)} usable; the player paid ${refusals * chest.cost} for the refusals alone.`);
+  ok(ch.opened, 'a full-reserve chest opens after its cost is paid');
+  ok(near(before - p.usableEnergy, chest.cost), 'only the 2-unit price leaves the player');
+  ok(p.bankedPips === MAX_BANKED_PIPS, 'reserve stays capped');
+  ok(L.pipPickups.length === 1, 'the reward waits as one pip pickup');
+  const saved = L.snapshot();
+  L.pipPickups = [];
+  L.restore(saved);
+  ok(L.pipPickups.length === 1, 'the pip survives checkpoint rewind');
 }
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);

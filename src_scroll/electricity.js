@@ -16,12 +16,10 @@ export class ElectricalSource {
   // vending machine) are absorbable sources. They arrive as kind:'prop' carrying their own
   // sprite folder and frame geometry, because the runtime never loads ASSET_MANIFEST.json.
   constructor({ id, x, y, charge = 4, label = '', kind = 'generator', onDepletedGate = '',
-                sprite = '', frames = 8, artW = 64, artH = 64 }) {
+                sprite = '', frames = 8, artW = 64, artH = 64, uncharged = false }) {
     this.id     = id;
     this.x      = x; this.y = y;
     this.w      = 28; this.h = 28;  // logical hitbox; sprite is drawn larger, above
-    this.charge = charge;
-    this.max    = charge;
     this.label  = label;
     // 'prop' added to the whitelist. Without it a prop source silently coerced to
     // 'generator' and drew generator art — absorbable, but wearing the wrong face.
@@ -33,8 +31,8 @@ export class ElectricalSource {
     this._absorbT = 0;   // seconds left on the "being drained right now" tell
     this._dryFlash = 0;  // AKI_17: one-shot "ran dry" settle timer, set in drain()
     this.onDepletedGate = onDepletedGate;
-    this.charge = Number.isFinite(charge) ? Math.max(0, charge) : 0;
-    this.max    = this.charge;
+    this.max    = Number.isFinite(charge) ? Math.max(0, charge) : 0;
+    this.charge = uncharged ? 0 : this.max;
     this.drained = this.charge === 0;
     this._lightLevel = this.drained ? 0 : 1;
     this._fanSpeed = this.drained ? 0 : 1;
@@ -132,6 +130,18 @@ export class ElectricalSource {
     // nothing owns that. 0.12s outlives one frame at any sane framerate and lapses on release.
     if (actual > 0) this._absorbT = 0.12;
     return actual;
+  }
+
+  // Sources keep the player's transferred energy until it is absorbed again.
+  // `max` is capacity even when an authored source starts uncharged.
+  receive(amount) {
+    const accepted = Math.min(Math.max(0, amount), this.max - this.charge);
+    if (accepted <= 0) return 0;
+    this.charge += accepted;
+    this.drained = false;
+    this._dryFlash = 0;
+    this._frame = 1;
+    return accepted;
   }
 
   // Prop source art (CHIEF 2026-09-26). Frame semantics are Aki's, straight from her
@@ -601,6 +611,27 @@ export class PowerGate {
     ctx.restore();
   }
 
+  _drawPipBurst(ctx) {
+    if (this._pipFlash <= 0) return;
+    const life = Math.min(1, this._pipFlash / 0.75);
+    const box = this.spriteBox();
+    const cx = Math.round(this.cx);
+    const cy = Math.round(box.dY + box.dH / 2);
+    const spread = Math.round((1 - life) * 24);
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, life * 1.5);
+    for (let i = 0; i < 10; i++) {
+      const side = i % 2 ? 1 : -1;
+      const yy = cy - 42 + i * 9 + (Math.floor(this._t * 24 + i) % 3) * 2;
+      const xx = cx + side * (box.dW / 2 + 3 + spread);
+      ctx.fillStyle = i % 3 ? '#64ddff' : '#f1c9ff';
+      ctx.fillRect(Math.round(xx), Math.round(yy), side * 10, 2);
+      ctx.fillRect(Math.round(xx + side * 10), Math.round(yy - 6), 2, 8);
+      ctx.fillRect(Math.round(xx + side * 10), Math.round(yy - 6), side * 8, 2);
+    }
+    ctx.restore();
+  }
+
   draw(ctx) {
     // Style branch FIRST. A fence is blockOnly, so it never shows a charge bar,
     // never shows a [SPACE] prompt, and never reaches the gate/dormancy art path
@@ -634,6 +665,7 @@ export class PowerGate {
       // faded out).
       if (age >= 1.0) {
         if (this.timed && this._timeLeft > 0) this._drawCountdown(ctx);
+        this._drawPipBurst(ctx);
         return;
       }
       const alpha = age < 0.5 ? 1.0 : Math.max(0, 1.0 - (age - 0.5) / 0.5);
@@ -654,6 +686,7 @@ export class PowerGate {
         drawGlowRect(ctx, this.x, this.y, this.w, this.h, '#3a0066', '#cc44ff', 20);
       }
       ctx.restore();
+      this._drawPipBurst(ctx);
       if (this.timed && this._timeLeft > 0) this._drawCountdown(ctx);
       return;
     }
@@ -782,16 +815,7 @@ export class PowerGate {
     }
 
     // Pip-spend flash: bright white burst over the gate
-    if (this._pipFlash > 0) {
-      const alpha = this._pipFlash * 1.8;  // fades out quickly
-      ctx.save();
-      ctx.globalAlpha = Math.min(0.85, alpha);
-      ctx.shadowBlur  = 40;
-      ctx.shadowColor = '#ffffff';
-      ctx.fillStyle   = '#cc44ff';
-      ctx.fillRect(this.x - 2, this.y, this.w + 4, this.h);
-      ctx.restore();
-    }
+    this._drawPipBurst(ctx);
   }
 
   // ── D9: timed countdown readout ────────────────────────────────────
@@ -1038,6 +1062,43 @@ export class Switch {
 // ──────────────────────────────────────────────
 // ChargePickup: burst out on damage, can be recollected
 // ──────────────────────────────────────────────
+export class PipPickup {
+  constructor(x, y, id = null) {
+    this.x = x;
+    this.y = y;
+    this.id = id;
+    this.done = false;
+    this._t = 0;
+    this.img = new Image();
+    this.img.src = 'assets/objects/pip/charged.png';
+  }
+
+  update(dt) { this._t += dt; }
+  inRange(x, y) { return dist(x, y, this.x, this.y) < 30; }
+
+  draw(ctx) {
+    const x = Math.round(this.x);
+    const y = Math.round(this.y + Math.sin(this._t * 3) * 2);
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (this.img.complete && this.img.naturalWidth > 0) {
+      ctx.drawImage(this.img, x - 10, y - 10, 20, 20);
+      ctx.restore();
+      return;
+    }
+    ctx.fillStyle = '#201034';
+    ctx.fillRect(x - 7, y - 9, 14, 18);
+    ctx.fillStyle = '#a441f2';
+    ctx.fillRect(x - 6, y - 8, 12, 16);
+    ctx.fillStyle = '#e9b8ff';
+    ctx.fillRect(x - 4, y - 6, 8, 12);
+    ctx.fillStyle = '#7030c0';
+    ctx.fillRect(x - 1, y - 5, 3, 5);
+    ctx.fillRect(x - 3, y, 4, 5);
+    ctx.restore();
+  }
+}
+
 export class ChargePickup {
   // vx/vy: override initial velocity for directional scatter (null = random)
   constructor(x, y, value = 1, vx = null, vy = null) {

@@ -35,7 +35,7 @@ const Input = await import('../src_scroll/input.js');
 const keyDown = code => fire('keydown', code);
 const keyUp   = code => fire('keyup', code);
 const newFrame = () => Input.update();      // copies cur -> prev, so pressed() is edge-only
-function releaseAll() { for (const c of ['Space','KeyK','KeyL','KeyF','KeyE']) keyUp(c); newFrame(); }
+function releaseAll() { for (const c of ['Space','KeyK','KeyL','KeyF','KeyE','KeyQ']) keyUp(c); newFrame(); }
 
 let passed = 0, failed = 0;
 function assert(condition, name, detail = '') {
@@ -100,6 +100,26 @@ section('REQUIRED MATRIX');
 // Row 5 — Bar 0 + 1 pip -> Bar MAX + 0 pips, on DEMAND.
 // RULING 2: eager per-tick refill is REJECTED; the pull happens at the moment
 // something actually spends. Proven here through the public spend authority.
+{ releaseAll();
+  const { p, g } = atGate(8, 0, 1);
+  keyDown('KeyQ'); p._updatePipSpend();
+  assert(g.open && near(g.charged, 8), 'Q: one reserve pip instantly pays an 8-unit gate');
+  assert(p.bankedPips === 0 && near(p.charge, MAX_CHARGE - 8), 'Q: 17-unit surplus returns to the bar');
+  releaseAll();
+}
+{ releaseAll();
+  const { p, g } = atGate(8, 0, 0);
+  keyDown('KeyQ'); p._updatePipSpend();
+  assert(!g.open && g.charged === 0, 'Q: without a pip the gate does not change');
+  releaseAll();
+}
+{ releaseAll();
+  const { p, g } = atGate(8, 0, 1);
+  p.nearDevice = null;
+  keyDown('KeyQ'); p._updatePipSpend();
+  assert(!g.open && p.bankedPips === 1, 'Q: out of range spends nothing');
+  releaseAll();
+}
 { const p = P(); p.setEnergyState(0, 1);
   const spent = p.spendEnergy(0);   // zero-cost demand must not move anything
   assert(spent === 0 && p.charge === 0 && p.bankedPips === 1,
@@ -361,8 +381,8 @@ const lvl = () => mkLevel();
 { releaseAll();
   const { p, g } = atGate(8, MAX_CHARGE, 3);
   const before = p.usableEnergy;
-  assert(typeof p._updatePipSpend === 'undefined',
-    'F: the _updatePipSpend handler no longer exists');
+  assert(typeof p._updatePipSpend === 'function',
+    'Q: the pip-spend handler exists separately from F');
   keyDown('KeyF');
   // Everything the update loop would run for input this frame.
   p._updateAttack(1 / 60, lvl());
