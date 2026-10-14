@@ -1,5 +1,5 @@
 export const HERO_STATES = {
- idle:[6,true],duck:[6,true],walk:[10,true],run:[14,true],jump:[10,false],
+ idle:[6,true],duck:[3,true],walk:[10,true],run:[14,true],jump:[10,false],
  'ledge-climb':[10,false],death:[9,false],hurt:[16,false],stunned:[8,true],
  'energy-strike':[18,false],'projectile-cast':[20,false],'wall-slide':[8,true],grapple:[10,false],
  'ladder-up':[10,true],'ladder-down':[8,true],absorb:[10,true],discharge:[10,true],
@@ -24,8 +24,8 @@ export const HERO_STATES = {
 export const HERO_PACKS = {
  'hero-v3':{
   root:'assets/sprites/hero-v3', frames:8, cell:512, footAnchor:496,
-  alias:{fall:'jump',land:'jump',duck:'idle'},
-  standIn:['fall','land','duck'],
+  alias:{fall:'jump',land:'jump'},
+  standIn:['fall','land'],
  },
  'hero-v6':{
   // rev is appended to every frame URL. Bump it whenever frames are replaced in
@@ -45,6 +45,15 @@ export const DEFAULT_PACK='hero-v3';
 const cache=new Map();
 function framesFor(state,dir,gaitRoot,pack){
  const spec=HERO_PACKS[pack]||HERO_PACKS[DEFAULT_PACK];
+ // v3's takeoff and touchdown artwork are both grounded crouches. Alternate
+ // those two poses for a short, readable duck loop instead of showing idle.
+ if(state==='duck'&&pack===DEFAULT_PACK){
+  const key=`${spec.root}/duck/${dir}`;
+  if(!cache.has(key))cache.set(key,[0,6].map(i=>{
+   const img=new Image();img.src=`${spec.root}/jump/${dir}/frame_${String(i).padStart(3,'0')}.png`;return img;
+  }));
+  return cache.get(key);
+ }
  // The gait-v4 override only ever replaced v3's walk/run and does not apply to v6.
  const revised=gaitRoot&&pack===DEFAULT_PACK&&(state==='walk'||state==='run');
  const folder=spec.alias[state]||state;
