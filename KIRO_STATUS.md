@@ -2194,3 +2194,11 @@ Chief answered the open questions. One code change, the rest docs.
 - Tower position (east end) and lift speed (64 px/s) are my calls, to be tuned in play.
 - Story is Orcha's. Tone is Static Shock inspired. `STORY_BIBLE_DRAFT.md` carries a handoff note and an IP caution; premise, hero name and city name are Chief's to decide.
 - No code touched this round.
+## 2026-09-06 - Round 5: two-way charged objects and smaller decisions (docs only)
+- Every charged object works both ways: absorb from it, charge it. The Builder places any of them charged or uncharged with a toggle button. Found in `electricity.js`: a source's `max` is set equal to its starting charge and `drained` is true at 0, so an object authored at 0 is permanently dead with capacity 0. "Uncharged" cannot exist until each object has a separate capacity and starting charge, plus a `receive()`.
+- Placing an object charged adds to the level's available charge, so Level 1's 12 has to include it. Recommended default for new Level 1 props: uncharged, with a live level-total readout in the Builder. Charge must be conserved across transfers (needs a regression test).
+- Pips: only from chests or from filling the bar. No prop dispenses one.
+- Ducking is a standard mechanic from frame 1 for dodging attacks. Down/S already means drop-through, so the duck key is open.
+- The Level 3 objective card teaches the bolt. The card exists only for Level 1, so a per-level objective system is on the work list.
+- Cutscenes are skipped until the story exists. The stage 1 card line stays as built.
+- Work list rows 7, 29 updated; rows 38 and 39 added. No code touched.

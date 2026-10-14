@@ -600,7 +600,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 4 | Objective-card stage 1 line (two places) | Runtime | none | **DONE round 3** ("Try absorbing power from a street lamp"). The "Charge gate to open." world label above exit gates is still to build. |
 | 5 | Movement retune with before and after (Appendix A) | Runtime | 2 | CONFIRMED authorized |
 | 6 | Route verification across all six levels | Test | 2, 5 | CONFIRMED |
-| 7 | Reclaimable-charge props (receiver, reaction, drain) | Runtime | none | NEW; blocks 9 |
+| 7 | **Two-way charged objects**: `capacity` plus `startCharge` on every source, a `receive()` that revives a drained object, conservation test, checkpoint snapshot | Runtime | none | CONFIRMED round 5; blocks 9 |
 | 8 | Juice module (particles, shake, hit-stop) and land/jump feedback | Runtime | 5 | RECOMMENDED |
 | 9 | Charged-object payoffs: vending machine, fuse box and sign, shutter, AC unit | Art + runtime | 7 | CONFIRMED direction |
 | 10 | Ambient actors: pedestrians, passing cars, drifting birds | Runtime + art | none | CONFIRMED direction |
@@ -626,7 +626,9 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 26 | Test a ladder in a real level (none exists); ladder art and tops | Content + test | none | RECOMMENDED |
 | 27 | Pip pickup object and art | Art + runtime | 18 | NEW |
 | 28 | Per-level ability list: hide bolt and melee in Level 1, prompts and dev bar | Runtime | none | CONFIRMED round 3 |
-| 29 | Ducking and unlockable double jump: abilities, art, unlock rule | Runtime + art | 5 | CONFIRMED real; unlock rule OPEN |
+| 29 | Ducking (standard from frame 1, dodges attacks; shorter hitbox, key undecided) and unlockable double jump (after the tutorial levels): abilities, art | Runtime + art | 5 | CONFIRMED round 5; duck key OPEN |
+| 38 | **Builder toggle: Charged / Uncharged** on every charged object, a capacity field, and a live "level total" readout | Builder (Aki) | 7 | CONFIRMED round 5 |
+| 39 | **Per-level objective system** (the card exists only for Level 1) so Level 3 can teach the bolt | Runtime | none | CONFIRMED round 5 |
 | 30 | Charged-object pricing applied to props; charge stored in objects counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
 | 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED |
 | 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/STORY_BIBLE_DRAFT.md` |
@@ -666,6 +668,14 @@ the work list ordering in 8.
 - Bolt and melee hidden in Level 1; "Charge gate to open." is a world label above exit gates; pip use is
   instant and separate from charging (all in GAME_DESIGN_V2 section 13).
 
+### CONFIRMED by Chief (round 5, 2026-09-06)
+- Every charged object works both ways (absorb and charge) and the Builder places it charged or uncharged.
+  **Consequence for Level 1:** every object placed charged adds to the level's available charge, so Level 1's
+  12 must include them. New Level 1 props should default to **uncharged**. The three lamps already hold 4 each.
+- Pips come only from chests or from absorbing enough charge to fill the bar.
+- Ducking is standard from the first frame and dodges attacks (no effect in Level 1, which has no attacks).
+- The Level 3 objective card teaches the bolt. Cutscenes are skipped until the story exists.
+
 ### CONFIRMED by Chief (round 4, 2026-09-06)
 - The word is **charged object**, not "toy".
 - Charged objects have their own cost system, separate from the source power system.
@@ -686,7 +696,8 @@ the work list ordering in 8.
 1. **Check the 4.3a draft** in the Builder: zone heights, the 34-row total, the lift's route, the
    pylon-and-cable signpost. Chief has not reviewed it yet. The lift speed and tower position are Kiro's
    call for now (64 px/s; east end) and need playtesting.
-2. **Cutscene.** Not buildable today; skip for now? (3.5) Not answered.
+2. **Charged-object economy in the Builder.** With two-way objects, how should a Level 1 prop that is charged
+   by default count toward the 12? (RECOMMENDED: new props default uncharged, and the Builder shows the total.)
 3. **Story direction.** Chief will pick; Orcha writes. (`STORY_BIBLE_DRAFT.md`)
 
 ---

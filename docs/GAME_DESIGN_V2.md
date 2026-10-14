@@ -160,6 +160,32 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 - **BUILT today:** the only thing that can be charged *and* drained back is the **charge platform**
   (SPACE gives, E takes back). Lamps, fuse boxes, signs and vending machines **cannot be given charge**:
   `ElectricalSource` has no receive path. This is new engine work.
+- **CONFIRMED (round 5): every charged object works both ways.** The player can **absorb from any of them
+  and charge any of them.** This includes the existing lamps, fuse boxes, signs, cameras, HVAC units and
+  generators, not only new props. So the "energy source" and the "charged object" are one thing with one
+  rule; this section's earlier separation of sources and objects describes the old code, not the target.
+- **CONFIRMED (round 5): the Builder places any of them charged or uncharged,** with a **toggle button**
+  (charged / uncharged) on the object. **Engine fact that matters (`electricity.js`, `ElectricalSource`):**
+  today an object's `max` is set equal to its starting `charge`, and `drained` is true whenever charge is 0.
+  So an object authored at 0 charge is permanently dead and has **capacity 0**: "uncharged" cannot exist
+  yet. The fix is to give each object **two numbers: capacity (`max`) and starting charge**, and have the
+  toggle choose the starting charge (full capacity, or 0), plus a `receive(amount)` that adds charge, clears
+  `drained`, restarts the fan, light and animation, and is capped at `max`.
+- **Rules this creates (RECOMMENDED, for Chief to approve):**
+  1. **Charge is conserved.** Every unit absorbed or given moves between the player and an object. Nothing is
+     created or destroyed by a transfer. This needs a regression test (absorb all, give back, compare totals).
+  2. **Level total.** Charge available = the sum of the starting charge of everything placed *charged*, plus
+     nothing else. An object placed charged **adds to the level's total.** Level 1's total is 12 (CONFIRMED),
+     so new Level 1 props default to **uncharged**, and the Builder should show a live "level total"
+     readout so the 12 cannot be broken by accident.
+  3. **A drained object can be recharged,** and shows as dark until it is.
+  4. **Gates and switches are still charge-only** (the player cannot absorb from a gate). The charge platform
+     already works both ways and is the model.
+  5. **Charge-speed scaling (3.3) applies to every transfer,** both directions.
+  6. **Checkpoints** must snapshot each object's charge, as they already do for sources and platforms.
+- **Builder work (Aki's lane, NEW):** a Charged / Uncharged toggle on each object's inspector and in the
+  palette, a capacity field, the level-total readout, and a fixed `LEVEL_SCHEMA.md` entry (`charge` currently
+  means both capacity and start).
 - **CONFIRMED (round 2):** a charged prop's charge **stays in the prop until the player takes it back.** If
   the player leaves through the exit gate first, it is **lost for good.** (This is option (a), not the
   return-on-leaving option.)
@@ -199,8 +225,9 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   - *Permanent payoffs*: charge is consumed for a lasting reward. Their total cost in Level 1 should
     never exceed the 4 spare units, so a player who buys them all still has 8 for the exit.
   - Reclaiming returns the full amount given. No fee, no decay.
-- **OPEN:** should a vending machine ever *dispense* something (a pip)? A pip is 25 charge, so a machine
-  that pays one for 3 would be a charge fountain and break the economy.
+- **CONFIRMED (round 5): a vending machine never gives a pip.** A pip comes from only two places: **a
+  chest, or absorbing enough charge to fill the bar** (the overflow banks a pip, as built). No prop dispenses
+  one, because a machine that paid a pip for 3 charge would be a charge fountain.
 
 ### 3.6 The Level 1 economy (CONFIRMED)
 - **CONFIRMED.** Level 1 keeps **12 charge available and an exit that costs 8.**
@@ -304,7 +331,15 @@ and 18 rows) and will be regenerated after the retune.
   first frame. **Round 4 (Chief, "maybe Level 5 or something after the tutorial levels"):** the unlock
   comes after the tutorial levels, probably around Level 5. Not final. **OPEN (later):** what unlocks it and
   whether the unlock persists across levels and saves. Nothing in Levels 1 to 4 may require it.
-- **OPEN:** does ducking also unlock, and what does it do (pass under low gaps, dodge a laser)?
+- **CONFIRMED (round 5): ducking does not unlock. It is a standard mechanic from the first frame, like
+  walking, and its purpose is to dodge attacks.** Level 1 has no attacks (bolt and melee are hidden, no
+  enemies), so ducking is there from the start but nothing needs it until Level 3.
+- **What this implies (derived, not yet specified):** a duck needs a **shorter hitbox**, so a laser or
+  projectile aimed at standing height misses. Sky Sentry lasers lock their aim, so the duck must happen
+  during the 0.55 s warning. The **key is OPEN:** Down/S is already "drop through a one-way platform" while
+  grounded (`player.js`), so ducking needs either a different key, or a rule such as *tap Down to drop, hold
+  Down to duck*. Moving while ducked (crouch-walk) is also undecided. The enemy tests (`drone_sensing`,
+  `drone_weapons`) assert aim heights and will need updated expectations.
 - **RECOMMENDED:** because double jump is gated, the movement envelope that every level was proved against
   stays valid until the unlock, and no level may require it before the unlock exists. Ducking, if it only
   adds passages, does not shrink any existing route. Each ability needs the harness re-run (Appendix A).
@@ -348,7 +383,7 @@ and 18 rows) and will be regenerated after the retune.
 
 | Object | What it does today |
 |---|---|
-| **Energy source** (lamp, fuse box, camera, generator, HVAC) | Absorbable with E. Visibly dims and goes dark when drained. Cannot receive charge. |
+| **Energy source** (lamp, fuse box, camera, generator, HVAC) | Absorbable with E. Visibly dims and goes dark when drained. **Cannot receive charge today;** CONFIRMED round 5 to become two-way (see 3.5). |
 | **Exit gate** | Costs 8. Non-solid: the player may walk past it uncharged (`CHIEF_EXIT_EXPLORATION_RULE`), but the level only completes when it is open, charged and the player is in it. |
 | **Barrier / fence** | A gate that is switch-only (the player cannot charge it). Y-aware. Opens when its linked switch fires. |
 | **Switch** | Costs charge. Opens its linked barrier. A "wall" switch starts powered and shorts out when charged, slackening the fence. |
@@ -373,8 +408,11 @@ and 18 rows) and will be regenerated after the retune.
   the risk the "12 versus 8" buffer guarded against, and it also closes the unwinnable-state path in 3.7
   (the bolt was the only way to waste charge on purpose). Today L and K work from the first frame, so
   **hiding means disabling them for Level 1 and removing them from prompts and the dev bar.** Needs a
-  per-level ability list (see `LEVEL_DESIGN_V2` section 8). **OPEN:** does the hero see them introduced in
-  Level 3 by a prompt, an unlock or a tutorial beat?
+  per-level ability list (see `LEVEL_DESIGN_V2` section 8). **CONFIRMED (round 5): the objective card teaches the
+  bolt in Level 3** (Chief: "use the objective to tell the player"). **Engine fact:** the card exists only
+  for Level 1 (`levelOneObjective` returns null for every other level and its states are hard-coded). Level 3
+  needs a **per-level objective system** (a list of stages per level, driven by level data or code), so that
+  a Level 3 stage can say something like "Attack the drone with L". Wording is for the story/Level 3 work.
 
 ---
 
@@ -516,6 +554,16 @@ A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-object and permane
 on a refused chest in 3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
 card-versus-world pairing and string placement in 8; the bar cost marker in 8.3; the juice order in 9.
 
+### CONFIRMED by Chief (round 5, 2026-09-06)
+40. **Every charged object works both ways:** the player can absorb from it and charge it. The Builder places
+    any of them charged or uncharged, with a toggle button. (3.5)
+41. **A pip comes only from a chest or from absorbing enough charge to fill the bar.** No prop gives one. (3.5)
+42. **Ducking is a standard mechanic from the first frame, like walking, and is for dodging attacks.** It does
+    not unlock. (4.4)
+43. **The objective card teaches the bolt in Level 3.** (6)
+44. **Cutscenes are skipped until the story is developed.**
+45. The Level 1 stage 1 card line stays "Try absorbing power from a street lamp" (Chief did not object).
+
 ### CONFIRMED by Chief (round 4, 2026-09-06)
 31. **Wording:** an object the player gives charge to is a **charged object** (or "charged asset"), never a
     "toy". The docs now use "charged object" throughout.
@@ -563,10 +611,12 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 ### OPEN questions (need Chief)
 1. Charge-speed formula: `1 + held / 25` (3 to 6 units/s), or another curve? (3.3) Chief did not answer;
    the formula stays RECOMMENDED until he tunes it in play.
-2. Should a vending machine ever dispense a pip? (3.5) Not answered.
-3. Does ducking unlock too, and what does it do? (4.4) Not answered.
-4. How does the player first meet the bolt in Level 3? (6) Not answered.
-5. Is "a street lamp" the ending you meant for the stage 1 line? (8.2) Built on that reading; no objection yet.
+2. Duck key: Down/S already means "drop through". Tap-to-drop and hold-to-duck, or a separate key? And can the
+   hero move while ducked? (4.4)
+3. Two-way objects: do they default to charged or uncharged in the Builder? (3.5; I recommend uncharged in
+   Level 1 so the total stays 12.)
+(The stage 1 line "Try absorbing power from a street lamp" is kept as built: Chief did not object. Cutscenes
+are skipped until the story exists.)
 
 (Closed by round 4: Q with no pip does nothing; the chest still takes its payment and the pip waits as a
 pickup; charged objects have their own cost system; double jump unlocks after the tutorial levels.)
