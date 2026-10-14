@@ -572,8 +572,10 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     Mario-style duck). (4.4)
 
 ### CONFIRMED by Chief (round 6, 2026-09-06)
-46. **Level 1 stays as is** (read as: its available charge stays 12, so new Level 1 charged objects default to
-    **uncharged**). (3.5)
+46. **Level 1 stays as is.** The three existing lamps stay **charged** (4 each, 12 in total). Clarified in
+    round 8: "default to uncharged" applies only to **objects added later** (vending machine, fuse box,
+    shutter, and so on), and it is a Builder default that Chief can flip per object with the toggle. The only
+    constraint is the sum: everything placed charged adds to the level's total, which is 12. (3.5)
 47. **Charge-speed formula: Kiro's recommendation `1 + held / 25` is adopted, to be tuned in play.** (3.3)
 
 ### CONFIRMED by Chief (round 5, 2026-09-06)

@@ -669,8 +669,9 @@ the work list ordering in 8.
   instant and separate from charging (all in GAME_DESIGN_V2 section 13).
 
 ### CONFIRMED by Chief (round 6, 2026-09-06)
-- Level 1 stays as is: 12 available charge. New Level 1 charged objects default to uncharged. The charge-speed
-  formula is Kiro's recommendation, to be tuned in play.
+- Level 1 stays as is: the three existing lamps stay charged (4 each, 12 in total). Objects added later
+  default to uncharged in the Builder, so the total stays 12; Chief can flip any of them with the toggle. The
+  charge-speed formula is Kiro's recommendation, to be tuned in play.
 
 ### CONFIRMED by Chief (round 5, 2026-09-06)
 - Every charged object works both ways (absorb and charge) and the Builder places it charged or uncharged.
