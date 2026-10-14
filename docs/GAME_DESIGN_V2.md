@@ -347,8 +347,11 @@ and 18 rows) and will be regenerated after the retune.
   **Down + jump = drop through** a one-way platform. That separates the two uses of one key without a
   timer. **Cost:** the existing drop-through (a plain Down press, taught nowhere today) changes, so Level 1's
   high strip and low street fork need the player to know it; the prompt or the NPC hint must say so. The
-  ladder is unaffected, because Down on a ladder climbs down before this rule applies. **Awaiting Chief's
-  yes or no.** The enemy tests (`drone_sensing`,
+  ladder is unaffected, because Down on a ladder climbs down before this rule applies.
+  **CONFIRMED (round 7): Chief accepted the recommendation** ("however Mario does it or your
+  recommendation"): hold Down/S to duck, no walking while ducked, shorter hitbox; Down + jump drops through
+  one-way platforms. **NOT BUILT.** Needs the duck hitbox, the changed drop-through input, a prompt or hint
+  for the new drop input, duck animations, and updated `drone_sensing`/`drone_weapons` expectations. The enemy tests (`drone_sensing`,
   `drone_weapons`) assert aim heights and will need updated expectations.
 - **RECOMMENDED:** because double jump is gated, the movement envelope that every level was proved against
   stays valid until the unlock, and no level may require it before the unlock exists. Ducking, if it only
@@ -564,6 +567,10 @@ A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-object and permane
 on a refused chest in 3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
 card-versus-world pairing and string placement in 8; the bar cost marker in 8.3; the juice order in 9.
 
+### CONFIRMED by Chief (round 7, 2026-09-06)
+48. **Duck input: hold Down/S to duck; Down + jump drops through a one-way platform** (Kiro's recommendation,
+    Mario-style duck). (4.4)
+
 ### CONFIRMED by Chief (round 6, 2026-09-06)
 46. **Level 1 stays as is** (read as: its available charge stays 12, so new Level 1 charged objects default to
     **uncharged**). (3.5)
@@ -626,8 +633,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 ### OPEN questions (need Chief)
 1. Charge-speed formula: Chief adopted `1 + held / 25` (3 to 6 units/s) for now; **to be tuned in play.**
    (3.3) Closed until playtest.
-2. Duck key: Chief asked how Mario does it; my answer and recommendation are in 4.4 (hold Down to duck,
-   Down + jump to drop through). **Awaiting Chief's yes or no.**
+(Duck key closed in round 7: hold Down to duck, Down + jump to drop through.)
 (The stage 1 line "Try absorbing power from a street lamp" is kept as built: Chief did not object. Cutscenes
 are skipped until the story exists.)
 

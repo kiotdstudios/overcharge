@@ -626,7 +626,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 26 | Test a ladder in a real level (none exists); ladder art and tops | Content + test | none | RECOMMENDED |
 | 27 | Pip pickup object and art | Art + runtime | 18 | NEW |
 | 28 | Per-level ability list: hide bolt and melee in Level 1, prompts and dev bar | Runtime | none | CONFIRMED round 3 |
-| 29 | Ducking (standard from frame 1, dodges attacks; shorter hitbox, key undecided) and unlockable double jump (after the tutorial levels): abilities, art | Runtime + art | 5 | CONFIRMED round 5; duck key OPEN |
+| 29 | Ducking (standard from frame 1, dodges attacks; hold Down, shorter hitbox; Down + jump drops through) and unlockable double jump (after the tutorial levels): abilities, art | Runtime + art | 5 | CONFIRMED rounds 5 and 7 |
 | 38 | **Builder toggle: Charged / Uncharged** on every charged object, a capacity field, and a live "level total" readout | Builder (Aki) | 7 | CONFIRMED round 5 |
 | 39 | **Per-level objective system** (the card exists only for Level 1) so Level 3 can teach the bolt | Runtime | none | CONFIRMED round 5 |
 | 30 | Charged-object pricing applied to props; charge stored in objects counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
@@ -700,8 +700,7 @@ the work list ordering in 8.
 1. **Check the 4.3a draft** in the Builder: zone heights, the 34-row total, the lift's route, the
    pylon-and-cable signpost. Chief has not reviewed it yet. The lift speed and tower position are Kiro's
    call for now (64 px/s; east end) and need playtesting.
-2. **Duck key** (GAME_DESIGN_V2 4.4): hold Down to duck, Down + jump to drop through? Awaiting Chief.
-3. **Story direction.** Chief will pick; Orcha writes. (`STORY_BIBLE_DRAFT.md`)
+2. **Story direction.** Chief will pick; Orcha writes. (`STORY_BIBLE_DRAFT.md`)
 
 ---
 

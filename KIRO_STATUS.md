@@ -2206,3 +2206,5 @@ Chief answered the open questions. One code change, the rest docs.
 - Chief asked how Mario ducks. In the Mario games holding Down is the duck, the hero cannot walk while ducked, and the hitbox is shorter. There is no quick drop-through (Super Mario Bros. 3 needs about five or six seconds of crouching on a white block). My recommendation: hold Down to duck, Down plus jump to drop through a one-way platform. Awaiting Chief's yes or no.
 - Level 1 stays as is: 12 available charge, new Level 1 charged objects default to uncharged (my reading of "lvl 1 stays as is").
 - The charge-speed formula `1 + held / 25` is adopted for now, to be tuned in play.
+## 2026-09-06 - Round 7: duck input confirmed (docs only)
+Chief accepted my recommendation: hold Down/S to duck (no walking while ducked, shorter hitbox), Down plus jump drops through a one-way platform. Not built. It needs the duck hitbox, the new drop-through input, a hint for it in Level 1, duck animations and updated drone test expectations.
