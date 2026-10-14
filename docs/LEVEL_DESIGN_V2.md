@@ -26,8 +26,9 @@ hand to an agent under a named order.
    (carried from the old breakdown; no shipped level has crates at all).
 6. **A chest's reward is 1 pip placed straight in the reserve,** never through the bar.
    (`CHIEF_RULING_CHEST_PIP_RESERVE`.)
-7. **Level 1 keeps 12 charge available against an exit of 8.** (CONFIRMED.) The extra 4 supports
-   experimentation. It is not a guarantee against unlimited projectile spending.
+7. **SUPERSEDED (round 9): there is no fixed charge total for Level 1 or any level.** Chief sets each level's
+   total in the Builder. Level 1 as built holds 12 against an exit of 8, and that is how the numbers in this
+   document are worked out, but it is a current value, not a rule. The exit still costs 8 (rule 1).
 8. **Chief owns the level files.** Agents do not write them without a named order. `level_guard.mjs`
    runs before every push.
 
@@ -416,7 +417,7 @@ fork rejoin, and at the ferry's near shore. A respawn restores the bar and pips 
 (BUILT), so it never costs the player a lamp they have already drained.
 
 ### 4.8 What must not change (CONFIRMED)
-Sources total 12. The exit costs 8. Spawn, the three lamps, the exit and the exploration rule stay as
+The exit costs 8. (Round 9: the source total is no longer fixed at 12; Chief sets it.) Spawn, the three lamps, the exit and the exploration rule stay as
 Chief's rulings define them. Specifically (Order 025): **do not touch the three sources or the 8-charge exit
 while dressing.** Adding more *sources* is not authorized by anything here.
 
@@ -568,7 +569,8 @@ exist yet.
 7. Hints read as observations. (Chief review)
 
 **Economy and safety**
-8. Sources total 12; exit 8; permanent optional costs leave at least 8 for the exit. (test)
+8. The level's total charge (set by Chief) pays the exit (8) plus every mandatory spend, and permanent
+   optional costs still leave at least 8 for the exit. (test, reading the total from the level data)
 9. Every charged object can be reached again from the gate by two-way paths only (ladder, stairs, lift), never only by a
    one-way drop. (test) This replaces "the sum of permanent costs is at most 4".
 10. A stuck player is detected and offered a retry. (needs the fail-state fix)
@@ -627,7 +629,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 27 | Pip pickup object and art | Art + runtime | 18 | NEW |
 | 28 | Per-level ability list: hide bolt and melee in Level 1, prompts and dev bar | Runtime | none | CONFIRMED round 3 |
 | 29 | Ducking (standard from frame 1, dodges attacks; hold Down, shorter hitbox; Down + jump drops through) and unlockable double jump (after the tutorial levels): abilities, art | Runtime + art | 5 | CONFIRMED rounds 5 and 7 |
-| 38 | **Builder toggle: Charged / Uncharged** on every charged object, a capacity field, and a live "level total" readout | Builder (Aki) | 7 | CONFIRMED round 5 |
+| 38 | **Builder "Uncharged" checkbox** on every charged object (default: charged), a capacity field, and a live "level total" readout | Builder (Aki) | 7 | CONFIRMED round 5 |
 | 39 | **Per-level objective system** (the card exists only for Level 1) so Level 3 can teach the bolt | Runtime | none | CONFIRMED round 5 |
 | 30 | Charged-object pricing applied to props; charge stored in objects counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
 | 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED |
@@ -668,15 +670,22 @@ the work list ordering in 8.
 - Bolt and melee hidden in Level 1; "Charge gate to open." is a world label above exit gates; pip use is
   instant and separate from charging (all in GAME_DESIGN_V2 section 13).
 
+### CONFIRMED by Chief (round 9, 2026-09-06)
+- **No level has a fixed charge total.** Chief sets whatever each level needs, Level 1 included. The 12 in this
+  document is Level 1 as built, used for the worked examples. Exit cost 8 and completable-from-zero still hold.
+- The Builder places a charged object **charged by default, with an "Uncharged" checkbox.** (Replaces my
+  earlier "default uncharged" recommendation.)
+- **Consequence:** the economy checks in sections 1.4 and 6 should read the level's own total from the level
+  data, not assume 12. The "4 spare" in the worked examples is Level 1's current spare (12 minus 8).
+
 ### CONFIRMED by Chief (round 6, 2026-09-06)
-- Level 1 stays as is: the three existing lamps stay charged (4 each, 12 in total). Objects added later
-  default to uncharged in the Builder, so the total stays 12; Chief can flip any of them with the toggle. The
-  charge-speed formula is Kiro's recommendation, to be tuned in play.
+- Level 1 stays as is: the three existing lamps stay charged (4 each, 12 in total today). The charge-speed
+  formula is Kiro's recommendation, to be tuned in play.
 
 ### CONFIRMED by Chief (round 5, 2026-09-06)
 - Every charged object works both ways (absorb and charge) and the Builder places it charged or uncharged.
-  **Consequence for Level 1:** every object placed charged adds to the level's available charge, so Level 1's
-  12 must include them. New Level 1 props should default to **uncharged**. The three lamps already hold 4 each.
+  **Consequence:** every object placed charged adds to the level's available charge. Round 9: Chief sets the
+  total, so this is a readout, not a cap, and the Builder checkbox is "Uncharged" (default charged).
 - Pips come only from chests or from absorbing enough charge to fill the bar.
 - Ducking is standard from the first frame and dodges attacks (no effect in Level 1, which has no attacks).
 - The Level 3 objective card teaches the bolt. Cutscenes are skipped until the story exists.

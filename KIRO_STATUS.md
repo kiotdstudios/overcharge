@@ -2210,3 +2210,6 @@ Chief answered the open questions. One code change, the rest docs.
 Chief accepted my recommendation: hold Down/S to duck (no walking while ducked, shorter hitbox), Down plus jump drops through a one-way platform. Not built. It needs the duck hitbox, the new drop-through input, a hint for it in Level 1, duck animations and updated drone test expectations.
 ## 2026-09-06 - Round 8: clarified the Level 1 charged-object default (docs only)
 Chief was confused by "new Level 1 charged objects default to uncharged". The three existing lamps stay charged (4 each, 12 total). The default applies only to objects added later, and Chief can flip any object with the Builder toggle. The only constraint is that everything placed charged adds to the 12.
+## 2026-09-06 - Round 9: no fixed charge total per level (docs only)
+Chief: Level 1 does not "only have 12 charge"; every level has whatever charge he sets. The earlier CONFIRMED "12 available" is marked SUPERSEDED. The 12 stays in the docs only as a description of Level 1 as built. Still true: every exit costs 8, and every level must be completable from zero carried charge.
+Builder: placing a charged object is charged by default, with an "Uncharged" checkbox he ticks if and when he wants an empty one. This replaces my "default uncharged" recommendation. The level-total readout is now a readout and a check, not a cap.

@@ -174,10 +174,11 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 - **Rules this creates (RECOMMENDED, for Chief to approve):**
   1. **Charge is conserved.** Every unit absorbed or given moves between the player and an object. Nothing is
      created or destroyed by a transfer. This needs a regression test (absorb all, give back, compare totals).
-  2. **Level total.** Charge available = the sum of the starting charge of everything placed *charged*, plus
-     nothing else. An object placed charged **adds to the level's total.** Level 1's total is 12 (CONFIRMED),
-     so new Level 1 props default to **uncharged**, and the Builder should show a live "level total"
-     readout so the 12 cannot be broken by accident.
+  2. **Level total (CONFIRMED round 9: there is no fixed total).** Charge available = the sum of the starting
+     charge of everything placed *charged.* **Chief sets the amount for every level, Level 1 included.**
+     The Builder places an object **charged by default, with an "Uncharged" checkbox** the author ticks when
+     he wants it to start empty. The Builder should still show a live "level total" readout, not as a cap,
+     but so the author can see the number and so a check can warn if the total cannot pay the exit.
   3. **A drained object can be recharged,** and shows as dark until it is.
   4. **Gates and switches are still charge-only** (the player cannot absorb from a gate). The charge platform
      already works both ways and is the model.
@@ -229,8 +230,15 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   chest, or absorbing enough charge to fill the bar** (the overflow banks a pip, as built). No prop dispenses
   one, because a machine that paid a pip for 3 charge would be a charge fountain.
 
-### 3.6 The Level 1 economy (CONFIRMED)
-- **CONFIRMED.** Level 1 keeps **12 charge available and an exit that costs 8.**
+### 3.6 The Level 1 economy (round 9 note: the 12 is a current value, not a law)
+- **SUPERSEDED (round 9).** Earlier rounds recorded "Level 1 keeps 12 charge available" as CONFIRMED. Chief
+  has since said **there is no fixed 12 for Level 1; any level has whatever charge he sets.** Everything
+  below that quotes 12 describes Level 1 **as built today** (three lamps at 4) and the original design
+  reasoning. It is not a constraint on the Builder. **What still holds:** every exit costs 8
+  (`CHIEF_RULING_EXIT_COST_8`) and every level must be completable from zero carried charge, so the author's
+  total must be able to pay the exit plus every mandatory spend. The Builder's level-total readout and the
+  prover are where that is checked, not a hard-coded 12.
+- **Formerly CONFIRMED.** Level 1 keeps **12 charge available and an exit that costs 8.**
 - **CONFIRMED.** The extra 4 supports experimentation. It does **not** guarantee protection against
   unlimited projectile spending. At 0.25 per bolt, the 4 spare units are 16 bolts, and a player who
   spends them all and more can still run dry.
@@ -567,15 +575,21 @@ A dedicated pip key and 17-returns-to-bar in 3.3; reclaimable-object and permane
 on a refused chest in 3.7; gating dev keys in 4.1; the retune starting points in 4.3; the NPC `hint`/`flavor` tag in 7; the
 card-versus-world pairing and string placement in 8; the bar cost marker in 8.3; the juice order in 9.
 
+### CONFIRMED by Chief (round 9, 2026-09-06)
+49. **There is no "Level 1 has only 12 charge."** Any level has whatever charge Chief sets in the Builder.
+    Items 4 and 46 (and the "12 versus 8" reasoning in 3.6) are superseded as rules; they remain as a
+    description of Level 1 as built. Exit cost 8 and "completable from zero" are untouched. (3.6)
+50. **Builder: placing a charged object is charged by default, and an "Uncharged" checkbox starts it empty.**
+    Chief ticks it only if and when he wants an empty one. This replaces my "new props default to uncharged"
+    recommendation. (3.5)
+
 ### CONFIRMED by Chief (round 7, 2026-09-06)
 48. **Duck input: hold Down/S to duck; Down + jump drops through a one-way platform** (Kiro's recommendation,
     Mario-style duck). (4.4)
 
 ### CONFIRMED by Chief (round 6, 2026-09-06)
-46. **Level 1 stays as is.** The three existing lamps stay **charged** (4 each, 12 in total). Clarified in
-    round 8: "default to uncharged" applies only to **objects added later** (vending machine, fuse box,
-    shutter, and so on), and it is a Builder default that Chief can flip per object with the toggle. The only
-    constraint is the sum: everything placed charged adds to the level's total, which is 12. (3.5)
+46. **Level 1 stays as is.** The three existing lamps stay **charged** (4 each, 12 in total today).
+    **Round 9 supersedes the rest:** there is no fixed 12 and no "default to uncharged"; see items 49 and 50.
 47. **Charge-speed formula: Kiro's recommendation `1 + held / 25` is adopted, to be tuned in play.** (3.3)
 
 ### CONFIRMED by Chief (round 5, 2026-09-06)
