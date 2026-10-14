@@ -45,4 +45,4 @@ const old = level({ id: 'OLD', x: 108, y: 480, charge: 4 });
 check(old.sources[0].max === 4 && old.sources[0].charge === 4 && !old.sources[0].drained,
   'legacy source starts fully charged');
 held([]);
-console.log(`${passed} passed / 0 failed`);
+console.log(`RESULTS: ${passed} passed, 0 failed`);

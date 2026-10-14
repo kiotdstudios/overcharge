@@ -1055,6 +1055,8 @@ export class PipPickup {
     this.id = id;
     this.done = false;
     this._t = 0;
+    this.img = new Image();
+    this.img.src = 'assets/objects/pip/charged.png';
   }
 
   update(dt) { this._t += dt; }
@@ -1064,6 +1066,12 @@ export class PipPickup {
     const x = Math.round(this.x);
     const y = Math.round(this.y + Math.sin(this._t * 3) * 2);
     ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (this.img.complete && this.img.naturalWidth > 0) {
+      ctx.drawImage(this.img, x - 10, y - 10, 20, 20);
+      ctx.restore();
+      return;
+    }
     ctx.fillStyle = '#201034';
     ctx.fillRect(x - 7, y - 9, 14, 18);
     ctx.fillStyle = '#a441f2';

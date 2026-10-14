@@ -159,10 +159,6 @@ export class Player {
     this._updateBolts(dt, level);     // advance + cull live bolts
     this._updatePipSpend();           // Q spends one reserve pip at a gate or switch
     this._updateDischarge(dt, level); // hold SPACE near gate/switch → gradual charge
-    // ORDER SPACE_CHARGE: _updatePipSpend() is GONE. No button may complete a
-    // gate in one press. The spendPip() authority function is retained (the
-    // reserve path and Order 004 ruling-3 tests use it) — only its KeyF input
-    // binding was removed.
     this._collectPickups(level);
 
     // NOTE: there is deliberately NO unconditional reserve-pull here.
@@ -1023,23 +1019,6 @@ export class Player {
       this.chargeViaCrate  = null;
     }
   }
-
-  // ── REMOVED: _updatePipSpend() — the F instant-fill ─────────────
-  // ORDER SPACE_CHARGE (Chief, 2026-09-11): pressing F near a device inserted a
-  // whole battery (MAX_CHARGE = 10) in a single press. With Level 1's exit gate
-  // at required=3 (later 8), one tap opened it outright. Chief rejected that:
-  // "hitting f auto completes the charge gate, i dont want that".
-  //
-  // The handler is gone and KeyF is now unbound. Charging is SPACE-only and
-  // strictly rate-based, so no button can complete a gate in one press.
-  //
-  // spendPip() itself SURVIVES in the energy authority above and is deliberately
-  // NOT deleted:
-  //   - it is the documented withdraw-one-whole-battery primitive,
-  //   - Order 004 ruling 3 (partial-pip: whole pip consumed, surplus returned)
-  //     is asserted against it directly in _dev/energy_authority.mjs,
-  //   - a future device/ability can reuse it without re-deriving the arithmetic.
-  // Only the input binding was removed, exactly as the order specified.
 
   // ── Collect dropped charge pickups ───────────
   // Also routes through giveEnergy() so a pickup that tops the bar out
