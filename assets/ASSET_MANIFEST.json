@@ -2998,7 +2998,7 @@
       "fps": 4,
       "directions": null,
       "loop": true,
-      "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and six-frame heeled walk. Runtime mirrors east-facing art for left movement. Shared active-animation alpha bounds x50..160 y38..223 on the 236px canvas; visible figure displays 70 world pixels high with shoes on the feet anchor.",
+      "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and nine-frame heeled walk. Runtime mirrors east-facing art for left movement. Shared active-animation alpha bounds x50..160 y38..223 on the 236px canvas; shoes stay on the feet anchor.",
       "displayHeightPx": 60,
       "footYByFrame": [
         221,
@@ -3068,7 +3068,7 @@
     },
     {
       "id": "npc_streetlamp_woman_walk",
-      "path": "assets/sprites/npc-streetlamp-woman/walk/00.png",
+      "path": "assets/sprites/npc-streetlamp-woman/walk-v2/00.png",
       "category": "npc",
       "tags": [
         "ambient",
@@ -3079,30 +3079,23 @@
       ],
       "frame_width": 236,
       "frame_height": 236,
-      "frame_count": 6,
+      "frame_count": 9,
       "fps": 8,
-      "frameOrder": [
-        0,
-        1,
-        2,
-        4,
-        3,
-        4,
-        2,
-        1
-      ],
       "walkFrameStepPx": 3,
       "directions": null,
       "loop": true,
       "footYByFrame": [
         219,
-        221,
-        223,
-        220,
-        223,
-        220
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219
       ],
-      "notes": "Side-view heel strut. Eight playback poses use the smoothest five source frames in a forward/reverse contact cycle; cadence advances every three world pixels walked. Source PNGs remain unchanged. Referenced by walkAssetId; not independently placeable in the Builder.",
+      "notes": "Side-view heel strut with nine sequential poses and alternating leg contacts. Cadence advances every three world pixels walked; all shoes share the same source-pixel ground line. Referenced by walkAssetId; not independently placeable in the Builder.",
       "trim": null
     },
     {
