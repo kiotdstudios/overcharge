@@ -1899,6 +1899,21 @@ function _npcManifestOptions(currentId) {
   return items;
 }
 
+// AKI_26 1.4: "a dropdown of the level's charged objects by id and label" --
+// charged objects are L.sources (every source has `charge`; AC units and
+// other powered props are authored as sources too, per LEVEL_SCHEMA). If
+// linkedObjectId already points at a source id that no longer exists (the
+// source was deleted after linking), keep it selectable rather than
+// silently blanking out a reference Chief authored on purpose.
+function _chargedObjectOptions(currentId) {
+  const sources = (state.level && Array.isArray(state.level.sources)) ? state.level.sources : [];
+  const items = sources.map(s => ({ id: s.id, label: `${s.label || s.id} (${s.id})` }));
+  if (currentId && !items.some(it => it.id === currentId)) {
+    items.unshift({ id: currentId, label: currentId + ' (missing — was it deleted?)' });
+  }
+  return items;
+}
+
 // Escapes free text before it goes into innerHTML templating below. Every
 // NPC field that can carry arbitrary user text (id, dialogue lines) is
 // author-controlled but still untrusted input (ORDER 23 TASK B: "no HTML
@@ -1929,6 +1944,12 @@ function _renderNpcInspector(ref) {
   ref.patrol = ref.patrol || { rangePx: 0, speedPxPerSec: 22, turnPauseSec: 0.55 };
   const patrol = ref.patrol;
   if (!Array.isArray(d.lines)) d.lines = [];
+  // AKI_26 1.4: reactive dialogue. poweredLines is optional and the SAME line
+  // shape as lines -- absent/empty means "no reactive set authored", not an
+  // error; old NPCs (saved before this order) have neither field and must
+  // keep behaving exactly as they do today (always `lines`). linkedObjectId
+  // stays undefined/null until Chief picks one from the dropdown below.
+  if (!Array.isArray(d.poweredLines)) d.poweredLines = [];
 
   const tabBtn = (key, label) => `<button class="npc-tab-btn" data-tab="${key}" style="flex:1;padding:6px 4px;background:${_npcInspectorTab === key ? '#1d4a56' : '#121824'};color:${_npcInspectorTab === key ? '#8fe3ff' : '#789'};border:1px solid #2a3448;border-bottom:${_npcInspectorTab === key ? '2px solid #8fe3ff' : '1px solid #2a3448'};cursor:pointer;font-family:monospace;font-size:11px">${label}</button>`;
 
@@ -1965,12 +1986,40 @@ function _renderNpcInspector(ref) {
     </div>
   `).join('') : `<div style="font-size:10px;color:#567;padding:4px 0">No lines yet — add one below.</div>`;
 
+  // AKI_26 1.4: "Lines while powered" is a second, independent list -- same
+  // row shape/markup as the lines-while-not-powered list above, but with its
+  // own class prefix (npc-powered-line-*) so the two lists wire up
+  // separately below and editing one can never touch the other's rows.
+  const poweredLinesHtml = d.poweredLines.length ? d.poweredLines.map((l, i) => `
+    <div class="prop-row npc-powered-line-row" data-idx="${i}" style="gap:4px">
+      <input class="prop-input npc-powered-line-text" type="text" value="${_escapeHtml(l.text)}" style="flex:1">
+      <button class="npc-powered-line-up" title="Move up" ${i === 0 ? 'disabled' : ''} style="flex:0;width:22px;padding:2px;background:#1a2030;color:#9ab;border:1px solid #2a3448;cursor:pointer">&#8593;</button>
+      <button class="npc-powered-line-down" title="Move down" ${i === d.poweredLines.length - 1 ? 'disabled' : ''} style="flex:0;width:22px;padding:2px;background:#1a2030;color:#9ab;border:1px solid #2a3448;cursor:pointer">&#8595;</button>
+      <button class="npc-powered-line-del" title="Delete" style="flex:0;width:22px;padding:2px;background:#3a1a1a;color:#f99;border:1px solid #552;cursor:pointer">&times;</button>
+    </div>
+  `).join('') : `<div style="font-size:10px;color:#567;padding:4px 0">No powered lines yet — add one below.</div>`;
+
+  const linkedOpts = _chargedObjectOptions(d.linkedObjectId)
+    .map(it => `<option value="${_escapeHtml(it.id)}" ${it.id === d.linkedObjectId ? 'selected' : ''}>${_escapeHtml(it.label)}</option>`)
+    .join('');
+
   const dialogueTabHtml = `
     <div class="prop-row"><span class="prop-label">dialogue on</span><input id="npc-d-enabled" type="checkbox" style="flex:0;width:16px;height:16px;cursor:pointer" ${d.enabled ? 'checked' : ''}></div>
-    <div style="font-size:12px;color:#cdd;font-weight:bold;margin:8px 0 4px">What does this NPC say when I get close?</div>
+    <div class="prop-row"><span class="prop-label">Linked object</span>
+      <select class="prop-select" id="npc-d-linked">
+        <option value="" ${!d.linkedObjectId ? 'selected' : ''}>(none)</option>
+        ${linkedOpts}
+      </select>
+    </div>
+    <div style="font-size:10px;color:#567;margin:2px 0 4px">While the linked object holds charge, this NPC speaks the "while powered" lines below instead of its normal lines. Leave unset for an NPC that never reacts to power.</div>
+    <div style="font-size:12px;color:#cdd;font-weight:bold;margin:8px 0 4px">What does this NPC say when I get close? (normal / unpowered)</div>
     <div id="npc-lines-list" style="display:flex;flex-direction:column;gap:3px">${linesHtml}</div>
     <button id="npc-line-add" style="margin-top:4px;width:100%;padding:5px;background:#1a2030;color:#8fe3ff;border:1px dashed #2a3448;border-radius:3px;cursor:pointer;font-family:monospace;font-size:11px">+ Add line</button>
     ${dialogueEmptyButEnabled ? '<div style="font-size:10px;color:#f99;margin-top:4px">Dialogue is on but has no lines — it will never show. Add at least one line or turn it off.</div>' : ''}
+    <div style="font-size:12px;color:#cdd;font-weight:bold;margin:12px 0 4px">Lines while powered</div>
+    <div id="npc-powered-lines-list" style="display:flex;flex-direction:column;gap:3px">${poweredLinesHtml}</div>
+    <button id="npc-powered-line-add" style="margin-top:4px;width:100%;padding:5px;background:#1a2030;color:#8fe3ff;border:1px dashed #2a3448;border-radius:3px;cursor:pointer;font-family:monospace;font-size:11px">+ Add powered line</button>
+    ${(!d.linkedObjectId && d.poweredLines.length > 0) ? '<div style="font-size:10px;color:#f99;margin-top:4px">Powered lines are authored but no object is linked above — they will never show.</div>' : ''}
     <div class="prop-row" style="margin-top:8px"><span class="prop-label">radiusPx</span><input class="prop-input" id="npc-d-radius" type="number" min="8" step="1" value="${d.radiusPx ?? 112}"></div>
     <div class="prop-row"><span class="prop-label">durationMs</span><input class="prop-input" id="npc-d-duration" type="number" min="500" max="30000" step="100" value="${d.durationMs ?? 3500}"></div>
     <div class="prop-row"><span class="prop-label">cooldownMs</span><input class="prop-input" id="npc-d-cooldown" type="number" min="0" step="100" value="${d.cooldownMs ?? 6000}"></div>
@@ -1981,7 +2030,10 @@ function _renderNpcInspector(ref) {
         <option value="random" ${d.selectionMode === 'random' ? 'selected' : ''}>random</option>
       </select>
     </div>
-    <button id="npc-preview-btn" style="margin-top:6px;width:100%;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Bubble</button>
+    <div style="display:flex;gap:4px;margin-top:6px">
+      <button id="npc-preview-btn" style="flex:1;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Bubble</button>
+      <button id="npc-preview-powered-btn" style="flex:1;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Powered</button>
+    </div>
   `;
 
   _selPanel.innerHTML = `
@@ -2043,6 +2095,16 @@ function _renderNpcInspector(ref) {
   });
   $('npc-d-once').addEventListener('change', (e) => { d.oncePerLevel = e.target.checked; commit(); });
   $('npc-d-selmode').addEventListener('change', (e) => { d.selectionMode = e.target.value; commit(); });
+  // AKI_26 1.4: linked-object placeholder follows the same convention used
+  // everywhere else in this file -- an empty-string option value DELETES the
+  // key rather than storing '' or null, so an unlinked NPC round-trips
+  // byte-identical to an NPC saved before this order ever existed.
+  $('npc-d-linked').addEventListener('change', (e) => {
+    if (e.target.value === '') delete d.linkedObjectId;
+    else d.linkedObjectId = e.target.value;
+    commit();
+    _renderNpcInspector(ref); // re-render: the "no object linked" warning depends on this
+  });
 
   $all('.npc-line-text').forEach((input) => {
     // Keep the model current while the field has focus. In particular, a
@@ -2101,6 +2163,64 @@ function _renderNpcInspector(ref) {
   });
   $('npc-preview-btn').addEventListener('click', () => {
     const text = (d.lines[0] && d.lines[0].text) || '(no lines yet)';
+    state.npcPreview = { ref, text, until: Date.now() + Math.max(500, d.durationMs || 3500) };
+    needsRedraw = true;
+  });
+
+  // AKI_26 1.4: "Lines while powered" -- identical wiring to the npc-line-*
+  // block above (including the Order 25 focus fix: `input` keeps the model
+  // current without rebuilding the DOM, `change` only rebuilds on a
+  // structural edit like dropping an emptied row), aimed at d.poweredLines
+  // and the npc-powered-line-* classes instead.
+  $all('.npc-powered-line-text').forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      d.poweredLines[idx] = { id: d.poweredLines[idx]?.id || `P${idx + 1}`, text: e.target.value };
+      commit();
+    });
+    input.addEventListener('change', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      const text = e.target.value.trim();
+      if (!text) {
+        d.poweredLines.splice(idx, 1);
+        commit();
+        _renderNpcInspector(ref);
+      } else {
+        d.poweredLines[idx] = { id: d.poweredLines[idx]?.id || `P${idx + 1}`, text };
+        commit();
+      }
+    });
+  });
+  $all('.npc-powered-line-up').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      if (idx > 0) { const t = d.poweredLines[idx - 1]; d.poweredLines[idx - 1] = d.poweredLines[idx]; d.poweredLines[idx] = t; commit(); _renderNpcInspector(ref); }
+    });
+  });
+  $all('.npc-powered-line-down').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      if (idx < d.poweredLines.length - 1) { const t = d.poweredLines[idx + 1]; d.poweredLines[idx + 1] = d.poweredLines[idx]; d.poweredLines[idx] = t; commit(); _renderNpcInspector(ref); }
+    });
+  });
+  $all('.npc-powered-line-del').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      d.poweredLines.splice(idx, 1);
+      commit();
+      _renderNpcInspector(ref);
+    });
+  });
+  $('npc-powered-line-add').addEventListener('click', () => {
+    d.poweredLines.push({ id: `P${d.poweredLines.length + 1}`, text: 'New powered line' });
+    commit();
+    _renderNpcInspector(ref);
+    const newInput = $all('.npc-powered-line-text').at(-1);
+    newInput?.focus();
+    newInput?.select();
+  });
+  $('npc-preview-powered-btn').addEventListener('click', () => {
+    const text = (d.poweredLines[0] && d.poweredLines[0].text) || '(no powered lines yet)';
     state.npcPreview = { ref, text, until: Date.now() + Math.max(500, d.durationMs || 3500) };
     needsRedraw = true;
   });
