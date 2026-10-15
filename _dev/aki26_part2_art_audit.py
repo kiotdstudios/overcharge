@@ -16,7 +16,7 @@ for folder in folders:
   colors=Counter(im.get_flattened_data()); used={"#%02x%02x%02x"%rgb[:3] for rgb,n in colors.items() if rgb[3] and n}
   bad=[c for c in used if (lambda r,g,b:max(r,b)>70 and r>g*1.3 and b>g*1.3)(*bytes.fromhex(c[1:]))]
   print(str(file.relative_to(repo)),w,h,"border max",max(edge),"colors",len(used),"magenta-like",len(bad))
-  if max(edge)>0 and "light-cable" not in str(file): print("  WARN: border not transparent, inspect intentional tiling")
+  if max(edge)>0 and folder.name != "light-cable": print("  WARN: border not transparent, inspect intentional tiling")
   if bad: print("  WARN: magenta colors",sorted(bad)[:12])
 tracked=subprocess.run(["git","-C",str(repo),"diff","--name-only","--","assets/ASSET_MANIFEST.json","assets/manifest.json","src_scroll/levels"],capture_output=True,text=True,check=True)
 assert not tracked.stdout.strip(),"Chief-owned level or manifest edited: "+tracked.stdout
