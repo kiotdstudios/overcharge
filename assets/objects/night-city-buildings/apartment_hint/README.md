@@ -84,4 +84,4 @@ or an inpaint pass, not a post-hoc stretch (spec section 4 forbids that).
 **NOT registered.** `assets/ASSET_MANIFEST.json` and `manifest.json` are
 untouched and no level JSON was modified — Chief reviews the art before
 manifest registration (order 26 acceptance line: "shown to Chief before
-registering"). Nothing committed or pushed.
+registering"). Rejected review evidence was committed on agent/aki-order26; it remains unregistered and unplaced, and this draft must not be used.
