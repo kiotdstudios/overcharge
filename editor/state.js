@@ -409,6 +409,7 @@ export const state = {
   selectedAsset: null,  // manifest item currently chosen for placement
   selectedTile:  10,    // integer tile-type to place with terrain brush (10=env_tile_dark_a; not legacy 1)
   tool:          'place', // 'place' | 'erase' | 'pan'
+  pathEditTarget: null,  // AKI_26 1.3: platform ref currently in path-edit mode, or null
 
   // Viewport
   camera: { x: 0, y: 0, zoom: 1 },   // worldâ†’screen offset & scale

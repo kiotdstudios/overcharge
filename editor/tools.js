@@ -35,7 +35,7 @@ import * as Selection from './selection.js';
 // backing resolution — a raw CSS-pixel mouse coord will hit-test at the
 // wrong world position. Scale by (backing / CSS) so click coords land in
 // the same coordinate space that render uses.
-function canvasCoords(evt, canvas) {
+export function canvasCoords(evt, canvas) {
   const r = canvas.getBoundingClientRect();
   const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
   const scaleY = r.height > 0 ? canvas.height / r.height : 1;
@@ -44,7 +44,7 @@ function canvasCoords(evt, canvas) {
     sy: (evt.clientY - r.top)  * scaleY,
   };
 }
-function worldUnderMouse(evt, canvas) {
+export function worldUnderMouse(evt, canvas) {
   const { sx, sy } = canvasCoords(evt, canvas);
   return screenToWorld(sx, sy);
 }

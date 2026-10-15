@@ -30,6 +30,7 @@ import { mountWorkspace } from './workspace.js';
 import { facadeAction } from './facade.js';
 import { validateLevelShape } from './level-shape.js';
 import { sourceFields } from './inspector-fields.js';
+import * as PlatformPath from './platform-path.js';
 
 mountWorkspace();
 document.getElementById('btn-landable-facade')?.addEventListener('click', () => {
@@ -1023,6 +1024,10 @@ canvas.addEventListener('mousedown', (e) => {
   // user returns to the canvas, keyboard shortcuts should target the editor.
   if (document.activeElement?.matches?.('input, textarea, select')) document.activeElement.blur();
   if (state.pendingSpawn) { _doSpawn(e, canvas); return; }
+  // AKI_26 1.3: platform path-edit mode is an overlay on top of whatever tool
+  // is active (same idea as state.dragMove) -- it takes priority so clicks
+  // add/drag waypoints instead of whatever TOOLS[state.tool] would normally do.
+  if (PlatformPath.isActive() && PlatformPath.handleMouseDown(e, canvas)) return;
   // CHIEF 2026-09-26: report the clicked tile's name in the toolbar. Read BEFORE the tool
   // runs, so a Place/Erase click reports what was actually there when he clicked rather
   // than what the tool just changed it into. Deliberately outside the tool dispatch so it
@@ -1030,8 +1035,17 @@ canvas.addEventListener('mousedown', (e) => {
   _reportClickedTile(e);
   TOOLS[state.tool]?.onMouseDown?.(e, canvas);
 });
-canvas.addEventListener('mousemove', (e) => TOOLS[state.tool]?.onMouseMove?.(e, canvas));
-window.addEventListener('mouseup',   (e) => TOOLS[state.tool]?.onMouseUp?.  (e, canvas));
+canvas.addEventListener('mousemove', (e) => {
+  if (PlatformPath.isActive() && PlatformPath.handleMouseMove(e, canvas)) return;
+  TOOLS[state.tool]?.onMouseMove?.(e, canvas);
+});
+window.addEventListener('mouseup',   (e) => {
+  if (PlatformPath.isActive() && PlatformPath.handleMouseUp(e, canvas)) return;
+  TOOLS[state.tool]?.onMouseUp?.  (e, canvas);
+});
+canvas.addEventListener('contextmenu', (e) => {
+  if (PlatformPath.isActive() && PlatformPath.handleContextMenu(e, canvas)) return;
+});
 
 middleMousePan(canvas);
 wheelZoom(canvas);
@@ -2160,11 +2174,19 @@ function _refreshSelectedProps() {
     ];
   } else if (kind === 'platform') {
     color = '#44aadd'; badge = ref.kind === 'charge-platform' ? 'CHARGE PLATFORM' : 'PLATFORM';
+    // AKI_26 1.3: a platform with a `path` (>=2 waypoints) is edited via the
+    // canvas path tool, not x1/x2 fields -- "Platforms with no path keep the
+    // old inspector" (order text). hasPath also gates the Edit/Remove-Path
+    // buttons appended below, after the generic field loop.
+    const hasPath = Array.isArray(ref.path);
     fields = [
       { label:'x', key:'x', num:true }, { label:'y',key:'y', num:true },
       { label:'w', key:'w', num:true, min:16 }, { label:'h',key:'h', num:true, min:4 },
-      { label:'x1',key:'x1',num:true }, { label:'x2',key:'x2',num:true },
+      ...(hasPath ? [] : [
+        { label:'x1',key:'x1',num:true }, { label:'x2',key:'x2',num:true },
+      ]),
       { label:'speed',key:'speed',num:true,min:1 },
+      ...(hasPath ? [{ label:'pathMode', key:'pathMode', sel:true, opts:['pingpong','loop'] }] : []),
       { label:'kind',key:'kind',sel:true,opts:['(standard)','charge-platform'] },
       ...(ref.kind === 'charge-platform' ? [{ label:'charge',key:'charge',num:true,min:0.01 }] : []),
     ];
@@ -2240,7 +2262,43 @@ function _refreshSelectedProps() {
       html += `<div class="prop-row"><span class="prop-label">${f.label}</span><input class="prop-input" data-key="${f.key}" data-vtype="${t}" type="${t}" value="${ref[f.key]??''}"${extra}></div>`;
     }
   }
+  // AKI_26 1.3: platform path-mode controls -- action buttons, not bound
+  // fields, so they're appended as raw HTML and wired separately below
+  // (not through the generic [data-key] change-listener loop).
+  if (kind === 'platform') {
+    const hasPath = Array.isArray(ref.path);
+    const editing = state.pathEditTarget === ref;
+    if (hasPath) {
+      html += `<div class="prop-row"><button id="btn-path-edit" class="prop-btn" style="flex:1">${editing ? 'Done Editing Path' : 'Edit Path (click = add point, drag = move, right-click = delete)'}</button></div>`;
+      html += `<div class="prop-row"><button id="btn-path-remove" class="prop-btn" style="flex:1">Remove Path (back to x1 / x2)</button></div>`;
+    } else {
+      html += `<div class="prop-row"><button id="btn-path-add" class="prop-btn" style="flex:1">Add Path (convert from x1 / x2)</button></div>`;
+    }
+  }
   _selPanel.innerHTML = html;
+  if (kind === 'platform') {
+    const hasPath = Array.isArray(ref.path);
+    _selPanel.querySelector('#btn-path-add')?.addEventListener('click', () => {
+      // Seed a sensible starting 2-point path from today's x1/x2 sweep so
+      // converting doesn't throw away the platform's existing route.
+      const x1 = ref.x1 ?? ref.x; const x2 = ref.x2 ?? (ref.x + (ref.w || 96));
+      ref.path = [{ x: x1, y: ref.y }, { x: x2, y: ref.y }];
+      ref.pathMode = 'pingpong';
+      state.dirty = true;
+      PlatformPath.beginPathEdit(ref);
+    });
+    _selPanel.querySelector('#btn-path-remove')?.addEventListener('click', () => {
+      if (state.pathEditTarget === ref) PlatformPath.endPathEdit();
+      delete ref.path;
+      delete ref.pathMode;
+      state.dirty = true;
+      notify();
+    });
+    _selPanel.querySelector('#btn-path-edit')?.addEventListener('click', () => {
+      if (state.pathEditTarget === ref) PlatformPath.endPathEdit();
+      else PlatformPath.beginPathEdit(ref);
+    });
+  }
   _selPanel.querySelectorAll('[data-key]').forEach(el => {
     el.addEventListener('change', () => {
       const vt = el.dataset.vtype;
