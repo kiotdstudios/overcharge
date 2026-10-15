@@ -18,7 +18,7 @@ export function exposedRoof(level, tx, ty){
 // old hand-coded sprites anchored themselves, so spawn/move/despawn physics is
 // unchanged.
 const LITTER_ASSET_ROOT = 'assets/objects/night-city-props/street-litter';
-const DRAW_SCALE = 10 / 32; // 32px source art drawn at ~10px on-screen, matching the old sprites' footprint
+const DRAW_SCALE = 20 / 32; // Keep the PixelLab art readable beside 32px rooftop tiles.
 
 function litterImg(name){
   const img = new Image();
@@ -27,10 +27,10 @@ function litterImg(name){
 }
 
 const LITTER_SPRITES = [
-  { img: litterImg('newspaper'), originX: 5, originY: 9 }, // kind 0: folded newspaper scrap
-  { img: litterImg('receipt'),   originX: 5, originY: 9 }, // kind 1: pale curled receipt
-  { img: litterImg('cup'),       originX: 5, originY: 9 }, // kind 2: tipped takeaway cup
-  { img: litterImg('can'),       originX: 5, originY: 9 }, // kind 3: crushed soda can
+  { img: litterImg('newspaper'), originX: 10, originY: 18 }, // kind 0: folded newspaper scrap
+  { img: litterImg('receipt'),   originX: 10, originY: 18 }, // kind 1: pale curled receipt
+  { img: litterImg('cup'),       originX: 10, originY: 17 }, // kind 2: tipped takeaway cup
+  { img: litterImg('can'),       originX: 10, originY: 17 }, // kind 3: crushed soda can
 ];
 
 function drawLitterSprite(ctx, def, baseX, baseY, flip){
@@ -86,7 +86,7 @@ export class StreetLitter {
       const x=Math.round(p.x),y=Math.round(p.y);
       const flip=Math.sin(p.age*10+p.phase)>0;
       // A one-pixel ground shadow keeps the scrap visually attached to the roof.
-      ctx.fillStyle='#080e1d';ctx.fillRect(x-4,y-1,9,1);
+      ctx.fillStyle='#080e1d';ctx.fillRect(x-8,y-1,17,1);
       const def=LITTER_SPRITES[p.kind];
       drawLitterSprite(ctx,def,x,y,flip);
     }
