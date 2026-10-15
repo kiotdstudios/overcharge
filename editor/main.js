@@ -2554,6 +2554,27 @@ if (tpBgSelect) {
 }
 _wireBgOffsetControls();
 
+// AKI_26 1.6: per-level Bolt/Melee ability checkboxes (Level Actions panel).
+// Missing abilities / missing key both mean "on" per the shared data
+// contract with Codex, so both boxes default checked and a fresh level with
+// no `abilities` key at all shows both ticked.
+const abilityBoltInput  = document.getElementById('ability-bolt-input');
+const abilityMeleeInput = document.getElementById('ability-melee-input');
+function _applyLevelAbility(key, enabled) {
+  const action = Actions.setLevelAbility(state.level, key, enabled);
+  if (action) History.apply(action);
+  else _refreshAbilitiesInspector(); // no-op (checkbox already matched state) -- resync
+}
+abilityBoltInput?.addEventListener('change', () => _applyLevelAbility('bolt', abilityBoltInput.checked));
+abilityMeleeInput?.addEventListener('change', () => _applyLevelAbility('melee', abilityMeleeInput.checked));
+function _refreshAbilitiesInspector() {
+  const abilities = state.level?.abilities;
+  if (abilityBoltInput)  abilityBoltInput.checked  = !(abilities && abilities.bolt === false);
+  if (abilityMeleeInput) abilityMeleeInput.checked = !(abilities && abilities.melee === false);
+}
+subscribe(() => _refreshAbilitiesInspector());
+_refreshAbilitiesInspector();
+
 // ── Tools Panel: collapsible sections ──────────────────────────────
 document.querySelectorAll('.tp-hdr').forEach(hdr => {
   hdr.addEventListener('click', () => {

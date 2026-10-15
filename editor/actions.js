@@ -406,6 +406,46 @@ export function setBackgroundOffset(level, key, value) {
   };
 }
 
+// ── SetLevelAbilityAction ────────────────────────────────────────────────
+// AKI_26 1.6: per-level Bolt/Melee toggle, stored in level.abilities, e.g.
+// { bolt: false, melee: false }. Per the shared data contract with Codex,
+// a MISSING key (or a missing abilities object entirely) means that
+// ability is ON -- so enabling (the default) deletes the key to keep old
+// and untouched levels' JSON exactly as clean as before this feature
+// existed, matching the setBackgroundLayerHidden convention just above.
+export function setLevelAbility(level, key, enabled) {
+  if (!level) return null;
+  const hadMap = Object.prototype.hasOwnProperty.call(level, 'abilities');
+  const hadKey = !!level.abilities && Object.prototype.hasOwnProperty.call(level.abilities, key);
+  const old = hadKey ? !!level.abilities[key] : true; // missing means on
+  const next = !!enabled;
+  if (old === next) return null;
+  return {
+    type: 'set_level_ability',
+    forward() {
+      if (next) {
+        if (level.abilities) {
+          delete level.abilities[key];
+          if (Object.keys(level.abilities).length === 0) delete level.abilities;
+        }
+      } else {
+        if (!level.abilities) level.abilities = {};
+        level.abilities[key] = false;
+      }
+      notify();
+    },
+    inverse() {
+      if (!hadMap) delete level.abilities;
+      else {
+        if (!level.abilities) level.abilities = {};
+        if (hadKey) level.abilities[key] = old;
+        else delete level.abilities[key];
+      }
+      notify();
+    },
+  };
+}
+
 // ── SetBackgroundLayerHiddenAction ──────────────────────────────────────────
 // Per-layer visibility toggle beside the vertical-offset controls (same 4
 // named layers as BG_OFFSET_LAYERS). Stored in level.backgroundLayersHidden,
