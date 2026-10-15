@@ -231,7 +231,7 @@
   #parity-status { font-family:monospace; font-size:10px; letter-spacing:0.3px; line-height:1.6; margin-bottom:6px; }
 
 </style>
-<link rel="stylesheet" href="editor/workspace.css?v=04021f79a3ee375a">
+<link rel="stylesheet" href="editor/workspace.css?v=bd6a43107aa88987">
 </head>
 <body>
 <div id="editor-root">
@@ -381,6 +381,9 @@
       <div class="tp-section">
         <div class="tp-hdr" data-sec="level"><span class="sec-badge">5</span>LEVEL ACTIONS <span class="ch">▼</span></div>
         <div class="tp-body" id="tp-level">
+          <!-- AKI_26 1.2: always-visible level charge readout. Warning only -- -->
+          <!-- never blocks placement, per the order. -->
+          <div id="level-charge-readout" style="font-size:11px;color:#8aaabb;padding:4px 0;line-height:1.5"></div>
           <div class="tp-row">
             <button class="tp-btn" id="btn-new"       title="New empty level">NEW</button>
             <button class="tp-btn" id="btn-duplicate" title="Duplicate current level">DUPE</button>
@@ -626,57 +629,58 @@
 <script type="importmap">
 {
   "imports": {
-    "./editor/actions.js": "./editor/actions.js?v=04021f79a3ee375a",
-    "./editor/assets.js": "./editor/assets.js?v=04021f79a3ee375a",
-    "./editor/buildinfo.js": "./editor/buildinfo.js?v=04021f79a3ee375a",
-    "./editor/clipboard.js": "./editor/clipboard.js?v=04021f79a3ee375a",
-    "./editor/facade.js": "./editor/facade.js?v=04021f79a3ee375a",
-    "./editor/generator.js": "./editor/generator.js?v=04021f79a3ee375a",
-    "./editor/hero-lab.js": "./editor/hero-lab.js?v=04021f79a3ee375a",
-    "./editor/history.js": "./editor/history.js?v=04021f79a3ee375a",
-    "./editor/inspector-fields.js": "./editor/inspector-fields.js?v=04021f79a3ee375a",
-    "./editor/level-shape.js": "./editor/level-shape.js?v=04021f79a3ee375a",
-    "./editor/localstore.js": "./editor/localstore.js?v=04021f79a3ee375a",
-    "./editor/main.js": "./editor/main.js?v=04021f79a3ee375a",
-    "./editor/overcharge-lab.js": "./editor/overcharge-lab.js?v=04021f79a3ee375a",
-    "./editor/persistence.js": "./editor/persistence.js?v=04021f79a3ee375a",
-    "./editor/renderer.js": "./editor/renderer.js?v=04021f79a3ee375a",
-    "./editor/selection.js": "./editor/selection.js?v=04021f79a3ee375a",
-    "./editor/snapshots.js": "./editor/snapshots.js?v=04021f79a3ee375a",
-    "./editor/snapshotui.js": "./editor/snapshotui.js?v=04021f79a3ee375a",
-    "./editor/state.js": "./editor/state.js?v=04021f79a3ee375a",
-    "./editor/tools.js": "./editor/tools.js?v=04021f79a3ee375a",
-    "./editor/workspace.js": "./editor/workspace.js?v=04021f79a3ee375a",
-    "./src_scroll/background.js": "./src_scroll/background.js?v=04021f79a3ee375a",
-    "./src_scroll/camera.js": "./src_scroll/camera.js?v=04021f79a3ee375a",
-    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=04021f79a3ee375a",
-    "./src_scroll/constants.js": "./src_scroll/constants.js?v=04021f79a3ee375a",
-    "./src_scroll/deco-anim.js": "./src_scroll/deco-anim.js?v=04021f79a3ee375a",
-    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=04021f79a3ee375a",
-    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=04021f79a3ee375a",
-    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=04021f79a3ee375a",
-    "./src_scroll/entities.js": "./src_scroll/entities.js?v=04021f79a3ee375a",
-    "./src_scroll/footsteps.js": "./src_scroll/footsteps.js?v=04021f79a3ee375a",
-    "./src_scroll/hero-render.js": "./src_scroll/hero-render.js?v=04021f79a3ee375a",
-    "./src_scroll/hero-sprites.js": "./src_scroll/hero-sprites.js?v=04021f79a3ee375a",
-    "./src_scroll/input.js": "./src_scroll/input.js?v=04021f79a3ee375a",
-    "./src_scroll/level.js": "./src_scroll/level.js?v=04021f79a3ee375a",
-    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=04021f79a3ee375a",
-    "./src_scroll/main.js": "./src_scroll/main.js?v=04021f79a3ee375a",
-    "./src_scroll/npc-geometry.js": "./src_scroll/npc-geometry.js?v=04021f79a3ee375a",
-    "./src_scroll/npc.js": "./src_scroll/npc.js?v=04021f79a3ee375a",
-    "./src_scroll/player.js": "./src_scroll/player.js?v=04021f79a3ee375a",
-    "./src_scroll/render.js": "./src_scroll/render.js?v=04021f79a3ee375a",
-    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=04021f79a3ee375a",
-    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=04021f79a3ee375a",
-    "./src_scroll/street-litter.js": "./src_scroll/street-litter.js?v=04021f79a3ee375a",
-    "./src_scroll/terrain-policy.js": "./src_scroll/terrain-policy.js?v=04021f79a3ee375a",
-    "./src_scroll/ui.js": "./src_scroll/ui.js?v=04021f79a3ee375a",
-    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=04021f79a3ee375a"
+    "./editor/actions.js": "./editor/actions.js?v=bd6a43107aa88987",
+    "./editor/assets.js": "./editor/assets.js?v=bd6a43107aa88987",
+    "./editor/buildinfo.js": "./editor/buildinfo.js?v=bd6a43107aa88987",
+    "./editor/clipboard.js": "./editor/clipboard.js?v=bd6a43107aa88987",
+    "./editor/facade.js": "./editor/facade.js?v=bd6a43107aa88987",
+    "./editor/generator.js": "./editor/generator.js?v=bd6a43107aa88987",
+    "./editor/hero-lab.js": "./editor/hero-lab.js?v=bd6a43107aa88987",
+    "./editor/history.js": "./editor/history.js?v=bd6a43107aa88987",
+    "./editor/inspector-fields.js": "./editor/inspector-fields.js?v=bd6a43107aa88987",
+    "./editor/level-economy.js": "./editor/level-economy.js?v=bd6a43107aa88987",
+    "./editor/level-shape.js": "./editor/level-shape.js?v=bd6a43107aa88987",
+    "./editor/localstore.js": "./editor/localstore.js?v=bd6a43107aa88987",
+    "./editor/main.js": "./editor/main.js?v=bd6a43107aa88987",
+    "./editor/overcharge-lab.js": "./editor/overcharge-lab.js?v=bd6a43107aa88987",
+    "./editor/persistence.js": "./editor/persistence.js?v=bd6a43107aa88987",
+    "./editor/renderer.js": "./editor/renderer.js?v=bd6a43107aa88987",
+    "./editor/selection.js": "./editor/selection.js?v=bd6a43107aa88987",
+    "./editor/snapshots.js": "./editor/snapshots.js?v=bd6a43107aa88987",
+    "./editor/snapshotui.js": "./editor/snapshotui.js?v=bd6a43107aa88987",
+    "./editor/state.js": "./editor/state.js?v=bd6a43107aa88987",
+    "./editor/tools.js": "./editor/tools.js?v=bd6a43107aa88987",
+    "./editor/workspace.js": "./editor/workspace.js?v=bd6a43107aa88987",
+    "./src_scroll/background.js": "./src_scroll/background.js?v=bd6a43107aa88987",
+    "./src_scroll/camera.js": "./src_scroll/camera.js?v=bd6a43107aa88987",
+    "./src_scroll/city-drones.js": "./src_scroll/city-drones.js?v=bd6a43107aa88987",
+    "./src_scroll/constants.js": "./src_scroll/constants.js?v=bd6a43107aa88987",
+    "./src_scroll/deco-anim.js": "./src_scroll/deco-anim.js?v=bd6a43107aa88987",
+    "./src_scroll/drone-weapons.js": "./src_scroll/drone-weapons.js?v=bd6a43107aa88987",
+    "./src_scroll/electricity.js": "./src_scroll/electricity.js?v=bd6a43107aa88987",
+    "./src_scroll/energy-hud.js": "./src_scroll/energy-hud.js?v=bd6a43107aa88987",
+    "./src_scroll/entities.js": "./src_scroll/entities.js?v=bd6a43107aa88987",
+    "./src_scroll/footsteps.js": "./src_scroll/footsteps.js?v=bd6a43107aa88987",
+    "./src_scroll/hero-render.js": "./src_scroll/hero-render.js?v=bd6a43107aa88987",
+    "./src_scroll/hero-sprites.js": "./src_scroll/hero-sprites.js?v=bd6a43107aa88987",
+    "./src_scroll/input.js": "./src_scroll/input.js?v=bd6a43107aa88987",
+    "./src_scroll/level.js": "./src_scroll/level.js?v=bd6a43107aa88987",
+    "./src_scroll/levelsig.js": "./src_scroll/levelsig.js?v=bd6a43107aa88987",
+    "./src_scroll/main.js": "./src_scroll/main.js?v=bd6a43107aa88987",
+    "./src_scroll/npc-geometry.js": "./src_scroll/npc-geometry.js?v=bd6a43107aa88987",
+    "./src_scroll/npc.js": "./src_scroll/npc.js?v=bd6a43107aa88987",
+    "./src_scroll/player.js": "./src_scroll/player.js?v=bd6a43107aa88987",
+    "./src_scroll/render.js": "./src_scroll/render.js?v=bd6a43107aa88987",
+    "./src_scroll/source-visuals.js": "./src_scroll/source-visuals.js?v=bd6a43107aa88987",
+    "./src_scroll/sprites.js": "./src_scroll/sprites.js?v=bd6a43107aa88987",
+    "./src_scroll/street-litter.js": "./src_scroll/street-litter.js?v=bd6a43107aa88987",
+    "./src_scroll/terrain-policy.js": "./src_scroll/terrain-policy.js?v=bd6a43107aa88987",
+    "./src_scroll/ui.js": "./src_scroll/ui.js?v=bd6a43107aa88987",
+    "./src_scroll/viewport.js": "./src_scroll/viewport.js?v=bd6a43107aa88987"
   }
 }
 </script>
 <!-- END GENERATED EDITOR MODULE VERSIONS -->
-<script type="module" src="editor/main.js?v=04021f79a3ee375a"></script>
+<script type="module" src="editor/main.js?v=bd6a43107aa88987"></script>
 </body>
 </html>
