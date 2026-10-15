@@ -22,8 +22,7 @@ zero-padded `NN.png` in a per-state folder, the same layout as
 
 She is the figure only — no window frame, no sill is drawn. The apartment facade
 (Part 2 item 1, not in this delivery) owns the window opening she sits in. Her
-forearms rest on an implied sill at **canvas row 156-158**; the opening must put
-its sill line there.
+forearms rest against an implied sill in the **canvas row 156-158** contact band. Opaque sprite pixels extend to row 161 in most frames (row 159 and 158 in relieved frames 02 and 03), so the opening and masking must account for the full bounds.
 
 ## Animation reading
 
@@ -86,8 +85,7 @@ flattening the form. Chief's call.
 
 ## Reproduction
 
-`pipeline.py` (next to the raw frames, in the agent workspace, not committed) is
-deterministic and re-runnable from the PixelLab job ids:
+`source/pipeline.py` and the 12 raw animation frames are archived with this draft. Running the pipeline from `source/` against those files deterministically regenerates the shipped frames. PixelLab job ids for the source are:
 
 - complaining base: `create_image_pixflux` `753fe3c6-86c4-4ee0-ace8-4c9aac4619fe`
   (try 1 — the fanning hand came out as a microphone-like object)

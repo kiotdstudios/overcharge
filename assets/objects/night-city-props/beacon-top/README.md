@@ -11,7 +11,7 @@ a fifth of the roofline. Free-standing decoration, so it keeps a fully transpare
 
 A dark steel plinth, a ribbed crown band, five upright prongs of rising height, and
 a glowing cyan lamp core. "Same colour as the cable" is the order's wording and is
-checked numerically: the lit core's hue is within 0.010 of `light-cable`'s core hue.
+checked numerically: the lit core's hue is within 0.05 of `light-cable`'s core hue (the build script's tolerance).
 
 ## Provenance
 
