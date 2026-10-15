@@ -125,6 +125,7 @@ let t      = 0;
 let completeTimer = 0;
 // Keep the gate and its electrical opening fully visible before the completion card.
 const EXIT_REVEAL_SECONDS = 4;
+const COMPLETE_CARD_REVEAL_SECONDS = 1.15;
 
 // Camera
 let camX = 0;
@@ -296,7 +297,7 @@ function _update(dt) {
     case STATES.LEVEL_COMPLETE:
       completeTimer += dt;
       level.update(dt, player);
-      if (completeTimer > EXIT_REVEAL_SECONDS + 0.5 && Input.pressedAny('Space', 'Enter')) advanceLevel();
+      if (completeTimer > EXIT_REVEAL_SECONDS + COMPLETE_CARD_REVEAL_SECONDS && Input.pressedAny('Space', 'Enter')) advanceLevel();
       break;
 
     case STATES.GAME_OVER:

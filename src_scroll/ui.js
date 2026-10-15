@@ -649,13 +649,62 @@ export function drawLevelComplete(ctx, level, timer, t) {
   const x = (w - panelW) / 2;
   const y = 98;
   const panelH = 374;
-  const alpha = Math.min(1, timer * 3);
   const reducedMotion = !!(globalThis.matchMedia && globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // The gate has already had four seconds on screen. Start the card with a
+  // center strike, then reveal it in broken scanline bands. All positions are
+  // derived from timer, so the effect is a one-shot and never flickers at rest.
+  const impactX = Math.round(w / 2), impactY = Math.round(y + panelH / 2);
+  ctx.save();
+  ctx.fillStyle = `rgba(3,5,14,${Math.min(0.76, timer * 1.9)})`;
+  ctx.fillRect(0, 0, w, H);
+  if (!reducedMotion && timer < 0.78) {
+    const boltEnd = Math.min(1, Math.max(0, (timer - 0.05) / 0.17));
+    if (timer >= 0.05 && timer < 0.34) {
+      const points = [[impactX - 34, 0], [impactX - 21, 54], [impactX + 5, 94],
+        [impactX - 8, 142], [impactX + 17, 185], [impactX, impactY]];
+      const count = Math.max(1, Math.ceil(boltEnd * (points.length - 1)));
+      ctx.strokeStyle = '#39cfff'; ctx.lineWidth = 7;
+      ctx.beginPath(); ctx.moveTo(...points[0]);
+      for (let i = 1; i <= count; i++) ctx.lineTo(...points[i]);
+      ctx.stroke();
+      ctx.strokeStyle = '#ebffff'; ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+    const age = timer - 0.22;
+    if (age >= 0 && age < 0.56) {
+      const progress = age / 0.56;
+      ctx.fillStyle = `rgba(220,250,255,${(1 - progress) * 0.5})`;
+      ctx.fillRect(0, 0, w, H);
+      for (let i = 0; i < 24; i++) {
+        const angle = i * 2.39996;
+        const distance = (18 + (i % 5) * 9) * (0.3 + progress * 2.5);
+        const px = Math.round(impactX + Math.cos(angle) * distance);
+        const py = Math.round(impactY + Math.sin(angle) * distance);
+        ctx.fillStyle = i % 3 ? '#45dfff' : '#d94aff';
+        ctx.fillRect(px, py, i % 4 ? 4 : 7, i % 4 ? 2 : 3);
+      }
+    }
+  }
+  ctx.restore();
+  if (timer < (reducedMotion ? 0.18 : 0.4)) return;
+
+  const reveal = reducedMotion ? Math.min(1, (timer - 0.18) / 0.25)
+    : Math.min(1, (timer - 0.4) / 0.65);
+  const alpha = Math.min(1, reveal * 3);
   const pulse = reducedMotion ? 0.65 : 0.65 + 0.35 * Math.sin(timer * 5);
   ctx.save();
+  if (!reducedMotion && reveal < 1) {
+    ctx.beginPath();
+    for (let band = 0; band < 24; band++) {
+      const threshold = (band * 11 % 24) / 24;
+      if (reveal >= threshold) {
+        const shift = Math.round((1 - reveal) * ((band * 7 % 5) - 2) * 9);
+        ctx.rect(x + shift, y + band * panelH / 24, panelW, panelH / 24 + 1);
+      }
+    }
+    ctx.clip();
+  }
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = 'rgba(3,5,14,0.9)';
-  ctx.fillRect(0, 0, w, H);
   const wash = ctx.createLinearGradient(0, y, 0, y + panelH);
   wash.addColorStop(0, '#101330');
   wash.addColorStop(0.55, '#111028');
