@@ -2879,10 +2879,10 @@
         "ladder",
         "climbable"
       ],
-      "frame_width": 64,
-      "frame_height": 288,
+      "frame_width": 128,
+      "frame_height": 605,
       "frame_count": 1,
-      "notes": "Resizable climbable ladder. Up/W climbs; Down/S descends. Place between upper and lower walkable surfaces."
+      "notes": "Resizable climbable ladder (native art 128x605). Up/W climbs; Down/S descends. Place between upper and lower walkable surfaces; top needs a supporting tile to stand on."
     },
     {
       "id": "night_city_grapple_anchor",

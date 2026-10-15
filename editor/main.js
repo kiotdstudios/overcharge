@@ -24,6 +24,10 @@ import * as Persistence from './persistence.js';
 import * as Generator   from './generator.js';
 import * as Actions     from './actions.js';
 import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
+// AKI_26 1.7: the ladder's climbable volume is keyed off this exact src
+// string in src_scroll/level.js, so the Builder's "is this climbable?"
+// badge can never drift from what the runtime actually treats as a ladder.
+import { CLIMBABLE_LADDER_SRC } from '../src_scroll/level.js';
 import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
@@ -1934,6 +1938,38 @@ function _escapeHtml(s) {
 let _npcInspectorTab = 'character';
 let _renderedNpcRef = null;
 
+function _renderLadderInspector(ref) {
+  // ORDER 26 ITEM 1.7: ladder decoration gets a dedicated mini-inspector
+  // (badge + x/y + resize-by-tile-height), reusing the generic
+  // prop-row/prop-label/prop-input classes for visual consistency with
+  // every other kind's panel below. Every other decoration kind is left
+  // completely alone -- this is NOT a general decoration inspector.
+  _selSection.style.display = '';
+  const tiles = Math.max(1, Math.round((ref.h || 0) / TILE_SIZE));
+  _selPanel.innerHTML = `
+    <div class="prop-type-badge" style="color:#7fe8a0;border-color:#7fe8a055">🪜 CLIMBABLE LADDER</div>
+    <div class="prop-row"><span class="prop-label">x</span><input class="prop-input" id="ladder-x-input" type="number" step="1" value="${Math.round(ref.x)}"></div>
+    <div class="prop-row"><span class="prop-label">y</span><input class="prop-input" id="ladder-y-input" type="number" step="1" value="${Math.round(ref.y)}"></div>
+    <div class="prop-row"><span class="prop-label">height (tiles)</span><input class="prop-input" id="ladder-h-tiles-input" type="number" step="1" min="1" value="${tiles}"></div>
+    <div class="prop-row"><span class="prop-label">height (px)</span><span style="color:#88aacc;font-family:monospace;font-size:11px">${Math.round(ref.h || 0)}</span></div>
+    <div class="prop-row" style="color:#889;font-size:10px;line-height:1.4">Top needs a supporting tile for the player to stand on arrival.</div>
+  `;
+  const xInput = document.getElementById('ladder-x-input');
+  const yInput = document.getElementById('ladder-y-input');
+  const hTilesInput = document.getElementById('ladder-h-tiles-input');
+  if (xInput) xInput.addEventListener('change', () => {
+    const v = Number(xInput.value);
+    if (Number.isFinite(v)) { ref.x = v; state.dirty = true; notify(); }
+  });
+  if (yInput) yInput.addEventListener('change', () => {
+    const v = Number(yInput.value);
+    if (Number.isFinite(v)) { ref.y = v; state.dirty = true; notify(); }
+  });
+  if (hTilesInput) hTilesInput.addEventListener('change', () => {
+    const v = Math.max(1, Math.round(Number(hTilesInput.value)));
+    if (Number.isFinite(v)) { ref.h = v * TILE_SIZE; state.dirty = true; notify(); }
+  });
+}
 function _renderNpcInspector(ref) {
   _renderedNpcRef = ref;
   ref.dialogue = ref.dialogue || {
@@ -2233,7 +2269,7 @@ function _refreshSelectedProps() {
   for (const [k, kname] of [
     ['enemies','enemy'],['switches','switch'],['checkpoints','checkpoint'],
     ['platforms','platform'],['sources','source'],['gates','gate'],['crates','crate'],
-    ['chests','chest'],['npcs','npc'],
+    ['chests','chest'],['npcs','npc'],['decorations','decoration'],
   ]) {
     if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
   }
@@ -2256,6 +2292,16 @@ function _refreshSelectedProps() {
     if (ref === _renderedNpcRef && active && _selPanel.contains(active) &&
         active.matches('input, textarea, select')) return;
     _renderNpcInspector(ref);
+    return;
+  }
+
+  // AKI_26 1.7: decorations have no general inspector today (every other
+  // decoration keeps that exactly as-is -- out of this item's scope). The
+  // ladder gets a narrow, dedicated panel: Chief needs to resize it by
+  // tile height and confirm it is climbable, nothing else.
+  if (kind === 'decoration') {
+    if (ref.src !== CLIMBABLE_LADDER_SRC) { _selSection.style.display = 'none'; _selPanel.innerHTML = ''; return; }
+    _renderLadderInspector(ref);
     return;
   }
 
