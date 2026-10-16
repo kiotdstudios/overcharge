@@ -1,13 +1,13 @@
 # KIRO ORDER: CODEX 01 (Level 1 runtime features)
 
-**From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief (decisions recorded in `docs/GAME_DESIGN_V2.md` section 13 and `docs/LEVEL_DESIGN_V2.md` section 9)
+**From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief (decisions recorded in `docs/design/GAME_DESIGN_V2.md` section 13 and `docs/design/LEVEL_DESIGN_V2.md` section 9)
 **Branch:** work on your own branch, push to `agent/orcha-gameplay` as `AGENTS.md` describes. Never force-push.
 **Status:** work order, nothing started.
 
 ## Read first (in this order, about 20 minutes)
-1. `docs/GAME_DESIGN_V2.md` sections 3 (energy), 4 (player), 5 (devices), 6 (combat), 8 (interface) and 13 (decision ledger).
-2. `docs/LEVEL_DESIGN_V2.md` sections 1.1, 4.3a, 4.5, 8 (work list) and Appendix A.
-3. `docs/LEVEL_SCHEMA.md` for the level data format.
+1. `docs/design/GAME_DESIGN_V2.md` sections 3 (energy), 4 (player), 5 (devices), 6 (combat), 8 (interface) and 13 (decision ledger).
+2. `docs/design/LEVEL_DESIGN_V2.md` sections 1.1, 4.3a, 4.5, 8 (work list) and Appendix A.
+3. `docs/reference/LEVEL_SCHEMA.md` for the level data format.
 4. `_dev/pip_gate_spend.mjs` (53 passing assertions about pips and gates) and `_dev/support/headless.mjs`.
 Where those two V2 docs and an older document disagree, the V2 docs win. Tags in them mean: CONFIRMED (Chief
 decided), BUILT (verified in code), RECOMMENDED (Kiro's proposal, adopt unless you find a flaw and say why),
@@ -52,7 +52,7 @@ from **and** charged. Charge the player gives is held by the object until absorb
   an `uncharged` object starts dark, can be charged, and lights; cannot be overfilled; a checkpoint rewind
   restores a half-charged object; an old level JSON still loads with identical behaviour.
 
-> **SUPERSEDED 2026-10-15 by `KIRO_ORDER_CODEX_02.md`.** Chief ruled that a pip always banks at 10, so the
+> **SUPERSEDED 2026-10-15 by `docs/orders/KIRO_ORDER_CODEX_02.md`.** Chief ruled that a pip always banks at 10, so the
 > "per-player maxCharge" and the capacity pickup below are **on hold**; the 10-unit bar, whole-pip Q and the new
 > charge-speed rule are in CODEX 02. Do not build the capacity pickup.
 
@@ -113,7 +113,7 @@ Hold **Down/S** to duck: no walking while ducked (momentum may carry a slide), a
 clearance. **Down + jump** drops through a one-way platform (replaces the plain Down press at `player.js`
 around line 562). Down on a ladder still climbs down first. Expose a `duck` animation state that falls back to
 `idle` until the art exists. Update `drone_sensing` and `drone_weapons` expectations only where aim height
-changes, and say so. Re-run `docs/agent-training/player_metrics_harness.mjs` and put the before and after
+changes, and say so. Re-run `docs/reference/agent-training/player_metrics_harness.mjs` and put the before and after
 numbers in your report (Appendix A of LEVEL_DESIGN_V2 has the "before").
 **Do not** build double jump in this order. It is gated (Chief: after the tutorial levels, about Level 5).
 

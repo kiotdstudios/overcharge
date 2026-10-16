@@ -1,5 +1,5 @@
 ﻿// ORDER CRATE_TIMED — System 1 (conductive crate) + System 2 (timed device).
-// Semantics ratified in docs/KIRO_RULING_CRATE_TIMED_V1.md (D1-D9, D5 vetoed).
+// Semantics ratified in docs/rulings/KIRO_RULING_CRATE_TIMED_V1.md (D1-D9, D5 vetoed).
 //
 // GEOMETRY NOTE: PLAYER_W=20, PLAYER_H=30 (not 64 — an early draft of this file
 // assumed 64 and every "push" assertion failed for rig reasons, not code

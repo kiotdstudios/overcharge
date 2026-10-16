@@ -21,13 +21,15 @@ Kiro is the QA arbiter for OVERCHARGE. Kiro writes orders, reviews, rulings, and
 
 | Type | Pattern |
 |---|---|
-| Orders for Aki | `docs/KIRO_ORDER_AKI_*.md` |
-| Orders for Orcha | `docs/KIRO_ORDER_ORCHA_*.md` |
-| Reviews for Aki | `docs/KIRO_REVIEW_AKI_*.md` |
-| Gate results | `docs/KIRO_GATE_RESULT_*.md` |
-| Rulings | `docs/KIRO_RULING_*.md` |
-| GO directives | `docs/KIRO_GO_*.md` |
-| Answers | `docs/KIRO_ANSWERS_*.md` |
+| Orders for Aki | `docs/orders/KIRO_ORDER_AKI_*.md` (older ones: `docs/archive/orders/`, do not follow them) |
+| Orders for Orcha | `docs/orders/KIRO_ORDER_ORCHA_*.md` (older ones: `docs/archive/orders/`) |
+| Orders for Codex | `docs/orders/KIRO_ORDER_CODEX_*.md` |
+| Standing orders | `docs/orders/KIRO_STANDING_*.md` |
+| Reviews for Aki | `docs/archive/reports/KIRO_REVIEW_AKI_*.md` |
+| Gate results | `docs/archive/reports/KIRO_GATE_RESULT_*.md` |
+| Rulings | `docs/rulings/KIRO_RULING_*.md` and `docs/rulings/CHIEF_RULING_*.md` |
+| GO directives | `docs/archive/orders/KIRO_GO_*.md` |
+| Answers | `docs/archive/reports/KIRO_ANSWERS_*.md` |
 
 **Scan for all `KIRO_*` files, not just orders** — reviews, gate results, rulings, GO docs, and answers are equally important and all carry actionable directives.
 
@@ -73,7 +75,7 @@ Filter results for `KIRO_` prefix. New KIRO docs must be read immediately.
 ### 5. Read each new document
 
 ```bash
-"C:/Users/diepowel/AppData/Local/Programs/Git/cmd/git.exe" show origin/agent/orcha-gameplay:docs/<FILENAME>.md
+"C:/Users/diepowel/AppData/Local/Programs/Git/cmd/git.exe" show origin/agent/orcha-gameplay:docs/orders/<FILENAME>.md
 ```
 
 You do NOT need to checkout — `git show remote:path` reads directly from the remote ref.

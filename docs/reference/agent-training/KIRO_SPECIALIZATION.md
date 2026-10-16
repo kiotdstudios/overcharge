@@ -22,7 +22,7 @@ These notes rephrase the source material for this project.
 
 For every new level field or object type:
 
-1. Define and review the JSON shape in `docs/LEVEL_SCHEMA.md`.
+1. Define and review the JSON shape in `docs/reference/LEVEL_SCHEMA.md`.
 2. Teach the Builder to read, edit, validate, and render it.
 3. Teach the runtime to load, instantiate, collide with, and render it.
 4. Verify one representative level in both Builder and game before calling the change complete.

@@ -1,3 +1,6 @@
+## Read first
+- The game design is `docs/design/GAME_DESIGN_V2.md` (levels: `docs/design/LEVEL_DESIGN_V2.md`). Your order is in `docs/orders/`. `docs/archive/` is dead. Index: `docs/README.md`.
+
 ## Session retro
 - When a unit of work is finished and written up, offer the retro in one
   line: "Run /retro? (records this session's friction)". Do not wait to be asked.

@@ -23,7 +23,7 @@ import { createAchievements } from './achievements.js';
 
 window.addEventListener('keydown', unlockFootsteps, { once: true });
 
-// Feedback layer (docs/GAME_DESIGN_V2.md section 9). It only listens to the game, so ?juice=off
+// Feedback layer (docs/design/GAME_DESIGN_V2.md section 9). It only listens to the game, so ?juice=off
 // removes the particles, shake and hit-stop, and ?audio=off removes the synthesised sound,
 // leaving the game exactly as before. prefers-reduced-motion turns shake and hit-stop off.
 const _fxParams = new URLSearchParams(globalThis.location?.search || '');

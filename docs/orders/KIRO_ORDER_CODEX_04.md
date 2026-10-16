@@ -21,7 +21,7 @@ Chief reviewed your handoff. Kiro took the parts that are wanted and **did not m
 ## PART 1. Longer idle cycles for the two bus stop NPCs
 
 **From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief, 2026-10-16 (round 15): "add that to codex 4, need longer animation cycles for those 2 npcs"
-**Order of work:** after the art tasks of `KIRO_ORDER_CODEX_03.md`; independent of `KIRO_ORDER_CODEX_02.md` (the bar and charge rules), so it can be done before or after it.
+**Order of work:** after the art tasks of `docs/orders/KIRO_ORDER_CODEX_03.md`; independent of `docs/orders/KIRO_ORDER_CODEX_02.md` (the bar and charge rules), so it can be done before or after it.
 **Branch:** your own branch, push as `AGENTS.md` describes. Never force-push. Do not merge to the live line.
 **Status:** work order, nothing started.
 

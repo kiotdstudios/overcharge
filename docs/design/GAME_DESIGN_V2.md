@@ -1,8 +1,8 @@
 # OVERCHARGE: Game Design V2
 
 **Status:** Draft 1 for Chief's review. Written after commit `5ad4f1b` (2026-10-13).
-**Supersedes:** `docs/archive/Static_Shock_Puzzle_Platformer_GDD_v1.pdf` (kept unchanged as history).
-**Companion:** [`LEVEL_DESIGN_V2.md`](LEVEL_DESIGN_V2.md): the levels, and Level 1 specified in full.
+**Supersedes:** `docs/archive/SUPERSEDED_Static_Shock_Puzzle_Platformer_GDD_v1.pdf` (kept unchanged as history).
+**Companion:** [`docs/design/LEVEL_DESIGN_V2.md`](LEVEL_DESIGN_V2.md): the levels, and Level 1 specified in full.
 **Scope right now:** finish Level 1 completely. Levels 2 to 6 are paused (see Level Design V2).
 
 ---
@@ -25,8 +25,8 @@ Where this document and an archived document disagree, this document wins. Where
 Chief ruling in `docs/` disagree, the ruling wins and this document is wrong: report it.
 
 Rulings that remain binding and are restated here (they still live in their own files):
-`CHIEF_RULING_EXIT_COST_8.md`, `CHIEF_RULING_CHEST_PIP_RESERVE.md`, `CHIEF_EXIT_EXPLORATION_RULE.md`,
-`KIRO_FINDING_CARRY_OVER_VS_SELF_SUFFICIENCY.md`, `KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md`.
+`docs/rulings/CHIEF_RULING_EXIT_COST_8.md`, `docs/rulings/CHIEF_RULING_CHEST_PIP_RESERVE.md`, `docs/rulings/CHIEF_EXIT_EXPLORATION_RULE.md`,
+`docs/archive/reports/KIRO_FINDING_CARRY_OVER_VS_SELF_SUFFICIENCY.md`, `docs/orders/KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md`.
 
 ---
 
@@ -89,14 +89,14 @@ first minute**. See Level Design V2 for how.
 - **Rejected on the way here (kept so nobody reopens them):** a pip that grows with the bar; a bar that grows
   while pips bank at 10 ("option F"); exits that cost 10; a whole-pip Q that wastes the change.
 - **As built today (code still to change):** bar 25, pip 25, up to 5 slots from the start, usable up to 150. The
-  change to the rules above is task 1 in `KIRO_ORDER_CODEX_02.md`. "25 charge fills one pip" (ledger item 6)
+  change to the rules above is task 1 in `docs/orders/KIRO_ORDER_CODEX_02.md`. "25 charge fills one pip" (ledger item 6)
   is superseded.
 
 ### 3.2 How pips and an ordinary 8-charge gate interact (BUILT, TESTED)
 **Round 10 note:** the table below was measured with the 25-unit bar. The rules are the same at a 10-unit
 bar (a second table follows rule 8), but every number changes. I checked by running the real engine with
 `MAX_CHARGE` set to 10 in a scratch copy: 39 of the 53 checks still pass, and the 14 that fail are the ones
-with 25-based numbers written into them (expected, listed in `KIRO_ORDER_CODEX_01.md` task A5).
+with 25-based numbers written into them (expected, listed in `docs/orders/KIRO_ORDER_CODEX_01.md` task A5).
 
 Verified by `_dev/pip_gate_spend.mjs` (53 checks), which drives the real `Player` and `Level` with the
 SPACE key held. Every gate below costs 8.
@@ -240,7 +240,7 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   5. **Charge-speed scaling (3.3) applies to every transfer,** both directions.
   6. **Checkpoints** must snapshot each object's charge, as they already do for sources and platforms.
 - **Builder work (Aki's lane, NEW):** a Charged / Uncharged toggle on each object's inspector and in the
-  palette, a capacity field, the level-total readout, and a fixed `LEVEL_SCHEMA.md` entry (`charge` currently
+  palette, a capacity field, the level-total readout, and a fixed `docs/reference/LEVEL_SCHEMA.md` entry (`charge` currently
   means both capacity and start).
 - **CONFIRMED (round 2):** a charged prop's charge **stays in the prop until the player takes it back.** If
   the player leaves through the exit gate first, it is **lost for good.** (This is option (a), not the
@@ -324,13 +324,13 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   Chief's Desktop. Chief wants to see it before deciding whether the triangle should stay steady or keep
   softening during the pulse. Not registered in the manifest, not placed anywhere.
 - **Engine work: the pickup entity is NOT needed for Level 1** and waits. What Level 1 does need is the slot
-  system itself (`pipSlots` starting at 1), which is in `KIRO_ORDER_CODEX_02.md`. When the pickup is built it adds
+  system itself (`pipSlots` starting at 1), which is in `docs/orders/KIRO_ORDER_CODEX_02.md`. When the pickup is built it adds
   one slot, plays the pickup burst and sound, shows the new pip icon lighting up, is permanent for the run and
   survives a checkpoint rewind.
 - **HUD:** five pip icons are drawn; slots the player has not unlocked show as dim "locked" icons, unlocked empty
   slots show as empty, and banked pips show charged.
 - **Lore:** the concept sheet's MIOR, Project Tempest and "MIOR drones" are official story canon
-  (`docs/STORY_CANON_THE_MERIDIAN_INCIDENT.md`).
+  (`docs/design/STORY_CANON_THE_MERIDIAN_INCIDENT.md`).
 
 ### 3.9 The charge table (CONFIRMED principle; numbers RECOMMENDED)
 Chief: the more powerful the object, the more charge it has, and each powered object has its own amount. Every
@@ -359,7 +359,7 @@ Rules:
    Chief can edit any object's number.
 3. An object placed charged adds its number to the level's available charge; the Builder's level total shows it.
 4. New kinds get a tier from this list; Chief confirms. The table lives in one place in code (see
-   `KIRO_ORDER_CODEX_02.md`) so the Builder and the game read the same numbers.
+   `docs/orders/KIRO_ORDER_CODEX_02.md`) so the Builder and the game read the same numbers.
 5. Reclaiming is always possible (two-way), so there is no "permanent cost"; the real constraint is the
    stranding rule in section 3.5 (every charged object must stay reachable by two-way paths).
 
@@ -401,7 +401,7 @@ Dev keys that are live in every build: `P` (+2 charge), `F2` (skip level), `[` a
 **RECOMMENDED:** gate those behind the dev flag before release. A player can currently cheat by accident.
 
 ### 4.2 Movement numbers (BUILT, measured before any retune)
-Measured with the real controller by `docs/agent-training/player_metrics_harness.mjs`:
+Measured with the real controller by `docs/reference/agent-training/player_metrics_harness.mjs`:
 
 | Metric | Value |
 |---|---|
@@ -415,7 +415,7 @@ Measured with the real controller by `docs/agent-training/player_metrics_harness
 | Terminal fall speed | 700 px/s |
 
 The full table is in Level Design V2, Appendix A, so before and after the retune can be compared.
-`docs/PLAYER_MOVEMENT_METRICS.md` is **stale** (it lists a 450 px screen and 14 rows; the game is 578 px
+`docs/reference/PLAYER_MOVEMENT_METRICS.md` is **stale** (it lists a 450 px screen and 14 rows; the game is 578 px
 and 18 rows) and will be regenerated after the retune.
 
 ### 4.3 Movement retune (CONFIRMED authorized, NOT BUILT)
@@ -480,7 +480,7 @@ and 18 rows) and will be regenerated after the retune.
   them, and `player._resolvePlatforms` carries a rider with `pl.x += pl.vx * dt` (horizontal only). The
   Builder places a platform with a default 96 px width and shows `x1`, `x2` and `speed` as **number boxes
   in the inspector**, with a dashed horizontal line on the canvas. There is **no way to draw a path.**
-  `LEVEL_SCHEMA.md` already lists "vertical moving platforms" as unsupported.
+  `docs/reference/LEVEL_SCHEMA.md` already lists "vertical moving platforms" as unsupported.
   **RECOMMENDED design (NEW WORK, nothing built):**
   - **Data:** a `path` list of waypoints `[{x,y}, ...]` plus `mode` (`pingpong` or `loop`), keeping `x1`/`x2`
     working as a two-point horizontal shorthand so no existing level changes.
@@ -715,7 +715,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 
 ### CONFIRMED by Chief (round 13, 2026-10-16: review of Aki's branch and Kiro's Capacitor Module)
 68. **The relay pylon "looks decent".** Kiro placed it in Level 1 (plaza, x 576) so Chief can see it with everything else.
-69. **Failed review, to be redone by Codex (`KIRO_ORDER_CODEX_03.md`):** the apartment ("very blue, no real resemblance to
+69. **Failed review, to be redone by Codex (`docs/orders/KIRO_ORDER_CODEX_03.md`):** the apartment ("very blue, no real resemblance to
     Night City props"); the window NPC's complaining animation ("looks like she is sucking on her finger or breathing on her
     hand, not fanning herself because she's hot") and relieved animation ("doesn't look like she is happy; needs to change
     completely"); the dropped pip pickup ("looks like a blob"); the Capacitor Module ("not bad, but I want it to look exactly
@@ -725,7 +725,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 71. ~~The hatch and secret room are implemented in Level 1 as a first working version.~~ **SCRAPPED in round 14** (see below).
     (Chief saw it and did not like it. Everything but the pylon has been removed from `level1.json`.)
 72. **Aki reads the new game design document and the roadmap, then builds the vertical Level 1 as a separate draft file**
-    (`KIRO_ORDER_AKI_27.md`). Codex redoes the failed art pieces first.
+    (`docs/orders/KIRO_ORDER_AKI_27.md`). Codex redoes the failed art pieces first.
 
 ### CONFIRMED by Chief (round 14, 2026-10-16: review of the secret-room preview)
 73. **The relay pylon "looks good," but Chief could not tell what it does.** Kiro's answer (RECOMMENDED, not yet confirmed): it is the
@@ -760,11 +760,11 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 87. **Consequence Chief should see (derived):** with only the lamps and the vending machine (11), an AC left on strands the player at 7 (the exit needs 8). They can
     zap it back, so nobody is trapped, but the extra prop (total 12 or more) removes the trap. Also the **free pip is gone**: three lamps of 3 make 9, below one
     full 10 bar. The economy page (`OVERCHARGE_Level1_Charge_Economy.html` on the Desktop) shows every route.
-88. **Codex 04 (new order):** longer animation cycles for the two bus stop NPCs (`KIRO_ORDER_CODEX_04.md`).
+88. **Codex 04 (new order):** longer animation cycles for the two bus stop NPCs (`docs/orders/KIRO_ORDER_CODEX_04.md`).
 ### CONFIRMED by Chief (round 15b, 2026-10-16: review of Codex's handoff)
 89. **No wall switch for the AC, and no new switch style anywhere** ("i dont want that at all"). The AC works as an ordinary Night City charged prop: Space charges it, E zaps it, and it turns on at its full 4.
 90. **The ladder in the game stays** (Codex's recolour was rejected). CODEX 03 task 9 is cancelled.
-91. **Codex must run the CURRENT game** and capture real screenshots from it; his review composites showed an older iteration. Written into `KIRO_ORDER_CODEX_04.md` PART 0.
+91. **Codex must run the CURRENT game** and capture real screenshots from it; his review composites showed an older iteration. Written into `docs/orders/KIRO_ORDER_CODEX_04.md` PART 0.
 92. **The apartment, the tenant and the AC are placed in Level 1 and available in the Builder** for testing: apartment panels and the window tenant are in the asset palette, Aki's reactive-NPC fields and the Uncharged checkbox are merged. (Consequence found: with the AC on at any charge, the tenant costs about 1 charge; open question on the economy page.)
 93. **The AC takes 4 (round 15c, Chief: "on at any charge?? no i thought we established ac unit takes 4 charge").** It is on only at full capacity; the tenant costs the full 4. Kiro had wrongly dropped Codex's full-power rule in round 15b and restored it. Item 92's note about a 1-charge tenant is withdrawn.
 80. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
@@ -826,7 +826,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 34. The chest still takes its payment when the player chooses to open it; the pip waits as a pickup if the
     reserve is full. (3.7)
 35. Double jump unlocks after the tutorial levels, probably around Level 5. (4.4)
-36. The story is Orcha's to write. The tone is **Static Shock inspired** (see `STORY_BIBLE_DRAFT.md`). The
+36. The story is Orcha's to write. The tone is **Static Shock inspired** (see `docs/archive/STORY_BIBLE_DRAFT.md`). The
     premise, hero name and city name are not decided; Chief will decide.
 37. The hint for the AC-unit secret is a **window NPC** in an apartment building who complains about the
     heat; powering the AC unit changes what she says to thanks that it is back on. (`LEVEL_DESIGN_V2` 4.6)
@@ -846,7 +846,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 28. Charge speed scales with the charge held (new mechanic; formula RECOMMENDED). (3.3)
 29. Prop prices follow size and power (generator ~10, vending machine 3); the 4-unit spare is a check, not a
     law. Kiro sets the numbers. (3.5)
-30. Start the story bible now (`docs/STORY_BIBLE_DRAFT.md`). Level 1 is redrawn vertically (`LEVEL_DESIGN_V2`
+30. Start the story bible now (`docs/archive/STORY_BIBLE_DRAFT.md`). Level 1 is redrawn vertically (`LEVEL_DESIGN_V2`
     section 4.3).
 
 ### CONFIRMED by Chief (round 2, 2026-09-06)

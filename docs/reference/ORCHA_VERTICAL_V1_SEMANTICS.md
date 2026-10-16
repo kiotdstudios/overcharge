@@ -1,7 +1,7 @@
 # ORCHA VERTICAL V1 SEMANTICS
 
 **Owner:** Orcha (runtime)
-**Ordered by:** Kiro, KIRO_HANDOFF_MASTER.md L182, held pending Chief's ruling
+**Ordered by:** Kiro, docs/archive/reports/KIRO_HANDOFF_MASTER.md L182, held pending Chief's ruling
 **Status:** RATIFIED BY CHIEF 2026-09-19 18:30. Runtime half SHIPPED. Camera NOT started.
 
 ## CHIEF'S RULINGS AS GIVEN

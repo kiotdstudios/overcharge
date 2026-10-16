@@ -14,7 +14,7 @@
 //       order are actually present in main.js: the placeholder-delete
 //       convention for linkedObjectId (so an unset link never writes a
 //       stray key), and that the charged-object dropdown is sourced from
-//       state.level.sources (the id+label fields LEVEL_SCHEMA.md defines)
+//       state.level.sources (the id+label fields docs/reference/LEVEL_SCHEMA.md defines)
 // DOM-level verification (the dropdown renders, both line lists edit
 // independently, focus survives typing) is flagged as not done here -- see
 // the Part 1 report.

@@ -820,7 +820,7 @@ function _drawCheckpoints(ctx, arr) {
 
 // Generic marker renderer — delegates to type-specific draws.
 // Switch: x,y = top-left, 22×22.
-// Checkpoint: x,y = CENTRE (runtime inconsistency, see LEVEL_SCHEMA.md §Checkpoint).
+// Checkpoint: x,y = CENTRE (runtime inconsistency, see docs/reference/LEVEL_SCHEMA.md §Checkpoint).
 function _drawMarkers(ctx, arr, kind, glyph) {
   if (!Array.isArray(arr)) return;
   if (kind === 'source')     { _drawSources(ctx, arr);     return; }

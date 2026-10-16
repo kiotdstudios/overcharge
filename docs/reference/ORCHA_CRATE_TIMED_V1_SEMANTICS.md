@@ -1,6 +1,6 @@
 ﻿# ORCHA — CRATE + TIMED DEVICE: v1 SEMANTICS (for ratification)
 
-**Order:** `docs/ORCHA_ORDER_CRATE_TIMED_DEVICE.md`
+**Order:** `docs/archive/orders/ORCHA_ORDER_CRATE_TIMED_DEVICE.md`
 **Status:** AWAITING KIRO RATIFICATION — no implementation written yet
 **Branch:** `agent/orcha-dev` @ merged base (0 behind live, dormancy `c8ae61b` absorbed)
 **Baseline before any change:** energy 86/0 · parity 75/0 · electricity 37/0
@@ -197,7 +197,7 @@ and ignore `timed`. Flagged rather than silently allowed.
 2. `level.js`: parse `crates`, include in snapshot/restore, draw order
 3. `player.js`: crate push in `_resolveX`, crate-as-charge-proxy in the SPACE path
 4. `electricity.js`: timed/duration lifecycle + countdown render + dormant revert
-5. `docs/LEVEL_SCHEMA.md`: crate section, gate timed/duration fields
+5. `docs/reference/LEVEL_SCHEMA.md`: crate section, gate timed/duration fields
 6. Hand-authored test level with crate + timed gate, booted headless
 7. `_dev/` tests: crate push/block/gravity, bridge conduction, refusal when
    unconnected, multi-contact determinism, timed activate/expire, expired-gate

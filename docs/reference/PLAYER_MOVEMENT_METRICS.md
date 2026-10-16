@@ -321,11 +321,11 @@ Per Chief directive:
 ## APPENDIX A — RUN THE HARNESS
 
 The instrumentation harness is committed at
-`docs/agent-training/player_metrics_harness.mjs`. To reproduce:
+`docs/reference/agent-training/player_metrics_harness.mjs`. To reproduce:
 
 ```
 cd <repo-root>
-node docs/agent-training/player_metrics_harness.mjs
+node docs/reference/agent-training/player_metrics_harness.mjs
 ```
 
 Output should match Section 3 byte-for-byte on the same commit. If the

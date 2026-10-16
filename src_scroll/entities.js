@@ -880,7 +880,7 @@ export class DroneEnemy {
 }
 
 // ── Crate (conductive, pushable) ───────────────────────────────────────
-// ORDER CRATE_TIMED System 1, semantics ratified in docs/KIRO_RULING_CRATE_TIMED_V1.md.
+// ORDER CRATE_TIMED System 1, semantics ratified in docs/rulings/KIRO_RULING_CRATE_TIMED_V1.md.
 //
 // D1: a crate is a PURE CONDUIT with ZERO capacity. It never stores, buffers or
 //     leaks energy — what enters passes straight through to the device it
@@ -1069,8 +1069,8 @@ export class Crate {
 }
 
 // ── Chest ──────────────────────────────────────────────────────────────
-// ORCHA_CHEST_V1_SEMANTICS.md, fully ratified by Chief 2026-09-18, plus
-// CHIEF_RULING_CHEST_PIP_RESERVE.md which amended decision 7.
+// docs/reference/ORCHA_CHEST_V1_SEMANTICS.md, fully ratified by Chief 2026-09-18, plus
+// docs/rulings/CHIEF_RULING_CHEST_PIP_RESERVE.md which amended decision 7.
 //
 // D1 costs 2 charge to open (his override of my free-to-open proposal — and his
 //    version is better: the player spends twice and is well rewarded, so

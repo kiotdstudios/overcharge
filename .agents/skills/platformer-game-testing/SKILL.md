@@ -9,7 +9,7 @@ tags: [testing, automation, game-testing, platformer, canvas, webgl, performance
 ## Overcharge repository integration
 
 This section takes precedence over generic upstream examples below.
-- Read `docs/GAME_TESTING_SKILLS.md` from the repository root before running tests.
+- Read `docs/reference/GAME_TESTING_SKILLS.md` from the repository root before running tests.
 - Resolve bundled files relative to this SKILL.md; do not assume a global Claude installation.
 - Use the requested checkout and URL. Start its documented server when needed; distinguish game and editor pages.
 - Verify controls in the active entry point: Overcharge documents ArrowUp/W for jump, Space for attack, and E for absorb/discharge. Generic Space-to-jump and double-jump examples are not Overcharge specifications.

@@ -1,5 +1,5 @@
 // charge_colors.mjs - the charge bar is red when low, yellow in the middle and cyan when high
-// (docs/GAME_DESIGN_V2.md section 8.4; the first iteration's scheme, commit ddbf42a).
+// (docs/design/GAME_DESIGN_V2.md section 8.4; the first iteration's scheme, commit ddbf42a).
 import './support/headless.mjs';
 import { chargeColors, chargeBand, CHARGE_BANDS } from '../src_scroll/energy-hud.js';
 import { C } from '../src_scroll/constants.js';

@@ -497,7 +497,7 @@ and are marked inline with a dated correction note.*
 An absent or empty `crates` array means ZERO behavioral change to any level
 authored before this order.
 
-**v1 semantics** (ratified in `docs/KIRO_RULING_CRATE_TIMED_V1.md`):
+**v1 semantics** (ratified in `docs/rulings/KIRO_RULING_CRATE_TIMED_V1.md`):
 
 - **Pure conduit, ZERO capacity.** A crate never stores, buffers or leaks energy.
   There is no `charge` field. It is a wire, not a power bank.

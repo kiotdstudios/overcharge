@@ -1,6 +1,6 @@
 ﻿# ORCHA — FENCE + SHORT-CIRCUIT WALL SWITCH: v1 SEMANTICS (for ratification)
 
-**Order:** `docs/ORDER_FENCE_SHORT_CIRCUIT.md`
+**Order:** `docs/archive/orders/ORDER_FENCE_SHORT_CIRCUIT.md`
 **Status:** AWAITING RATIFICATION — no implementation written yet
 **Branch:** `agent/orcha-dev` @ merged base, 0 behind live
 **Baseline before any change:** crate_timed 87/0 · energy 88/0 · parity 138/0 · electricity 37/0 = **350/0**
@@ -182,7 +182,7 @@ not "fix" it silently.
    state machine (001→008 once, settle); fence live loop (001-008) + dead art
 2. Art loading for both packs, anchored by canvas per F4
 3. `level.js` — `_destroyT` in the switch snapshot
-4. `docs/LEVEL_SCHEMA.md` — `style` on switches and blockOnly gates
+4. `docs/reference/LEVEL_SCHEMA.md` — `style` on switches and blockOnly gates
 5. Parity guards — `style` values validated; `style:"fence"` requires `blockOnly`
 6. `_dev/` tests — destroys once and stays destroyed, never renders frame_000 in
    the live loop, fence blocks while live and passes when dead, styleless

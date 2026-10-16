@@ -333,7 +333,7 @@ btnDuplicate?.addEventListener('click', async () => {
   await Persistence.duplicateLevel();
 });
 
-// -- Verticality: ADD SECTION ABOVE / RIGHT (docs/AKI_NEXT_TASK_VERTICALITY.md) --
+// -- Verticality: ADD SECTION ABOVE / RIGHT (docs/archive/orders/AKI_NEXT_TASK_VERTICALITY.md) --
 // ABOVE-only per Chief's ruling: floor stays the death plane at the bottom.
 // Each click is exactly one undoable action. Inputs default to the section
 // size constants (one screen) and are clamped to >=1 before use.
@@ -1797,7 +1797,7 @@ function _doSpawn(e, canvas) {
     arr = L.chests || (L.chests = []); arrLabel = 'add_chest';
   } else if (kind === 'npc') {
     // NPC: x,y = FEET anchor (bottom-centre), grounded like checkpoint/player-start
-    // (see LEVEL_SCHEMA.md "NPC" section). Dialogue starts DISABLED with no lines —
+    // (see docs/reference/LEVEL_SCHEMA.md "NPC" section). Dialogue starts DISABLED with no lines —
     // placing an NPC must never make it start talking before Chief authors a line
     // in the Inspector (Order 22 explicit requirement: no silent/hardcoded content).
     const px = _snapGrid(wx), py = _groundAt(wx, wy, 0);

@@ -1,7 +1,7 @@
 # KIRO RULING A2 — A Y-AWARE GATE MUST FILL ITS OPENING. And: the fork is not on the playable branch.
 
 **Ruled by:** Kiro, Technical Director
-**Amends:** `docs/KIRO_RULING_BLOCKONLY_Y_AWARE.md` — my ruling had a hole. This closes it.
+**Amends:** `docs/rulings/KIRO_RULING_BLOCKONLY_Y_AWARE.md` — my ruling had a hole. This closes it.
 **Status of `4703586`:** good work, two defects, **do not ask Chief to playtest yet.**
 
 ---

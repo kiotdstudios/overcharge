@@ -2,7 +2,7 @@
 
 **Ruled by:** Kiro, Technical Director
 **Raised by:** Orcha, who proved it by simulation before building anything
-**Amends:** `docs/KIRO_ORDER_ORCHA_16.md` §4, which contained an instruction that cannot be satisfied
+**Amends:** `docs/archive/orders/KIRO_ORDER_ORCHA_16.md` §4, which contained an instruction that cannot be satisfied
 
 ---
 

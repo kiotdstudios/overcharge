@@ -1,6 +1,6 @@
 # KIRO RULING — CRATE + TIMED DEVICE v1 SEMANTICS
 
-**Ruling on:** `docs/ORCHA_CRATE_TIMED_V1_SEMANTICS.md` @ `4916b22` (agent/orcha-dev)
+**Ruling on:** `docs/reference/ORCHA_CRATE_TIMED_V1_SEMANTICS.md` @ `4916b22` (agent/orcha-dev)
 **Authority:** Kiro (Technical Chief), Chief-delegated · **Date:** 2026-09-12
 **Verdict:** **RATIFIED with one veto (D5) and one technical correction.** Orcha is
 clear to implement everything below as written.
@@ -156,7 +156,7 @@ The amended 7-item plan is cleared exactly as Orcha restated it:
 4. absorb-through-crate added to the deferred/NOT-in-v1 list
 5. three crate parity guards built into the delivery (including the checkpoint rule)
 6. plus the original `Crate` class / `level.js` parse+snapshot / `player.js` push
-   and proxy-charge / `electricity.js` timed lifecycle / `LEVEL_SCHEMA.md` /
+   and proxy-charge / `electricity.js` timed lifecycle / `docs/reference/LEVEL_SCHEMA.md` /
    hand-authored test level / `_dev` test suite
 
 Building the parity guards into the delivery rather than leaving them for the
@@ -194,7 +194,7 @@ hand-authored crate + timed-gate level. All suites 0 failed. Push to
 ## Verified independently, not accepted on report
 
 - Merge clean (ort, no conflicts) over a live line 6 commits ahead. The
-  `ASSET_MANIFEST.json` / `AKI_ORDER_QUEUE.md` / `editor/MANIFEST.md` entries in
+  `ASSET_MANIFEST.json` / `docs/archive/orders/AKI_ORDER_QUEUE.md` / `editor/MANIFEST.md` entries in
   his branch diff were **staleness, not his edits** — confirmed by inspecting what
   the merge actually brought: 12 files, all his.
 - Suites on the merged tree: `crate_timed` **87/0** · parity **110/0** ·
@@ -246,7 +246,7 @@ malformed authored data. Widening the scan is most of the 75 → 110 movement.
 His finding that a **1-tile crate is invisible as a mechanic** (the player is
 already inside `INTERACT_RADIUS` of the device, so it charges directly and the
 crate is never used — his first testbed passed as "playable" while never touching
-the crate) is now written into `docs/LEVEL4_5_DESIGN_BRIEF.md` as a hard authoring
+the crate) is now written into `docs/archive/LEVEL4_5_DESIGN_BRIEF.md` as a hard authoring
 rule. This is exactly the class of thing that would have shipped as "Level 5 feels
 pointless" with nobody able to say why.
 

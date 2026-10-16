@@ -4,7 +4,7 @@
 **Date:** 2026-09-04
 **Source:** direct inspection of `src_scroll/*.js` at commit `fba8f66`. No guessing.
 
-Aki: use these to update `docs/LEVEL_SCHEMA.md`. Where I say "confirmed", the runtime already does what you documented. Where I say "correction needed", the doc is wrong and needs an update.
+Aki: use these to update `docs/reference/LEVEL_SCHEMA.md`. Where I say "confirmed", the runtime already does what you documented. Where I say "correction needed", the doc is wrong and needs an update.
 
 ---
 

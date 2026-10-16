@@ -22,7 +22,7 @@ requires it, and the guard exempts them.
 ### AMENDED 2026-09-19 — read this before reverting anything
 This rule, as first written, caused a real defect: an agent read it and reverted Orcha's drone move, which
 left a narrowed sight box pointed at a drone 285px out of range. See
-`docs/KIRO_DIAGNOSIS_DRONE_BLIND_AND_TELEPORT.md`. Two clauses:
+`docs/archive/reports/KIRO_DIAGNOSIS_DRONE_BLIND_AND_TELEPORT.md`. Two clauses:
 
 **A. Enemy placement is coupled to enemy tuning.** When an order changes sensing or behaviour constants that
 depend on where an enemy sits, moving that enemy is **part of that order** and is permitted — in the **same
@@ -87,7 +87,7 @@ That is the acceptance test. Save in the Builder, publish, refresh, play the cha
 chain silently does nothing, it is a **defect**, not a workflow the user should learn to work around.
 Two things currently break it and both are being fixed:
 - An agent push could revert his file — closed by this rule and the guard.
-- The Builder's **COMMIT & PUSH** button neither commits nor pushes — see `KIRO_ORDER_AKI_11.md`.
+- The Builder's **COMMIT & PUSH** button neither commits nor pushes — see `docs/archive/orders/KIRO_ORDER_AKI_11.md`.
 
 ## 6. The duplicate twin
 `3_LEVEL_3.json` and friends shadow the real files and have already drifted from them once. They are not in
@@ -98,7 +98,7 @@ deleting them** — every additional copy is another place his work can be silen
 
 ## 3. Written orders that name files (log)
 - **2026-10-16, Chief, to Kiro:** "use the relay pylon in the level so I can see how it looks all together" and "implement [the hatch and secret room] in lvl 1 ... so I can see it all together." Kiro edited `level1.json` additively (pylon, fire escape, ladder, AC unit, wall switch, door, room). Nothing Chief placed was moved or removed; a round trip of the file before the edit was byte-identical. Test: `_dev/level1_secret.mjs`.
-- **2026-10-16, Chief, to Aki:** "she can start working to finish [Level 1]." Aki builds the vertical Level 1 as a **new file** `src_scroll/levels/level1_vertical.json` (not in `levels.json`). She does **not** edit `level1.json`. Chief compares and swaps. (`KIRO_ORDER_AKI_27.md`)
+- **2026-10-16, Chief, to Aki:** "she can start working to finish [Level 1]." Aki builds the vertical Level 1 as a **new file** `src_scroll/levels/level1_vertical.json` (not in `levels.json`). She does **not** edit `level1.json`. Chief compares and swaps. (`docs/orders/KIRO_ORDER_AKI_27.md`)
 - **2026-10-16, Chief, to Kiro (later the same day):** "we need to rework the 'hidden' whatever im not liking any of that we can scrap that for now." Kiro reverted the preview additions in `level1.json` (fire escape tiles, room wall tiles, ladder, the four room props, `src_ac`, `SW_AC`, `SECRET_DOOR`). **Kept: the relay pylon.** A diff against the file before the preview shows one added decoration and nothing else. Test: `_dev/level1_pylon.mjs` (replaces `_dev/level1_secret.mjs`).
 - **2026-10-16, Chief, to Kiro (flow correction):** "ladder needs to be put back; but make codex make a ladder night city prop colored." Kiro added to `level1.json`: the ladder decoration (x 128, y 288, w 32, h 192) and a one-way upper walkway (row 9, columns 3 to 13, tile value 2). Nothing else changed. Test: `_dev/level1_pylon.mjs` (16 checks; the street plays identically with and without the walkway).
 - **2026-10-16, Chief, to Kiro (round 14c):** no level file was edited. Street litter, the AC rule and the economy page are code, docs and a Desktop file.

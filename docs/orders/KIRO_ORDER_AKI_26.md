@@ -1,13 +1,13 @@
 # KIRO ORDER: AKI 26 (Level 1 Builder tools and art)
 
-**From:** Kiro, Technical Director | **To:** Aki | **Authority:** Chief (decisions in `docs/GAME_DESIGN_V2.md` section 13 and `docs/LEVEL_DESIGN_V2.md` section 9)
+**From:** Kiro, Technical Director | **To:** Aki | **Authority:** Chief (decisions in `docs/design/GAME_DESIGN_V2.md` section 13 and `docs/design/LEVEL_DESIGN_V2.md` section 9)
 **Branch:** your own branch, push as `AGENTS.md` describes. Never force-push. Status: work order, nothing started.
-**Companion order:** `docs/KIRO_ORDER_CODEX_01.md` (runtime). The data contracts below are shared; if you want to change one, tell Kiro first.
+**Companion order:** `docs/orders/KIRO_ORDER_CODEX_01.md` (runtime). The data contracts below are shared; if you want to change one, tell Kiro first.
 
 ## Read first
-1. `docs/LEVEL_DESIGN_V2.md` sections 3.3, 4.3a, 4.5, 4.6 and 8 (the work list).
-2. `docs/GAME_DESIGN_V2.md` sections 3.5, 4.5 and 7.
-3. `docs/LEVEL_SCHEMA.md`.
+1. `docs/design/LEVEL_DESIGN_V2.md` sections 3.3, 4.3a, 4.5, 4.6 and 8 (the work list).
+2. `docs/design/GAME_DESIGN_V2.md` sections 3.5, 4.5 and 7.
+3. `docs/reference/LEVEL_SCHEMA.md`.
 Tags: CONFIRMED (Chief decided), RECOMMENDED (adopt unless you find a flaw and say why), OPEN (do not build).
 
 ## Hard rules

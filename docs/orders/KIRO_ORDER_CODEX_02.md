@@ -1,12 +1,12 @@
 # KIRO ORDER: CODEX 02 (the 10-unit bar, pip slots and the new charge rules)
 
 **From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief, rounds 11 and 12 (2026-10-15)
-**Follows:** `KIRO_ORDER_CODEX_01.md` Phases A and B (built; thank you). **Status:** work order, nothing started.
+**Follows:** `docs/orders/KIRO_ORDER_CODEX_01.md` Phases A and B (built; thank you). **Status:** work order, nothing started.
 **Branch:** your own branch, push as `AGENTS.md` describes. Never force-push. Do not merge to the live line.
 **Scope:** Level 1 only. Chief: design one level at a time; ignore the charge economy of Levels 2 to 6 for now.
 (Existing levels must still load and behave. Do not edit level files.)
 
-## Chief's rulings (read `docs/GAME_DESIGN_V2.md` sections 3.1, 3.3, 3.8, 3.9 and the round 12 ledger)
+## Chief's rulings (read `docs/design/GAME_DESIGN_V2.md` sections 3.1, 3.3, 3.8, 3.9 and the round 12 ledger)
 1. **The bar holds 10. A pip is always 10.** Reaching 10 with a free slot banks a pip and resets the bar.
 2. **The player starts with ONE pip slot** (so at most 20 held: 10 bar + 1 pip). Each Capacitor Module, later,
    adds one slot (+10), up to 5 slots (60). Slots are a per-player number; `MAX_BANKED_PIPS = 5` becomes the ceiling.

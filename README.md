@@ -1,61 +1,50 @@
 # OVERCHARGE
-**KIOTD Studios** — Puzzle Platformer
+
+**KIOTD Studios**: a puzzle platformer. Absorb power from the city, spend it on gates and machines, reach the exit.
 
 > Explore. Steal the current. Solve the circuit. Protect your charge. Power the exit.
 
-## Play (GitHub Pages)
+## Where the design lives
 
-**[▶ PLAY IN BROWSER](https://kiotdstudios.github.io/overcharge/)**
+**[`docs/design/GAME_DESIGN_V2.md`](docs/design/GAME_DESIGN_V2.md) is the one game design document**, and
+[`docs/design/LEVEL_DESIGN_V2.md`](docs/design/LEVEL_DESIGN_V2.md) specifies the levels.
+Start at [`docs/README.md`](docs/README.md): it says which folder is truth (`design/`), which is active work (`orders/`) and which is dead (`archive/`).
+This README does not describe the game; the old version of it did, and was wrong.
 
-No install. Works in any modern browser.
+## Play
 
-## Controls
+- Online: <https://kiotdstudios.github.io/overcharge/>
+- Locally: double-click `start.bat` (opens `http://localhost:3000`). The level Builder is `editor.html` on the same server.
+
+## Controls (live game, `src_scroll/`)
 
 | Key | Action |
-|-----|--------|
-| ← → / A D | Move |
-| ↑ / W | Jump |
-| ↓ / S + jump | Drop through one-way platform |
-| **E** (hold, near source) | Absorb electricity |
-| **E** (hold, near gate or switch) | Discharge usable energy |
-| **Space** (near enemy) | Attack |
-| X | Brake |
-| R | Retry on Game Over |
-
-## Local Dev
-
-Double-click `start.bat` — opens `http://localhost:3000` automatically.
-
-Run tests:
-```
-node _dev/test_electricity.mjs
-```
+|---|---|
+| Left / Right (A / D) | Move; hold **Shift** to run |
+| Up / W | Jump (ladder: climb) |
+| Down / S | Duck; Down + jump drops through a one-way platform |
+| **E** (hold, near a charged object) | Absorb charge |
+| **Space** (hold, near a gate or charged object) | Give charge |
+| **Q** | Spend a banked pip on a gate |
+| G | Grapple |
+| K / L | Melee / bolt (Level 3 onward) |
+| R | Retry |
 
 ## Levels
 
-| # | Name | What it teaches |
-|---|------|----------------|
-| 1 | FIRST SPARK | Absorb → discharge → exit |
-| 2 | SPLIT DECISION | Spend charge to unlock more charge (switch routing) |
-| 3 | DON'T GET HIT | Drain enemy, scatter recovery, timing windows |
-| 4 | CARRY CURRENT | Traversal under pressure — protect charge across a pit |
+Level 1, **NEON RISE**, is the one being finished. Levels 2 to 6 (SPLIT DECISION, DON'T GET HIT, CARRY CURRENT, LIVE WIRE, DESCENT) are on hold until Level 1 is done.
+Levels are `src_scroll/levels/*.json`, listed in `levels.json`, and owned by Chief.
 
-## Architecture
+## Repository map
 
 ```
-src/
-  constants.js     all shared values (physics, colors, sizes)
-  input.js         keyboard state (held / pressed / released)
-  render.js        canvas draw utilities (glow, tiles, sparks, lightning)
-  electricity.js   ElectricalSource, PowerGate, Switch, ChargePickup
-  entities.js      DrainEnemy, PatrolEnemy
-  player.js        movement, absorb, discharge, attack, sprites
-  sprites.js       frame animation system (idle/walk/jump/charge/discharge)
-  level.js         tilemap + entity manager + fail-state detection
-  ui.js            HUD, charge bar, context prompts, overlays
-  levels/          one file per level
-  main.js          game loop, state machine
-assets/
-  sprites/         player animations (idle/walking/jumping/charge/discharge × east/west)
-  tiles/           concrete tileset
+src_scroll/   the live game (main.js loop, player.js, level.js, electricity.js, npc.js, juice.js, audio.js ...)
+editor/       the Builder (level editor)
+assets/       art, sprites, ASSET_MANIFEST.json
+docs/         design/ (truth), orders/ (active work), rulings/, reference/, archive/ (dead)
+_dev/         tests: node _dev/run_all.mjs
+scripts/      build helpers (node scripts/version_editor.mjs before committing Builder changes)
+src/          OBSOLETE prototype (index_classic.html only). Ignore it.
 ```
+
+`KIRO_STATUS.md`, `AKI_STATUS.md` and `ORCHA_STATUS.md` are the agents' running logs.

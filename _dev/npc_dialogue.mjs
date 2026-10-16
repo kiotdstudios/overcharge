@@ -134,8 +134,8 @@ sec('disabled dialogue never fires (placing an NPC must never make it talk uncon
 
 sec('schema doc, manifest, and level1 wiring (Order 21 asset delivery)');
 {
-  const schema = fs.readFileSync(`${R}/docs/LEVEL_SCHEMA.md`, 'utf8');
-  ok(/## NPC \(Dialogue-capable, non-decoration character\)/.test(schema), 'LEVEL_SCHEMA.md documents the NPC section');
+  const schema = fs.readFileSync(`${R}/docs/reference/LEVEL_SCHEMA.md`, 'utf8');
+  ok(/## NPC \(Dialogue-capable, non-decoration character\)/.test(schema), 'docs/reference/LEVEL_SCHEMA.md documents the NPC section');
   ok(/greetingAssetId/.test(schema), 'schema documents greetingAssetId');
 
   const manifest = JSON.parse(fs.readFileSync(`${R}/assets/ASSET_MANIFEST.json`, 'utf8'));

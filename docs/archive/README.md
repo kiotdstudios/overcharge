@@ -1,10 +1,12 @@
-# docs/archive: superseded design and planning documents
+# docs/archive: DEAD. Superseded design, orders and reports. Do not read to learn the game.
+
+Since round 15c this folder also holds **every finished order** (`orders/`) and **every old report, finding and handoff** (`reports/`). The old paths are in [`../MOVED.md`](../MOVED.md).
 
 These files are **kept unchanged** as history. They are no longer the source of truth.
 The current design lives in:
 
-- [`docs/GAME_DESIGN_V2.md`](../GAME_DESIGN_V2.md): the game
-- [`docs/LEVEL_DESIGN_V2.md`](../LEVEL_DESIGN_V2.md): the levels, with Level 1 specified in full
+- [`docs/GAME_DESIGN_V2.md`](../design/GAME_DESIGN_V2.md): the game
+- [`docs/LEVEL_DESIGN_V2.md`](../design/LEVEL_DESIGN_V2.md): the levels, with Level 1 specified in full
 
 Do not edit anything in this folder. If something here is wrong or stale, correct it in the V2
 documents and say so there. Each file below was moved with `git mv` and verified byte-for-byte
@@ -14,7 +16,7 @@ identical before and after (SHA-256 prefixes in the table).
 
 | Archived file | Former path | What it was | Superseded by |
 |---|---|---|---|
-| `Static_Shock_Puzzle_Platformer_GDD_v1.pdf` | `/Static_Shock_Puzzle_Platformer_GDD_v1.pdf` | Original game design document, v1.0 (titled "STATIC SHOCK") | `GAME_DESIGN_V2.md` |
+| `SUPERSEDED_Static_Shock_Puzzle_Platformer_GDD_v1.pdf` (renamed in round 15c so nobody mistakes it for the GDD) | `/Static_Shock_Puzzle_Platformer_GDD_v1.pdf` | Original game design document, v1.0 (titled "STATIC SHOCK") | `GAME_DESIGN_V2.md` |
 | `OVERCHARGE_LEVEL_BREAKDOWN.md` | `docs/OVERCHARGE_LEVEL_BREAKDOWN.md` | Level-by-level teaching plan for Levels 1 to 5, plus the recorded overrides | `LEVEL_DESIGN_V2.md` |
 | `LEVEL3_DESIGN_BRIEF.md` | `docs/LEVEL3_DESIGN_BRIEF.md` | Builder brief for Level 3 | `LEVEL_DESIGN_V2.md` (roster) |
 | `LEVEL4_5_DESIGN_BRIEF.md` | `docs/LEVEL4_5_DESIGN_BRIEF.md` | Builder brief for Levels 4 and 5 | `LEVEL_DESIGN_V2.md` (roster) |

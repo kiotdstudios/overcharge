@@ -1,7 +1,7 @@
 # CHIEF RULING — CHEST REWARD GOES STRAIGHT TO THE RESERVE
 
 **Ruled by:** Chief · **Recorded by:** Kiro · **Status:** LAW
-**Amends:** `docs/ORCHA_CHEST_V1_SEMANTICS.md` decision 7. Everything else in that doc stands.
+**Amends:** `docs/reference/ORCHA_CHEST_V1_SEMANTICS.md` decision 7. Everything else in that doc stands.
 
 ---
 
@@ -55,7 +55,7 @@ orientation, so this is a generator limitation rather than a mistake.
 do not regenerate. If it reads badly once it is in a level, Chief reopens it — and the fix would still be
 art, never a transform.
 
-This closes the only open question on the chest. `ORCHA_CHEST_V1_SEMANTICS.md` is fully ratified.
+This closes the only open question on the chest. `docs/reference/ORCHA_CHEST_V1_SEMANTICS.md` is fully ratified.
 
 ---
 
@@ -63,4 +63,4 @@ This closes the only open question on the chest. `ORCHA_CHEST_V1_SEMANTICS.md` i
 - **ORCHA** — implement the reserve-direct reward under the energy authority, with the bar-untouched
   assertion and the cap behaviour. Fold it into the chest implementation; it is not a separate piece of work.
 - **AKI** — **nothing changes for you.** The schema is still `{ id, x, y, cost, reward }` and the art is
-  final. A9 proceeds exactly as ordered in `docs/KIRO_ORDER_AKI_10.md`.
+  final. A9 proceeds exactly as ordered in `docs/archive/orders/KIRO_ORDER_AKI_10.md`.

@@ -1,6 +1,6 @@
 // npc.js — ORDER 22: dialogue-capable NPCs. Ambient animation + proximity speech
 // bubbles, authored entirely through the Builder's NPC Inspector and
-// `level.npcs` (see docs/LEVEL_SCHEMA.md "NPC" section). An absent/empty
+// `level.npcs` (see docs/reference/LEVEL_SCHEMA.md "NPC" section). An absent/empty
 // `npcs` array is zero behavioural change for every level authored before
 // this order — see Level constructor.
 //

@@ -13,7 +13,7 @@
 predates this ruling. The PDF could not be edited (it is image-only, no text layer), so this file is
 the authority wherever the two disagree.
 
-**When `docs/OVERCHARGE_LEVEL_BREAKDOWN.md` is transcribed (Orcha, O6), transcribe the PDF verbatim —
+**When `docs/archive/OVERCHARGE_LEVEL_BREAKDOWN.md` is transcribed (Orcha, O6), transcribe the PDF verbatim —
 do not silently correct it. Then note this ruling beside any exit cost that reads 6.** Verbatim
 transcription plus a recorded override is traceable; a quietly edited transcription is not.
 

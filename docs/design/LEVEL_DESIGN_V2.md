@@ -3,10 +3,10 @@
 **Status:** Draft 1 for Chief's review. Written after commit `5ad4f1b` (2026-10-13).
 **Supersedes:** `docs/archive/OVERCHARGE_LEVEL_BREAKDOWN.md`, the Level 3, 4/5 and 5 briefs, the first
 Level 1 world-build plan and the route preview (all kept unchanged in `docs/archive/`).
-**Companion:** [`GAME_DESIGN_V2.md`](GAME_DESIGN_V2.md). Tags (CONFIRMED, CARRIED, BUILT, RECOMMENDED,
+**Companion:** [`docs/design/GAME_DESIGN_V2.md`](GAME_DESIGN_V2.md). Tags (CONFIRMED, CARRIED, BUILT, RECOMMENDED,
 CONCEPT, OPEN) are defined in its section 0 and used identically here.
 **Focus:** Level 1 is the only level in active development. **Levels 2 to 6 are paused** (CONFIRMED).
-**Ownership:** Chief owns `src_scroll/levels/*.json` (`KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md`). Nothing
+**Ownership:** Chief owns `src_scroll/levels/*.json` (`docs/orders/KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md`). Nothing
 here edits a level file. Sections 3 and 4 are a specification for Chief to build in the Builder, or to
 hand to an agent under a named order.
 
@@ -671,7 +671,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 17 | Level 1 pacing, economy and coverage tests | Test | 14 | RECOMMENDED |
 | 18 | Chest at the pip cap: "CHARGE FULL", pip drops as a pickup (replaces "refund") | Runtime + art | none | CONFIRMED design, reading OPEN |
 | 19 | Gate the dev keys (`P`, `F2`, `[`, `]`) | Runtime | none | RECOMMENDED |
-| 20 | Regenerate `PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
+| 20 | Regenerate `docs/reference/PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
 | 21 | **Q pip use**: instant gate open, amend the "no one-press" comment, update `pip_gate_spend` | Runtime + test | none | CONFIRMED round 3 |
 | 22 | **Charge-speed scaling** (see GAME_DESIGN_V2 3.3: original for charging, mine for absorbing, OPEN) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
 | 40 | **10-unit bar and pip slots**: `MAX_CHARGE` becomes 10, a pip is 10, the player starts with 1 slot, HUD reads / 10 with dim locked icons, tests rewritten (CODEX 02 task 1) | Runtime + test | none | CONFIRMED round 12 |
@@ -699,15 +699,15 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 39 | **Per-level objective system** (the card exists only for Level 1) so Level 3 can teach the bolt | Runtime | none | CONFIRMED round 5 |
 | 30 | Charged-object pricing applied to props; charge stored in objects counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
 | 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED |
-| 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/STORY_BIBLE_DRAFT.md` |
+| 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/archive/STORY_BIBLE_DRAFT.md` |
 | 33 | "Charge gate to open." world label above exit gates | Runtime | none | CONFIRMED |
 
 ### 8.1 Who does what (issued 2026-10-14)
 | Owner | Order | Rows |
 |---|---|---|
-| Codex | `KIRO_ORDER_CODEX_01.md` | 3 (fail state), 7 (two-way objects), 18 (chest and pip pickup), 21 (Q pip), 22 (charge speed), 23 (path platforms), 28 (abilities), 29 (duck; double jump not yet), 33 (gate label), 39 (objectives), plus reactive NPC dialogue (37) and player events for juice |
-| Aki | `KIRO_ORDER_AKI_26.md` | 24 (path tool), 25 (rows), 26 (ladder test), 34 to 36 (apartment, window NPC, AC recolour), 38 (Uncharged checkbox and readout), 27 and 31 (pip pickup, pylon, cable, beacon art), 16 (hatch and room dressing) |
-| Orcha | `KIRO_ORDER_ORCHA_19.md` | 15 and 32 (story, premises, dialogue). Writing only. |
+| Codex | `docs/orders/KIRO_ORDER_CODEX_01.md` | 3 (fail state), 7 (two-way objects), 18 (chest and pip pickup), 21 (Q pip), 22 (charge speed), 23 (path platforms), 28 (abilities), 29 (duck; double jump not yet), 33 (gate label), 39 (objectives), plus reactive NPC dialogue (37) and player events for juice |
+| Aki | `docs/orders/KIRO_ORDER_AKI_26.md` | 24 (path tool), 25 (rows), 26 (ladder test), 34 to 36 (apartment, window NPC, AC recolour), 38 (Uncharged checkbox and readout), 27 and 31 (pip pickup, pylon, cable, beacon art), 16 (hatch and room dressing) |
+| Orcha | `docs/orders/KIRO_ORDER_ORCHA_19.md` | 15 and 32 (story, premises, dialogue). Writing only. |
 | Kiro | this document | 2 (prover rows), 5 and 6 (retune and route checks, after Codex), 8 (juice module), 12 and 13 (audio bus, music), hero duck and double-jump frames, review of every order's output |
 | Chief | the Builder | 1 and 14 (placing everything in Level 1, removing "New line"), tuning the lift and charge curve in play, approving art and story |
 
@@ -779,21 +779,21 @@ the work list ordering in 8.
   in-game collectible, above and behind the spawn, reached by the opening ladder. (4.6)
 - The platform does both sideways and up/down with author-set paths. (GAME_DESIGN_V2 4.5)
 - Prices follow prop size; Kiro sets them. (GAME_DESIGN_V2 3.5)
-- Start the story bible. (`docs/STORY_BIBLE_DRAFT.md`)
+- Start the story bible. (`docs/archive/STORY_BIBLE_DRAFT.md`)
 
 ### OPEN questions (need Chief)
 1. **Check the 4.3a draft** in the Builder: zone heights, the 34-row total, the lift's route, the
    pylon-and-cable signpost. Chief has not reviewed it yet. The lift speed and tower position are Kiro's
    call for now (64 px/s; east end) and need playtesting.
-2. **Story direction.** Chief will pick; Orcha writes. (`STORY_BIBLE_DRAFT.md`)
+2. **Story direction.** Chief will pick; Orcha writes. (`docs/archive/STORY_BIBLE_DRAFT.md`)
 
 ---
 
 ## Appendix A: movement baseline and retune protocol
 
 ### A.1 Baseline, before any retune (BUILT, measured by the real controller)
-Source: `docs/agent-training/player_metrics_harness.mjs`, 60 Hz fixed step, run on commit `5ad4f1b`.
-The existing `PLAYER_MOVEMENT_METRICS.md` is stale (it lists a 450 px screen and 14 rows; the game is
+Source: `docs/reference/agent-training/player_metrics_harness.mjs`, 60 Hz fixed step, run on commit `5ad4f1b`.
+The existing `docs/reference/PLAYER_MOVEMENT_METRICS.md` is stale (it lists a 450 px screen and 14 rows; the game is
 578 px and 18 rows). **This table is the new reference.**
 
 | Metric | Before | After retune |
@@ -828,7 +828,7 @@ The existing `PLAYER_MOVEMENT_METRICS.md` is stale (it lists a 450 px screen and
 5. Re-run `completability`, `level2_fork`, `energy_authority`, `pip_gate_spend` and the browser suites.
 6. This verification **does not** resume design work on Levels 2 to 6 (CONFIRMED). If a route breaks, it is
    reported to Chief, not fixed.
-7. Regenerate `PLAYER_MOVEMENT_METRICS.md` from the same harness.
+7. Regenerate `docs/reference/PLAYER_MOVEMENT_METRICS.md` from the same harness.
 
 ## Appendix B: Level 1 as built (BUILT, parsed from `level1.json` at `5ad4f1b`)
 

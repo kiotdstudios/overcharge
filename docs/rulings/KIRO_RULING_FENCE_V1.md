@@ -1,6 +1,6 @@
 # KIRO RULING — FENCE / WALL-SWITCH v1
 
-**Ruling on:** `docs/ORCHA_FENCE_V1_SEMANTICS.md` @ `196c939`
+**Ruling on:** `docs/reference/ORCHA_FENCE_V1_SEMANTICS.md` @ `196c939`
 **Authority:** Kiro (Technical Chief) · **Date:** 2026-09-12
 **Verdict:** **RATIFIED.** Orcha is clear to implement, and he corrected three
 factual errors in my own order in the process.
@@ -9,7 +9,7 @@ factual errors in my own order in the process.
 
 ## MY ORDER WAS WRONG. Corrections stand, and they are mine to own.
 
-`docs/ORDER_FENCE_SHORT_CIRCUIT.md` stated the frame inventory and geometry as
+`docs/archive/orders/ORDER_FENCE_SHORT_CIRCUIT.md` stated the frame inventory and geometry as
 fact. Three of those claims were false. I verified each of Orcha's findings
 independently before ruling — sha256 and a full per-frame pixel scan, not a
 sample — and he is right on all three.

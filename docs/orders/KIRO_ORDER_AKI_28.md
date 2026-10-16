@@ -13,7 +13,7 @@ Then Chief moved Level 1 on, so your draft `src_scroll/levels/level1_vertical.js
 Because of that, `_dev/aki27_draft.mjs` is **disabled in `_dev/run_all.mjs`** with a "STALE" reason (it asserted the old lamps, total 12). You re-enable it when you finish.
 
 ## Task 1: rebuild the draft from the current level1.json
-Start again from **today's** `src_scroll/levels/level1.json` (not from your old draft) and redo the vertical layout in `LEVEL_DESIGN_V2.md` section 4.3a on top of it. Keep:
+Start again from **today's** `src_scroll/levels/level1.json` (not from your old draft) and redo the vertical layout in `docs/design/LEVEL_DESIGN_V2.md` section 4.3a on top of it. Keep:
 - the lamps at 3, the exit at 8, the street, the NPCs and every decoration Chief placed;
 - the tenant sequence exactly as placed (building, tenant, AC under her window). It is the "second level above the spawn" Chief described; your vertical build should lead the player up the ladder to it, then onward and up toward the exit;
 - the pylon, with the lit cable you drew running from it toward the exit.
