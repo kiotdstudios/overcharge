@@ -3291,6 +3291,17 @@
       "frames": 8,
       "artW": 192,
       "artH": 192
+    },
+    {
+      "x": 2037,
+      "y": 303,
+      "label": "VEND",
+      "charge": 4,
+      "kind": "prop",
+      "sprite": "assets/objects/night-city-props/vending-machine/",
+      "frames": 8,
+      "artW": 128,
+      "artH": 128
     }
   ],
   "gates": [
