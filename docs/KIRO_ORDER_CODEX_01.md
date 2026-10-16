@@ -52,17 +52,42 @@ from **and** charged. Charge the player gives is held by the object until absorb
   an `uncharged` object starts dark, can be charged, and lights; cannot be overfilled; a checkpoint rewind
   restores a half-charged object; an old level JSON still loads with identical behaviour.
 
+### A5. Charge capacity system and the Capacitor Module (CONFIRMED round 10; do this BEFORE A2 and A3)
+Chief reversed the 25-unit bar. **The player starts with 10 charge and a full bar is one pip** (the first
+iteration's rule). A collectible raises the bar. See GAME_DESIGN_V2 sections 3.1, 3.2 and 3.8.
+- **Replace the global `MAX_CHARGE` with a per-player `maxCharge`** (start 10, hard maximum 30, both in
+  `constants.js` as `START_CHARGE` and `CAPACITY_CAP`). Everything that reads `MAX_CHARGE` (player, `energy-hud.js`,
+  the pip rule, tests) reads the player's value. Checkpoint snapshots must include it.
+- **A pip is one full bar at the current `maxCharge`** (RECOMMENDED reading, confirm with Chief's answer to
+  question A in GAME_DESIGN_V2 section 13 before finishing). Filling the bar banks a pip and resets, as in v0.3.
+- **The pickup:** a new entity `CapacityPickup` (level data type `capacity-upgrade`, fields `x`, `y`,
+  `amount` default 4). Touch collects it; it raises `maxCharge` by `amount` (up to the cap), fills the new
+  space, and is permanent: it stays collected after a checkpoint rewind and carries to the next level. Art:
+  `assets/objects/capacity-upgrade/` (48 x 48, 8 frames, delivered by Kiro). Draw it with a gentle bob and a
+  glow; the pickup burst, shake and sound come from `juice.js` / `audio.js` (emit a `capacity-up` event and Kiro
+  will wire the sound).
+- **Tests:** a scratch run of `pip_gate_spend.mjs` with `MAX_CHARGE = 10` passes 39 of 53; the 14 failures are
+  the 25-based numbers. Rewrite them for a 10 bar (GAME_DESIGN_V2 3.2 has the new table), and add: capacity
+  grows, the pip grows with it, the pickup is permanent across a rewind, the cap holds, and old levels load.
+- **HUD:** show `charge / maxCharge` and 10 segments at the start. Kiro is doing the red, yellow, cyan bar
+  colours in `energy-hud.js` (same file, small change); merge carefully.
+
 ### A2. Q uses a pip (CONFIRMED round 4)
 Q, near a payable gate or switch, with at least one banked pip, opens it at once: the pip pays the price (8
-for an exit) and the remainder returns to the bar (the tested 17 in `pip_gate_spend`). With no pip, or away from
+for an exit) and the remainder returns to the bar (with a 10 bar a pip leaves 2; Chief has not yet said whether the whole pip
+should be spent instead, GAME_DESIGN_V2 section 13 question C). With no pip, or away from
 a device, **Q does nothing** (no tell, no cost). Q is unbound today (verified). SPACE-hold charging stays
 gradual. Update the comment "No button may complete a gate in one press" in `player.js` to describe the new rule.
 Update `_dev/pip_gate_spend.mjs` with Q cases (open instantly, remainder to bar, no pip does nothing, bar cannot
 hold the remainder).
 
-### A3. Charge-speed scaling (CONFIRMED mechanic; formula adopted for tuning)
-Multiply the absorb rate and the charge rate by `1 + held / MAX_CHARGE`, where `held` is the **bar only** (not
-pips): 3 units/s empty, 6 at a full bar. Apply to both directions and to every target. Put the formula in one
+### A3. Charge-speed scaling (CONFIRMED mechanic; formula OPEN, see GAME_DESIGN_V2 3.3)
+Kiro found that the first iteration already scaled the **discharge** rate with the bar:
+`max(0.5, DISCHARGE_RATE * charge / MAX_CHARGE)`. Implement behind one function with two modes so Chief can
+choose in play: **(O)** that original proportional rule, and **(M)** `rate * (1 + fill)`, where `fill` is the
+bar divided by the player's `maxCharge` (A5): 3 units/s empty, 6 at a full bar. **Default: O for charging a
+gate or object, M for absorbing** (applying O to absorbing makes the first lamp take about 6 s). Apply to every
+target. Put the formula in one
 exported function in `constants.js` or `electricity.js` so it can be tuned. Update `energy_authority` and
 `pip_gate_spend` expectations deliberately and list each changed number in your report. Do not change the
 lift's ride speed.

@@ -122,7 +122,7 @@ crates" rule and the "no enemies with crates" rule are therefore enforced by tes
 |---|---|---|
 | The fork | **Already there.** Level 1 has a high/low split at x about 1500. | Keep it as an exploration reward (CONFIRMED). |
 | Switch plus fence | **Not recommended** | It is a costly decision ("spend 2 or skip"). That lesson belongs to Level 2, and a mandatory 2 would cut Level 1's spare. A *secret* built from a switch and a barrier is fine (section 4.6). |
-| Chest (1 pip) | **Not recommended** | Level 1 never fills the 25-unit bar, so a pip has no context there, and the chest has the open refusal bug (GAME_DESIGN_V2 3.7). |
+| Chest (1 pip) | **Not recommended** | With a 10-unit bar (round 10) Level 1 can bank a pip from its spare lamp, but a chest still adds a second pip source to a tutorial, so it is not recommended for Level 1. (The chest's refusal bug is replaced by the pickup design, GAME_DESIGN_V2 3.7.) |
 | The cost of a decision | **Already satisfied** by reclaimable charged objects | Charged objects teach "charge is something you spend" without a punishing choice. |
 
 **CONFIRMED (round 2): keep Level 2 separate.** Level 1 borrows its *tools* (a switch, a barrier) for the
@@ -409,7 +409,8 @@ vertical Level 1 the beacon should sit at the top of the level, so the beacon al
   reachable by a ladder the player passed at the start. The reward is an **Easter egg plus a story
   clue** (a poster or graffiti that tells the first piece of the world's story), which costs no new system.
   Add a real achievement system later, once the game has more than one level that wants it. A pip as the
-  reward is not recommended: a pip is 25 charge, which dwarfs Level 1's whole 12.
+  reward is not recommended. **Round 10: the Easter-egg reward is the Capacitor Module** (GAME_DESIGN_V2 3.8):
+  the first capacity upgrade, found by turning around and powering the AC unit.
 
 ### 4.7 Checkpoints (RECOMMENDED)
 Level 1 has one, at x 1824. With a longer route it needs at least three: before the shaft jump, at the
@@ -522,7 +523,8 @@ read, or get lost, which adds time; skilled players skip optional charged object
 - Reclaimable charged objects return their charge, so they cost nothing net.
 - Permanent costs (section 1.4): the AC secret (2) and, worst case, the unreclaimed ferry (2) = 4.
   12 - 4 = 8, so even a player who buys every permanent payoff can still pay the exit.
-- **Level 1 never fills the 25-unit bar:** the player can hold at most 12. So no pip is banked and **the
+- **Round 10 supersedes the next note.** The bar is 10 now, so a player who absorbs all 12 banks one pip.
+  Older note, true only for a 25 bar: **Level 1 never fills the 25-unit bar:** the player can hold at most 12. So no pip is banked and **the
   reserve is never seen in Level 1** (unless the trophy is a pip).
 
 ### 6.2 The projectile case (CONFIRMED; measured)
@@ -621,7 +623,12 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 19 | Gate the dev keys (`P`, `F2`, `[`, `]`) | Runtime | none | RECOMMENDED |
 | 20 | Regenerate `PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
 | 21 | **Q pip use**: instant gate open, amend the "no one-press" comment, update `pip_gate_spend` | Runtime + test | none | CONFIRMED round 3 |
-| 22 | **Charge-speed scaling** (rate x `1 + held / 25`) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
+| 22 | **Charge-speed scaling** (see GAME_DESIGN_V2 3.3: original for charging, mine for absorbing, OPEN) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
+| 40 | **Charge capacity system**: `maxCharge` per player starting at 10, pip = one full bar, `MAX_CHARGE` constant retired, tests updated (CODEX 01 task A5) | Runtime + test | none | CONFIRMED round 10 |
+| 41 | **Capacitor Module pickup**: entity, +capacity, bar-growth animation, checkpoint rule, Builder placement | Runtime + Builder | 40 | CONFIRMED round 10 |
+| 42 | **Capacitor Module art** (48 x 48, 8-frame idle) | Art (Kiro) | none | **DONE round 10** |
+| 43 | **Charge bar colours** red, yellow, cyan | Runtime | none | CONFIRMED round 10 (Kiro) |
+| 44 | Place the first Capacitor Module in the AC-secret room | Content | 14, 41 | Chief |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
 | 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
 | 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |

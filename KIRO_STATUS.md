@@ -2247,3 +2247,26 @@ Cause: the charge hum is a loop. `juice.observe()` only runs while the game stat
 Fix: `juice.stopLoops()` ends any absorb or charge loop. It is called every frame that is not PLAYING (level complete, game over, title), on a level change, on a checkpoint rewind (`clear()`), and when the module is switched off. `main.js` has the one-line hook.
 Tests: `_dev/audio_bus.mjs` 44/0, now with a regression block: level complete, level change, rewind, module off, absorb loop, and structural checks that `main.js` carries both hooks. Against the previous code the block fails (`stopLoops` did not exist). Suite 2719 passed, 5 failed (the same 5 as before).
 Not verified: I cannot hear it. The headless browser run is clean (no page errors), but only Chief can confirm the hum now stops when the gate opens and stays off in Level 2.
+## 2026-10-14 - Round 10: start at 10 charge, capacity upgrades, red/yellow/cyan bar, Capacitor Module art
+Chief: the player starts with 10 charge; an obtainable item raises overall charge; bring back the first iteration's red, yellow, cyan bar; item #3 on his concept sheet is the upgrade, make the art; "when you have 10 charge you have a full pip".
+### History I found (git)
+- The first iteration (v0.1 to v0.3) had `MAX_CHARGE = 10`. A full bar banked a pip and reset to 0. **F** near a gate spent a banked pip and powered the device at once.
+- Discharge speed scaled with the bar: `max(0.5, DISCHARGE_RATE * charge / MAX_CHARGE)`. **Correction: earlier I told Chief this mechanic had never existed. That was wrong; it did, for discharge.** Absorbing stayed flat.
+- The bar colours were `CHARGE_LOW #ff4444`, `CHARGE_MED #ffcc00`, `CHARGE_HIGH #44ddff`, with steps at 30% and 60%, from the first commit. The 25-unit bar came from commit 582b07d on 2026-10-09. The cyan-to-violet blend replaced the red/yellow/cyan on 2026-09-25 with `energy-hud.js`.
+### Docs (GAME_DESIGN_V2, LEVEL_DESIGN_V2)
+- 3.1 rewritten: start 10, full bar is one pip (item 6 "25 fills a pip" is superseded). Pip value as capacity grows is my recommended reading, flagged OPEN.
+- 3.2: the pip and gate table repeated for a 10 bar. Measured by running the real engine with `MAX_CHARGE = 10` in a scratch copy: 39 of 53 `pip_gate_spend` checks pass; the 14 failures are the literal 25-based numbers. One pip now pays one 8-gate and leaves 2.
+- 3.3: F history, Q remainder question, **Level 1 now banks a pip** (12 charge against a 10 bar), charge-speed options O (original) and M (mine) with my recommendation O for charging and M for absorbing, and why.
+- New 3.8 Charge capacity upgrades (+4, permanent, cap 30, all recommended and flagged), Capacitor Module as the AC-secret reward, engine work for task A5. New 8.4 bar colours. Ledger items 51-54 and six new open questions A-F.
+- Work list rows 40-44. Orders: CODEX 01 gets task A5 (per-player `maxCharge`, `CapacityPickup`), A2 and A3 updated; AKI 26 asked to register the item; ORCHA 19 and STORY_BIBLE_DRAFT record the MIOR lore.
+### Lore Chief's concept sheet adds
+MIOR, "Meridian Institute of Research"; MIOR technology, atmospheric research, Project Tempest ("the original storm experiment"), MIOR drones. Candidate canon, not a decision.
+### Code
+- `src_scroll/energy-hud.js`: `chargeColors()` is now red (to 30%), yellow (to 60%), cyan (above). Pips stay violet. `_dev/charge_colors.mjs` 18/0. Rendered with the real HUD in headless Chromium at six fills: correct.
+### Art (assets/objects/capacity-upgrade/)
+- Capacitor Module: `item.png` 48 x 48 and `idle_00..08.png` (9 frames). PixelLab `/create-image-pixen` (seed 14) and `/animate-with-text-v3` (seed 4242). Eight candidates were compared; two read as treasure chests and were rejected. Art check passes on every frame (48 x 48, clean transparent border, no white border, 33 to 50 colours, feet line within 1 px). Known quirk: the core's triangle softens into a ring during the pulse. Not registered in the manifest yet (AKI 26).
+- The PixelLab key Chief pasted is stored in `_kiro_tools/pl_token.txt`, outside the repo. It is in this conversation, so Chief may want to rotate it.
+### Suite
+2737 passed, 5 failed across 61 suites (same 5 as before). Smoke run of the game: no page errors.
+### Not done
+The capacity system itself (Codex A5), the pickup entity, the Builder placement, the bar-growth animation, the pickup sound. The 25-unit bar is still in the code; the HUD still shows "/ 25".

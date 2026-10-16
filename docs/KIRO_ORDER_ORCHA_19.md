@@ -21,6 +21,12 @@ Chief assigned it to you himself.
 3. `docs/LEVEL_DESIGN_V2.md`: sections 3.2 to 3.5 and 4.6 (zones, NPCs, the foreshadow and the AC secret).
 4. `src_scroll/levels/level1.json`, only the `npcs` array (three NPCs; two still say the placeholder "New line").
 
+## New in round 10: Chief's concept sheet names MIOR and Project Tempest
+Chief sent a concept sheet for the charge-upgrade items. It is branded **MIOR, "Meridian Institute of
+Research"** and mentions **MIOR technology, atmospheric research, Project Tempest (a storm experiment) and
+MIOR drones.** Read the "NEW LORE FROM CHIEF" paragraph in `docs/STORY_BIBLE_DRAFT.md`. Treat it as a strong
+candidate for the premise. **Ask Chief whether it is canon before you build on it.**
+
 ## Chief's decisions you must respect
 - **Tone: Static Shock inspired.** A young, relatable street-level hero, humour beside real stakes, a
   neighbourhood that feels lived in, problems that come from the city. **Inspired is not copied:** no character,

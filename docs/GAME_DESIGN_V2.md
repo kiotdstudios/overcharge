@@ -74,16 +74,30 @@ first minute**. See Level Design V2 for how.
 
 ### 3.1 Units and the meter (BUILT, verified in `src_scroll/player.js` 201 to 355)
 - Charge is counted in units. One lamp holds 4. An exit gate costs 8.
-- **The bar holds 25 units** (`MAX_CHARGE`). When the bar fills it **banks a pip** and resets to 0, and
-  any overflow carries into the new bar. **CONFIRMED:** 25 charge fills one pip.
-- The reserve holds **up to 5 pips** (`MAX_BANKED_PIPS`). Usable energy is `bar + 25 x pips`, a maximum
-  of 150. At the cap the bar stays at 25 and further energy is refused (a source gets it back).
-- Absorbing and discharging both move **3 units per second**. A lamp's 4 units take about 1.3 s. A gate's
-  8 units take about 2.7 s. A whole pip takes about 8.3 s to absorb.
+- **CONFIRMED (round 10): the player starts with 10 charge, and a full bar of 10 is one pip.** Chief: "when
+  you have 10 charge you have a full pip." This restores the rule of the first iteration (v0.1 to v0.3:
+  `MAX_CHARGE` was 10 and filling the bar banked a pip and reset it). The raise from 10 to 25 on 2026-10-09
+  (commit `582b07d`, "Raise MAX_CHARGE 10->25") is reversed. **NOT BUILT:** the code still says
+  `MAX_CHARGE = 25`, and "25 charge fills one pip" (ledger item 6) is superseded.
+- **Capacity can grow.** An upgrade item raises the bar's capacity (section 3.8). **RECOMMENDED reading:** a
+  pip is always **one full bar at the current capacity**, so a 14-unit bar banks 14-unit pips. Chief should
+  confirm this (OPEN, section 13).
+- The reserve still holds **up to 5 pips** (`MAX_BANKED_PIPS`). Usable energy is `bar + pip value x pips`: with
+  a 10 bar that is at most 60 (it was 150 with a 25 bar). At the cap the bar stays full and further energy is
+  refused (a source gets it back).
+- **As built today, before round 10:** bar 25, pip 25, usable up to 150.
+- Absorbing and discharging both move **3 units per second** (see 3.3 for the speed rule). A lamp's 4 units
+  take about 1.3 s. A gate's 8 units take about 2.7 s. A whole 10-unit pip takes about 3.3 s to absorb (it was
+  8.3 s with a 25 bar).
 - All gains and losses go through one authority in `player.js`. Nothing else may assign `charge` or
   `bankedPips`.
 
 ### 3.2 How pips and an ordinary 8-charge gate interact (BUILT, TESTED)
+**Round 10 note:** the table below was measured with the 25-unit bar. The rules are the same at a 10-unit
+bar (a second table follows rule 8), but every number changes. I checked by running the real engine with
+`MAX_CHARGE` set to 10 in a scratch copy: 39 of the 53 checks still pass, and the 14 that fail are the ones
+with 25-based numbers written into them (expected, listed in `KIRO_ORDER_CODEX_01.md` task A5).
+
 Verified by `_dev/pip_gate_spend.mjs` (53 checks), which drives the real `Player` and `Level` with the
 SPACE key held. Every gate below costs 8.
 
@@ -112,6 +126,19 @@ Rules these results establish:
 8. **A hit costs 1 unit and a bolt costs 0.25.** Both come from the same pool, so at bar 0 with 1 pip,
    either one breaks the pip into the bar (24 and 24.75 respectively).
 
+**The same gate at a 10-unit bar (round 10, measured on the scratch copy except where marked):**
+
+| Start state (bar, pips) | Ends at (bar, pips) | What happened |
+|---|---|---|
+| 9, 0 | 1, 0 | The bar pays (derived from rule 1). |
+| 3, 1 | 5, 0 | The bar pays 3, the pip promotes into the bar (10), the bar pays 5 more. |
+| 0, 1 | 2, 0 | The pip is consumed. The other 2 stay in the bar. |
+| 0, 5 | 2, 4 | One pip is promoted, four remain. |
+| 9, 5 | 1, 5 | The bar pays first. All 5 pips untouched (derived from rule 1). |
+
+At a 10 bar: **one pip pays one 8-gate and leaves 2; two pips pay two gates and leave 4** (the old "one pip
+pays three gates" no longer holds). A hit (1 unit) at bar 0 with 1 pip leaves bar 9, 0 pips; a bolt leaves 9.75.
+
 ### 3.3 Pips open gates instantly (CONFIRMED round 2, NOT BUILT; input OPEN)
 - **CONFIRMED (round 2, supersedes the reading below).** **Using a pip opens a gate instantly, with no
   waiting to charge.** **CONFIRMED (round 3): the input is the Q key,** a separate action from SPACE.
@@ -119,18 +146,31 @@ Rules these results establish:
   would begin a charge and spend bar before the second tap lands. Q is unbound today (checked against the
   bindings table in section 4.1). **Q while near a payable gate or switch with at least one pip banked
   opens it at once.** **CONFIRMED (round 4): with no pip banked, Q does nothing.** No tell, no cost.
-- **RECOMMENDED consequence:** the pip pays the gate's price (8) and the other 17 returns to the bar, which
-  is exactly what the current tested behaviour does (see `_dev/pip_gate_spend.mjs`). If the bar cannot hold
-  the 17, the surplus is lost, so the prompt should say so.
-- **Not in Level 1.** Level 1 holds 12 charge and the bar is 25, so no pip is ever banked there. Pips
-  first matter in a level with more than 25 charge available.
-- **Charge-speed scaling: CONFIRMED as a NEW mechanic (round 3), NOT BUILT.** "The more charge you have,
-  the faster things charge and get absorbed." It was never in v1 or in code: absorb and charge are fixed
-  at 3 units/s (`ABSORB_RATE`, `DISCHARGE_RATE`). **RECOMMENDED definition for Chief to approve or tune:**
-  both rates are multiplied by `1 + held / MAX_CHARGE`, where `held` is the bar (not pips), so the rate is
-  3 units/s on an empty bar, 4.5 at 12 held (the most Level 1 allows), and 6 at a full bar of 25.
-  *Why this shape:* it is linear, easy to read, never zero, and the ceiling (2x) cannot break the 12-versus-8
-  economy because it changes speed, not quantity. *Side effects to handle:* (1) Level 1 beats get about
+- **History (found round 10).** The first iteration already had this: pressing **F** near a gate or switch
+  with a banked pip powered it at once (`_updatePipSpend` in the v0.3 `player.js`), and the device flashed
+  white. The key is now Q. The original spent the **whole** pip on whatever the device still needed.
+- **RECOMMENDED consequence:** the pip pays the gate's price (8 for an exit) and any remainder returns to
+  the bar (a 10-unit pip leaves 2). This matches the tested rule that a pip is never wasted. **OPEN:** or
+  spend the whole pip as the original did (simpler, and the 2 left over is lost).
+- **Level 1 now banks a pip (derived, round 10).** Level 1 holds 12 charge against a 10 bar. A player who
+  absorbs all three lamps fills the bar at 10, banks one pip, and keeps 2 in the bar. The earlier note that
+  pips never appear in Level 1 was true only for a 25 bar. **Consequence for Chief:** lamp 3 (the spare)
+  becomes the first pip lesson and Q can pay the exit, which is a nice discovery, but it also puts one more
+  new thing in Level 1 (teaching rule T7, one new ability per beat). Either welcome it as a reward for
+  exploring, or keep the lamps at 8 total in the tutorial path.
+- **Charge-speed scaling: CONFIRMED (round 3), NOT BUILT. History found round 10: Chief remembered it
+  correctly and I was wrong.** In the first iteration the discharge rate was
+  `max(0.5, DISCHARGE_RATE x charge / MAX_CHARGE)`: 3 units/s at a full bar, 1.5 at half, never below 0.5
+  ("more charge = faster transfer"). Absorbing stayed flat at 3. My earlier note that it was "never in v1 or in
+  code" is withdrawn. Today both rates are a flat 3 units/s.
+  **Two options (OPEN):** **(O) the original:** rate proportional to the fill, slow when the bar is low.
+  **(M) mine:** rate x `(1 + fill)`, where `fill` is bar / capacity: 3 units/s empty, 6 at a full bar.
+  **RECOMMENDED: O for charging a gate, M for absorbing.** *Why:* applying O to absorbing makes the very
+  first lamp sluggish. From an empty bar the rate sits at the 0.5 floor until some charge exists, so a
+  4-unit lamp takes about 6 s instead of 1.3 s, which breaks the "first absorb at about 8 s" target. At a
+  gate the player already holds charge, so O feels right there. Either way `fill` uses the current
+  capacity, so it keeps working as capacity grows. *Original recommendation, kept for the record:* M for both.
+  Because the rate depends on the bar, with a 10 bar a full bar is "one pip" of charge in hand. *Side effects to handle:* (1) Level 1 beats get about
   1.2x faster at mid-bar, so the timing table is re-run after it lands; (2) `energy_authority` and
   `pip_gate_spend` assert exact per-frame amounts and will need updated expectations; (3) the HUD should show
   the multiplier (a brighter bar), or players will not notice it; (4) a pip (25) should not count toward
@@ -272,6 +312,39 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   worth having for later levels, and for charged objects left charged.
 - Dormant code: `spendPip()` has no runtime caller, `_pipFlash` is never set above 0, and several
   comments still say `MAX_CHARGE = 10`.
+
+### 3.8 Charge capacity upgrades (CONFIRMED round 10, NOT BUILT)
+- **CONFIRMED.** The player starts with 10 charge. After obtaining a certain item, the player's **overall
+  charge increases.** The bar gets bigger; the item is a collectible in the world.
+- **CONFIRMED: item #3 on Chief's concept sheet is the first upgrade item, the Capacitor Module.** Chief's
+  "OVERCHARGE: Charge Capacity Upgrade Item Exploration Sheet" lists twelve candidates (Power Core, Charge
+  Cell, **Capacitor Module**, Energy Shard, Neural Band, Circuit Chip, Tesla Coil, Reactor Module, Energy
+  Canister, Tempest Fragment, Data Drive, Power Ring). The other eleven are available for later upgrade
+  types or later levels. The sheet's goal: "Collectible item that permanently increases the player's maximum
+  charge count (starts at 10). Fits the game's aesthetic, feels valuable, and has a satisfying pickup
+  animation." Its HUD mock shows **10 / 10 becoming 14 / 14.**
+- **Art for the Capacitor Module: delivered in round 10** (`assets/objects/capacity-upgrade/`, section 3.8 art
+  note below). A 48 x 48 gunmetal module with amber hazard stripes, a glowing cyan core with a triangle
+  emblem and spark terminals, plus an 8-frame idle loop. Pickup effects (burst, shake, sound) come from the
+  juice and audio modules; the bar-growth animation is separate work.
+- **RECOMMENDED values (OPEN, Chief to confirm):**
+  - **+4 per Capacitor Module,** from the 10 / 10 to 14 / 14 example on the sheet.
+  - **Permanent:** survives a checkpoint rewind (the item stays collected) and carries to the next level.
+    Whether it carries across a restart of the game is a save-system question that does not exist yet.
+  - The item is **picked up by touch** and raises capacity and fills the new space immediately, so the player
+    sees the bar grow and fill (the satisfying part).
+  - **Level 1 placement:** the Capacitor Module is the **reward in the AC-unit secret room** (the Easter egg),
+    which answers "give the player a reason to turn around." This makes the first upgrade optional and
+    discovered. No level may require it.
+  - **A maximum capacity** (RECOMMENDED 30) so the pip and reserve numbers stay readable.
+- **Engine work (for `KIRO_ORDER_CODEX_01`, new task A5):** `MAX_CHARGE` is a global constant used by the
+  player, the HUD, the pip rule and several tests. It has to become a per-player value (`maxCharge`, starting
+  at 10) that the pickup raises, with the HUD, the pip rule, the charge-speed rule, checkpoint snapshots and
+  the tests reading it. Add the pickup entity, its Builder placement (Aki) and tests.
+- **Lore hook (from the concept sheet, flagged for the story):** the sheet is branded **MIOR, "Meridian
+  Institute of Research"**, and its item descriptions name **MIOR technology, atmospheric research, Project
+  Tempest ("the original storm experiment") and MIOR drones.** That suggests the drones are MIOR's. These
+  are Chief's own words, so they are story candidates, not decisions. See `STORY_BIBLE_DRAFT.md`.
 
 ---
 
@@ -487,7 +560,22 @@ Gate prompts live at `ui.js` lines 446 (`[E] ABSORB`), 511 (`[SPACE] CHARGE`) an
 ### 8.3 Showing what a device costs (CARRIED, RECOMMENDED)
 The bar is 25 wide and the exit costs 8, so the cost does not read at a glance. v1 asks for "clear
 feedback showing how much electricity a device requires." **RECOMMENDED:** when the player is near a
-device, draw a cost marker on the bar at 8 so it fills toward a visible line.
+device, draw a cost marker on the bar at 8 so it fills toward a visible line. With the 10-unit bar the
+marker sits at 80%.
+
+### 8.4 Charge bar colours: red, yellow, cyan (CONFIRMED round 10, NOT BUILT)
+- **CONFIRMED.** Bring back the first iteration's bar colours: **red when low, yellow in the middle, cyan
+  when high.** Chief: it is "a better distinction when spending charge and absorbing charge." The bar changes
+  colour as it moves, so the player can read a spend or a gain at a glance.
+- **Found in the history.** `constants.js` has carried `CHARGE_LOW: '#ff4444'`, `CHARGE_MED: '#ffcc00'` and
+  `CHARGE_HIGH: '#44ddff'` since the first commit (`ddbf42a`, 2026-09-01). The original bar used them with
+  steps at 30% and 60%: above 60% cyan, above 30% yellow, above 0 red. The current HUD (`energy-hud.js`,
+  since 2026-09-25) replaced that with a cyan-to-violet blend, which is why the colours disappeared.
+- **Spec:** red from 0 up to 30%, yellow above 30%, cyan above 60%, the same steps as the original. The
+  banked pips stay violet, so the bar and the reserve read as two different things. A full bar is cyan for
+  a moment before it banks a pip and resets, which is the "cyan when full" Chief remembers.
+- **Not tied to the capacity change:** the steps use the fraction `charge / capacity`, so they work at 10,
+  14 or 25.
 
 ---
 
@@ -595,6 +683,15 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     Chief ticks it only if and when he wants an empty one. This replaces my "new props default to uncharged"
     recommendation. (3.5)
 
+### CONFIRMED by Chief (round 10, 2026-10-14)
+51. **The player starts with 10 charge. A full bar (10) is one pip.** The 25-unit bar of 2026-10-09 is
+    reversed; item 6 ("25 charge fills one pip") is superseded. (3.1)
+52. **A collectible item raises the player's overall charge.** Item #3, the **Capacitor Module**, from Chief's
+    concept sheet is the first. Kiro makes the art (done). (3.8)
+53. **The charge bar returns to red, yellow, cyan** (low, middle, high), as in the first iteration. (8.4)
+54. **Kiro found, and now states plainly, that the original game had faster transfer at higher charge** (for
+    discharge) and an instant pip spend on F. (3.3)
+
 ### CONFIRMED by Chief (round 7, 2026-09-06)
 48. **Duck input: hold Down/S to duck; Down + jump drops through a one-way platform** (Kiro's recommendation,
     Mario-style duck). (4.4)
@@ -658,7 +755,17 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     enemy. NPC voice depends on the NPC: some are filler, some drive story. The game has no story yet, so
     one must be built. (see `LEVEL_DESIGN_V2`)
 
-### OPEN questions (need Chief)
+### OPEN questions (need Chief), round 10
+A. **Pip value as capacity grows.** Is a pip always one full bar at the current capacity (my reading, so a
+   14-unit bar banks 14-unit pips), or is a pip fixed at 10? (3.1)
+B. **How much does a Capacitor Module add?** I assumed +4 (the sheet's 10 to 14), permanent, with a cap of 30.
+   (3.8)
+C. **Does Q spend the whole pip, or the gate's price with the remainder back in the bar?** (3.3)
+D. **Charge speed:** original for charging and mine for absorbing (my pick), or one formula for both? (3.3)
+E. **Level 1 now banks a pip** (12 charge against a 10 bar). Welcome it, or keep the tutorial lamps at 8? (3.3)
+F. **Where does the first Capacitor Module go?** I recommend the AC-secret room in Level 1. (3.8)
+
+### OPEN questions (older)
 1. Charge-speed formula: Chief adopted `1 + held / 25` (3 to 6 units/s) for now; **to be tuned in play.**
    (3.3) Closed until playtest.
 (Duck key closed in round 7: hold Down to duck, Down + jump to drop through.)

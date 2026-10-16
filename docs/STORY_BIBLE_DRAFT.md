@@ -47,6 +47,15 @@ villain and no company** anywhere. What exists is a mood and a handful of named 
   "Funny how the gates never lose power." They hint at a **blackout** and **gates that keep their power.**
 - **Tone words from GDD v1:** compact, readable, "puzzle first", "complexity over grind", light action.
 
+**NEW LORE FROM CHIEF (round 10), a concept sheet for the charge-capacity upgrade items.** It is branded
+**MIOR, "Meridian Institute of Research"** (a triangle logo) and its item descriptions say: compact energy
+core "extracted from **MIOR technology**"; capacitor "used in **atmospheric research**"; crystallised energy
+"from **Project Tempest**"; a "**Tempest Fragment**, fragment of the original storm experiment"; a reactor
+"used in **MIOR drones**"; a data drive with "charge-enhancing firmware." Taken together: a research
+institute, a storm experiment (Project Tempest) and drones that belong to it. This fits the blackout premise
+(B) and gives the drones an owner. **QUESTION for Chief:** are MIOR and Project Tempest canon? If yes, Orcha
+should build the story around them.
+
 **IP note (QUESTION, already flagged in GAME_DESIGN_V2):** the first concept was inspired by *Static Shock*.
 The hero, name and city must be original before release. Everything below is written to avoid borrowing.
 

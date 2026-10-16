@@ -91,6 +91,12 @@ All art uses the Night City prop palette and the manifest format of the existing
 | 7 | **Hatch and secret room dressing** | A closed hatch, an open hatch, and 3 to 5 small room props | The Easter egg room behind the AC unit. Content depends on the story. |
 | 8 | **Pip pickup** | 16 x 16 icon with a 4-frame idle bob, in the pip HUD style | World object for the full-reserve chest (CODEX 01 A4). |
 
+**Delivered by Kiro in round 10, for you to register:** the **Capacitor Module** (the charge capacity upgrade
+item, #3 on Chief's concept sheet): `assets/objects/capacity-upgrade/` holds `item.png` (48 x 48) and
+`idle_00.png` to `idle_07.png`. Add a manifest entry (**no BOM**) and a Builder palette entry that places a
+`capacity-upgrade` pickup (`amount` field, default 4) once Codex's task A5 defines it. Show Chief where it
+appears in the palette.
+
 Do **not** make: hero frames (Kiro does duck and double jump), the vending machine, fuse box, sign and shutter
 reactions (a later order, after Chief reviews these), or any music.
 
