@@ -7143,6 +7143,19 @@
         "speedPxPerSec": 0,
         "turnPauseSec": 0
       }
+    },
+    {
+      "id": "NPC_GRAFFITI_ARTIST_01",
+      "assetId": "npc_graffiti_artist",
+      "x": 490,
+      "y": 448,
+      "facing": "right",
+      "scale": 0.8,
+      "patrol": {
+        "rangePx": 0,
+        "speedPxPerSec": 0,
+        "turnPauseSec": 0
+      }
     }
   ]
 }
