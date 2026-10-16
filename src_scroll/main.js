@@ -12,7 +12,7 @@ import { init as bgInit, update as bgUpdate } from './background.js';
 import { loadDecoAnimations } from './deco-anim.js';
 import { Player } from './player.js';
 import { drawHUD, drawWorldPrompts, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
-import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
+import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS, AC_HUM_RADIUS } from './constants.js';
 import { initViewport, viewW, viewH } from './viewport.js';
 import { maxCamY, camYForSpawn, nextCamY } from './camera.js';
 import { logLevelSource } from './levelsig.js';
@@ -256,7 +256,18 @@ function _update(dt) {
       }
       const shown = achievements.update(dt);
       if (shown) sfx.play('achievement');
-      sfx.setLoop('ac_hum', level.sources.some(src => src.kind === 'hvac' && src.powered));
+      {
+        // Closest powered AC unit wins: the hum fades with distance instead of
+        // snapping on/off, so walking away is heard, not just toggled.
+        let acGain = 0;
+        for (const src of level.sources) {
+          if (src.kind !== 'hvac' || !src.powered) continue;
+          const d = Math.hypot(player.cx - src.cx, player.cy - src.cy);
+          acGain = Math.max(acGain, 1 - d / AC_HUM_RADIUS);
+        }
+        acGain = Math.max(0, Math.min(1, acGain));
+        sfx.setLoop('ac_hum', acGain > 0, 1, acGain);
+      }
       juice.observe(player, level, dt);
       _updateCamera();
       _cpFlash = Math.max(0, _cpFlash - dt);

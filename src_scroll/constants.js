@@ -38,6 +38,7 @@ export const chargeTransferRate = held => 1 + Math.max(0, Math.min(MAX_CHARGE, h
 export const PROJECTILE_CHARGE_COST = 0.25;
 export const ABSORB_RADIUS   = 56;    // px from source center
 export const INTERACT_RADIUS = 50;    // px from device center
+export const AC_HUM_RADIUS   = 360;   // px — distance over which the AC hum fades to silent
 export const PICKUP_LIFETIME = 6;     // seconds before pickup vanishes
 export const PICKUP_GRAVITY  = 300;
 
