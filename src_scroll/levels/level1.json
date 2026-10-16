@@ -3184,6 +3184,54 @@
       "family": "nc_building_wall"
     },
     {
+      "id": "deco_quickmart_left",
+      "src": "assets/objects/night-city-buildings/quickmart/left.png",
+      "assetId": "building_nc_quickmart_left",
+      "x": 1568,
+      "y": 102,
+      "w": 163,
+      "h": 218,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
+      "id": "deco_quickmart_display_bay",
+      "src": "assets/objects/night-city-buildings/quickmart/display_bay.png",
+      "assetId": "building_nc_quickmart_display_bay",
+      "x": 1731,
+      "y": 102,
+      "w": 136,
+      "h": 218,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
+      "id": "deco_quickmart_entrance_bay",
+      "src": "assets/objects/night-city-buildings/quickmart/entrance_bay.png",
+      "assetId": "building_nc_quickmart_entrance_bay",
+      "x": 1867,
+      "y": 102,
+      "w": 136,
+      "h": 218,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
+      "id": "deco_quickmart_right",
+      "src": "assets/objects/night-city-buildings/quickmart/right.png",
+      "assetId": "building_nc_quickmart_right",
+      "x": 2003,
+      "y": 102,
+      "w": 109,
+      "h": 218,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
       "id": "deco_bus_stop_01",
       "src": "assets/objects/night-city-props/bus-stop/shelter.png",
       "assetId": "prop_ncp_bus_stop_shelter",
