@@ -2,7 +2,7 @@
 import { TILE, COLS, ROWS, MAX_ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { tileIsSolid } from './terrain-policy.js';
-import { ElectricalSource, PowerGate, Switch, PipPickup, isSourcePowered } from './electricity.js';
+import { ElectricalSource, PowerGate, Switch, PipPickup } from './electricity.js';
 import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
@@ -141,6 +141,13 @@ export class Level {
     return tileIsSolid(v);
   }
 
+  isPowered(id) {
+    if (!id) return false;
+    const source = this.sources.find(s => s.id === id);
+    if (source) return source.powered || this.switches.some(sw => sw.on && sw.linkedId === id);
+    return !!this.switches.find(sw => sw.id === id && sw.on);
+  }
+
   isFailState(player) {
     const exit = this.gates.find(g => g.isExit && !g.open);
     if (!exit) return false;
@@ -196,7 +203,7 @@ export class Level {
     for (const p    of this.pickups)  p.update(dt, this);
     for (const p    of this.pipPickups) p.update(dt);
     for (const cp   of this.checkpoints) cp.update(dt);
-    for (const npc  of this.npcs)      npc.update(dt, player);
+    for (const npc  of this.npcs)      npc.update(dt, player, this);
     for (const e    of this.enemies)  {
       // DroneEnemy.update(dt, level, PLAYER) needs the player to sense at all — the
       // other enemy types take (dt) or (dt, level) and ignore the extra arg. This
@@ -215,19 +222,9 @@ export class Level {
     for (const sw of this.switches) {
       if (sw.on && sw.linkedId) {
         const gate = this.gates.find(g => g.id === sw.linkedId);
-        if (gate && !gate.openWhenSourceCharged && !gate.open) gate.open = true;
-      }
-    }
-
-    // Source control is reversible and authoritative even when an older wall
-    // switch remains linked to the same door. Missing sources fail closed.
-    for (const gate of this.gates) {
-      const rule = gate.openWhenSourceCharged;
-      if (!rule) continue;
-      const shouldOpen = isSourcePowered(this.sources, rule.id, rule.min);
-      if (gate.open !== shouldOpen) {
-        gate.open = shouldOpen;
-        gate._openAge = 0;
+        if (gate && !gate.open) gate.open = true;
+        const source = this.sources.find(s => s.id === sw.linkedId);
+        if (source) source._switchOn = true;
       }
     }
 
@@ -271,7 +268,7 @@ export class Level {
   //   snapshot/restore and lives for the whole level session, same as `t`.
   snapshot() {
     return {
-      sources:     this.sources.map(s => ({ charge: s.charge, drained: s.drained })),
+      sources:     this.sources.map(s => ({ charge: s.charge, drained: s.drained, _switchOn: s._switchOn })),
       gates:       this.gates.map(g => ({
         charged: g.charged, open: g.open,
         _openAge: g._openAge || 0, _reactT: g._reactT || 0,
@@ -283,7 +280,8 @@ export class Level {
       // F11: `_destroyT` is the wall-switch burn progress. Without it, a
       // checkpoint taken mid-burn would either replay the destruction or skip
       // straight to destroyed — same reasoning as `_timeLeft` for timed gates.
-      switches:    this.switches.map(sw => ({ charged: sw.charged, on: sw.on, _destroyT: sw._destroyT || 0 })),
+      switches:    this.switches.map(sw => ({ charged: sw.charged, on: sw.on,
+        _destroyT: sw._destroyT || 0, _flipT: sw._flipT || 0 })),
       checkpoints: this.checkpoints.map(cp => ({ activated: cp.activated })),
       enemies:     this.enemies.map(e => ({
         x: e.x, y: e.y, vx: e.vx, hp: e.hp, alive: e.alive,
@@ -306,6 +304,8 @@ export class Level {
       // no special-casing. `charged` is included so a partial open is not banked
       // across a death either.
       chests:      this.chests.map(c => ({ opened: c.opened, charged: c.charged, _openT: c._openT })),
+      npcs:        this.npcs.map(n => ({ _powered: n._powered, _reliefClock: n._reliefClock,
+        _bubbleT: n._bubbleT, _bubbleText: n._bubbleText, _triggeredOnce: n._triggeredOnce })),
       pipPickups:  this.pipPickups.map(p => ({ x: p.x, y: p.y, id: p.id })),
       complete:    this.complete,
     };
@@ -319,6 +319,7 @@ export class Level {
       // rather than fading from the pre-death scene's transient glow level.
       this.sources[i]._lightLevel = this.sources[i].max > 0
         ? this.sources[i].charge / this.sources[i].max : 0;
+      this.sources[i]._fanSpeed = this.sources[i].powered ? 1 : 0;
     }
     for (let i = 0; i < this.gates.length && i < snap.gates.length; i++) {
       Object.assign(this.gates[i], snap.gates[i]);
@@ -357,6 +358,12 @@ export class Level {
     if (snap.chests) {
       for (let i = 0; i < this.chests.length && i < snap.chests.length; i++) {
         Object.assign(this.chests[i], snap.chests[i]);
+      }
+    }
+    if (snap.npcs) {
+      for (let i = 0; i < this.npcs.length && i < snap.npcs.length; i++) {
+        Object.assign(this.npcs[i], snap.npcs[i]);
+        this.npcs[i]._justRelieved = false;
       }
     }
     this.pickups  = [];   // transient - any post-checkpoint drops vanish on rewind

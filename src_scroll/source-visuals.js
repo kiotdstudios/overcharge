@@ -130,7 +130,7 @@ export function drawStreetlightPool(ctx, source) {
 export function drawHvac(ctx, source) {
   const b = sourceBox(source);
   const img = image('assets/tilesets/purple_rooftop/props/hvac_a.png');
-  const drained = source.drained ?? source.charge <= 0;
+  const drained = !source.powered;
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   if (img.complete && img.naturalWidth) ctx.drawImage(img, b.dX, b.dY, b.dW, b.dH);

@@ -8,13 +8,6 @@ function dist(ax, ay, bx, by) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-// Shared predicate for source-controlled doors and reactive NPC dialogue.
-// Unknown IDs fail closed; the same threshold is used by both consumers.
-export function isSourcePowered(sources, id, min = 1) {
-  const source = sources.find(s => s.id === id);
-  return !!source && source.charge >= min - 1e-9;
-}
-
 // ──────────────────────────────────────────────
 // ElectricalSource: fuse box / battery / generator
 // ──────────────────────────────────────────────
@@ -41,6 +34,8 @@ export class ElectricalSource {
     this.max    = Number.isFinite(charge) ? Math.max(0, charge) : 0;
     this.charge = uncharged ? 0 : this.max;
     this.drained = this.charge === 0;
+    this.requiresFullPower = this.kind === 'hvac' && uncharged;
+    this._switchOn = false;
     this._lightLevel = this.drained ? 0 : 1;
     this._fanSpeed = this.drained ? 0 : 1;
     this._fanPhase = 0;
@@ -68,6 +63,7 @@ export class ElectricalSource {
 
   get cx() { return this.x + this.w / 2; }
   get cy() { return this.y + this.h / 2; }
+  get powered() { return this._switchOn || (this.requiresFullPower ? this.max > 0 && this.charge >= this.max - 1e-9 : !this.drained); }
 
   update(dt) {
     this._t += dt;
@@ -79,7 +75,7 @@ export class ElectricalSource {
     if (this._absorbT > 0) this._absorbT = Math.max(0, this._absorbT - dt);
     if (this._dryFlash > 0) this._dryFlash = Math.max(0, this._dryFlash - dt);
     // Fan: ramp speed toward target (1 = active, 0 = drained), spin phase
-    this._fanSpeed = Math.max(0, this._fanSpeed + ((this.drained ? 0 : 1) - this._fanSpeed) * Math.min(1, dt * 2));
+    this._fanSpeed = Math.max(0, this._fanSpeed + ((this.powered ? 1 : 0) - this._fanSpeed) * Math.min(1, dt * 2));
     this._fanPhase = (this._fanPhase + this._fanSpeed * dt * 4) % (Math.PI * 2);
     // Advance animation frames 1-8 when active (frame 0 = drained state)
     if (!this.drained) {
@@ -271,8 +267,7 @@ const GATE_DRAW_H = 105;   // = GATE_SRC_H -> 1:1, unchanged from before
 
 export class PowerGate {
   constructor({ id, x, y, w, h, required, isExit = false, blockOnly = false, label = '',
-                timed = false, duration = 3, style = null, closedSrc = '', openSrc = '',
-                openWhenSourceCharged = null }) {
+                timed = false, duration = 3, style = null }) {
     this.id        = id;
     this.x         = x; this.y = y;
     this.w         = w; this.h = h;
@@ -281,12 +276,6 @@ export class PowerGate {
     this.open      = false;
     this.isExit    = isExit;
     this.blockOnly = blockOnly; // switch-only barrier — player can't discharge into it
-    // Optional reversible source-controlled barrier. The Level resolves this against
-    // the named source each frame, after switches, so a spent source closes it again.
-    this.openWhenSourceCharged = blockOnly && openWhenSourceCharged &&
-      typeof openWhenSourceCharged.id === 'string' &&
-      Number.isFinite(openWhenSourceCharged.min) && openWhenSourceCharged.min >= 0
-      ? { id: openWhenSourceCharged.id, min: openWhenSourceCharged.min } : null;
     this.label     = label;
     this._t        = 0;
     this._openAge  = 0;
@@ -316,21 +305,16 @@ export class PowerGate {
     // meaningful on a blockOnly barrier — a fence is held up by a wall switch,
     // not charged by the player — so style:"fence" on a chargeable gate is an
     // authoring error. Warn and ignore, same doctrine as timed+isExit.
-    if (style !== null && style !== undefined && style !== 'default' && style !== 'fence' && style !== 'hatch') {
+    if (style !== null && style !== undefined && style !== 'default' && style !== 'fence') {
       console.warn(`[gate] "${id}" has unknown style "${style}" — falling back to default.`);
       style = null;
     }
-    if ((style === 'fence' || style === 'hatch') && !blockOnly) {
-      console.warn(`[gate] "${id}" declares style:"${style}" but is not blockOnly — ignoring style.`);
+    if (style === 'fence' && !blockOnly) {
+      console.warn(`[gate] "${id}" declares style:"fence" but is not blockOnly — ignoring style. ` +
+        `A fence is opened by its linked wall switch, never charged directly.`);
       style = null;
     }
-    this.style = (style === 'fence' || style === 'hatch') ? style : null;
-    this._hatchClosed = new Image();
-    this._hatchOpen = new Image();
-    if (this.style === 'hatch') {
-      this._hatchClosed.src = closedSrc || 'assets/objects/night-city-props/secret-room/hatch_closed.png';
-      this._hatchOpen.src = openSrc || 'assets/objects/night-city-props/secret-room/hatch_open.png';
-    }
+    this.style = (style === 'fence') ? 'fence' : null;
     // Sprite art — fallback + animated sheet + open frame.
     // Attach onload logging so we can verify in the browser devtools
     // that the sheet actually loaded (prior "static gate" report was
@@ -630,21 +614,6 @@ export class PowerGate {
     ctx.restore();
   }
 
-  _drawHatch(ctx) {
-    const img = this.open ? this._hatchOpen : this._hatchClosed;
-    // The hatch artwork is 64x32; keep its aspect ratio while centering it on
-    // the collision volume. The collider remains exactly the authored gate box.
-    const drawW = Math.max(64, this.w);
-    const drawH = Math.min(this.h, Math.round(drawW / 2));
-    const x = Math.round(this.cx - drawW / 2);
-    const y = Math.round(this.y + (this.h - drawH) / 2);
-    ctx.save();
-    ctx.imageSmoothingEnabled = false;
-    if (img.complete && img.naturalWidth > 0) ctx.drawImage(img, x, y, drawW, drawH);
-    else if (!this.open) drawGlowRect(ctx, x, y, drawW, drawH, '#151a25', '#61798d', 0);
-    ctx.restore();
-  }
-
   _drawPipBurst(ctx) {
     if (this._pipFlash <= 0) return;
     const life = Math.min(1, this._pipFlash / 0.75);
@@ -671,7 +640,6 @@ export class PowerGate {
     // never shows a [SPACE] prompt, and never reaches the gate/dormancy art path
     // below. A styleless gate is completely unaffected by this branch.
     if (this.style === 'fence') { this._drawFence(ctx); return; }
-    if (this.style === 'hatch') { this._drawHatch(ctx); return; }
     const t = this._t;
 
     // ── Draw geometry (independent from hitbox) ──
@@ -926,11 +894,23 @@ const WALL_SW_BOT_PAD_OFF = 4;             // switch_off, the only outlier
 const _wallSwDY = (baseY, img) =>
   baseY - WALL_SW_CANVAS + ((img === WALL_SW.off) ? (WALL_SW_BOT_PAD_OFF - WALL_SW_BOT_PAD) : 0);
 
+const _plateImg = name => {
+  const img = new Image();
+  img.src = `assets/objects/night-city-props/wall-plate-switch-review/${name}`;
+  return img;
+};
+const PLATE_SW = {
+  off: _plateImg('off.png'),
+  flip: [0, 1, 2].map(i => _plateImg(`flip/frame_${String(i).padStart(3, '0')}.png`)),
+  on: _plateImg('on.png'),
+};
+
 export class Switch {
   constructor({ id, x, y, required, linkedId, label = '', style = null }) {
     this.id       = id;
     this.x        = x; this.y = y;
-    this.w        = 22; this.h = 22;
+    this.w        = style === 'plate' ? 16 : 22;
+    this.h        = style === 'plate' ? 24 : 22;
     this.required = required;
     this.charged  = 0;
     this.on       = false;
@@ -941,17 +921,18 @@ export class Switch {
     // Absent style == byte-identical behaviour to every switch authored before
     // this order. Only "wall" is recognised; anything else warns and falls back
     // to default rather than silently rendering nothing.
-    if (style !== null && style !== undefined && style !== 'default' && style !== 'wall') {
+    if (style !== null && style !== undefined && style !== 'default' && style !== 'wall' && style !== 'plate') {
       console.warn(`[switch] "${id}" has unknown style "${style}" — falling back to default.`);
       style = null;
     }
-    this.style = (style === 'wall') ? 'wall' : null;
+    this.style = (style === 'wall' || style === 'plate') ? style : null;
 
     this._t       = 0;
     this._pipFlash = 0;
     // F11: elapsed destroy-animation time, snapshotted so a checkpoint taken
     // mid-burn neither replays nor skips the animation.
     this._destroyT = 0;
+    this._flipT = 0;
   }
 
   get cx() { return this.x + this.w / 2; }
@@ -974,6 +955,7 @@ export class Switch {
     // Advance the burn only while it is still running, so _destroyT does not
     // grow without bound and `burnDone` latches permanently once reached.
     if (this.isWall && this.on && !this.burnDone) this._destroyT += dt;
+    if (this._flipT > 0) this._flipT = Math.max(0, this._flipT - dt);
   }
 
   inRange(px, py) { return dist(px, py, this.cx, this.cy) < INTERACT_RADIUS; }
@@ -981,7 +963,12 @@ export class Switch {
   receive(amount) {
     if (this.on) return false;
     this.charged += amount;
-    if (this.charged >= this.required - 1e-9) { this.charged = this.required; this.on = true; return true; }
+    if (this.charged >= this.required - 1e-9) {
+      this.charged = this.required;
+      this.on = true;
+      if (this.style === 'plate') this._flipT = 0.3;
+      return true;
+    }
     return false;
   }
 
@@ -1051,6 +1038,16 @@ export class Switch {
   draw(ctx) {
     // Style branch FIRST: a default switch never reaches the wall renderer and
     // is byte-identical to its pre-order behaviour.
+    if (this.style === 'plate') {
+      const idx = Math.min(2, Math.floor((0.3 - this._flipT) / 0.1));
+      const img = !this.on ? PLATE_SW.off : this._flipT > 0 ? PLATE_SW.flip[Math.max(0, idx)] : PLATE_SW.on;
+      ctx.save();
+      ctx.imageSmoothingEnabled = false;
+      if (img.complete && img.naturalWidth) ctx.drawImage(img, this.x, this.y, 16, 24);
+      else { ctx.fillStyle = this.on ? '#42dcbb' : '#4b5860'; ctx.fillRect(this.x + 2, this.y + 2, 12, 20); }
+      ctx.restore();
+      return;
+    }
     if (this.isWall) { this._drawWall(ctx); return; }
     const t     = this._t;
     const color = this.on ? '#44ff88' : '#ff8800';

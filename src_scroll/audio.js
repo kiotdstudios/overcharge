@@ -93,6 +93,8 @@ export function createAudio(opts = {}) {
     'source-dry': () => { tone({ type: 'sine', f0: 240, f1: 55, dur: 0.38, vol: 0.14 }); noise({ filter: 'bandpass', f0: 1800, f1: 300, dur: 0.25, vol: 0.06, q: 4 }); },
     hurt: () => { tone({ type: 'sawtooth', f0: 220, f1: 70, dur: 0.22, vol: 0.12 }); noise({ filter: 'bandpass', f0: 2200, f1: 500, dur: 0.18, vol: 0.1, q: 2 }); },
     'relay-click': () => noise({ filter: 'highpass', f0: 3000, dur: 0.025, vol: 0.08 }),
+    achievement: () => [523, 659, 880].forEach((f, i) =>
+      tone({ type: 'triangle', f0: f, dur: 0.24, vol: 0.075, at: i * 0.11 })),
   };
 
   function play(name, data) {
@@ -107,6 +109,7 @@ export function createAudio(opts = {}) {
   const LOOPS = {
     absorb: { type: 'sawtooth', base: 92, lfo: 13, vol: 0.05, cutoff: 700 },
     charge: { type: 'triangle', base: 150, lfo: 8, vol: 0.06, cutoff: 1100 },
+    ac_hum: { type: 'sine', base: 82, lfo: 2, vol: 0.018, cutoff: 260 },
   };
   function setLoop(name, active, rate = 1) {
     const spec = LOOPS[name];
