@@ -49,7 +49,10 @@ document.getElementById('btn-landable-facade')?.addEventListener('click', () => 
 });
 
 // Default level to load on first boot. After that, the dropdown drives switching.
-const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
+// AKI 27 review-only draft: opt in explicitly; never list it in levels.json.
+const DRAFT_LEVEL_URL = 'src_scroll/levels/level1_vertical.json';
+const _draftRequested = new URLSearchParams(window.location.search).get('level') === 'level1_vertical';
+const DEFAULT_LEVEL_URL = _draftRequested ? DRAFT_LEVEL_URL : 'src_scroll/levels/level1.json';
 
 // ── DOM refs ─────────────────────────────────────────────────────────────
 const canvas   = document.getElementById('editor-canvas');
@@ -2724,13 +2727,14 @@ async function bootstrap() {
     // Present recovery prompt if a snapshot exists. Suppression flag stays
     // true until after the prompt resolves so we don't overwrite the
     // recovery with the freshly-loaded default level.
-    logLevelSource('[editor] BUILDER', DEFAULT_LEVEL_URL + '  (authoritative committed JSON)', state.level);
+    logLevelSource('[editor] BUILDER', DEFAULT_LEVEL_URL + (_draftRequested ? '  (review-only draft; SAVE disabled)' : '  (authoritative committed JSON)'), state.level);
     // Snapshot system: wire the UI, then record the freshly-loaded level as the
     // baseline so an immediate SAVE of an unmodified level does not create a
     // pointless "on save" snapshot.
     SnapUI.initSnapshotUI();
     SnapUI.seedBaseline(state.level);
-    await _handleRecoveryOnBoot();
+    // Review draft must not be replaced by a recovery snapshot from ordinary Level 1.
+    if (!_draftRequested) await _handleRecoveryOnBoot();
     _recoverySuppress = false;
     console.info(`[editor] Boot OK — ${state.availableLevels.length} level(s), FSA save: ${Persistence.hasFSA() ? 'yes' : 'no (download-only)'}`);
   } catch (err) {

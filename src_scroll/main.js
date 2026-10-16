@@ -599,13 +599,22 @@ function _drawBootingScreen() {
 async function _bootAsync() {
   _drawBootingScreen();
   _TEST_LEVEL = _tryLoadTestLevel();
+  // AKI 27 review-only Level 1 draft. A named allowlist avoids fetching arbitrary
+  // level paths; normal progression and levels.json remain untouched.
+  const draftParam = new URLSearchParams(window.location.search).get('level');
+  if (!_TEST_LEVEL && _DEV_MODE && draftParam === 'level1_vertical') {
+    _TEST_LEVEL = await _loadJsonLevel('src_scroll/levels/level1_vertical.json', 'NEON RISE — VERTICAL DRAFT', 1);
+    logLevelSource('[game] AKI 27 DRAFT', 'src_scroll/levels/level1_vertical.json', _TEST_LEVEL);
+  }
   if (!_TEST_LEVEL && new URLSearchParams(window.location.search).get('fixture') === 'hero-mechanics') {
     _TEST_LEVEL = await _loadJsonLevel('assets/fixtures/hero-mechanics.json', 'HERO MECHANICS QA', 0);
     logLevelSource('[game] HERO MECHANICS FIXTURE', 'assets/fixtures/hero-mechanics.json', _TEST_LEVEL);
   }
   if (_TEST_LEVEL) {
     LEVEL_DEFS = [_TEST_LEVEL];
-    _showLevelSourceBadge('test', 'BUILDER TEST PREVIEW \u2014 unsaved editor level');
+    _showLevelSourceBadge('test', draftParam === 'level1_vertical' && _DEV_MODE
+      ? 'DEV \u00b7 AKI 27 VERTICAL DRAFT \u2014 not in levels.json'
+      : 'BUILDER TEST PREVIEW \u2014 unsaved editor level');
   } else {
     // ORDER 005: load ALL committed levels in Git-tracked manifest order.
     // Progression (level complete → advanceLevel) walks this same order.

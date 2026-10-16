@@ -367,6 +367,9 @@ export async function loadLevelEntry(entry) {
 export async function saveCurrentLevel() {
   const L = state.level;
   if (!L) return { ok: false, method: 'none', message: 'No level loaded.' };
+  // AKI 27: the named Level 1 draft must NEVER save over canonical level1.json.
+  if (state.levelPath === 'src_scroll/levels/level1_vertical.json')
+    return { ok: false, method: 'review-draft', message: 'Review-only vertical draft: SAVE is disabled to protect level1.json.' };
   const json = JSON.stringify(L, null, 2);
   const filename = _levelFilename(L);
 
@@ -727,6 +730,8 @@ export function isPublishing() { return _publishing; }
 const _lastWrittenSha = new Map();
 
 export async function pushLevelToGitHub(levelJson, levelNumber) {
+  if (state.levelPath === 'src_scroll/levels/level1_vertical.json')
+    return { ok: false, message: 'Review-only vertical draft: publishing over level1.json is disabled.' };
   const pat = getGitHubPat();
   if (!pat) return { ok: false, message: 'No GitHub token — click 🔑 TOKEN and paste your PAT (needs repo scope).' };
   if (_publishing) return { ok: false, message: 'A save is already in progress — wait for it to finish.' };
