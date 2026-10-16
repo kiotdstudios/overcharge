@@ -1774,7 +1774,7 @@
     {
       "id": "npc_bus_stop_homeless",
       "name": "Bus stop - unhoused man",
-      "path": "assets/sprites/npc-bus-stop/homeless.png",
+      "path": "assets/sprites/npc-bus-stop/homeless-idle/00.png",
       "category": "npc",
       "spawnsKind": "npc",
       "tags": [
@@ -1785,7 +1785,7 @@
       ],
       "frame_width": 128,
       "frame_height": 128,
-      "frame_count": 1,
+      "frame_count": 5,
       "displayHeightPx": 60,
       "trim": {
         "x": 0.3203,
@@ -1793,12 +1793,21 @@
         "w": 0.3594,
         "h": 0.875
       },
-      "notes": "Independent grounded adult NPC waiting near the shelter. Builder-placeable with optional dialogue."
+      "notes": "Independent grounded adult NPC waiting near the shelter. Five-frame idle loop: breath, blink and coat/scarf settle with planted feet. Builder-placeable with optional dialogue.",
+      "fps": 3,
+      "loop": true,
+      "footYByFrame": [
+        123,
+        123,
+        123,
+        123,
+        123
+      ]
     },
     {
       "id": "npc_bus_stop_backpack",
       "name": "Bus stop - backpack commuter",
-      "path": "assets/sprites/npc-bus-stop/backpack.png",
+      "path": "assets/sprites/npc-bus-stop/backpack-idle/00.png",
       "category": "npc",
       "spawnsKind": "npc",
       "tags": [
@@ -1809,7 +1818,7 @@
       ],
       "frame_width": 128,
       "frame_height": 128,
-      "frame_count": 1,
+      "frame_count": 5,
       "displayHeightPx": 60,
       "trim": {
         "x": 0.3125,
@@ -1817,7 +1826,16 @@
         "w": 0.3672,
         "h": 0.875
       },
-      "notes": "Independent grounded commuter NPC with backpack, waiting at the bus stop. Builder-placeable with optional dialogue."
+      "notes": "Independent grounded commuter NPC with backpack, waiting at the bus stop. Five-frame idle loop: breath, small phone movement and bag-strap settle with planted feet. Builder-placeable with optional dialogue.",
+      "fps": 3,
+      "loop": true,
+      "footYByFrame": [
+        123,
+        123,
+        123,
+        123,
+        123
+      ]
     },
     {
       "id": "prop_ncp_vending_machine",
