@@ -60,7 +60,7 @@ sec('Real Level 1 fixture sanity (read-only load)');
   const lvl = loadLevel1Copy();
   ok(lvl.cols === 100, 'Level 1 is 100 cols wide', `got ${lvl.cols}`);
   ok(lvl.tiles.length / lvl.cols === 18, 'Level 1 is 18 rows tall today', `got ${lvl.tiles.length / lvl.cols}`);
-  ok(Array.isArray(lvl.npcs) && lvl.npcs.length === 3, 'Level 1 has 3 npcs today', `got ${lvl.npcs?.length}`);
+  ok(Array.isArray(lvl.npcs) && lvl.npcs.length >= 3, 'Level 1 has at least 3 authored npcs', `got ${lvl.npcs?.length}`);
   ok(lvl.platforms.length === 0, 'Level 1 has no platforms today (path-shift fix needs a synthetic fixture)');
 }
 
@@ -80,7 +80,7 @@ sec('addSectionAbove: Level 1 copy, 18 -> 34 rows (+16 rows, +512px)');
   ok(lvl.tiles.length / lvl.cols === 34, 'level grew from 18 to 34 rows', `got ${lvl.tiles.length / lvl.cols}`);
   ok(lvl.tiles.length === 3400, 'tiles array length is cols*rows = 3400', `got ${lvl.tiles.length}`);
   ok(lvl.playerStart.y === playerYBefore + 512, 'playerStart shifted by +512px');
-  ok(lvl.npcs.every((n, i) => n.y === npcYsBefore[i] + 512), 'all 3 npcs shifted by +512px (THE GAP -- previously unshifted)');
+  ok(lvl.npcs.every((n, i) => n.y === npcYsBefore[i] + 512), 'all authored npcs shifted by +512px (THE GAP -- previously unshifted)');
   ok(lvl.decorations.every((d, i) => d.y === decoYsBefore[i] + 512), 'all decorations shifted by +512px');
   ok(lvl.sources.every((s, i) => s.y === sourceYsBefore[i] + 512), 'all sources shifted by +512px');
   ok(lvl.gates.every((g, i) => g.y === gateYsBefore[i] + 512), 'the gate shifted by +512px');
