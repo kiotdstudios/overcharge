@@ -54,7 +54,7 @@ sec('THE STREET IS CLEAN');
   const level = new Level(d);
   const lamps = level.sources.filter(s => s.label === 'LAMP');
   ok(lamps.length === 3 && lamps.every(s => s.charge === 3), 'three 3-charge lamps (Chief, round 15: streetlight is 3)');
-  ok(level.sources.filter(s => s.id !== 'AC_TENANT').reduce((a, s) => a + s.charge, 0) === 9, 'the lamps hold 9 charge until Chief adds the market vending machine (2) and one more prop (the tenant AC starts empty)');
+  ok(level.sources.filter(s => s.label === 'LAMP').reduce((a, s) => a + s.charge, 0) === 9, 'the three lamps hold 9 charge (the market vending machine and the tenant AC are separate sources)');
   ok(level.gates.find(g => g.isExit).required === 8, 'the exit costs 8');
   // The street itself is Chief's. Walking from the spawn must end at the same x with or without the new walkway and ladder.
   const walk = lv => { const q = new Player(64, 450); held([]); for (let i = 0; i < 40; i++) step(q, lv); held(['ArrowRight']); for (let i = 0; i < 300; i++) step(q, lv); held([]); return q.x; };

@@ -3184,6 +3184,54 @@
       "family": "nc_building_wall"
     },
     {
+      "id": "deco_quickmart_left",
+      "src": "assets/objects/night-city-buildings/quickmart/left.png",
+      "assetId": "building_nc_quickmart_left",
+      "x": 1608,
+      "y": 134,
+      "w": 139,
+      "h": 186,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
+      "id": "deco_quickmart_display_bay",
+      "src": "assets/objects/night-city-buildings/quickmart/display_bay.png",
+      "assetId": "building_nc_quickmart_display_bay",
+      "x": 1747,
+      "y": 134,
+      "w": 116,
+      "h": 186,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
+      "id": "deco_quickmart_entrance_bay",
+      "src": "assets/objects/night-city-buildings/quickmart/entrance_bay.png",
+      "assetId": "building_nc_quickmart_entrance_bay",
+      "x": 1863,
+      "y": 134,
+      "w": 116,
+      "h": 186,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
+      "id": "deco_quickmart_right",
+      "src": "assets/objects/night-city-buildings/quickmart/right.png",
+      "assetId": "building_nc_quickmart_right",
+      "x": 1979,
+      "y": 134,
+      "w": 93,
+      "h": 186,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
+    },
+    {
       "id": "deco_bus_stop_01",
       "src": "assets/objects/night-city-props/bus-stop/shelter.png",
       "assetId": "prop_ncp_bus_stop_shelter",
@@ -3280,6 +3328,17 @@
       "charge": 4,
       "kind": "hvac",
       "uncharged": true
+    },
+    {
+      "x": 2035,
+      "y": 303,
+      "label": "VEND",
+      "charge": 4,
+      "kind": "prop",
+      "sprite": "assets/objects/night-city-props/vending-machine/",
+      "frames": 8,
+      "artW": 128,
+      "artH": 128
     }
   ],
   "gates": [

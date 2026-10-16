@@ -2761,6 +2761,54 @@
       "family": "nc_building_wall"
     },
     {
+      "id": "building_nc_quickmart_left",
+      "name": "QuickMart - left end cap",
+      "path": "assets/objects/night-city-buildings/quickmart/left.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "quickmart", "scenery", "noncolliding"],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "QuickMart panel 1/4. Facade only; resize all four panels together to fit the intended platform.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_quickmart_display_bay",
+      "name": "QuickMart - display window bay",
+      "path": "assets/objects/night-city-buildings/quickmart/display_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "quickmart", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "QuickMart panel 2/4. Stocked display window; no floor tile or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_quickmart_entrance_bay",
+      "name": "QuickMart - entrance and sign",
+      "path": "assets/objects/night-city-buildings/quickmart/entrance_bay.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "quickmart", "scenery", "noncolliding"],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "QuickMart panel 3/4. QUIK MART sign and entrance; no floor tile or collision.",
+      "family": "nc_building_wall"
+    },
+    {
+      "id": "building_nc_quickmart_right",
+      "name": "QuickMart - right end cap",
+      "path": "assets/objects/night-city-buildings/quickmart/right.png",
+      "category": "decoration",
+      "tags": ["night_city_props", "building", "quickmart", "scenery", "noncolliding"],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "QuickMart panel 4/4. Distinct right window; no floor tile or collision.",
+      "family": "nc_building_wall"
+    },
+    {
       "id": "building_nc_garrys_left",
       "name": "Garry's Electronics - left end cap",
       "path": "assets/objects/night-city-buildings/garrys_electronics/left.png",
@@ -3712,5 +3760,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 147
+  "count": 151
 }

@@ -1,0 +1,32 @@
+{
+  "panel_sizes": {
+    "left": [
+      192,
+      256
+    ],
+    "display_bay": [
+      160,
+      256
+    ],
+    "entrance_bay": [
+      160,
+      256
+    ],
+    "right": [
+      128,
+      256
+    ]
+  },
+  "stitched_size": [
+    640,
+    256
+  ],
+  "blue_dominant_share": 0.597,
+  "warm_accent_share": 0.196,
+  "semi_transparent_pixels": 0,
+  "seam_positions_px": [
+    192,
+    352,
+    512
+  ]
+}
