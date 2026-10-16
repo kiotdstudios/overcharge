@@ -755,12 +755,17 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     `level1.json` are now **3** (Kiro edited the three values on this order; Levels 2 to 6 keep their authored numbers).
 85. **A 24/7 market goes where the streetlamp woman walks, with a vending machine (2 charge) in it.** Chief places it. Level 1 holds 9 in the lamps; with the
     vending machine 11. Chief: "since we dropped street lamps to 3 will need to add one more prop to level 1". Kiro suggests the fuse box (4), giving 15.
-86. **The AC works both ways.** Powered to its full 4 it turns on; zapped back out it turns off. **The tenant gets hot again when it is off, but the achievement
+86. **The AC works both ways.** (Round 15b: it is an ordinary charged prop, so it is on while it holds any charge and off when drained.) **The tenant gets hot again when it is off, but the achievement
     stays** ("she gets hot again but since player got achievement I guess he can move on and let her suffer"). Closes the open question in item F.
 87. **Consequence Chief should see (derived):** with only the lamps and the vending machine (11), an AC left on strands the player at 7 (the exit needs 8). They can
     zap it back, so nobody is trapped, but the extra prop (total 12 or more) removes the trap. Also the **free pip is gone**: three lamps of 3 make 9, below one
     full 10 bar. The economy page (`OVERCHARGE_Level1_Charge_Economy.html` on the Desktop) shows every route.
 88. **Codex 04 (new order):** longer animation cycles for the two bus stop NPCs (`KIRO_ORDER_CODEX_04.md`).
+### CONFIRMED by Chief (round 15b, 2026-10-16: review of Codex's handoff)
+89. **No wall switch for the AC, and no new switch style anywhere** ("i dont want that at all"). The AC works as an ordinary Night City charged prop: Space charges it, E zaps it, any charge turns it on.
+90. **The ladder in the game stays** (Codex's recolour was rejected). CODEX 03 task 9 is cancelled.
+91. **Codex must run the CURRENT game** and capture real screenshots from it; his review composites showed an older iteration. Written into `KIRO_ORDER_CODEX_04.md` PART 0.
+92. **The apartment, the tenant and the AC are placed in Level 1 and available in the Builder** for testing: apartment panels and the window tenant are in the asset palette, Aki's reactive-NPC fields and the Uncharged checkbox are merged. (Consequence found: with the AC on at any charge, the tenant costs about 1 charge; open question on the economy page.)
 80. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
     Kiro put "Try absorbing power from a street lamp" back in both places in `ui.js`.
 

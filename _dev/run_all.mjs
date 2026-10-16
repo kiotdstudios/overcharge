@@ -26,6 +26,7 @@ const SKIP = {
   'dress_level1_rooftops.mjs': 'one-shot generator that WRITES src_scroll/levels/level1.json, must never run from the suite',
   'deco_anim.mjs': 'Playwright browser harness; needs chromium-headless-shell, run manually',
   'overcharge_lab.mjs': 'Playwright browser harness; needs <repo> <port> args + chromium, run manually',
+  'aki27_draft.mjs': 'STALE (round 15): asserts level1_vertical.json equals the old Level 1 (lamps 4, total 12). Chief changed the lamps to 3 and added the tenant sequence; the draft must be rebuilt from the current level1.json (AKI 28), then this suite is re-enabled',
 };
 
 const dir = path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1'));

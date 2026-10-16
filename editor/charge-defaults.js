@@ -19,13 +19,13 @@ import * as RUNTIME_CONSTANTS from '../src_scroll/constants.js';
 export const AKI27_INTERIM_CHARGE_TABLE = Object.freeze({
   'security-camera':  1,
   'vending-machine':  2,
-  'fuse-box':         2,
+  'fuse-box':         4,   // round 15 (Chief): was 2
   'small-neon-sign':  2,
   'atm':              2,
   'shutter-motor':    2,
   'charge-platform':  2,
-  'hvac':             3,
-  'streetlight':      4,
+  'hvac':             4,   // round 15 (Chief): was 3
+  'streetlight':      3,   // round 15 (Chief): was 4
   'large-neon-sign':  4,
   'generator':        8,
   'substation':      10,

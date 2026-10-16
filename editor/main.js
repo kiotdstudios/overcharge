@@ -1806,6 +1806,7 @@ function _doSpawn(e, canvas) {
       id: 'npc_' + Date.now(), assetId: asset.id || null,
       greetingAssetId: (asset.raw && asset.raw.greetingAssetId) || null,
       walkAssetId: (asset.raw && asset.raw.walkAssetId) || null,
+      poweredAssetId: (asset.raw && asset.raw.poweredAssetId) || null,
       x: px, y: py, facing: 'right',
       patrol: { rangePx: 0, speedPxPerSec: 22, turnPauseSec: 0.55 },
       dialogue: {
@@ -2111,6 +2112,7 @@ function _renderNpcInspector(ref) {
       const item = manifestItemById(ref.assetId);
       ref.greetingAssetId = item?.raw?.greetingAssetId || null;
       ref.walkAssetId = item?.raw?.walkAssetId || null;
+      ref.poweredAssetId = item?.raw?.poweredAssetId || null;
       commit();
     });
     $('npc-x').addEventListener('change', (e) => { ref.x = Number(e.target.value); commit(); });

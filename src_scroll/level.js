@@ -141,6 +141,14 @@ export class Level {
     return tileIsSolid(v);
   }
 
+  // True while the charged object with this id holds charge (it works both ways: charge it and it is on,
+  // zap it out and it is off). Used by NPCs that react to a linked object. No switch is involved.
+  isPowered(id) {
+    if (!id) return false;
+    const source = this.sources.find(s => s.id === id);
+    return !!(source && source.powered);
+  }
+
   isFailState(player) {
     const exit = this.gates.find(g => g.isExit && !g.open);
     if (!exit) return false;
@@ -196,7 +204,7 @@ export class Level {
     for (const p    of this.pickups)  p.update(dt, this);
     for (const p    of this.pipPickups) p.update(dt);
     for (const cp   of this.checkpoints) cp.update(dt);
-    for (const npc  of this.npcs)      npc.update(dt, player);
+    for (const npc  of this.npcs)      npc.update(dt, player, this);
     for (const e    of this.enemies)  {
       // DroneEnemy.update(dt, level, PLAYER) needs the player to sense at all — the
       // other enemy types take (dt) or (dt, level) and ignore the extra arg. This
@@ -294,6 +302,8 @@ export class Level {
       // no special-casing. `charged` is included so a partial open is not banked
       // across a death either.
       chests:      this.chests.map(c => ({ opened: c.opened, charged: c.charged, _openT: c._openT })),
+      npcs:        this.npcs.map(n => ({ _powered: n._powered, _reliefClock: n._reliefClock,
+        _bubbleT: n._bubbleT, _bubbleText: n._bubbleText, _triggeredOnce: n._triggeredOnce })),
       pipPickups:  this.pipPickups.map(p => ({ x: p.x, y: p.y, id: p.id })),
       complete:    this.complete,
     };
@@ -307,6 +317,7 @@ export class Level {
       // rather than fading from the pre-death scene's transient glow level.
       this.sources[i]._lightLevel = this.sources[i].max > 0
         ? this.sources[i].charge / this.sources[i].max : 0;
+      this.sources[i]._fanSpeed = this.sources[i].powered ? 1 : 0;
     }
     for (let i = 0; i < this.gates.length && i < snap.gates.length; i++) {
       Object.assign(this.gates[i], snap.gates[i]);
@@ -345,6 +356,12 @@ export class Level {
     if (snap.chests) {
       for (let i = 0; i < this.chests.length && i < snap.chests.length; i++) {
         Object.assign(this.chests[i], snap.chests[i]);
+      }
+    }
+    if (snap.npcs) {
+      for (let i = 0; i < this.npcs.length && i < snap.npcs.length; i++) {
+        Object.assign(this.npcs[i], snap.npcs[i]);
+        this.npcs[i]._justRelieved = false;
       }
     }
     this.pickups  = [];   // transient - any post-checkpoint drops vanish on rewind

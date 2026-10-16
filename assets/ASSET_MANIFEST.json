@@ -3255,6 +3255,173 @@
       "directions": null,
       "loop": false,
       "notes": "Ambient street litter: crushed flattened aluminum soda can. PixelLab-generated, Night City Props palette. Used by StreetLitter as kind 3 (new 4th variant added alongside newspaper/receipt/cup)."
+    },
+    {
+      "id": "building_nc_tenant_left",
+      "name": "Night City Tenant apartment - left panel (fire escape, two lit windows)",
+      "path": "assets/objects/night-city-buildings/apartment_tenant/tenant_left.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "tenant",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Panel of the four-panel tenant apartment (Codex round 14). Place left, wall, front, right at 192, 160, 160, 128 px so the seams line up. 256 px tall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0,
+        "w": 1,
+        "h": 1
+      }
+    },
+    {
+      "id": "building_nc_tenant_wall",
+      "name": "Night City Tenant apartment - wall bay (vent, pipe, fuse box)",
+      "path": "assets/objects/night-city-buildings/apartment_tenant/tenant_wall.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "tenant",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Panel of the four-panel tenant apartment (Codex round 14). Place left, wall, front, right at 192, 160, 160, 128 px so the seams line up. 256 px tall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_tenant_front",
+      "name": "Night City Tenant apartment - front bay (big open window for the tenant NPC; blank wall below for the AC)",
+      "path": "assets/objects/night-city-buildings/apartment_tenant/tenant_front.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "tenant",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Panel of the four-panel tenant apartment (Codex round 14). Place left, wall, front, right at 192, 160, 160, 128 px so the seams line up. 256 px tall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_tenant_right",
+      "name": "Night City Tenant apartment - right panel (small lit window, drain pipe)",
+      "path": "assets/objects/night-city-buildings/apartment_tenant/tenant_right.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "tenant",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Panel of the four-panel tenant apartment (Codex round 14). Place left, wall, front, right at 192, 160, 160, 128 px so the seams line up. 256 px tall. Placeable visual dressing only. No collision, power, light, or switch logic.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "npc_window_tenant",
+      "name": "Window tenant (too hot, fanning herself)",
+      "path": "assets/sprites/npc-window-tenant/complaining/00.png",
+      "category": "npc",
+      "spawnsKind": "npc",
+      "poweredAssetId": "npc_window_tenant_relieved",
+      "tags": [
+        "npc",
+        "night_city",
+        "tenant",
+        "window",
+        "animated",
+        "dialogue",
+        "reactive"
+      ],
+      "frame_width": 176,
+      "frame_height": 176,
+      "frame_count": 6,
+      "displayHeightPx": 120,
+      "trim": {
+        "x": 0.2045,
+        "y": 0.2045,
+        "w": 0.5852,
+        "h": 0.625
+      },
+      "notes": "Leans out of a lit window, fanning herself in the heat (Codex round 14). Six-frame loop. Link her to a charged object with linkedObjectId (the AC unit): while that object holds charge she plays the relieved clip (poweredAssetId) and says her poweredLines; when it is drained she is hot again. Place on the front bay of the tenant apartment; (x,y) is the bottom-centre of the window sill.",
+      "fps": 6,
+      "loop": true,
+      "footYByFrame": [
+        145,
+        145,
+        145,
+        145,
+        145,
+        145
+      ]
+    },
+    {
+      "id": "npc_window_tenant_relieved",
+      "name": "Window tenant (relieved, AC is on)",
+      "path": "assets/sprites/npc-window-tenant/relieved/00.png",
+      "category": "npc",
+      "tags": [
+        "npc",
+        "night_city",
+        "tenant",
+        "window",
+        "animated",
+        "relieved"
+      ],
+      "frame_width": 176,
+      "frame_height": 176,
+      "frame_count": 6,
+      "trim": null,
+      "notes": "Relieved clip for npc_window_tenant: plays once when the linked AC turns on, then holds the last frame. Not independently placeable in the Builder palette (no spawnsKind): referenced only through npc_window_tenant.poweredAssetId.",
+      "fps": 6,
+      "loop": false,
+      "footYByFrame": [
+        145,
+        145,
+        145,
+        145,
+        145,
+        145
+      ]
     }
   ],
   "_runtime_state_sprites_note": "Runtime state sprites. NOT palette entries and NOT placeable â€” they are wired directly in src_scroll/electricity.js and editor/renderer.js via hardcoded getImage() paths, so they need no manifest entry to function. Kept here for the anchor/frame documentation only. Anything listed in `assets[]` renders as a clickable cell in the Builder asset browser regardless of generation.eligible â€” that flag controls procedural generation, not palette visibility. Do not move these back into `assets[]`.",
@@ -3545,5 +3712,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 141
+  "count": 147
 }

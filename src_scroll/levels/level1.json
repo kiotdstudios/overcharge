@@ -918,15 +918,15 @@
     2,
     2,
     2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
     0,
     0,
     0,
@@ -3195,6 +3195,34 @@
       "tileLayer": "back"
     },
     {
+      "src": "assets/objects/night-city-buildings/apartment_tenant/tenant_left.png",
+      "x": 96,
+      "y": 32,
+      "w": 192,
+      "h": 256
+    },
+    {
+      "src": "assets/objects/night-city-buildings/apartment_tenant/tenant_wall.png",
+      "x": 288,
+      "y": 32,
+      "w": 160,
+      "h": 256
+    },
+    {
+      "src": "assets/objects/night-city-buildings/apartment_tenant/tenant_front.png",
+      "x": 448,
+      "y": 32,
+      "w": 160,
+      "h": 256
+    },
+    {
+      "src": "assets/objects/night-city-buildings/apartment_tenant/tenant_right.png",
+      "x": 608,
+      "y": 32,
+      "w": 128,
+      "h": 256
+    },
+    {
       "src": "assets/objects/night-city-props/relay-pylon/pylon.png",
       "x": 576,
       "y": 192,
@@ -3243,6 +3271,15 @@
       "frames": 8,
       "artW": 192,
       "artH": 192
+    },
+    {
+      "id": "AC_TENANT",
+      "x": 512,
+      "y": 260,
+      "label": "HVAC",
+      "charge": 4,
+      "kind": "hvac",
+      "uncharged": true
     }
   ],
   "gates": [
@@ -7010,6 +7047,42 @@
             "text": "You headed downtown? Watch those gates, sweetheart."
           }
         ]
+      }
+    },
+    {
+      "id": "NPC_TENANT",
+      "assetId": "npc_window_tenant",
+      "poweredAssetId": "npc_window_tenant_relieved",
+      "linkedObjectId": "AC_TENANT",
+      "x": 518,
+      "y": 237,
+      "facing": "right",
+      "dialogue": {
+        "enabled": true,
+        "trigger": "player_proximity",
+        "radiusPx": 140,
+        "triggerMode": "enter",
+        "cooldownMs": 6000,
+        "oncePerLevel": false,
+        "durationMs": 3500,
+        "selectionMode": "sequential",
+        "lines": [
+          {
+            "id": "L1",
+            "text": "It's an oven in here."
+          }
+        ],
+        "poweredLines": [
+          {
+            "id": "P1",
+            "text": "Oh, thank God. It's back on."
+          }
+        ]
+      },
+      "patrol": {
+        "rangePx": 0,
+        "speedPxPerSec": 0,
+        "turnPauseSec": 0
       }
     }
   ]

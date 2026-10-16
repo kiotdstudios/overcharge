@@ -2361,3 +2361,20 @@ Do you want Codex to redraw both idles so they are readable (backpack kid: thumb
 2. The free pip is gone: three lamps of 3 make 9, which never fills a 10 bar. 11 makes 1 pip + 1.
 3. The market is where the streetlamp woman walks, near lamp 3 (the high route). A route that skips lamp 3 holds only 6 from the lamps; the vending machine makes it 8. I have not checked whether a lamp can be skipped in the Level 1 as built. The completability prover only counts the level total (9 available, 8 required, margin 1).
 4. One lamp (3) is not enough for the AC (4), so the player needs two sources before acting.
+## 2026-10-16 - Round 15b: Codex handoff reviewed; tenant sequence placed in Level 1 and the Builder
+### Chief's words
+"Check for review handoff from Codex; he used references from an older iteration of the game, tell him to run the current game, not old screenshots. Codex wired the AC unit to a wall switch, I don't want that at all; the AC works as a Night City prop powered object. If he committed a wall switch to the Builder, remove it and any code attached. His new ladder doesn't work colour-wise either, we use the ladder we have. I need to test the apartment girl and AC unit, so place that in the game and the Builder."
+### Codex handoff (`origin/codex/order03`, 3 commits, 99 files)
+- Wall switch: `style:'plate'` in `electricity.js`, plate art, parity cases, linked-source switch logic, "full power" rule. **None of it is in the Builder or on the live line** (Kiro grepped `editor/`, `src_scroll/`, `_dev/`). Nothing to remove here; **not merged**. CODEX 04 PART 0 orders Codex to delete it from his branch.
+- Ladder redo: not taken. Task 9 cancelled. The in-game ladder is untouched.
+- Taken: tenant art (apartment 4 panels, window tenant hot and relieved), `achievements.js` with the GOOD NEIGHBOR toast and sound, NPC `poweredAssetId` / `linkedObjectId` / `poweredLines`, `Level.isPowered` (now source-only), the AC hum and cool-air particles. His composites showed the old hero portrait and HUD, so CODEX 04 PART 0 also says: run the current game and capture real screenshots.
+### Done
+- Merged Aki's `agent/aki-order27` into the live line (no conflicts): Uncharged checkbox, reactive NPC fields, path tool, charge defaults, level readout, vertical draft behind a dev flag.
+- Registered 6 manifest assets (4 apartment panels, `npc_window_tenant`, `npc_window_tenant_relieved`) by text insertion (the manifest does not round-trip through JSON, so the diff is 168 added lines and the count). The Builder carries `poweredAssetId` from the manifest into placed NPCs.
+- `ElectricalSource.powered` = not drained. No switch anywhere.
+- Level 1: walkway runs under the building, four panels on it, `AC_TENANT` and `NPC_TENANT` placed; screenshot of the running game shows the tenant fanning herself above the AC and the "It's an oven in here." bubble and "[SPACE] CHARGE" prompt when the hero stands at the AC.
+- `_dev/tenant_sequence.mjs` 29/0: placement; charge the AC with Space (tenant relieved, GOOD NEIGHBOR once); zap with E (hot again, achievement stays); second charge no second unlock; checkpoint restore; the right clip frames from the real manifest and files; ladder and walkway.
+- Test fallout fixed: `aki27_charge_defaults` (table 3/4/4, lamps 3, source total 13), `audio_bus` structural regex, `level1_pylon`. `aki27_draft` disabled with a STALE reason (AKI 28 rebuilds it).
+### Honest limits
+- A real-browser run of the whole sequence (earn charge, climb, charge, relieved clip) is not captured: the dev key P did not give charge reliably in my scripted runs. The logic and clip choice are covered by the headless test with the real files; the browser shows the placed scene, the idle clip, the bubble and the charge prompt.
+- Economy: with the AC on at any charge, the tenant costs a sliver (route D on the economy page). Chief to decide whether to require a full 4.

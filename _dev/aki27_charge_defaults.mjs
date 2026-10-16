@@ -132,15 +132,15 @@ sec('Palette defaults, every kind the Builder can place');
   const EXPECT = {
     'source':                     8,   // generator
     'electrical_generator':       8,
-    'source-hvac':                3,   // AC / HVAC unit
-    'source_hvac':                3,
+    'source-hvac':                4,   // AC / HVAC unit (round 15: 4)
+    'source_hvac':                4,
     'charge-platform':            2,
     'night_city_charge_platform': 2,
     'prop_ncp_security_camera':   1,
     'prop_ncp_vending_machine':   2,
     'prop_ncp_atm_machine':       2,
-    'prop_ncp_fuse_box':          2,
-    'prop_ncp_streetlight':       4,   // 3.9: Level 1's lamps stay at 4
+    'prop_ncp_fuse_box':          4,   // round 15: fuse box is 4
+    'prop_ncp_streetlight':       3,   // round 15: streetlight is 3
     'prop_ncp_neon_sign':         4,   // large sign / billboard tier
     'prop_ncp_tire_sign':         4,   // manifest: "Large literal neon tire wall sign"
     'prop_ncp_book_sign':         2,   // small shop sign tier
@@ -225,15 +225,15 @@ sec('Authored levels are untouched');
   const l1 = JSON.parse(fs.readFileSync(path.join(dir, 'level1.json'), 'utf8'));
   const lamps = (l1.sources || []).filter(s => s.label === 'LAMP' || /streetlight/.test(s.sprite || ''));
   ok(lamps.length === 3, "Level 1 still has Chief's three street lamps", `${lamps.length}`);
-  ok(lamps.every(s => s.charge === 4), 'each lamp is still authored at 4 (3.9 note)', lamps.map(s => s.charge).join(','));
+  ok(lamps.every(s => s.charge === 3), 'each Level 1 lamp is authored at 3 (round 15, Chief)', lamps.map(s => s.charge).join(','));
   const lampTotal = lamps.reduce((a, s) => a + Number(s.charge), 0);
-  ok(lampTotal === 12, "the three lamps still total 12 (order AKI 27 Task 2's figure)", String(lampTotal));
+  ok(lampTotal === 9, 'the three lamps total 9 (round 15: lamps are 3)', String(lampTotal));
   const total = (l1.sources || []).reduce((a, s) => a + (Number(s.charge) || 0), 0);
-  // 12 lamp + 3 for Kiro's secret AC unit, which is already the 3.9 AC tier.
+  // 9 lamp + 4 for the tenant's AC unit (the 3.9 AC tier, round 15).
   // This is an AUTHORED total: placing nothing new must not move it.
-  ok(total === 15, "Level 1's authored source total is unchanged at 15 (12 lamp + 3 AC)", String(total));
+  ok(total === 13, 'Level 1 authored source total is 13 (9 lamp + 4 AC); Chief adds the market vending machine and one more prop', String(total));
   const ac = (l1.sources || []).find(s => s.kind === 'hvac' || s.label === 'HVAC');
-  ok(!ac || ac.charge === 3, "the secret AC unit is still authored at 3", ac ? String(ac.charge) : 'absent');
+  ok(!ac || ac.charge === 4, 'the tenant AC unit is authored at 4', ac ? String(ac.charge) : 'absent');
   for (const f of levels) {
     const L = JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'));
     const gens = (L.sources || []).filter(s => s.label === 'GEN' && !s.kind);

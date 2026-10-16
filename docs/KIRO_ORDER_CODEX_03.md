@@ -3,7 +3,7 @@
 **From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief's reviews of 2026-10-16 (two rounds, the second replaces the hidden room)
 **Priority:** this order comes **before** `KIRO_ORDER_CODEX_02.md`. Chief is waiting to see the art in the game.
 **Branch:** your own branch, push as `AGENTS.md` describes. Never force-push. Do not merge to the live line.
-**Status:** work order, REVISED 2026-10-16 (round 14). Nothing started.
+**Status:** REVIEWED 2026-10-16 (round 15b). Tasks 1, 2 (art), 6, 7, 8 were taken onto the live line by Kiro and placed in Level 1. **Task 3 (wall-plate switch) and task 9 (ladder) are CANCELLED by Chief.** Tasks 4 (pip pickup) and 5 (Capacitor Module) are still open. See PART 0 of `KIRO_ORDER_CODEX_04.md` for the verdict and the new rules.
 
 ## What changed in this revision (round 14)
 Chief scrapped the hidden room, the hatch, the fire escape and the room props ("im not liking any of that we can scrap that for now").
@@ -132,10 +132,10 @@ Build it for the **real Level 1 AC** once Aki places it (or in a test level), no
 ### 7. The AC turns on
 The AC is an existing `ElectricalSource` of kind `hvac`, placed **uncharged** (`uncharged: true`), capacity **4** (round 15; set it from `CHARGE_TABLE` once CODEX 02 adds it). **The player
 charges it directly, like any other charged object** (hold the charge key near it; `receive()` already exists from Codex Phase A). There is no switch. It is **on**
-when its charge reaches its capacity (4), and **off** below that (a half-charged AC may flicker or sputter but the fan stays still). When it turns on it must **look and
+while it holds any charge and **off** when it is drained: the standard rule every charged prop follows (Chief, round 15b: *"AC unit should work how its been working as a night city prop powered object"*; the earlier "full power only" rule is withdrawn). When it turns on it must **look and
 sound on**: the fan spins, the unit hums (reuse an existing loop in `src_scroll/audio.js` or add `ac_hum`), a few cool-air particles drip from the vents
 (`src_scroll/juice.js`). **It works both ways (CONFIRMED, Chief round 15):** if the player zaps the charge out (hold E), the fan stops, the hum stops and the
-tenant is hot again; the **achievement stays**. Tests with the real Level 1 data: charging to 4 turns it on, 3.9 does not, zapping turns it off, the tenant goes
+tenant is hot again; the **achievement stays**. Tests with the real Level 1 data: charging it turns it on, zapping it empty turns it off, the tenant goes
 hot, relieved, hot again, relieved again, the achievement unlocks exactly once, state rewinds on a checkpoint.
 
 ### 8. Achievements (new, small, CONFIRMED need)

@@ -195,7 +195,7 @@ export function createJuice(opts = {}) {
       stopLoops();                       // a new level must never inherit the last level's hum
       s = state.seen = { level, grounded: !!player.grounded, vy: player.vy || 0, hurt: player._hurtFlash || 0,
                          laddered: !!player._ladder, gates: new Map(), cps: new Map(), chests: new Map(),
-                         drained: new Map(), streamT: 0, peakFall: 0, absorbOn: false, chargeOn: false, absorbRate: 0, chargeRate: 0 };
+                         drained: new Map(), streamT: 0, acT: 0, peakFall: 0, absorbOn: false, chargeOn: false, absorbRate: 0, chargeRate: 0 };
     }
     // landing / jumping
     if (!player.grounded) s.peakFall = Math.max(s.peakFall, player.vy || 0);
@@ -246,6 +246,15 @@ export function createJuice(opts = {}) {
       const was = s.drained.get(src);
       if (was === false && src.drained) dryPuff(src.cx ?? src.x, src.cy ?? src.y);
       s.drained.set(src, !!src.drained);
+    }
+    s.acT -= dt;
+    if (s.acT <= 0) {
+      s.acT = 0.18;
+      for (const src of level.sources || []) {
+        if (src.kind !== 'hvac' || !src.powered) continue;
+        burst({ x: src.cx, y: src.y + src.h, n: 2, colors: ['#91bcca', '#b1d1d7'],
+          speed: 18, angle: Math.PI / 2, spread: 0.6, life: 0.65, size: 1 });
+      }
     }
   }
 

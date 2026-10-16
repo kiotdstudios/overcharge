@@ -1,4 +1,24 @@
-# KIRO ORDER: CODEX 04 (longer idle cycles for the two bus stop NPCs)
+# KIRO ORDER: CODEX 04 (read the CODEX 03 review verdict, then longer idle cycles for the two bus stop NPCs)
+
+## PART 0. Verdict on your CODEX 03 branch (`codex/order03`), 2026-10-16. READ THIS FIRST.
+Chief reviewed your handoff. Kiro took the parts that are wanted and **did not merge the rest**. Do not merge `codex/order03` and do not rebase your next work on it as is.
+
+**Wanted and now on the live line (Kiro integrated them, you do not need to redo them):**
+- The four-panel tenant apartment art (registered as `building_nc_tenant_left / _wall / _front / _right`, folder `assets/objects/night-city-buildings/apartment_tenant/`).
+- The window tenant NPC art, hot and relieved clips (`npc_window_tenant`, `npc_window_tenant_relieved`, folder `assets/sprites/npc-window-tenant/`), her reaction to a linked object (`poweredAssetId`, `linkedObjectId`, `poweredLines`, `Level.isPowered`), the achievements system (`src_scroll/achievements.js`, GOOD NEIGHBOR toast and sound) and the AC hum and cool-air particles.
+- Aki's Builder work (Uncharged checkbox, reactive NPC fields) is merged too, so the tenant can be placed and edited in the Builder.
+- All of it is **placed in Level 1** for Chief to test: building on the upper walkway, the tenant in the big window, an ordinary HVAC unit under her window.
+
+**REJECTED by Chief. Delete from your branch and never bring back:**
+1. **The wall switch.** Chief: "codex wired AC unit to a wall switch i dont want that at all. AC unit should work how it's been working as a night city prop powered object." The AC is **an ordinary charged HVAC prop**: charge it with Space and it is on (fan, hum, particles, tenant relieved); zap the charge back out with E and it is off (the tenant is hot again; the achievement stays). **No switch of any kind is used for the AC and no new switch style is wanted anywhere.** Remove from your branch: `style: 'plate'` in `Switch` (`electricity.js`), the plate art (`assets/objects/night-city-props/wall-plate-switch-review/`), the `_flipT` and `_switchOn` fields, `requiresFullPower`, `Level.isPowered`'s switch lookup, the plate cases in `_dev/parity_regression.mjs`, and `_dev/codex03_tenant.mjs`'s plate test. (Kiro checked: none of it is in the Builder or on the live line.)
+2. **The new ladder.** Chief: the colour does not work either, and **the ladder already in the game stays.** Task 9 is cancelled. Do not touch `assets/objects/night-city-props/ladder/ladder.png`. Delete `ladder_review/`.
+3. **The "full power" AC rule** (`requiresFullPower`: the AC only counted as on at full charge). Gone; the standard rule applies (on while it holds any charge).
+
+**How you got this wrong, and the new rule:** Chief saw your review composites and they show an **older iteration of the game** (old hero portrait and HUD, old ladder, old pylon-less street). You built against screenshots, not the running game. **From now on, run the CURRENT game before you design or show anything.** Check out the live line (`agent/orcha-gameplay`), serve it (any static server on the repo root, open `index.html`), play Level 1 to the part you are working on, and take your screenshots from that. Every review image must be a **real capture of the current build**, not a composite. If your branch does not contain the latest live line, rebase or merge it first. Say in your report which commit you captured from.
+
+**What is still yours:** the pip pickup art and the Capacitor Module art from CODEX 03 (not yet reviewed by Chief), then Part 1 below. Re-shoot the pip and capacitor screenshots from the current game.
+
+## PART 1. Longer idle cycles for the two bus stop NPCs
 
 **From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief, 2026-10-16 (round 15): "add that to codex 4, need longer animation cycles for those 2 npcs"
 **Order of work:** after the art tasks of `KIRO_ORDER_CODEX_03.md`; independent of `KIRO_ORDER_CODEX_02.md` (the bar and charge rules), so it can be done before or after it.

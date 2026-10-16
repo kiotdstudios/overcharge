@@ -19,6 +19,7 @@ import { logLevelSource } from './levelsig.js';
 import { unlockFootsteps, playFootstep } from './footsteps.js';
 import { createJuice } from './juice.js';
 import { createAudio } from './audio.js';
+import { createAchievements } from './achievements.js';
 
 window.addEventListener('keydown', unlockFootsteps, { once: true });
 
@@ -31,6 +32,7 @@ const juice = createJuice({
   reducedMotion: !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
 });
 const sfx = createAudio({ enabled: _fxParams.get('audio') !== 'off' });
+const achievements = createAchievements();
 juice.on(sfx.handle);
 window.addEventListener('keydown', () => sfx.unlock(), { once: true });
 
@@ -237,7 +239,7 @@ function loop(now) {
 
 function _update(dt) {
   // Absorb and charge hums only belong to live play. Level complete, game over and the title all end them.
-  if (state !== STATES.PLAYING) juice.stopLoops();
+  if (state !== STATES.PLAYING) { juice.stopLoops(); sfx.setLoop('ac_hum', false); }
   switch (state) {
     case STATES.TITLE:
       if (Input.pressedAny('Space', 'Enter')) startGame();
@@ -249,6 +251,12 @@ function _update(dt) {
       player.update(dt, level);
       if (player._sprites.footfall && player.grounded) playFootstep();
       level.update(dt, player, viewW());
+      for (const npc of level.npcs) {
+        if (npc._justRelieved && npc.linkedObjectId) achievements.unlock('good_neighbor');
+      }
+      const shown = achievements.update(dt);
+      if (shown) sfx.play('achievement');
+      sfx.setLoop('ac_hum', level.sources.some(src => src.kind === 'hvac' && src.powered));
       juice.observe(player, level, dt);
       _updateCamera();
       _cpFlash = Math.max(0, _cpFlash - dt);
@@ -326,6 +334,7 @@ function _render() {
     case STATES.PLAYING:
       _drawScrollGame();
       drawHUD(ctx, player, level, t);
+      achievements.draw(ctx, viewW());
       _drawDevBar();
       _drawCpFlash();
       break;

@@ -391,8 +391,8 @@ CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a
     after Chief approves it.
 - **The control (CONFIRMED, Chief round 14b):** the player **charges the AC directly, like any other charged object.** *"Switch is only meant for powering down a
   fence."* There is no switch on the AC.
-- **Both ways (CONFIRMED, Chief round 15):** the AC is a charged object of capacity **4** (charge table 3.9), placed **uncharged**. Charge it to 4 and it turns on; zap
-  the charge back out and it turns off. **The tenant is relieved while it is on and gets hot again when it is off, but the achievement stays** ("let her suffer").
+- **Both ways (CONFIRMED, Chief rounds 15 and 15b):** the AC is an **ordinary charged HVAC prop**, capacity **4** (charge table 3.9), placed **uncharged**. It is on while it holds
+  any charge and off when drained (the standard prop rule; no switch, no full-power rule). Charge it with Space, zap it with E. **The tenant is relieved while it is on and gets hot again when it is off, but the achievement stays** ("let her suffer").
 - **Economy (round 15; computed on the Desktop page `OVERCHARGE_Level1_Charge_Economy.html`):** Level 1's three lamps are 3 each (9). Chief adds a 24/7 market with a
   vending machine (2) where the streetlamp woman walks (total 11), and "one more prop" (Kiro suggests the fuse box, 4, total 15). One lamp (3) is **not** enough for the
   AC (4), so the player needs two sources before the AC can be turned on. **Trap to avoid:** with 11 only, an AC left on leaves 7, one short of the exit's 8
@@ -400,7 +400,7 @@ CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a
 - **Risk to check:** the market is where the streetlamp woman walks (x about 1741, next to lamp 3 at x 1664, the high route). A route that skips lamp 3 holds only 6
   from the lamps; the vending machine makes it 8. Put the market where both routes pass, or keep the low route's total at 8 or more. Kiro has not checked whether a
   lamp can be skipped in the Level 1 as built today.
-- **Where (RECOMMENDED):** the upper area above the spawn, up the ladder. Aki places it after Chief approves Codex's art; Chief can move it in the Builder.
+- **PLACED in Level 1 (round 15b, Chief: "I need to test the apartment girl and AC unit so place that in the game and builder"):** the four-panel building stands on the upper walkway (x 96, 288, 448, 608; top y 32; the walkway now runs x 96 to 735), the tenant is in the big front-bay window (x 518, y 237, linked to the AC), and the ordinary HVAC unit AC_TENANT (x 512, y 260, capacity 4, uncharged) hangs under her window. Test: `_dev/tenant_sequence.mjs` (29 checks, real level, real hero, real manifest frames). Everything is movable in the Builder.
 - **Pieces and owners:** building art, window NPC (two animations), reactive tenant lines, AC on-state effects, achievements system: **Codex (CODEX 03 tasks
   1, 2, 6 to 8)**. The small wall-plate switch (CODEX 03 task 3) is now only for fence gates. Placement: **Aki**. Text: **Orcha**.
 - **Questions for Chief (OPEN):** which extra prop (fuse box 4?), and which route the market is on (above).

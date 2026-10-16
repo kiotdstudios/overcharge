@@ -61,6 +61,9 @@ export class ElectricalSource {
 
   get cx() { return this.x + this.w / 2; }
   get cy() { return this.y + this.h / 2; }
+  // On while it holds any charge, off when drained: the rule every charged prop has always followed (fan, light, hum).
+  // The tenant NPC reads it through Level.isPowered().
+  get powered() { return !this.drained; }
 
   update(dt) {
     this._t += dt;

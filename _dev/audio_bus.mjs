@@ -169,7 +169,7 @@ sec('REGRESSION: the charge hum must not outlive the level (Chief: gate sfx kept
 
   // 5. The wiring in main.js: structural, because main.js boots the game on import.
   const mainSrc = fs.readFileSync(new URL('../src_scroll/main.js', import.meta.url), 'utf8');
-  ok(/if \(state !== STATES\.PLAYING\) juice\.stopLoops\(\);/.test(mainSrc),
+  ok(/if \(state !== STATES\.PLAYING\) (\{ juice\.stopLoops\(\); sfx\.setLoop\('ac_hum', false\); \}|juice\.stopLoops\(\);)/.test(mainSrc),
     'main.js stops the loops in every state except PLAYING (level complete, game over, title)');
   ok(/function _respawn\(\) \{\s*_applySnapshot\(\);\s*juice\.clear\(\);/.test(mainSrc), 'and clears them on a checkpoint rewind');
 }
