@@ -391,15 +391,19 @@ CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a
     after Chief approves it.
 - **The control (CONFIRMED, Chief round 14b):** the player **charges the AC directly, like any other charged object.** *"Switch is only meant for powering down a
   fence."* There is no switch on the AC.
-- **Cost (derived, RECOMMENDED):** the AC is a charged object of capacity **3** (charge table 3.9), placed **uncharged**, so powering it costs its full 3 and the
-  level's lamp total stays 12. With the AC powered and not taken back, 12 &minus; 3 = 9, the exit still costs 8, and **1** is left. Optional: two lamps (8) pay the exit
-  on their own. One lamp (4) is enough to power the AC, so "enough charge" arrives early, and a player who spends lamp 1 on the AC must still absorb lamps 2 and 3.
-  The charge economy page on the Desktop (`OVERCHARGE_Level1_Charge_Economy.html`) shows each route computed.
+- **Both ways (CONFIRMED, Chief round 15):** the AC is a charged object of capacity **4** (charge table 3.9), placed **uncharged**. Charge it to 4 and it turns on; zap
+  the charge back out and it turns off. **The tenant is relieved while it is on and gets hot again when it is off, but the achievement stays** ("let her suffer").
+- **Economy (round 15; computed on the Desktop page `OVERCHARGE_Level1_Charge_Economy.html`):** Level 1's three lamps are 3 each (9). Chief adds a 24/7 market with a
+  vending machine (2) where the streetlamp woman walks (total 11), and "one more prop" (Kiro suggests the fuse box, 4, total 15). One lamp (3) is **not** enough for the
+  AC (4), so the player needs two sources before the AC can be turned on. **Trap to avoid:** with 11 only, an AC left on leaves 7, one short of the exit's 8
+  (the player can zap it back, so nobody is stuck for good). A total of **12 or more** removes it. **Also:** the free pip is gone (9 < 10); 11 gives 1 pip + 1.
+- **Risk to check:** the market is where the streetlamp woman walks (x about 1741, next to lamp 3 at x 1664, the high route). A route that skips lamp 3 holds only 6
+  from the lamps; the vending machine makes it 8. Put the market where both routes pass, or keep the low route's total at 8 or more. Kiro has not checked whether a
+  lamp can be skipped in the Level 1 as built today.
 - **Where (RECOMMENDED):** the upper area above the spawn, up the ladder. Aki places it after Chief approves Codex's art; Chief can move it in the Builder.
 - **Pieces and owners:** building art, window NPC (two animations), reactive tenant lines, AC on-state effects, achievements system: **Codex (CODEX 03 tasks
   1, 2, 6 to 8)**. The small wall-plate switch (CODEX 03 task 3) is now only for fence gates. Placement: **Aki**. Text: **Orcha**.
-- **Small questions for Chief (OPEN):** (a) the AC takes its full 3, leaving 1 spare: right, or should the tenant need less? (b) If the player takes the charge back,
-  the fan stops but the tenant stays relieved and the achievement stays (Kiro RECOMMENDS): yes?
+- **Questions for Chief (OPEN):** which extra prop (fuse box 4?), and which route the market is on (above).
 
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
 (For the vertical layout, see 4.3a: pylon plus cable.) In the horizontal draft the gate was 4,300 px from

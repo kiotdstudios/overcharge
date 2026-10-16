@@ -179,13 +179,14 @@ sec('Level 1: Chief\u2019s lamp is a real source he can walk to and drain');
   fire('keyup',dir);
   ok(arrived, 'the player can WALK to it from spawn', 'unreachable energy is not energy');
   const before=p.charge+p.bankedPips*C.MAX_CHARGE;
+  const want=lamp2.charge;                       // the lamp's authored charge (Level 1 lamps are 3 since round 15)
   fire('keydown','KeyE');
   let saw=false;
   for(let i=0;i<120;i++){ p.update(1/60,lv); lv.update(1/60,p); Input.update(); if(p.absorbing) saw=true; }
   fire('keyup','KeyE');
   const after=p.charge+p.bankedPips*C.MAX_CHARGE;
   ok(saw, 'holding E sets player.absorbing');
-  ok(after-before > 3.9, `and transfers the full 4 charge (got ${(after-before).toFixed(2)})`,
+  ok(want >= 3 && after-before > want-0.1, `and transfers the lamp's full charge, ${want} (got ${(after-before).toFixed(2)})`,
     'this is the exact thing Chief reported as not working');
   ok(lamp2.drained, 'the lamp ends up drained');
 }

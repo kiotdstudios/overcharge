@@ -1,7 +1,7 @@
 // level1_pylon.mjs - Level 1 guard after the secret-room preview was scrapped (Chief, 2026-10-16).
 // Proves: the relay pylon is placed; the ladder and the upper walkway (the way up to the second area) are back
 // and climbable; the rest of the preview (room, props, AC, switch, door) is gone; the street is clean:
-// three 4-charge lamps, exit costs 8, the hero walks the street unblocked.
+// three 3-charge lamps, exit costs 8, the hero walks the street unblocked.
 import { Player, Level, held, step } from './support/headless.mjs';
 import fs from 'node:fs';
 
@@ -53,7 +53,8 @@ sec('THE STREET IS CLEAN');
 {
   const level = new Level(d);
   const lamps = level.sources.filter(s => s.label === 'LAMP');
-  ok(lamps.length === 3 && lamps.every(s => s.charge === 4), 'three 4-charge lamps');
+  ok(lamps.length === 3 && lamps.every(s => s.charge === 3), 'three 3-charge lamps (Chief, round 15: streetlight is 3)');
+  ok(level.sources.length === 3 && level.sources.reduce((a, s) => a + s.charge, 0) === 9, 'the level holds 9 charge until Chief adds the market vending machine (2) and one more prop');
   ok(level.gates.find(g => g.isExit).required === 8, 'the exit costs 8');
   // The street itself is Chief's. Walking from the spawn must end at the same x with or without the new walkway and ladder.
   const walk = lv => { const q = new Player(64, 450); held([]); for (let i = 0; i < 40; i++) step(q, lv); held(['ArrowRight']); for (let i = 0; i < 300; i++) step(q, lv); held([]); return q.x; };

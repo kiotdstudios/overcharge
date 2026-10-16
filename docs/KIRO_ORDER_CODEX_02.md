@@ -14,7 +14,7 @@
    (anything the bar cannot hold is lost). This is what you already built; keep it.
 4. **Charge is slow when the bar is empty and speeds up as it fills,** for absorbing and charging.
 5. **Each powered object has its own charge,** from the table in section 3.9.
-6. In Level 1, absorbing the three 4-charge lamps must end with **1 banked pip and 2 charge.**
+6. In Level 1 (round 15: **three 3-charge lamps**), absorbing the three lamps ends with **bar 9 and no pip**; adding the market vending machine (2) that Chief is placing ends with **1 banked pip and 1 in the bar**. The old "three 4-charge lamps = 1 pip + 2" no longer holds.
 7. The Capacitor Module pickup is **later**; do not build it now. Ignore task A5 in CODEX 01.
 
 ## Tasks, in order
@@ -32,8 +32,8 @@
   must set `pipSlots` to match. Update `energy_authority` and every other test that hard-codes 25, 150 or five
   free slots, and list each changed expectation in your report.
 - **Add Level 1 tests** on the real `Player` and real `level1.json`: absorb all three lamps and the result is
-  **1 banked pip and 2 in the bar**; keep absorbing a fourth source and it is refused with the source unchanged
-  (bar 10 would be needed, and the single slot is full; use a fixture source for this).
+  **bar 9, no pip**. With a fixture 2-charge vending machine added, the result is **1 banked pip and 1 in the bar**;
+  keep absorbing one more fixture source until bar 10 and the single slot is full, and it is refused with the source unchanged.
 
 ### 2. Q: confirm the behaviour and test the edges
 No change to the rule you built. Add tests for: a pip pays 8 and 2 returns to the bar; if the bar is already at
@@ -47,16 +47,17 @@ Replace `chargeTransferRate` (`constants.js`, currently `1 + held / MAX_CHARGE`,
 `RATE_FLOOR = 0.4`: **1.2 units/s empty to 3 units/s full.** Export both constants for tuning. Apply to absorbing
 and charging, every target. Held charge means the bar only, not pips.
 - **Verify by measurement and put the numbers in your report.** Kiro simulated these: from an empty bar the first
-  4-unit lamp takes **2.61 s**; the three lamps to 1 pip + 2 charge take **6.55 s** (cumulative 2.61, 4.38, 6.55).
+  3-unit lamp takes **2.08 s**; the three lamps take **4.78 s** (cumulative 2.08, 3.60, 4.78); a fourth source of 2
+  (the vending machine) ends at 1 pip + 1 charge at **5.90 s**. (Kiro's model with the old 4-charge lamps gave 2.61 s and 6.55 s.)
   If yours differ, say why.
 - Update `energy_authority` and the two-way tests. Keep the conservation test: a transfer creates or loses nothing.
 
 ### 4. The charge table in one place
 Add `CHARGE_TABLE` to `constants.js` (kind to default charge), as in GAME_DESIGN_V2 3.9: security camera 1;
-vending machine 2; fuse box 2; small neon sign 2; ATM 2; shutter motor 2; charge platform 2; AC or HVAC unit 3;
-streetlight 4; large neon sign or billboard 4; generator 8; substation or transformer 10. Add
+vending machine 2; small neon sign 2; ATM 2; shutter motor 2; charge platform 2; **streetlight 3; fuse box 4; AC or HVAC unit 4** (round 15);
+large neon sign or billboard 4; generator 8; substation or transformer 10. Add
 `MAX_OBJECT_CHARGE = 10`. Existing levels keep their authored numbers; if one is above 10, log a warning, do not
-clamp. The Builder (Aki) imports the table. Test: every value is 1 to 10 and Level 1's lamps are 4.
+clamp. The Builder (Aki) imports the table. Test: every value is 1 to 10 and Level 1's lamps are 3 (round 15; Levels 2 to 6 keep their authored 4s).
 
 ### 5. Report
 Report as `CODEX 02`: per task PASS/FAIL, commit SHA, files, tests changed (old and new expectation for each),

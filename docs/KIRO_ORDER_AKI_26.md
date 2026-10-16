@@ -131,7 +131,7 @@ Chief's Desktop as a review page. To get Part 1 (the Builder tools) onto the liv
 
 **New work for Part 1: default charge by object kind** (GAME_DESIGN_V2 section 3.9). Make the palette and inspector
 defaults come from one table, not from numbers scattered in `editor/main.js` (today: generator 4 or 5, HVAC 4,
-props 4). Defaults for newly placed objects: security camera 1; vending machine, fuse box, small neon sign, ATM,
-shutter motor, charge platform 2; AC or HVAC unit 3; streetlight 4; large neon sign or billboard 4; generator 8;
+props 4). Defaults for newly placed objects (round 15 values): security camera 1; vending machine, small neon sign, ATM,
+shutter motor, charge platform 2; streetlight 3; fuse box 4; AC or HVAC unit 4; large neon sign or billboard 4; generator 8;
 substation or transformer 10. Never above 10. Existing levels keep their authored numbers. The shared table is
 added to `constants.js` by Codex (CODEX 02 task 4); import it rather than copying it.

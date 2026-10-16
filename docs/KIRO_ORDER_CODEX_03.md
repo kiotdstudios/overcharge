@@ -124,17 +124,19 @@ research"). Kiro's first version was a cyan-cored box with orange stripes; wrong
 ### 6. The tenant reacts to the AC (CODEX 01 task C4, now with a concrete use)
 The window NPC gets two line sets: `lines` (complaining) and `poweredLines` (relieved), with `linkedObjectId` naming the AC source.
 Rule: "powered" means **the AC has been switched on**. Build the check once: a helper on the level, e.g. `level.isPowered(id)`
-that is true for a source whose charge has reached its capacity (and, for the tenant, stays relieved once it has happened). The NPC draws the complaining
-animation until powered, then plays the relieved animation once and holds it, and says the `poweredLines`. State rewinds on checkpoint.
+that is true for a source whose charge is at its capacity **right now** (round 15: the AC works both ways). The NPC has three states: **hot** (complaining animation and
+`lines`), **relieved** (plays the relieved animation once, holds it, says the `poweredLines`) and **hot again** (when the player zaps the AC, she goes back to the
+complaining animation and `lines`). She switches every time the AC goes on or off. **The achievement is awarded only the first time and is never taken away.** State rewinds on checkpoint.
 Build it for the **real Level 1 AC** once Aki places it (or in a test level), not as a one-off.
 
 ### 7. The AC turns on
-The AC is an existing `ElectricalSource` of kind `hvac`, placed **uncharged** (`uncharged: true`), capacity 3. **The player charges it directly,
-like any other charged object** (hold the charge key near it; `receive()` already exists from Codex Phase A). There is no switch. It is **on** when its
-charge reaches its capacity (3), and **off** below that (a half-charged AC may flicker or sputter but the fan stays still). When it turns on it must **look and
+The AC is an existing `ElectricalSource` of kind `hvac`, placed **uncharged** (`uncharged: true`), capacity **4** (round 15; set it from `CHARGE_TABLE` once CODEX 02 adds it). **The player
+charges it directly, like any other charged object** (hold the charge key near it; `receive()` already exists from Codex Phase A). There is no switch. It is **on**
+when its charge reaches its capacity (4), and **off** below that (a half-charged AC may flicker or sputter but the fan stays still). When it turns on it must **look and
 sound on**: the fan spins, the unit hums (reuse an existing loop in `src_scroll/audio.js` or add `ac_hum`), a few cool-air particles drip from the vents
-(`src_scroll/juice.js`). If the player takes the charge back (the AC is a two-way object), the fan stops; the tenant and the achievement do **not** reverse
-(RECOMMENDED; Chief to confirm). Tests with the real Level 1 data: charging to 3 turns it on, 2.9 does not, charging a second time works, state rewinds on a checkpoint.
+(`src_scroll/juice.js`). **It works both ways (CONFIRMED, Chief round 15):** if the player zaps the charge out (hold E), the fan stops, the hum stops and the
+tenant is hot again; the **achievement stays**. Tests with the real Level 1 data: charging to 4 turns it on, 3.9 does not, zapping turns it off, the tenant goes
+hot, relieved, hot again, relieved again, the achievement unlocks exactly once, state rewinds on a checkpoint.
 
 ### 8. Achievements (new, small, CONFIRMED need)
 There is **no achievement system in the code today.** Build the smallest one that works:

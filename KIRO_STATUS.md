@@ -2347,3 +2347,17 @@ Plate switch, direct charging, or both for powering the AC (Kiro recommends the 
 - **Bus stop NPCs:** the idle animations exist and are wired (manifest `npc_bus_stop_homeless` and `npc_bus_stop_backpack`: 5 frames, 3 fps, loop). I did not watch them run in the game. Measured frame to frame: frames 1 to 4 change only 3 to 16 percent of pixels (a 1 to 2 px breath), and the loop point (frame 4 to 0 and 0 to 1) changes about 98 percent of pixels, so there is a visible pop instead of a smooth idle. They look nearly still.
 ### Open
 Do you want Codex to redraw both idles so they are readable (backpack kid: thumb scrolls, looks up, shifts weight; unhoused man: breath, scarf, glances)? The AC takes 3; does the tenant stay happy if the charge is taken back?
+## 2026-10-16 - Round 15: new economy values, AC both ways, CODEX 04
+### Chief's words
+"Fuse box 4, street light 3, AC unit 4. Will put a 24/7 market where the streetlamp woman walks and a vending machine there for 2 more charge; since we dropped street lamps to 3 we need one more prop in level 1. Add to codex 4: longer animation cycles for the two NPCs. The AC works both ways: power it and it turns on, zap it and it turns off; the tenant gets hot again but the achievement stays."
+### Done
+- `level1.json`: the three lamps are now charge 3 (three lines changed, logged). `_dev/level1_pylon.mjs` updated (16 checks plus the 9 total). `_dev/prop_sources.mjs` read the lamp as exactly 4; it now reads the lamp's own authored charge (no other change). Level 1 is 9 charge for an exit of 8: spare 1, completable.
+- Charge table (GDD 3.9) now: streetlight 3, fuse box 4, AC 4. Mirrored in CODEX 02 (CHARGE_TABLE and the Level 1 test: three lamps = bar 9, no pip; with a 2-charge vending machine 1 pip + 1) and AKI 26 (Builder defaults).
+- CODEX 03 task 6/7: tenant has three states (hot, relieved, hot again), AC on at 4 and off when zapped, achievement once, never taken away. LEVEL_DESIGN 4.3c, GDD ledger items 84 to 88, question G.
+- New `docs/KIRO_ORDER_CODEX_04.md`: longer idle cycles for the bus stop NPCs (8 s minimum, three beats each, no pop at the loop seam, review folder first, backward-compatible `ambient` list if option B).
+- Desktop `OVERCHARGE_Level1_Charge_Economy.html` rebuilt for the new numbers: ledger with the round 15 changes, six routes with a selector for the extra prop, simulator with AC both ways and tenant state, charge table. Browser-checked, no errors.
+### Findings for Chief
+1. With only the lamps and the vending machine (11), an AC left on leaves 7, one short of the exit. Zapping the AC back fixes it (the achievement stays), but a player might not think of it. An extra prop worth 1 or more (12 total) removes the trap; the fuse box (4, total 15) is Kiro's suggestion.
+2. The free pip is gone: three lamps of 3 make 9, which never fills a 10 bar. 11 makes 1 pip + 1.
+3. The market is where the streetlamp woman walks, near lamp 3 (the high route). A route that skips lamp 3 holds only 6 from the lamps; the vending machine makes it 8. I have not checked whether a lamp can be skipped in the Level 1 as built. The completability prover only counts the level total (9 available, 8 required, margin 1).
+4. One lamp (3) is not enough for the AC (4), so the player needs two sources before acting.

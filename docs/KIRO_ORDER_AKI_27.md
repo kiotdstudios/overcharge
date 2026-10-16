@@ -10,7 +10,7 @@
   from `level1.json`; only the pylon stays. Your hatch and room props are not used. Do not rebuild them.
 - **What replaces it (round 14):** a **tenant sequence in the upper area above the spawn**, reached by the ladder at the start (Kiro put the ladder and a
   one-way upper walkway back in `level1.json`, x 128, row 9 columns 3 to 13; Codex is redrawing the ladder in Night City colours, same file path and size).
-  The sequence: a new 4-panel apartment (Codex's art, CODEX 03), a tenant in a window, an AC unit that starts **off** (a charged object, uncharged, capacity 3,
+  The sequence: a new 4-panel apartment (Codex's art, CODEX 03), a tenant in a window, an AC unit that starts **off** (a charged object, uncharged, capacity 4,
   placed with the Builder's "Uncharged" checkbox; the player charges it directly, **no switch**: Chief, "switch is only meant for powering down a fence").
   Powering the AC makes her relieved and an achievement pops up on screen automatically. With an empty bar the player can
   see it but cannot act, so they go back down, absorb, and return. **You place it only after Chief approves Codex's art.** Until then, keep the upper
@@ -42,11 +42,11 @@ Chief: "she can start working to finish it." Level 1 is his, so you build it **a
 - Build the layout in `LEVEL_DESIGN_V2.md` section 4.3a with your Builder tools: add rows on top (18 to 34, shift everything +512 px), the tower at the east end,
   ladders (the ladder art must be exactly `ladder.png`), the upper roof and its ladder lesson, the fork, checkpoints CP1 to CP3, the exit on the gatehouse roof at h+19,
   and the **lift** as a charge platform with a vertical `path` (it will not move until Codex's path runtime exists: CODEX 01 C1; place it anyway).
-- **Keep what Chief built:** the street, the three 4-charge lamps (12 total), the exit cost 8, the fork, the NPCs and the decorations.
+- **Keep what Chief built:** the street, the three lamps (3 charge each since round 15, 9 total), the exit cost 8, the fork, the NPCs and the decorations.
 - **Kiro's secret is gone** (scrapped). Nothing to move. Keep a free stretch on the plaza for the tenant building (see above).
 - **Dress it** only with art that already exists and is approved (the pylon; the existing night-city buildings and props). Mark every gap where new art is coming
   (window NPC, apartment, cable, beacon) with a clearly named placeholder decoration or a comment in your report, not with the rejected art.
-- Use the default charges from `GAME_DESIGN_V2.md` section 3.9 for anything you place that holds charge. Anything placed charged adds to the level total; Level 1's source total must stay 12 unless Chief says otherwise.
+- Use the default charges from `GAME_DESIGN_V2.md` section 3.9 for anything you place that holds charge. Anything placed charged adds to the level total; Level 1's source total is set by Chief: 9 in the lamps now, plus the market vending machine (2) and one more prop he is adding. **A total of 12 or more is needed so an AC left on (4) never strands the player**; check every route finishes from zero (see `OVERCHARGE_Level1_Charge_Economy.html`). Do not add charged objects of your own without asking.
 - **Prove it:** run `completability`, `level_height`, `camera_vertical` and the reachability prover (`_dev/reach.mjs`, now fixed for tall levels) on the draft.
   Both fork branches must finish from zero charge. Report the numbers. Keep the draft's timing near the 90 to 120 second target (section 5.1a) and list any stretch longer than 8 s without something to see.
 

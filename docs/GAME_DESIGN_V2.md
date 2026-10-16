@@ -341,13 +341,13 @@ what charging it fully costs.** Tiers are 1, 2, 3, 4, 8 and 10.
 |---|---|---|---|
 | Security camera | 1 | tiny | a good first thing to charge |
 | Vending machine | 2 | small | Chief's example |
-| Fuse box | 2 | small | |
+| Fuse box | **4** | medium | **round 15: Chief raised it from 2 to 4** |
 | Small shop neon sign | 2 | small | |
 | ATM | 2 | small | |
 | Roller shutter motor | 2 | small | |
 | Charge platform (ferry, lift) | 2 | small | already built at 2 |
-| AC / HVAC unit | 3 | medium | the secret AC in Level 1 |
-| **Streetlight** | **4** | medium | **Level 1's three lamps stay at 4** (Chief is fine with that; his example was 3) |
+| AC / HVAC unit | **4** | medium | **round 15: raised from 3 to 4.** The tenant's AC in Level 1; it works both ways (on at full charge, off when zapped) |
+| **Streetlight** | **3** | small | **round 15: Chief set it to 3.** Level 1's three lamps are now 3 in `level1.json`. Levels 2 to 6 keep their authored 4s until Chief says otherwise |
 | Large neon sign, billboard | 4 | medium | already 4 in the editor |
 | **Generator** | **8** | large | Chief's example |
 | Substation or transformer | 10 | one pip | the largest an object may hold |
@@ -750,6 +750,17 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 82. **Chief asked for a charge economy page on the Desktop:** `OVERCHARGE_Level1_Charge_Economy.html`, with the rules, the Level 1 ledger, computed routes, a playable
     simulator and the charge table. It reproduces the document's numbers (first lamp 2.6 s, three lamps 6.6 s, ending 1 pip + 2).
 83. **Street litter must be the front-most object** (it draws over lamps, NPCs and the hero) **and must never sink into a rooftop tile** (Chief, round 14b). Done.
+### CONFIRMED by Chief (round 15, 2026-10-16: new economy values)
+84. **Charge table changes:** fuse box **4** (was 2), streetlight **3** (was 4), AC unit **4** (was 3). Section 3.9 is updated. Level 1's three lamps in
+    `level1.json` are now **3** (Kiro edited the three values on this order; Levels 2 to 6 keep their authored numbers).
+85. **A 24/7 market goes where the streetlamp woman walks, with a vending machine (2 charge) in it.** Chief places it. Level 1 holds 9 in the lamps; with the
+    vending machine 11. Chief: "since we dropped street lamps to 3 will need to add one more prop to level 1". Kiro suggests the fuse box (4), giving 15.
+86. **The AC works both ways.** Powered to its full 4 it turns on; zapped back out it turns off. **The tenant gets hot again when it is off, but the achievement
+    stays** ("she gets hot again but since player got achievement I guess he can move on and let her suffer"). Closes the open question in item F.
+87. **Consequence Chief should see (derived):** with only the lamps and the vending machine (11), an AC left on strands the player at 7 (the exit needs 8). They can
+    zap it back, so nobody is trapped, but the extra prop (total 12 or more) removes the trap. Also the **free pip is gone**: three lamps of 3 make 9, below one
+    full 10 bar. The economy page (`OVERCHARGE_Level1_Charge_Economy.html` on the Desktop) shows every route.
+88. **Codex 04 (new order):** longer animation cycles for the two bus stop NPCs (`KIRO_ORDER_CODEX_04.md`).
 80. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
     Kiro put "Try absorbing power from a street lamp" back in both places in `ui.js`.
 
@@ -850,7 +861,8 @@ A. **Emblem in the Capacitor Module's pulse:** steady or softening? Chief review
 B. **Charge table numbers** (3.9): confirm or edit, especially the AC unit (3) and the lift (2).
 C. **Charge-speed floor:** is 40% (1.2 units/s empty, 3 full) the right feel? Tune in play. (3.3)
 D. ~~Is the poster itself the achievement?~~ **Closed round 14:** no poster. The achievement is awarded automatically when the tenant is relieved, so a small achievements system (toast, sound, saved list) is needed (CODEX 03 task 8).
-F. **Tenant sequence, two details:** the AC takes its full 3 (spare 1): right, or should the tenant need less? If the player takes the charge back, the fan stops but the tenant stays relieved and the achievement stays (RECOMMENDED): yes? (`LEVEL_DESIGN_V2` 4.3c; the Desktop page `OVERCHARGE_Level1_Charge_Economy.html` shows the numbers)
+F. ~~Tenant sequence, two details~~ **Closed round 15** (AC is 4, works both ways, tenant hot again when it is off, achievement stays). New question G below.
+G. **Which extra prop in Level 1, and on which route is the market?** A route that skips lamp 3 holds 6 from the lamps; the vending machine (2) makes it 8. (`LEVEL_DESIGN_V2` 4.3c)
 E. **Locked pip icons:** show the locked slots dim (my pick), or hide them until unlocked? (3.8)
 
 ### OPEN questions (older)
