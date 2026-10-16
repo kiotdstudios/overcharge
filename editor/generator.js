@@ -22,6 +22,7 @@
 // Everything Chief-tunable lives in one const block at the top so future
 // swap-ins (real controller measurements, style presets) is one edit.
 
+import { defaultChargeFor } from './charge-defaults.js';
 import { state, TILE_SIZE, getCachedImage, decoDimensions,
          TILE_REGISTRY_ORDER, tileIsSolid } from './state.js';
 
@@ -373,7 +374,7 @@ function _buildLevel(rng, ctx) {
       id: 'src_gen',
       x: Math.floor(((midS.startCol + midS.endCol) / 2 + 0.5) * TILE_SIZE),
       y: (midS.roofRow - 1) * TILE_SIZE,
-      charge: 5, label: 'GEN',
+      charge: defaultChargeFor('generator'), label: 'GEN',
     });
   }
 

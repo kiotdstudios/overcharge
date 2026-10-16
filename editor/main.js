@@ -28,6 +28,12 @@ import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
 // string in src_scroll/level.js, so the Builder's "is this climbable?"
 // badge can never drift from what the runtime actually treats as a ladder.
 import { CLIMBABLE_LADDER_SRC } from '../src_scroll/level.js';
+// AKI 27 Task 3 — namespace import, NOT a named one, on purpose: CHARGE_TABLE
+// is CODEX 02 task 4 and is not in constants.js yet, and a named import of a
+// missing export is a link-time error that would take the whole Builder down
+// (see _dev/module_parse.mjs). Namespace access means defaultChargeFor() picks
+// the shared table up the moment Codex exports it, with no edit here.
+import { defaultChargeFor } from './charge-defaults.js';
 import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
@@ -1693,12 +1699,16 @@ function _doSpawn(e, canvas) {
     // Chief directive 2026-09-12: a standard generator gives 4 energy, period.
     // Other source types (e.g. ambient street lamps at ~0.5) set their own
     // `charge` — the field is per-source data, editable in the inspector.
-    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: 4 };
+    // AKI 27 Task 3: the default is the charge table's (3.9: generator 8),
+    // which re-tiers Chief's 2026-09-12 "a generator gives 4" directive.
+    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: defaultChargeFor('source') };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'source-hvac') {
     // HVAC powered source — same energy budget as a standard generator,
     // different art + fan animation. kind:'hvac' drives drawHvac in electricity.js.
-    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'HVAC', charge: 4, kind: 'hvac' };
+    // AKI 27 Task 3: default from the charge table (3.9: AC / HVAC unit 3),
+    // no longer tied to the generator's number.
+    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'HVAC', charge: defaultChargeFor('source-hvac'), kind: 'hvac' };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'source-prop') {
     // CHIEF 2026-09-26: "the new electric HVAC unit and the other electric props ... are new
@@ -1729,7 +1739,9 @@ function _doSpawn(e, canvas) {
       x: propPos.x,
       y: wallMounted ? propPos.y : _groundAt(propPos.x + 14, wy, 28),
       label: _propLabel(a.id),
-      charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
+      // AKI 27 Task 3: per-prop default from the charge table (3.9), keyed by
+      // palette asset id, not one flat 4 for every prop.
+      charge: defaultChargeFor(a.id),  // Per-source and editable in the inspector.
       kind: 'prop',
       sprite: dir,
       frames: a.frame_count  || 8,
@@ -1756,7 +1768,7 @@ function _doSpawn(e, canvas) {
     if (state.pendingSpawn.asset?.platformKind === 'charge-platform') {
       obj.kind = 'charge-platform';
       obj.h = 20;
-      obj.charge = 2;
+      obj.charge = defaultChargeFor('charge-platform');  // 3.9: charge platform 2
     }
     arr = L.platforms || (L.platforms = []); arrLabel = 'add_platform';
   } else if (kind === 'wall-switch') {
@@ -2479,6 +2491,14 @@ function _refreshSelectedProps() {
         // writing `style: null` would show up in every diff and in the manifest.
         if (el.value === '') delete ref[el.dataset.key];
         else ref[el.dataset.key] = el.value;
+        // AKI 27 Task 3: switching a plain platform to 'charge-platform' in the
+        // Inspector revealed a charge field with NOTHING in it -- the key only
+        // ever got written on placement. The default now comes from the same
+        // charge table the palette uses. Only fills an ABSENT value: a number
+        // Chief (or a level file) already set is never overwritten.
+        if (el.dataset.key === 'kind' && ref.kind === 'charge-platform' && ref.charge == null) {
+          ref.charge = defaultChargeFor('charge-platform');
+        }
       }
       else ref[el.dataset.key] = el.value;
       state.dirty = true; notify();

@@ -11,6 +11,7 @@
 // Adding a new tool: define an object below, add it to TOOLS at the bottom,
 // add a matching button in editor.html's toolbar.
 
+import { defaultChargeFor } from './charge-defaults.js';
 import {
   screenToWorld, worldToTile, TILE_SIZE,
   panCamera, zoomCamera, state, notify,
@@ -849,7 +850,7 @@ function _placeGameplayMarker(asset, worldX, worldY) {
     // Bottom-anchor so the hitbox feet land flush on the nearest solid tile surface.
     const sp = _anchorObjBottom(worldX, worldY, 28, 28);
     arr = L.sources = L.sources || [];
-    ref = { id: `src_${arr.length + 1}`, x: sp.x, y: sp.y, charge: 5, label: 'GEN' };
+    ref = { id: `src_${arr.length + 1}`, x: sp.x, y: sp.y, charge: defaultChargeFor('generator'), label: 'GEN' };
   }
 
   const action = {
