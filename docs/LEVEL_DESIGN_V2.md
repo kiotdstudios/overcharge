@@ -360,6 +360,24 @@ tower lands on the street, which is safe; the pit at col 26 stays the only death
 decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the charged-object props (not built, GAME_DESIGN_V2 3.5),
 the pylon and cable art, and the AC hatch art.
 
+### 4.3b The relay pylon and the first working AC secret, now in Level 1 (Chief's order, 2026-10-16)
+Chief: "use the relay pylon in the level so I can see how it looks all together" and "implement [the hatch and
+secret room] in lvl 1 ... so I can see it all together." Kiro added the following to `level1.json` (additive only; the file
+round-tripped byte for byte before the edit). Test: `_dev/level1_secret.mjs`, 23 checks.
+- **Relay pylon:** plaza, x 576, on the walkway. Aki's art (96 x 256).
+- **Fire escape:** a one-way platform at y 288 (six tiles above the street), columns 2 to 13.
+- **Ladder:** column 4 (x 128), street up to the fire escape. The first ladder in any shipped level; the test climbs it.
+- **AC unit:** a charged object (`kind: hvac`, capacity 3, starts **uncharged**, so the level's charge stays 12).
+- **Wall switch "AC":** costs 2. Pay it (hold SPACE next to it) and the door opens.
+- **Door:** a fence-style barrier at x 256 (the room's left wall, rows 7 to 8).
+- **Room:** a solid shell, columns 8 to 13, rows 4 to 8; the fire escape is its floor. Inside: an archive monitor, a blank
+  poster, a signal cassette and a memory cell (Aki's story-neutral props; the poster is where the first story piece goes).
+- **What it does today:** the door opens when the wall switch is paid, not when the AC unit is powered, and it looks like an
+  electric fence, not a hatch. Both are engine gaps, ordered in CODEX 03 (tasks 5 and 6). The window NPC and the apartment
+  are not in yet (their art failed review).
+- **Not required to finish the level:** the lamps still pay the exit on their own, and the street is untouched.
+- **Level economy unchanged:** the AC is uncharged, the switch costs 2 and is optional, and the three lamps are still 12 in total.
+
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
 (For the vertical layout, see 4.3a: pylon plus cable.) In the horizontal draft the gate was 4,300 px from
 the spawn, far off-screen. Two ways to show it:
@@ -636,6 +654,10 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 46 | **Q**: a pip pays the gate's 8, the other 2 returns to the bar (already built by Codex Phase A; add the edge-case tests) | Runtime + test | none | CONFIRMED round 12 (CODEX 02 task 2) |
 | 47 | **Charge speed: slow when empty, faster when full**, both directions, 1.2 to 3 units/s | Runtime + test | 40 | CONFIRMED round 11 (CODEX 02 task 3) |
 | 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are on the Desktop |
+| 49 | **Redo four failed art pieces**: window NPC (both animations), apartment, pip pickup, Capacitor Module to match concept #3 | Art (Codex) | Chief's reference sheet | CONFIRMED round 13 (CODEX 03) |
+| 50 | **Relay pylon and a first AC secret in Level 1** | Content (Kiro, by Chief's order) | none | **DONE round 13**, `_dev/level1_secret.mjs` 23/0 |
+| 51 | **State-linked hatch art** and **a barrier that opens when the AC is powered** | Runtime (Codex) | 49 not required | CONFIRMED round 13 (CODEX 03 tasks 5 and 6) |
+| 52 | **Vertical Level 1 as a separate draft file**, with proof from the provers | Content (Aki) | her Part 1 on the live line | CONFIRMED round 13 (AKI 27) |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
 | 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
 | 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |

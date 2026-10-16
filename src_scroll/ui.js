@@ -24,7 +24,7 @@ export function levelOneObjective(level, player) {
   const exit = level.gates?.find(gate => gate.isExit);
   if (!lamps.length || !exit) return null;
   if (!lamps.some(lamp => lamp.charge < lamp.max - 1e-9)) {
-    return { stage: 0, title: 'NEED TO POWER UP', task: 'Absorb power from street lamp', checked: false };
+    return { stage: 0, title: 'NEED TO POWER UP', task: 'Try absorbing power from a street lamp', checked: false };
   }
   const remaining = Math.max(0, exit.required - exit.charged);
   return { stage: 1, title: 'POWER THE EXIT', task: 'Absorb enough energy to exit gate',
@@ -69,7 +69,7 @@ function _drawLevelOneObjective(ctx, player, level, t) {
   _objectivePresentations.set(level, state);
   const second = state.stage === 1;
   const title = second ? 'POWER THE EXIT' : 'NEED TO POWER UP';
-  const task = second ? 'Absorb enough energy to exit gate' : 'Absorb power from street lamp';
+  const task = second ? 'Absorb enough energy to exit gate' : 'Try absorbing power from a street lamp';
   const reducedMotion = !!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
   const reveal = reducedMotion ? 1 : Math.min(1, Math.max(0, (t - state.enteredAt) / 0.42));
   const w = 302, h = 62;

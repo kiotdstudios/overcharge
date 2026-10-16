@@ -128,7 +128,7 @@ sec('RULING A2 — a blockOnly gate must FILL A BOUNDED OPENING (every level, no
       // (3) THE ASSERTION THAT WOULD HAVE CAUGHT THE JUMP.
       // A JUMPING body at apex, not a standing one. The ceiling clamps the head, so
       // the real apex is whichever is lower: free-flight apex, or the ceiling underside.
-      const surface = (() => { const lRows = Math.round(L.tiles.length / cols); for (let r = Math.floor((g.y+g.h)/32); r < lRows; r++) if (sol(L.tiles[r*cols+col])) return r*32; return null; })();
+      const surface = (() => { const lRows = Math.round(L.tiles.length / cols); for (let r = Math.floor((g.y+g.h)/32); r < lRows; r++) { const v = L.tiles[r*cols+col]; if (sol(v) || v === 2) return r*32; } return null; })();   // a one-way tile is a floor a player stands on (Level 1's fire escape)
       if (surface !== null) {
         let ceil = 0;
         for (let r = topRow - 1; r >= 0; r--) if (sol(L.tiles[r*cols + col])) { ceil = (r+1)*32; break; }

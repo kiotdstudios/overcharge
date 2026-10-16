@@ -713,6 +713,22 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     Chief ticks it only if and when he wants an empty one. This replaces my "new props default to uncharged"
     recommendation. (3.5)
 
+### CONFIRMED by Chief (round 13, 2026-10-16: review of Aki's branch and Kiro's Capacitor Module)
+68. **The relay pylon "looks decent".** Kiro placed it in Level 1 (plaza, x 576) so Chief can see it with everything else.
+69. **Failed review, to be redone by Codex (`KIRO_ORDER_CODEX_03.md`):** the apartment ("very blue, no real resemblance to
+    Night City props"); the window NPC's complaining animation ("looks like she is sucking on her finger or breathing on her
+    hand, not fanning herself because she's hot") and relieved animation ("doesn't look like she is happy; needs to change
+    completely"); the dropped pip pickup ("looks like a blob"); the Capacitor Module ("not bad, but I want it to look exactly
+    like number 3").
+70. **The Capacitor Module must match concept #3 exactly:** black and graphite gunmetal with amber glow and the pale MIOR triangle,
+    not a cyan core. Chief provides the reference sheet at `docs/reference/capacity_upgrade_concept_sheet.png`.
+71. **The hatch and secret room are implemented in Level 1** as a first working version so Chief can see them (see
+    `LEVEL_DESIGN_V2` 4.3b). They use today's mechanics; two engine links are ordered (CODEX 03 tasks 5 and 6).
+72. **Aki reads the new game design document and the roadmap, then builds the vertical Level 1 as a separate draft file**
+    (`KIRO_ORDER_AKI_27.md`). Codex redoes the four failed art pieces first.
+73. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
+    Kiro put "Try absorbing power from a street lamp" back in both places in `ui.js`.
+
 ### CONFIRMED by Chief (round 12, 2026-10-15)
 62. **The bar holds 10 and a pip is 10. The player starts with ONE pip slot (20 held at most). Each Capacitor
     Module adds one slot (+10), up to 5 slots (60).** Replaces option F (a growing bar). (3.1, 3.8)

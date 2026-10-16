@@ -95,3 +95,7 @@ the manifest and nothing loads them. They stay in sync for now, but **Chief shou
 deleting them** — every additional copy is another place his work can be silently lost.
 
 — Kiro, Technical Director
+
+## 3. Written orders that name files (log)
+- **2026-10-16, Chief, to Kiro:** "use the relay pylon in the level so I can see how it looks all together" and "implement [the hatch and secret room] in lvl 1 ... so I can see it all together." Kiro edited `level1.json` additively (pylon, fire escape, ladder, AC unit, wall switch, door, room). Nothing Chief placed was moved or removed; a round trip of the file before the edit was byte-identical. Test: `_dev/level1_secret.mjs`.
+- **2026-10-16, Chief, to Aki:** "she can start working to finish [Level 1]." Aki builds the vertical Level 1 as a **new file** `src_scroll/levels/level1_vertical.json` (not in `levels.json`). She does **not** edit `level1.json`. Chief compares and swaps. (`KIRO_ORDER_AKI_27.md`)

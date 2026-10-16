@@ -2297,3 +2297,22 @@ Chief rethought the pip bank. Final system, written into GAME_DESIGN_V2 (3.1, 3.
 - One level at a time: only Level 1's charge economy matters now.
 - KIRO_ORDER_CODEX_02.md rewritten: 10-unit bar and pip slots (start 1), Q edge-case tests only, charge speed 1.2 to 3 units/s (simulated: 2.61 s for the first lamp, 6.55 s for three), charge table in constants.js, Level 1 test (3 lamps = 1 pip + 2). Capacitor pickup not part of it.
 - Open: emblem steady or softening, charge-table numbers, speed floor, poster-as-achievement, locked pip icons dim or hidden.
+
+## 2026-10-16 - Round 13: Chief reviewed Aki's branch; pylon and AC secret placed in Level 1; orders for Codex and Aki
+### Chief's verdicts
+Pylon decent (placed). Apartment, window NPC (both animations), pip pickup and my Capacitor Module failed. Chief wants Codex to redo the art, Aki to read the new GDD and roadmap and work on finishing Level 1, and me to put the hatch and secret room in Level 1 so he can see it all together.
+### Level 1 (Chief's written order, logged in KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md)
+- Round trip of level1.json was byte-identical before my edit; the change is additive. Added: relay pylon (plaza, x 576), a one-way fire escape at y 288 (columns 3 to 13), a ladder (column 4), an uncharged AC unit (hvac, capacity 3, x 160), a wall switch "AC" (cost 2, x 224), a fence-style door (x 256) and a solid room shell (columns 8 to 13, rows 4 to 8) with Aki's four props. Level charge stays 12; nothing is required; the street is untouched.
+- `_dev/level1_secret.mjs` 23/0 drives the real Player and level: climb, locked door, pay 2, enter. In the real game (headless browser) the hero climbs to the fire escape and the door shows POWER REQUIRED with an empty bar.
+- Two tests tripped on first try and were handled, not loosened: parity_regression wants sources and switches grid-aligned and resting on a surface (fixed in the level), camera_vertical drops a hero at x=64 through the level (platform now starts at column 3). level2_fork's reachability scan treated a one-way tile as no floor; it now counts it as a floor.
+- Limits, stated plainly: the door opens from a switch, not from powering the AC, and it looks like an electric fence, not a hatch. Both need engine links (CODEX 03 tasks 5 and 6). The window NPC and apartment are not placed (art failed).
+### Found and fixed
+Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp". Restored "Try absorbing power from a street lamp" in both places in ui.js.
+### Measured
+The apartment draft is 95% blue-dominant pixels. Existing Night City families run 43% to 86% (filler_wall 80%). So "very blue" is true but the real gap is texture and warm/purple accents; CODEX 03 says so.
+### Orders
+- KIRO_ORDER_CODEX_03.md: redo window NPC, apartment, pip pickup, Capacitor Module (match concept #3: black and graphite metal, amber glow, MIOR triangle, no cyan), then state-linked hatch art and "barrier opens when the AC is powered". Comes before CODEX 02. Needs Chief to save the concept sheet at docs/reference/capacity_upgrade_concept_sheet.png (I cannot copy a chat attachment).
+- KIRO_ORDER_AKI_27.md: rebase and push Part 1, read the plan, build the vertical Level 1 as a separate draft file (src_scroll/levels/level1_vertical.json, not in levels.json, level1.json untouched), prove it with the provers.
+- docs/OVERCHARGE_Level1_Roadmap.pdf added to the repo (regenerated, 7 pages) and on the Desktop.
+### Suite
+2822 passed, 7 failed (level2_fork 2, npc_dialogue 4, prop_sources 1, plus two crashes): the same 7 as the live line before my change.
