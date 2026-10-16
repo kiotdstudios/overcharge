@@ -8,6 +8,13 @@ function dist(ax, ay, bx, by) {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
+// Shared predicate for source-controlled doors and reactive NPC dialogue.
+// Unknown IDs fail closed; the same threshold is used by both consumers.
+export function isSourcePowered(sources, id, min = 1) {
+  const source = sources.find(s => s.id === id);
+  return !!source && source.charge >= min - 1e-9;
+}
+
 // ──────────────────────────────────────────────
 // ElectricalSource: fuse box / battery / generator
 // ──────────────────────────────────────────────
@@ -264,7 +271,8 @@ const GATE_DRAW_H = 105;   // = GATE_SRC_H -> 1:1, unchanged from before
 
 export class PowerGate {
   constructor({ id, x, y, w, h, required, isExit = false, blockOnly = false, label = '',
-                timed = false, duration = 3, style = null }) {
+                timed = false, duration = 3, style = null, closedSrc = '', openSrc = '',
+                openWhenSourceCharged = null }) {
     this.id        = id;
     this.x         = x; this.y = y;
     this.w         = w; this.h = h;
@@ -273,6 +281,12 @@ export class PowerGate {
     this.open      = false;
     this.isExit    = isExit;
     this.blockOnly = blockOnly; // switch-only barrier — player can't discharge into it
+    // Optional reversible source-controlled barrier. The Level resolves this against
+    // the named source each frame, after switches, so a spent source closes it again.
+    this.openWhenSourceCharged = blockOnly && openWhenSourceCharged &&
+      typeof openWhenSourceCharged.id === 'string' &&
+      Number.isFinite(openWhenSourceCharged.min) && openWhenSourceCharged.min >= 0
+      ? { id: openWhenSourceCharged.id, min: openWhenSourceCharged.min } : null;
     this.label     = label;
     this._t        = 0;
     this._openAge  = 0;
@@ -302,16 +316,21 @@ export class PowerGate {
     // meaningful on a blockOnly barrier — a fence is held up by a wall switch,
     // not charged by the player — so style:"fence" on a chargeable gate is an
     // authoring error. Warn and ignore, same doctrine as timed+isExit.
-    if (style !== null && style !== undefined && style !== 'default' && style !== 'fence') {
+    if (style !== null && style !== undefined && style !== 'default' && style !== 'fence' && style !== 'hatch') {
       console.warn(`[gate] "${id}" has unknown style "${style}" — falling back to default.`);
       style = null;
     }
-    if (style === 'fence' && !blockOnly) {
-      console.warn(`[gate] "${id}" declares style:"fence" but is not blockOnly — ignoring style. ` +
-        `A fence is opened by its linked wall switch, never charged directly.`);
+    if ((style === 'fence' || style === 'hatch') && !blockOnly) {
+      console.warn(`[gate] "${id}" declares style:"${style}" but is not blockOnly — ignoring style.`);
       style = null;
     }
-    this.style = (style === 'fence') ? 'fence' : null;
+    this.style = (style === 'fence' || style === 'hatch') ? style : null;
+    this._hatchClosed = new Image();
+    this._hatchOpen = new Image();
+    if (this.style === 'hatch') {
+      this._hatchClosed.src = closedSrc || 'assets/objects/night-city-props/secret-room/hatch_closed.png';
+      this._hatchOpen.src = openSrc || 'assets/objects/night-city-props/secret-room/hatch_open.png';
+    }
     // Sprite art — fallback + animated sheet + open frame.
     // Attach onload logging so we can verify in the browser devtools
     // that the sheet actually loaded (prior "static gate" report was
@@ -611,6 +630,21 @@ export class PowerGate {
     ctx.restore();
   }
 
+  _drawHatch(ctx) {
+    const img = this.open ? this._hatchOpen : this._hatchClosed;
+    // The hatch artwork is 64x32; keep its aspect ratio while centering it on
+    // the collision volume. The collider remains exactly the authored gate box.
+    const drawW = Math.max(64, this.w);
+    const drawH = Math.min(this.h, Math.round(drawW / 2));
+    const x = Math.round(this.cx - drawW / 2);
+    const y = Math.round(this.y + (this.h - drawH) / 2);
+    ctx.save();
+    ctx.imageSmoothingEnabled = false;
+    if (img.complete && img.naturalWidth > 0) ctx.drawImage(img, x, y, drawW, drawH);
+    else if (!this.open) drawGlowRect(ctx, x, y, drawW, drawH, '#151a25', '#61798d', 0);
+    ctx.restore();
+  }
+
   _drawPipBurst(ctx) {
     if (this._pipFlash <= 0) return;
     const life = Math.min(1, this._pipFlash / 0.75);
@@ -637,6 +671,7 @@ export class PowerGate {
     // never shows a [SPACE] prompt, and never reaches the gate/dormancy art path
     // below. A styleless gate is completely unaffected by this branch.
     if (this.style === 'fence') { this._drawFence(ctx); return; }
+    if (this.style === 'hatch') { this._drawHatch(ctx); return; }
     const t = this._t;
 
     // ── Draw geometry (independent from hitbox) ──

@@ -1,0 +1,21 @@
+{
+  "apartment": {
+    "files": 4,
+    "failures": [],
+    "blue_share": 0.7462,
+    "warm_share": 0.0542,
+    "purple_share": 0.0409
+  },
+  "npc": {
+    "files": 12,
+    "failures": []
+  },
+  "pip": {
+    "files": 4,
+    "failures": []
+  },
+  "capacitor": {
+    "files": 20,
+    "failures": []
+  }
+}

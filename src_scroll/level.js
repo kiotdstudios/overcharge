@@ -2,7 +2,7 @@
 import { TILE, COLS, ROWS, MAX_ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { tileIsSolid } from './terrain-policy.js';
-import { ElectricalSource, PowerGate, Switch, PipPickup } from './electricity.js';
+import { ElectricalSource, PowerGate, Switch, PipPickup, isSourcePowered } from './electricity.js';
 import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
@@ -215,7 +215,19 @@ export class Level {
     for (const sw of this.switches) {
       if (sw.on && sw.linkedId) {
         const gate = this.gates.find(g => g.id === sw.linkedId);
-        if (gate && !gate.open) gate.open = true;
+        if (gate && !gate.openWhenSourceCharged && !gate.open) gate.open = true;
+      }
+    }
+
+    // Source control is reversible and authoritative even when an older wall
+    // switch remains linked to the same door. Missing sources fail closed.
+    for (const gate of this.gates) {
+      const rule = gate.openWhenSourceCharged;
+      if (!rule) continue;
+      const shouldOpen = isSourcePowered(this.sources, rule.id, rule.min);
+      if (gate.open !== shouldOpen) {
+        gate.open = shouldOpen;
+        gate._openAge = 0;
       }
     }
 
