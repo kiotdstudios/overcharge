@@ -507,6 +507,8 @@ Results: the route takes **about 110 s**, inside the 90 to 120 s target. The fir
 and the first spend at **12.2 s** (the first-minute loop is met). The longest run without a beat is **6.9 s**
 (under the 8 s rule). Sprinting everything and skipping every beat takes **36.3 s**, so the floor is short;
 exploration (the opening ladder, the AC secret, the low route) is what adds time, as intended.
+**Scope rule (Chief, round 12): one level at a time. This table and the economy section are about Level 1 only; do not rework Levels 2 to 6 yet.**
+
 **Round 11 changes this: Chief chose a charge speed that is SLOW when the bar is empty (1.2 units/s) and reaches 3 units/s only when full (GAME_DESIGN_V2 3.3).** Calculated by simulation (_kiro_tools/absorb_time.mjs): the first 4-unit lamp takes **2.6 s instead of 1.3 s**, so the first absorb lands at about **9.3 s** instead of 8.0 s, and absorbing all three lamps (to 1 pip plus 2 charge) takes **6.55 s instead of 4.0 s**. Charging a gate is slower for the same reason when the bar is low. The route total in this table therefore grows by roughly 3 to 5 s; re-run it once the rule is built. The lift (segment 16) is the single new thing the player waits for;
 if it feels slow, raise its speed rather than shorten the ride.
 
@@ -625,13 +627,13 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 20 | Regenerate `PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
 | 21 | **Q pip use**: instant gate open, amend the "no one-press" comment, update `pip_gate_spend` | Runtime + test | none | CONFIRMED round 3 |
 | 22 | **Charge-speed scaling** (see GAME_DESIGN_V2 3.3: original for charging, mine for absorbing, OPEN) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
-| 40 | **10-unit bar**: `MAX_CHARGE` becomes 10, a pip banks at 10, HUD reads / 10, tests rewritten (CODEX 02 task 1) | Runtime + test | none | CONFIRMED round 11 |
-| 41 | **Capacitor Module pickup**: entity, effect, animation, checkpoint rule, Builder placement | Runtime + Builder | what it raises (OPEN) | **ON HOLD** |
+| 40 | **10-unit bar and pip slots**: `MAX_CHARGE` becomes 10, a pip is 10, the player starts with 1 slot, HUD reads / 10 with dim locked icons, tests rewritten (CODEX 02 task 1) | Runtime + test | none | CONFIRMED round 12 |
+| 41 | **Capacitor Module pickup** (adds one pip slot): entity, animation, checkpoint rule, Builder placement | Runtime + Builder | 40 | Later (not Level 1) |
 | 42 | **Capacitor Module art** (48 x 48, 8-frame idle) | Art (Kiro) | none | **DONE round 10** |
 | 43 | **Charge bar colours** red, yellow, cyan | Runtime | none | CONFIRMED round 10 (Kiro) |
-| 44 | Decide where the first Capacitor Module appears (not the AC-secret room) | Design | 41 | OPEN, Chief |
+| 44 | Decide where the first Capacitor Module appears (not Level 1, not the AC-secret room) | Design | 41 | Later, Chief |
 | 45 | **Charge table** in one place in code; Builder defaults per object kind (GAME_DESIGN_V2 3.9) | Runtime + Builder | none | CONFIRMED round 11 (CODEX 02 task 4, AKI 26 addendum) |
-| 46 | **Q spends the whole pip** (remove the remainder refund) | Runtime | none | CONFIRMED round 11 (CODEX 02 task 2) |
+| 46 | **Q**: a pip pays the gate's 8, the other 2 returns to the bar (already built by Codex Phase A; add the edge-case tests) | Runtime + test | none | CONFIRMED round 12 (CODEX 02 task 2) |
 | 47 | **Charge speed: slow when empty, faster when full**, both directions, 1.2 to 3 units/s | Runtime + test | 40 | CONFIRMED round 11 (CODEX 02 task 3) |
 | 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are on the Desktop |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |

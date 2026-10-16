@@ -2287,3 +2287,13 @@ Chief answered the seven questions. Recorded in GAME_DESIGN_V2 (ledger items 55-
 Branch agent/aki-order26: 16 commits, all pushed, but NOT on the live line (agent/orcha-gameplay), so Chief cannot see it in the game or Builder. Part 1 (level readout, platform path tool, reactive NPC fields, level-height fixes, ability checkboxes, ladder badge) is committed. Part 2 art: apartment facade FAIL (her verdict), window NPC art PASS, AC recolour geometry PASS with a border waiver request, pylon, cable, beacon, hatch room and pip pickup PASS. Nothing registered or placed. A dry-run merge into the live line conflicts only in the three generated import maps. Her suite figures (2761/24) are against her older base.
 ### Review pages on Chief's Desktop
 OVERCHARGE_Review_Capacitor_Module.html (animated) and OVERCHARGE_Review_Aki26_Part2_Art.html (her sheets plus animated window NPC and pip). Both render with no errors.
+
+## 2026-10-15 - Round 12: the charge system settled (docs only)
+Chief rethought the pip bank. Final system, written into GAME_DESIGN_V2 (3.1, 3.2 note, 3.3, 3.8, new 3.10, ledger items 62-67) and LEVEL_DESIGN_V2 (work list 40, 41, 44, 46, scope rule):
+- The bar holds 10 and a pip is 10. The player starts with ONE pip slot (20 held at most). Each Capacitor Module, later, adds a slot (+10), up to 5 slots (60). Full bar plus full slots refuses extra absorbing and the source keeps its charge.
+- Q takes a banked pip, pays the gate's 8, and the other 2 returns to the bar (overflow lost). Codex's Phase A already does this, so no code change. Exits stay at 8; the "exits cost 10" and "growing bar" (option F) ideas were dropped.
+- Special moves become learnable projectile upgrades and new moves that cost more charge (3.10, concept, later).
+- The Capacitor Module appears later (not Level 1, not Level 2 by default, not the AC-secret room).
+- One level at a time: only Level 1's charge economy matters now.
+- KIRO_ORDER_CODEX_02.md rewritten: 10-unit bar and pip slots (start 1), Q edge-case tests only, charge speed 1.2 to 3 units/s (simulated: 2.61 s for the first lamp, 6.55 s for three), charge table in constants.js, Level 1 test (3 lamps = 1 pip + 2). Capacitor pickup not part of it.
+- Open: emblem steady or softening, charge-table numbers, speed floor, poster-as-achievement, locked pip icons dim or hidden.

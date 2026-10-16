@@ -72,26 +72,25 @@ first minute**. See Level Design V2 for how.
 
 ## 3. The energy system
 
-### 3.1 Units and the meter (BUILT, verified in `src_scroll/player.js` 201 to 355)
-- Charge is counted in units. One lamp holds 4. An exit gate costs 8.
-- **CONFIRMED (round 10): the player starts with 10 charge, and a full bar of 10 is one pip.** Chief: "when
-  you have 10 charge you have a full pip." This restores the rule of the first iteration (v0.1 to v0.3:
-  `MAX_CHARGE` was 10 and filling the bar banked a pip and reset it). The raise from 10 to 25 on 2026-10-09
-  (commit `582b07d`, "Raise MAX_CHARGE 10->25") is reversed. **NOT BUILT:** the code still says
-  `MAX_CHARGE = 25`, and "25 charge fills one pip" (ledger item 6) is superseded.
-- **CONFIRMED (round 11): a pip always banks at 10.** Chief: "no, pip still gets banked at 10." A pip is
-  10 charge, always. This replaces my round 10 reading that a pip would grow with the bar. It also means the
-  bar itself tops out at 10 (the instant it reaches 10 it banks a pip and resets), so **an upgrade item
-  cannot simply make the bar bigger.** What the Capacitor Module raises instead is OPEN (section 3.8).
-- The reserve still holds **up to 5 pips** (`MAX_BANKED_PIPS`). Usable energy is `bar + pip value x pips`: with
-  a 10 bar that is at most 60 (it was 150 with a 25 bar). At the cap the bar stays full and further energy is
-  refused (a source gets it back).
-- **As built today, before round 10:** bar 25, pip 25, usable up to 150.
-- Absorbing and discharging both move **3 units per second** (see 3.3 for the speed rule). A lamp's 4 units
-  take about 1.3 s. A gate's 8 units take about 2.7 s. A whole 10-unit pip takes about 3.3 s to absorb (it was
-  8.3 s with a 25 bar).
-- All gains and losses go through one authority in `player.js`. Nothing else may assign `charge` or
-  `bankedPips`.
+### 3.1 Units, the bar and the pip slots (CONFIRMED round 12; code still on the old 25-unit bar)
+- Charge is counted in units. One streetlight holds 4. An exit gate costs **8** (the ruling stays).
+- **The bar holds 10.** **A pip is always 10.** When the bar reaches 10 and a pip slot is free, it banks a
+  pip and resets to 0 (the first iteration's rule), carrying any overflow into the new bar.
+- **Pip slots (CONFIRMED round 12).** The reserve has **slots**, and each slot holds one pip. **The player
+  starts with ONE slot,** so the most they can hold at the start is **20: 10 in the bar and 1 banked pip.**
+  Each **Capacitor Module adds one slot (10 more charge to hold):** 2 slots is 30, and so on up to the HUD's 5
+  slots, a maximum of 60 (`MAX_BANKED_PIPS` becomes the ceiling, and the player's slot count is what grows).
+- **When everything is full** (bar 10, every slot holding a pip), further absorbing is refused and the source
+  keeps its charge (it is not lost).
+- Usable energy is `bar + 10 x pips`.
+- Absorbing and charging speed: see 3.3 (slow when the bar is empty, 3 units/s when full). A lamp's 4 units take
+  about 2.6 s from an empty bar.
+- All gains and losses go through one authority in `player.js`. Nothing else may assign `charge` or `bankedPips`.
+- **Rejected on the way here (kept so nobody reopens them):** a pip that grows with the bar; a bar that grows
+  while pips bank at 10 ("option F"); exits that cost 10; a whole-pip Q that wastes the change.
+- **As built today (code still to change):** bar 25, pip 25, up to 5 slots from the start, usable up to 150. The
+  change to the rules above is task 1 in `KIRO_ORDER_CODEX_02.md`. "25 charge fills one pip" (ledger item 6)
+  is superseded.
 
 ### 3.2 How pips and an ordinary 8-charge gate interact (BUILT, TESTED)
 **Round 10 note:** the table below was measured with the 25-unit bar. The rules are the same at a 10-unit
@@ -137,6 +136,8 @@ Rules these results establish:
 | 0, 5 | 2, 4 | One pip is promoted, four remain. |
 | 9, 5 | 1, 5 | The bar pays first. All 5 pips untouched (derived from rule 1). |
 
+(Rows with several pips assume the player has that many slots. From round 12 the player starts with one.)
+
 At a 10 bar: **one pip pays one 8-gate and leaves 2; two pips pay two gates and leave 4** (the old "one pip
 pays three gates" no longer holds). A hit (1 unit) at bar 0 with 1 pip leaves bar 9, 0 pips; a bolt leaves 9.75.
 
@@ -150,19 +151,18 @@ pays three gates" no longer holds). A hit (1 unit) at bar 0 with 1 pip leaves ba
 - **History (found round 10).** The first iteration already had this: pressing **F** near a gate or switch
   with a banked pip powered it at once (`_updatePipSpend` in the v0.3 `player.js`), and the device flashed
   white. The key is now Q. The original spent the **whole** pip on whatever the device still needed.
-- **CONFIRMED (round 11): Q spends the WHOLE pip, as the original did.** A 10-unit pip on an 8-charge exit
-  wastes the other 2; nothing returns to the bar. Chief: "yes Q spends the whole pip right now, its gate-only
-  spend; later it could spend on a special attack when fighting a boss or something." So **for now Q is a
-  gate and switch action only**, and a boss-fight special attack is a later **CONCEPT** (the spend function
-  should take a purpose so a second use can be added without rewriting it). **Code check:** Codex's Phase A
-  built Q so that the remainder returns to the bar (`this.giveEnergy(pip - needed)` in
-  `_updatePipSpend`); that line has to go (task in `KIRO_ORDER_CODEX_02.md`). Drawback to note, not to
-  fix: because the remainder is lost, paying an exit with Q wastes 2 charge, so a player who can pay with
-  the bar will usually prefer to.
-- **CONFIRMED (round 11): the free pip in Level 1 is fine.** Level 1 holds 12 charge (three lamps of 4,
-  which Chief is happy to keep). A player who absorbs all three lamps ends with **1 banked pip and 2 charge**
-  in the bar, and that is the intended state "to begin the next level". Lamp 3 is therefore the first pip
-  lesson, and Q can pay the exit. (Teaching rule T7 is relaxed for this one beat by Chief's choice.)
+- **CONFIRMED (round 12): Q takes a banked pip, pays the gate's price (8), and the other 2 goes back to the
+  bar.** Chief: "a pip pays the 8 and 2 returns to the bar." Anything that does not fit in the bar (the bar is
+  full) is lost. Q needs a banked pip; it is not a way to spend loose bar charge. It is the instant version of
+  holding SPACE, and a pip is the price of that speed. (This replaces round 11's whole-pip rule; Codex's Phase A
+  already built it this way, so no code change is needed there.) The boss "special attack" idea is replaced by
+  learnable moves that cost charge (section 3.10).
+- **CONFIRMED (round 11 and 12): the free pip in Level 1 is fine.** Level 1 holds 12 charge (three lamps of 4,
+  which Chief keeps). A player who absorbs all three ends with **1 banked pip and 2 charge in the bar.** That
+  banks into the starting slot, so the player is then at 12 of a possible 20. Lamp 3 is the first pip lesson,
+  and Q can pay the exit. **Chief's rule (round 12): design one level at a time. Only Level 1's economy
+  matters now; ignore charge and pip problems in Levels 2 to 6 until they resume** (for example a pip carried
+  into Level 2 blocking its chest).
 - **CONFIRMED (round 11): charge is slow when the bar is empty and speeds up gradually; the more charge the
   player holds, the faster they absorb powered objects.** Chief wants the original idea, applied to **both**
   absorbing and charging. This settles the O-versus-M choice below in favour of the original shape.
@@ -311,32 +311,25 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 - Dormant code: `spendPip()` has no runtime caller, `_pipFlash` is never set above 0, and several
   comments still say `MAX_CHARGE = 10`.
 
-### 3.8 The Capacitor Module (item art DONE; what it does is OPEN)
-- **CONFIRMED (round 10):** the player starts with 10 charge, and an obtainable item raises the player's
-  **overall** charge. Item #3 on Chief's concept sheet, the **Capacitor Module**, is that item. The sheet's goal
-  line: "permanently increases the player's maximum charge count (starts at 10)", with a HUD mock of
-  **10 / 10 becoming 14 / 14.** The other eleven concepts on the sheet (Power Core, Charge Cell, Energy Shard,
-  Neural Band, Circuit Chip, Tesla Coil, Reactor Module, Energy Canister, Tempest Fragment, Data Drive, Power
-  Ring) stay available for later upgrades.
-- **CONFIRMED (round 11): a pip still banks at 10.** That collides with the sheet's 14 / 14 mock: if every full
-  10 becomes a pip and the bar resets, the bar can never show 14. So the module cannot make the bar bigger. 
-- **OPEN, my recommendation first. What does "overall charge" mean?**
-  1. **(RECOMMENDED) More pip slots.** Each Capacitor Module adds **one slot to the reserve** (5 becomes 6,
-     up to a cap such as 8). Overall charge goes from 10 + 5 x 10 = 60 to 70 per module. The bar stays 10, a
-     pip stays 10, the HUD adds one pip icon, and nothing about the pip rule changes. It also fits the concept
-     sheet's goal line ("maximum charge count") if "charge count" means the reserve.
-  2. **A bigger bar that banks later** (the sheet's 14 / 14 literally). This needs the pip to bank at 14,
-     which Chief has just ruled out.
-  3. **Something else** Chief has in mind (faster absorb, a stronger first hit, a bigger pickup).
-- **Placement is OPEN.** Chief ruled the AC-secret room does not give it: that reward is **"the poster or
-  piece of the story, an achievement"** (section 4.6 of the level document). Where the first Capacitor Module
-  appears (which level, and how it is earned) is not decided. It must not be required to finish a level.
-- **Art: DONE (round 10).** `assets/objects/capacity-upgrade/`: a 48 x 48 still and a 9-frame idle loop; a
-  review page is on Chief's Desktop. Chief wants to see it before deciding whether the emblem should stay
-  steady or keep softening in the pulse. It is not registered in the manifest and not placed anywhere.
-- **Engine work: ON HOLD** until Chief answers the question above (the old task A5 is replaced by the smaller
-  one in `KIRO_ORDER_CODEX_02.md`).
-- **Lore:** the concept sheet's MIOR, Project Tempest and "MIOR drones" are now **official story canon**
+### 3.8 The Capacitor Module: +1 pip slot (CONFIRMED round 12; art DONE; pickup later)
+- **CONFIRMED.** The Capacitor Module (item #3 on Chief's concept sheet) adds **one pip slot**, so the player
+  can hold **10 more charge**: 20 becomes 30, up to 5 slots and 60. Chief: "an additional 1 pip, or the ability
+  to hold 10 more charge, so then a player can have a total of 30 max charge."
+- **CONFIRMED: it appears later,** not in Level 1 (Level 1 uses up the starting slot) and not in the AC-secret
+  room (that reward is the poster / story piece / achievement). Which level, and how it is earned, is decided
+  when that level is designed. It must never be required to finish a level.
+- **At most four modules** are needed (slots 2 to 5). The concept sheet's other eleven items stay available for
+  other upgrades, for example stronger shots (section 3.10).
+- **Art: DONE (round 10).** `assets/objects/capacity-upgrade/` (48 x 48 still, 9-frame idle). A review page is on
+  Chief's Desktop. Chief wants to see it before deciding whether the triangle should stay steady or keep
+  softening during the pulse. Not registered in the manifest, not placed anywhere.
+- **Engine work: the pickup entity is NOT needed for Level 1** and waits. What Level 1 does need is the slot
+  system itself (`pipSlots` starting at 1), which is in `KIRO_ORDER_CODEX_02.md`. When the pickup is built it adds
+  one slot, plays the pickup burst and sound, shows the new pip icon lighting up, is permanent for the run and
+  survives a checkpoint rewind.
+- **HUD:** five pip icons are drawn; slots the player has not unlocked show as dim "locked" icons, unlocked empty
+  slots show as empty, and banked pips show charged.
+- **Lore:** the concept sheet's MIOR, Project Tempest and "MIOR drones" are official story canon
   (`docs/STORY_CANON_THE_MERIDIAN_INCIDENT.md`).
 
 ### 3.9 The charge table (CONFIRMED principle; numbers RECOMMENDED)
@@ -369,6 +362,17 @@ Rules:
    `KIRO_ORDER_CODEX_02.md`) so the Builder and the game read the same numbers.
 5. Reclaiming is always possible (two-way), so there is no "permanent cost"; the real constraint is the
    stranding rule in section 3.5 (every charged object must stay reachable by two-way paths).
+
+### 3.10 Moves that cost charge (CONCEPT, later; not in Level 1)
+Chief (round 12): instead of a special move that spends a whole pip, the player will **learn or upgrade the
+projectile, or get new moves, each stronger and costing more charge to use.**
+- **Today:** the bolt (L) costs 0.25 charge and its combat role starts in Level 3 (hidden in Level 1).
+- **Shape (RECOMMENDED, not decided):** a few tiers of shot, each costing more (for example 0.25, 1, 2) and doing
+  more; later moves unlocked by items (the Tesla Coil, Reactor Module or Tempest Fragment on the concept sheet
+  fit), each with a visible charge cost on the HUD.
+- **Things to design when we get there:** how the player earns charge back in a fight (enemies drop 2 each today),
+  how the out-of-charge detection treats charge spent on offence (CODEX 01 B3), and where each upgrade appears.
+- Nothing here is built or scheduled.
 
 ---
 
@@ -709,11 +713,21 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     Chief ticks it only if and when he wants an empty one. This replaces my "new props default to uncharged"
     recommendation. (3.5)
 
+### CONFIRMED by Chief (round 12, 2026-10-15)
+62. **The bar holds 10 and a pip is 10. The player starts with ONE pip slot (20 held at most). Each Capacitor
+    Module adds one slot (+10), up to 5 slots (60).** Replaces option F (a growing bar). (3.1, 3.8)
+63. **Q takes a banked pip, pays the gate's 8, and the other 2 returns to the bar.** Supersedes item 57. (3.3)
+64. **Exits stay at 8.** The "exits cost 10" idea is dropped, and Level 1's totals and fork are unchanged.
+65. **Special moves become learnable projectile upgrades and new moves that cost more charge,** not a whole-pip
+    special attack. Later. (3.10)
+66. **The Capacitor Module appears later,** not in Level 1. (3.8)
+67. **One level at a time: ignore the charge economy of Levels 2 to 6 for now and focus only on Level 1.** (3.3)
+
 ### CONFIRMED by Chief (round 11, 2026-10-15)
 55. **A pip always banks at 10.** The bar tops out at 10. (3.1)
 56. **Each powered object has its own charge, scaled to how powerful it is** (vending machine 2, generator 8, a
     streetlight 3 or 4; Level 1's lamps stay 4). Kiro writes the table. (3.9)
-57. **Q spends the whole pip,** gate and switch only for now; a boss special attack is a later concept. (3.3)
+57. (SUPERSEDED by item 63) **Q spends the whole pip,** gate and switch only for now; a boss special attack is a later concept. (3.3)
 58. **Charge is slow when empty and gets faster as the bar fills,** for absorbing and charging. (3.3)
 59. **The free pip in Level 1 is fine:** three lamps of 4 give 1 pip and 2 charge. (3.3)
 60. **The AC-secret room gives the poster / story piece / achievement,** not the Capacitor Module. (3.8)
@@ -791,16 +805,12 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     enemy. NPC voice depends on the NPC: some are filler, some drive story. The game has no story yet, so
     one must be built. (see `LEVEL_DESIGN_V2`)
 
-### OPEN questions (need Chief), round 11
-A. **What does the Capacitor Module raise,** given a pip banks at 10? My pick: one more pip slot in the
-   reserve per module. (3.8)
-B. **Where does the first Capacitor Module appear?** Not the AC-secret room. (3.8)
-C. **Emblem in the Capacitor Module's pulse:** steady or softening? Chief reviews the Desktop page first. (3.8)
-D. **Charge table numbers** (section 3.9): confirm or edit, especially the streetlight (4 vs your 3), the AC
-   unit (3) and the lift (2).
-E. **Charge-speed floor:** is 40% (1.2 units/s empty, 3 full) the right feel? Tune in play. (3.3)
-F. **The AC-secret room reward** is the poster / story piece / achievement. Does an achievement need a small
-   system (a list, a pop-up), or is the poster itself the achievement? (`LEVEL_DESIGN_V2` 4.6)
+### OPEN questions (need Chief), round 12
+A. **Emblem in the Capacitor Module's pulse:** steady or softening? Chief reviews the Desktop page first. (3.8)
+B. **Charge table numbers** (3.9): confirm or edit, especially the AC unit (3) and the lift (2).
+C. **Charge-speed floor:** is 40% (1.2 units/s empty, 3 full) the right feel? Tune in play. (3.3)
+D. **Is the poster itself the achievement,** or does an achievement need a small system (a list, a pop-up)? (`LEVEL_DESIGN_V2` 4.6)
+E. **Locked pip icons:** show the locked slots dim (my pick), or hide them until unlocked? (3.8)
 
 ### OPEN questions (older)
 1. Charge-speed formula: Chief adopted `1 + held / 25` (3 to 6 units/s) for now; **to be tuned in play.**
