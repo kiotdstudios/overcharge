@@ -8,4 +8,4 @@ Panel order: `left.png` (192×256), `display_bay.png` (160×256), `entrance_bay.
 
 Generated with the built-in image tool from the supplied storefront photograph plus the existing convenience-store, warehouse, and streetlight art. Prompt emphasis: straight-on crisp pixel facade; exact QUIK MART sign; four structural bays; aligned roof and base; near-black/graphite/indigo materials, restrained cyan edge light, amber interiors; no ground tile or separate props.
 
-**Status: placed in Level 1.** The 640 px source facade is displayed at 464 px wide and 186 px high, from x=1608 to 2072 with its base at y=320. The four panels remain independently selectable in the Builder; the source review files remain here.
+**Status: placed in Level 1.** The 640 px source facade is displayed at 400 px wide and 160 px high, from x=1640 to 2040 with its base at y=320. The four panels remain independently selectable in the Builder; the source review files remain here.
