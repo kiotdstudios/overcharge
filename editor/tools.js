@@ -11,6 +11,7 @@
 // Adding a new tool: define an object below, add it to TOOLS at the bottom,
 // add a matching button in editor.html's toolbar.
 
+import { defaultChargeFor } from './charge-defaults.js';
 import {
   screenToWorld, worldToTile, TILE_SIZE,
   panCamera, zoomCamera, state, notify,
@@ -35,7 +36,7 @@ import * as Selection from './selection.js';
 // backing resolution — a raw CSS-pixel mouse coord will hit-test at the
 // wrong world position. Scale by (backing / CSS) so click coords land in
 // the same coordinate space that render uses.
-function canvasCoords(evt, canvas) {
+export function canvasCoords(evt, canvas) {
   const r = canvas.getBoundingClientRect();
   const scaleX = r.width  > 0 ? canvas.width  / r.width  : 1;
   const scaleY = r.height > 0 ? canvas.height / r.height : 1;
@@ -44,7 +45,7 @@ function canvasCoords(evt, canvas) {
     sy: (evt.clientY - r.top)  * scaleY,
   };
 }
-function worldUnderMouse(evt, canvas) {
+export function worldUnderMouse(evt, canvas) {
   const { sx, sy } = canvasCoords(evt, canvas);
   return screenToWorld(sx, sy);
 }
@@ -849,7 +850,7 @@ function _placeGameplayMarker(asset, worldX, worldY) {
     // Bottom-anchor so the hitbox feet land flush on the nearest solid tile surface.
     const sp = _anchorObjBottom(worldX, worldY, 28, 28);
     arr = L.sources = L.sources || [];
-    ref = { id: `src_${arr.length + 1}`, x: sp.x, y: sp.y, charge: 5, label: 'GEN' };
+    ref = { id: `src_${arr.length + 1}`, x: sp.x, y: sp.y, charge: defaultChargeFor('generator'), label: 'GEN' };
   }
 
   const action = {

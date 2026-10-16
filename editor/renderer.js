@@ -958,6 +958,44 @@ function _drawEnemies(ctx, arr) {
 
 // Moving platform: horizontal teal rect + dashed patrol path + endpoint ticks.
 // Matches runtime MovingPlatform draw style from entities.js.
+// AKI_26 1.3: draw a platform's path as a polyline through its waypoints
+// (world coords, converted via worldToScreen so it tracks pan/zoom like
+// everything else) with numbered dots at each point. Used for both the
+// standard and charge-platform render branches. Points are drawn BRIGHTER
+// and bigger while this platform is the active path-edit target, so Chief
+// can tell at a glance which platform's path he's currently editing.
+function _drawPlatformPath(ctx, pl, color) {
+  const editing = state.pathEditTarget === pl;
+  const pts = pl.path.map(w => worldToScreen(w.x, w.y));
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.globalAlpha = editing ? 0.85 : 0.4;
+  ctx.setLineDash([5, 4]);
+  ctx.lineWidth = editing ? 2 : 1;
+  ctx.beginPath();
+  ctx.moveTo(pts[0].x, pts[0].y);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+  if (pl.pathMode === 'loop') ctx.lineTo(pts[0].x, pts[0].y);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+  const r = editing ? 6 : 4;
+  for (let i = 0; i < pts.length; i++) {
+    ctx.beginPath();
+    ctx.arc(pts[i].x, pts[i].y, r, 0, Math.PI * 2);
+    ctx.fillStyle = editing ? '#ffee00' : color;
+    ctx.fill();
+    ctx.strokeStyle = '#0a0a0a'; ctx.lineWidth = 1; ctx.stroke();
+    if (editing) {
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 9px monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(String(i), pts[i].x, pts[i].y - r - 2);
+    }
+  }
+  ctx.restore();
+}
+
 function _drawPlatforms(ctx, arr) {
   if (!Array.isArray(arr)) return;
   const z = state.camera.zoom;
@@ -974,7 +1012,11 @@ function _drawPlatforms(ctx, arr) {
       // The route and endpoint ticks remain Builder-only placement guides.
       ctx.strokeStyle = '#00dfff'; ctx.lineWidth = 1;
       ctx.strokeRect(p.x, p.y, pw, ph);
-      if (pl.x1 != null && pl.x2 != null) {
+      // AKI_26 1.3: a path (>=2 waypoints) replaces the old x1/x2 dashed
+      // line entirely -- a platform is in EITHER mode, never both.
+      if (Array.isArray(pl.path) && pl.path.length >= 2) {
+        _drawPlatformPath(ctx, pl, '#00dfff');
+      } else if (pl.x1 != null && pl.x2 != null) {
         const y = p.y + ph / 2;
         const left = worldToScreen(pl.x1, 0).x;
         const right = worldToScreen(pl.x2, 0).x;
@@ -1001,8 +1043,11 @@ function _drawPlatforms(ctx, arr) {
     ctx.shadowBlur = 0;
     ctx.restore();
 
-    // Patrol path dashed line at mid-height
-    if (pl.x1 != null && pl.x2 != null) {
+    // AKI_26 1.3: a path (>=2 waypoints) replaces the old x1/x2 dashed
+    // line entirely -- a platform is in EITHER mode, never both.
+    if (Array.isArray(pl.path) && pl.path.length >= 2) {
+      _drawPlatformPath(ctx, pl, COLOR);
+    } else if (pl.x1 != null && pl.x2 != null) {
       const pathY = p.y + ph / 2;
       const px1   = worldToScreen(pl.x1, 0).x;
       const px2   = worldToScreen(pl.x2, 0).x;

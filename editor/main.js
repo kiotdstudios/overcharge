@@ -24,11 +24,23 @@ import * as Persistence from './persistence.js';
 import * as Generator   from './generator.js';
 import * as Actions     from './actions.js';
 import { levelChecksum, logLevelSource } from '../src_scroll/levelsig.js';
+// AKI_26 1.7: the ladder's climbable volume is keyed off this exact src
+// string in src_scroll/level.js, so the Builder's "is this climbable?"
+// badge can never drift from what the runtime actually treats as a ladder.
+import { CLIMBABLE_LADDER_SRC } from '../src_scroll/level.js';
+// AKI 27 Task 3 — namespace import, NOT a named one, on purpose: CHARGE_TABLE
+// is CODEX 02 task 4 and is not in constants.js yet, and a named import of a
+// missing export is a link-time error that would take the whole Builder down
+// (see _dev/module_parse.mjs). Namespace access means defaultChargeFor() picks
+// the shared table up the moment Codex exports it, with no edit here.
+import { defaultChargeFor } from './charge-defaults.js';
 import { BUILD } from './buildinfo.js';
 import * as SnapUI from './snapshotui.js';
 import { mountWorkspace } from './workspace.js';
 import { facadeAction } from './facade.js';
 import { validateLevelShape } from './level-shape.js';
+import { sourceFields } from './inspector-fields.js';
+import * as PlatformPath from './platform-path.js';
 
 mountWorkspace();
 document.getElementById('btn-landable-facade')?.addEventListener('click', () => {
@@ -43,7 +55,10 @@ document.getElementById('btn-landable-facade')?.addEventListener('click', () => 
 });
 
 // Default level to load on first boot. After that, the dropdown drives switching.
-const DEFAULT_LEVEL_URL = 'src_scroll/levels/level1.json';
+// AKI 27 review-only draft: opt in explicitly; never list it in levels.json.
+const DRAFT_LEVEL_URL = 'src_scroll/levels/level1_vertical.json';
+const _draftRequested = new URLSearchParams(window.location.search).get('level') === 'level1_vertical';
+const DEFAULT_LEVEL_URL = _draftRequested ? DRAFT_LEVEL_URL : 'src_scroll/levels/level1.json';
 
 // ── DOM refs ─────────────────────────────────────────────────────────────
 const canvas   = document.getElementById('editor-canvas');
@@ -1022,6 +1037,10 @@ canvas.addEventListener('mousedown', (e) => {
   // user returns to the canvas, keyboard shortcuts should target the editor.
   if (document.activeElement?.matches?.('input, textarea, select')) document.activeElement.blur();
   if (state.pendingSpawn) { _doSpawn(e, canvas); return; }
+  // AKI_26 1.3: platform path-edit mode is an overlay on top of whatever tool
+  // is active (same idea as state.dragMove) -- it takes priority so clicks
+  // add/drag waypoints instead of whatever TOOLS[state.tool] would normally do.
+  if (PlatformPath.isActive() && PlatformPath.handleMouseDown(e, canvas)) return;
   // CHIEF 2026-09-26: report the clicked tile's name in the toolbar. Read BEFORE the tool
   // runs, so a Place/Erase click reports what was actually there when he clicked rather
   // than what the tool just changed it into. Deliberately outside the tool dispatch so it
@@ -1029,8 +1048,17 @@ canvas.addEventListener('mousedown', (e) => {
   _reportClickedTile(e);
   TOOLS[state.tool]?.onMouseDown?.(e, canvas);
 });
-canvas.addEventListener('mousemove', (e) => TOOLS[state.tool]?.onMouseMove?.(e, canvas));
-window.addEventListener('mouseup',   (e) => TOOLS[state.tool]?.onMouseUp?.  (e, canvas));
+canvas.addEventListener('mousemove', (e) => {
+  if (PlatformPath.isActive() && PlatformPath.handleMouseMove(e, canvas)) return;
+  TOOLS[state.tool]?.onMouseMove?.(e, canvas);
+});
+window.addEventListener('mouseup',   (e) => {
+  if (PlatformPath.isActive() && PlatformPath.handleMouseUp(e, canvas)) return;
+  TOOLS[state.tool]?.onMouseUp?.  (e, canvas);
+});
+canvas.addEventListener('contextmenu', (e) => {
+  if (PlatformPath.isActive() && PlatformPath.handleContextMenu(e, canvas)) return;
+});
 
 middleMousePan(canvas);
 wheelZoom(canvas);
@@ -1671,12 +1699,16 @@ function _doSpawn(e, canvas) {
     // Chief directive 2026-09-12: a standard generator gives 4 energy, period.
     // Other source types (e.g. ambient street lamps at ~0.5) set their own
     // `charge` — the field is per-source data, editable in the inspector.
-    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: 4 };
+    // AKI 27 Task 3: the default is the charge table's (3.9: generator 8),
+    // which re-tiers Chief's 2026-09-12 "a generator gives 4" directive.
+    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'GEN', charge: defaultChargeFor('source') };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'source-hvac') {
     // HVAC powered source — same energy budget as a standard generator,
     // different art + fan animation. kind:'hvac' drives drawHvac in electricity.js.
-    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'HVAC', charge: 4, kind: 'hvac' };
+    // AKI 27 Task 3: default from the charge table (3.9: AC / HVAC unit 3),
+    // no longer tied to the generator's number.
+    obj = { x: _snapGrid(wx), y: _snapGrid(wy), label: 'HVAC', charge: defaultChargeFor('source-hvac'), kind: 'hvac' };
     arr = L.sources || (L.sources = []); arrLabel = 'add_source';
   } else if (kind === 'source-prop') {
     // CHIEF 2026-09-26: "the new electric HVAC unit and the other electric props ... are new
@@ -1707,7 +1739,9 @@ function _doSpawn(e, canvas) {
       x: propPos.x,
       y: wallMounted ? propPos.y : _groundAt(propPos.x + 14, wy, 28),
       label: _propLabel(a.id),
-      charge: 4,          // same budget as generator/HVAC. Per-source and editable in the inspector.
+      // AKI 27 Task 3: per-prop default from the charge table (3.9), keyed by
+      // palette asset id, not one flat 4 for every prop.
+      charge: defaultChargeFor(a.id),  // Per-source and editable in the inspector.
       kind: 'prop',
       sprite: dir,
       frames: a.frame_count  || 8,
@@ -1734,7 +1768,7 @@ function _doSpawn(e, canvas) {
     if (state.pendingSpawn.asset?.platformKind === 'charge-platform') {
       obj.kind = 'charge-platform';
       obj.h = 20;
-      obj.charge = 2;
+      obj.charge = defaultChargeFor('charge-platform');  // 3.9: charge platform 2
     }
     arr = L.platforms || (L.platforms = []); arrLabel = 'add_platform';
   } else if (kind === 'wall-switch') {
@@ -1884,6 +1918,21 @@ function _npcManifestOptions(currentId) {
   return items;
 }
 
+// AKI_26 1.4: "a dropdown of the level's charged objects by id and label" --
+// charged objects are L.sources (every source has `charge`; AC units and
+// other powered props are authored as sources too, per LEVEL_SCHEMA). If
+// linkedObjectId already points at a source id that no longer exists (the
+// source was deleted after linking), keep it selectable rather than
+// silently blanking out a reference Chief authored on purpose.
+function _chargedObjectOptions(currentId) {
+  const sources = (state.level && Array.isArray(state.level.sources)) ? state.level.sources : [];
+  const items = sources.map(s => ({ id: s.id, label: `${s.label || s.id} (${s.id})` }));
+  if (currentId && !items.some(it => it.id === currentId)) {
+    items.unshift({ id: currentId, label: currentId + ' (missing — was it deleted?)' });
+  }
+  return items;
+}
+
 // Escapes free text before it goes into innerHTML templating below. Every
 // NPC field that can carry arbitrary user text (id, dialogue lines) is
 // author-controlled but still untrusted input (ORDER 23 TASK B: "no HTML
@@ -1904,6 +1953,38 @@ function _escapeHtml(s) {
 let _npcInspectorTab = 'character';
 let _renderedNpcRef = null;
 
+function _renderLadderInspector(ref) {
+  // ORDER 26 ITEM 1.7: ladder decoration gets a dedicated mini-inspector
+  // (badge + x/y + resize-by-tile-height), reusing the generic
+  // prop-row/prop-label/prop-input classes for visual consistency with
+  // every other kind's panel below. Every other decoration kind is left
+  // completely alone -- this is NOT a general decoration inspector.
+  _selSection.style.display = '';
+  const tiles = Math.max(1, Math.round((ref.h || 0) / TILE_SIZE));
+  _selPanel.innerHTML = `
+    <div class="prop-type-badge" style="color:#7fe8a0;border-color:#7fe8a055">🪜 CLIMBABLE LADDER</div>
+    <div class="prop-row"><span class="prop-label">x</span><input class="prop-input" id="ladder-x-input" type="number" step="1" value="${Math.round(ref.x)}"></div>
+    <div class="prop-row"><span class="prop-label">y</span><input class="prop-input" id="ladder-y-input" type="number" step="1" value="${Math.round(ref.y)}"></div>
+    <div class="prop-row"><span class="prop-label">height (tiles)</span><input class="prop-input" id="ladder-h-tiles-input" type="number" step="1" min="1" value="${tiles}"></div>
+    <div class="prop-row"><span class="prop-label">height (px)</span><span style="color:#88aacc;font-family:monospace;font-size:11px">${Math.round(ref.h || 0)}</span></div>
+    <div class="prop-row" style="color:#889;font-size:10px;line-height:1.4">Top needs a supporting tile for the player to stand on arrival.</div>
+  `;
+  const xInput = document.getElementById('ladder-x-input');
+  const yInput = document.getElementById('ladder-y-input');
+  const hTilesInput = document.getElementById('ladder-h-tiles-input');
+  if (xInput) xInput.addEventListener('change', () => {
+    const v = Number(xInput.value);
+    if (Number.isFinite(v)) { ref.x = v; state.dirty = true; notify(); }
+  });
+  if (yInput) yInput.addEventListener('change', () => {
+    const v = Number(yInput.value);
+    if (Number.isFinite(v)) { ref.y = v; state.dirty = true; notify(); }
+  });
+  if (hTilesInput) hTilesInput.addEventListener('change', () => {
+    const v = Math.max(1, Math.round(Number(hTilesInput.value)));
+    if (Number.isFinite(v)) { ref.h = v * TILE_SIZE; state.dirty = true; notify(); }
+  });
+}
 function _renderNpcInspector(ref) {
   _renderedNpcRef = ref;
   ref.dialogue = ref.dialogue || {
@@ -1914,6 +1995,12 @@ function _renderNpcInspector(ref) {
   ref.patrol = ref.patrol || { rangePx: 0, speedPxPerSec: 22, turnPauseSec: 0.55 };
   const patrol = ref.patrol;
   if (!Array.isArray(d.lines)) d.lines = [];
+  // AKI_26 1.4: reactive dialogue. poweredLines is optional and the SAME line
+  // shape as lines -- absent/empty means "no reactive set authored", not an
+  // error; old NPCs (saved before this order) have neither field and must
+  // keep behaving exactly as they do today (always `lines`). linkedObjectId
+  // stays undefined/null until Chief picks one from the dropdown below.
+  if (!Array.isArray(d.poweredLines)) d.poweredLines = [];
 
   const tabBtn = (key, label) => `<button class="npc-tab-btn" data-tab="${key}" style="flex:1;padding:6px 4px;background:${_npcInspectorTab === key ? '#1d4a56' : '#121824'};color:${_npcInspectorTab === key ? '#8fe3ff' : '#789'};border:1px solid #2a3448;border-bottom:${_npcInspectorTab === key ? '2px solid #8fe3ff' : '1px solid #2a3448'};cursor:pointer;font-family:monospace;font-size:11px">${label}</button>`;
 
@@ -1950,12 +2037,40 @@ function _renderNpcInspector(ref) {
     </div>
   `).join('') : `<div style="font-size:10px;color:#567;padding:4px 0">No lines yet — add one below.</div>`;
 
+  // AKI_26 1.4: "Lines while powered" is a second, independent list -- same
+  // row shape/markup as the lines-while-not-powered list above, but with its
+  // own class prefix (npc-powered-line-*) so the two lists wire up
+  // separately below and editing one can never touch the other's rows.
+  const poweredLinesHtml = d.poweredLines.length ? d.poweredLines.map((l, i) => `
+    <div class="prop-row npc-powered-line-row" data-idx="${i}" style="gap:4px">
+      <input class="prop-input npc-powered-line-text" type="text" value="${_escapeHtml(l.text)}" style="flex:1">
+      <button class="npc-powered-line-up" title="Move up" ${i === 0 ? 'disabled' : ''} style="flex:0;width:22px;padding:2px;background:#1a2030;color:#9ab;border:1px solid #2a3448;cursor:pointer">&#8593;</button>
+      <button class="npc-powered-line-down" title="Move down" ${i === d.poweredLines.length - 1 ? 'disabled' : ''} style="flex:0;width:22px;padding:2px;background:#1a2030;color:#9ab;border:1px solid #2a3448;cursor:pointer">&#8595;</button>
+      <button class="npc-powered-line-del" title="Delete" style="flex:0;width:22px;padding:2px;background:#3a1a1a;color:#f99;border:1px solid #552;cursor:pointer">&times;</button>
+    </div>
+  `).join('') : `<div style="font-size:10px;color:#567;padding:4px 0">No powered lines yet — add one below.</div>`;
+
+  const linkedOpts = _chargedObjectOptions(d.linkedObjectId)
+    .map(it => `<option value="${_escapeHtml(it.id)}" ${it.id === d.linkedObjectId ? 'selected' : ''}>${_escapeHtml(it.label)}</option>`)
+    .join('');
+
   const dialogueTabHtml = `
     <div class="prop-row"><span class="prop-label">dialogue on</span><input id="npc-d-enabled" type="checkbox" style="flex:0;width:16px;height:16px;cursor:pointer" ${d.enabled ? 'checked' : ''}></div>
-    <div style="font-size:12px;color:#cdd;font-weight:bold;margin:8px 0 4px">What does this NPC say when I get close?</div>
+    <div class="prop-row"><span class="prop-label">Linked object</span>
+      <select class="prop-select" id="npc-d-linked">
+        <option value="" ${!d.linkedObjectId ? 'selected' : ''}>(none)</option>
+        ${linkedOpts}
+      </select>
+    </div>
+    <div style="font-size:10px;color:#567;margin:2px 0 4px">While the linked object holds charge, this NPC speaks the "while powered" lines below instead of its normal lines. Leave unset for an NPC that never reacts to power.</div>
+    <div style="font-size:12px;color:#cdd;font-weight:bold;margin:8px 0 4px">What does this NPC say when I get close? (normal / unpowered)</div>
     <div id="npc-lines-list" style="display:flex;flex-direction:column;gap:3px">${linesHtml}</div>
     <button id="npc-line-add" style="margin-top:4px;width:100%;padding:5px;background:#1a2030;color:#8fe3ff;border:1px dashed #2a3448;border-radius:3px;cursor:pointer;font-family:monospace;font-size:11px">+ Add line</button>
     ${dialogueEmptyButEnabled ? '<div style="font-size:10px;color:#f99;margin-top:4px">Dialogue is on but has no lines — it will never show. Add at least one line or turn it off.</div>' : ''}
+    <div style="font-size:12px;color:#cdd;font-weight:bold;margin:12px 0 4px">Lines while powered</div>
+    <div id="npc-powered-lines-list" style="display:flex;flex-direction:column;gap:3px">${poweredLinesHtml}</div>
+    <button id="npc-powered-line-add" style="margin-top:4px;width:100%;padding:5px;background:#1a2030;color:#8fe3ff;border:1px dashed #2a3448;border-radius:3px;cursor:pointer;font-family:monospace;font-size:11px">+ Add powered line</button>
+    ${(!d.linkedObjectId && d.poweredLines.length > 0) ? '<div style="font-size:10px;color:#f99;margin-top:4px">Powered lines are authored but no object is linked above — they will never show.</div>' : ''}
     <div class="prop-row" style="margin-top:8px"><span class="prop-label">radiusPx</span><input class="prop-input" id="npc-d-radius" type="number" min="8" step="1" value="${d.radiusPx ?? 112}"></div>
     <div class="prop-row"><span class="prop-label">durationMs</span><input class="prop-input" id="npc-d-duration" type="number" min="500" max="30000" step="100" value="${d.durationMs ?? 3500}"></div>
     <div class="prop-row"><span class="prop-label">cooldownMs</span><input class="prop-input" id="npc-d-cooldown" type="number" min="0" step="100" value="${d.cooldownMs ?? 6000}"></div>
@@ -1966,7 +2081,10 @@ function _renderNpcInspector(ref) {
         <option value="random" ${d.selectionMode === 'random' ? 'selected' : ''}>random</option>
       </select>
     </div>
-    <button id="npc-preview-btn" style="margin-top:6px;width:100%;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Bubble</button>
+    <div style="display:flex;gap:4px;margin-top:6px">
+      <button id="npc-preview-btn" style="flex:1;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Bubble</button>
+      <button id="npc-preview-powered-btn" style="flex:1;padding:6px;background:#163a44;color:#8fe3ff;border:1px solid #8fe3ff;border-radius:3px;cursor:pointer;font-family:monospace">Preview Powered</button>
+    </div>
   `;
 
   _selPanel.innerHTML = `
@@ -2028,6 +2146,16 @@ function _renderNpcInspector(ref) {
   });
   $('npc-d-once').addEventListener('change', (e) => { d.oncePerLevel = e.target.checked; commit(); });
   $('npc-d-selmode').addEventListener('change', (e) => { d.selectionMode = e.target.value; commit(); });
+  // AKI_26 1.4: linked-object placeholder follows the same convention used
+  // everywhere else in this file -- an empty-string option value DELETES the
+  // key rather than storing '' or null, so an unlinked NPC round-trips
+  // byte-identical to an NPC saved before this order ever existed.
+  $('npc-d-linked').addEventListener('change', (e) => {
+    if (e.target.value === '') delete d.linkedObjectId;
+    else d.linkedObjectId = e.target.value;
+    commit();
+    _renderNpcInspector(ref); // re-render: the "no object linked" warning depends on this
+  });
 
   $all('.npc-line-text').forEach((input) => {
     // Keep the model current while the field has focus. In particular, a
@@ -2089,6 +2217,64 @@ function _renderNpcInspector(ref) {
     state.npcPreview = { ref, text, until: Date.now() + Math.max(500, d.durationMs || 3500) };
     needsRedraw = true;
   });
+
+  // AKI_26 1.4: "Lines while powered" -- identical wiring to the npc-line-*
+  // block above (including the Order 25 focus fix: `input` keeps the model
+  // current without rebuilding the DOM, `change` only rebuilds on a
+  // structural edit like dropping an emptied row), aimed at d.poweredLines
+  // and the npc-powered-line-* classes instead.
+  $all('.npc-powered-line-text').forEach((input) => {
+    input.addEventListener('input', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      d.poweredLines[idx] = { id: d.poweredLines[idx]?.id || `P${idx + 1}`, text: e.target.value };
+      commit();
+    });
+    input.addEventListener('change', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      const text = e.target.value.trim();
+      if (!text) {
+        d.poweredLines.splice(idx, 1);
+        commit();
+        _renderNpcInspector(ref);
+      } else {
+        d.poweredLines[idx] = { id: d.poweredLines[idx]?.id || `P${idx + 1}`, text };
+        commit();
+      }
+    });
+  });
+  $all('.npc-powered-line-up').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      if (idx > 0) { const t = d.poweredLines[idx - 1]; d.poweredLines[idx - 1] = d.poweredLines[idx]; d.poweredLines[idx] = t; commit(); _renderNpcInspector(ref); }
+    });
+  });
+  $all('.npc-powered-line-down').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      if (idx < d.poweredLines.length - 1) { const t = d.poweredLines[idx + 1]; d.poweredLines[idx + 1] = d.poweredLines[idx]; d.poweredLines[idx] = t; commit(); _renderNpcInspector(ref); }
+    });
+  });
+  $all('.npc-powered-line-del').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      const idx = Number(e.target.closest('.npc-powered-line-row').getAttribute('data-idx'));
+      d.poweredLines.splice(idx, 1);
+      commit();
+      _renderNpcInspector(ref);
+    });
+  });
+  $('npc-powered-line-add').addEventListener('click', () => {
+    d.poweredLines.push({ id: `P${d.poweredLines.length + 1}`, text: 'New powered line' });
+    commit();
+    _renderNpcInspector(ref);
+    const newInput = $all('.npc-powered-line-text').at(-1);
+    newInput?.focus();
+    newInput?.select();
+  });
+  $('npc-preview-powered-btn').addEventListener('click', () => {
+    const text = (d.poweredLines[0] && d.poweredLines[0].text) || '(no powered lines yet)';
+    state.npcPreview = { ref, text, until: Date.now() + Math.max(500, d.durationMs || 3500) };
+    needsRedraw = true;
+  });
 }
 
 function _refreshSelectedProps() {
@@ -2098,7 +2284,7 @@ function _refreshSelectedProps() {
   for (const [k, kname] of [
     ['enemies','enemy'],['switches','switch'],['checkpoints','checkpoint'],
     ['platforms','platform'],['sources','source'],['gates','gate'],['crates','crate'],
-    ['chests','chest'],['npcs','npc'],
+    ['chests','chest'],['npcs','npc'],['decorations','decoration'],
   ]) {
     if (sel[k] && sel[k].size > 0) { kind = kname; ref = [...sel[k]][0]; break; }
   }
@@ -2121,6 +2307,16 @@ function _refreshSelectedProps() {
     if (ref === _renderedNpcRef && active && _selPanel.contains(active) &&
         active.matches('input, textarea, select')) return;
     _renderNpcInspector(ref);
+    return;
+  }
+
+  // AKI_26 1.7: decorations have no general inspector today (every other
+  // decoration keeps that exactly as-is -- out of this item's scope). The
+  // ladder gets a narrow, dedicated panel: Chief needs to resize it by
+  // tile height and confirm it is climbable, nothing else.
+  if (kind === 'decoration') {
+    if (ref.src !== CLIMBABLE_LADDER_SRC) { _selSection.style.display = 'none'; _selPanel.innerHTML = ''; return; }
+    _renderLadderInspector(ref);
     return;
   }
 
@@ -2159,21 +2355,25 @@ function _refreshSelectedProps() {
     ];
   } else if (kind === 'platform') {
     color = '#44aadd'; badge = ref.kind === 'charge-platform' ? 'CHARGE PLATFORM' : 'PLATFORM';
+    // AKI_26 1.3: a platform with a `path` (>=2 waypoints) is edited via the
+    // canvas path tool, not x1/x2 fields -- "Platforms with no path keep the
+    // old inspector" (order text). hasPath also gates the Edit/Remove-Path
+    // buttons appended below, after the generic field loop.
+    const hasPath = Array.isArray(ref.path);
     fields = [
       { label:'x', key:'x', num:true }, { label:'y',key:'y', num:true },
       { label:'w', key:'w', num:true, min:16 }, { label:'h',key:'h', num:true, min:4 },
-      { label:'x1',key:'x1',num:true }, { label:'x2',key:'x2',num:true },
+      ...(hasPath ? [] : [
+        { label:'x1',key:'x1',num:true }, { label:'x2',key:'x2',num:true },
+      ]),
       { label:'speed',key:'speed',num:true,min:1 },
+      ...(hasPath ? [{ label:'pathMode', key:'pathMode', sel:true, opts:['pingpong','loop'] }] : []),
       { label:'kind',key:'kind',sel:true,opts:['(standard)','charge-platform'] },
       ...(ref.kind === 'charge-platform' ? [{ label:'charge',key:'charge',num:true,min:0.01 }] : []),
     ];
   } else if (kind === 'source') {
     color = '#ffee00'; badge = 'SOURCE';
-    fields = [
-      { label:'label', key:'label', text:true },
-      { label:'charge',key:'charge',num:true,min:1 },
-      { label:'x',     key:'x',     num:true }, { label:'y',key:'y',num:true },
-    ];
+    fields = sourceFields(ref);
   } else if (kind === 'gate') {
     const isTimed = !!ref.timed;
     color = ref.isExit ? '#ff44ff' : (ref.blockOnly ? '#ff8800' : (isTimed ? '#ff44aa' : '#44ccff'));
@@ -2243,7 +2443,43 @@ function _refreshSelectedProps() {
       html += `<div class="prop-row"><span class="prop-label">${f.label}</span><input class="prop-input" data-key="${f.key}" data-vtype="${t}" type="${t}" value="${ref[f.key]??''}"${extra}></div>`;
     }
   }
+  // AKI_26 1.3: platform path-mode controls -- action buttons, not bound
+  // fields, so they're appended as raw HTML and wired separately below
+  // (not through the generic [data-key] change-listener loop).
+  if (kind === 'platform') {
+    const hasPath = Array.isArray(ref.path);
+    const editing = state.pathEditTarget === ref;
+    if (hasPath) {
+      html += `<div class="prop-row"><button id="btn-path-edit" class="prop-btn" style="flex:1">${editing ? 'Done Editing Path' : 'Edit Path (click = add point, drag = move, right-click = delete)'}</button></div>`;
+      html += `<div class="prop-row"><button id="btn-path-remove" class="prop-btn" style="flex:1">Remove Path (back to x1 / x2)</button></div>`;
+    } else {
+      html += `<div class="prop-row"><button id="btn-path-add" class="prop-btn" style="flex:1">Add Path (convert from x1 / x2)</button></div>`;
+    }
+  }
   _selPanel.innerHTML = html;
+  if (kind === 'platform') {
+    const hasPath = Array.isArray(ref.path);
+    _selPanel.querySelector('#btn-path-add')?.addEventListener('click', () => {
+      // Seed a sensible starting 2-point path from today's x1/x2 sweep so
+      // converting doesn't throw away the platform's existing route.
+      const x1 = ref.x1 ?? ref.x; const x2 = ref.x2 ?? (ref.x + (ref.w || 96));
+      ref.path = [{ x: x1, y: ref.y }, { x: x2, y: ref.y }];
+      ref.pathMode = 'pingpong';
+      state.dirty = true;
+      PlatformPath.beginPathEdit(ref);
+    });
+    _selPanel.querySelector('#btn-path-remove')?.addEventListener('click', () => {
+      if (state.pathEditTarget === ref) PlatformPath.endPathEdit();
+      delete ref.path;
+      delete ref.pathMode;
+      state.dirty = true;
+      notify();
+    });
+    _selPanel.querySelector('#btn-path-edit')?.addEventListener('click', () => {
+      if (state.pathEditTarget === ref) PlatformPath.endPathEdit();
+      else PlatformPath.beginPathEdit(ref);
+    });
+  }
   _selPanel.querySelectorAll('[data-key]').forEach(el => {
     el.addEventListener('change', () => {
       const vt = el.dataset.vtype;
@@ -2255,6 +2491,14 @@ function _refreshSelectedProps() {
         // writing `style: null` would show up in every diff and in the manifest.
         if (el.value === '') delete ref[el.dataset.key];
         else ref[el.dataset.key] = el.value;
+        // AKI 27 Task 3: switching a plain platform to 'charge-platform' in the
+        // Inspector revealed a charge field with NOTHING in it -- the key only
+        // ever got written on placement. The default now comes from the same
+        // charge table the palette uses. Only fills an ABSENT value: a number
+        // Chief (or a level file) already set is never overwritten.
+        if (el.dataset.key === 'kind' && ref.kind === 'charge-platform' && ref.charge == null) {
+          ref.charge = defaultChargeFor('charge-platform');
+        }
       }
       else ref[el.dataset.key] = el.value;
       state.dirty = true; notify();
@@ -2384,6 +2628,27 @@ for (const name of ['melee', 'bolt']) {
 }
 _wireBgOffsetControls();
 
+// AKI_26 1.6: per-level Bolt/Melee ability checkboxes (Level Actions panel).
+// Missing abilities / missing key both mean "on" per the shared data
+// contract with Codex, so both boxes default checked and a fresh level with
+// no `abilities` key at all shows both ticked.
+const abilityBoltInput  = document.getElementById('ability-bolt-input');
+const abilityMeleeInput = document.getElementById('ability-melee-input');
+function _applyLevelAbility(key, enabled) {
+  const action = Actions.setLevelAbility(state.level, key, enabled);
+  if (action) History.apply(action);
+  else _refreshAbilitiesInspector(); // no-op (checkbox already matched state) -- resync
+}
+abilityBoltInput?.addEventListener('change', () => _applyLevelAbility('bolt', abilityBoltInput.checked));
+abilityMeleeInput?.addEventListener('change', () => _applyLevelAbility('melee', abilityMeleeInput.checked));
+function _refreshAbilitiesInspector() {
+  const abilities = state.level?.abilities;
+  if (abilityBoltInput)  abilityBoltInput.checked  = !(abilities && abilities.bolt === false);
+  if (abilityMeleeInput) abilityMeleeInput.checked = !(abilities && abilities.melee === false);
+}
+subscribe(() => _refreshAbilitiesInspector());
+_refreshAbilitiesInspector();
+
 // ── Tools Panel: collapsible sections ──────────────────────────────
 document.querySelectorAll('.tp-hdr').forEach(hdr => {
   hdr.addEventListener('click', () => {
@@ -2482,13 +2747,14 @@ async function bootstrap() {
     // Present recovery prompt if a snapshot exists. Suppression flag stays
     // true until after the prompt resolves so we don't overwrite the
     // recovery with the freshly-loaded default level.
-    logLevelSource('[editor] BUILDER', DEFAULT_LEVEL_URL + '  (authoritative committed JSON)', state.level);
+    logLevelSource('[editor] BUILDER', DEFAULT_LEVEL_URL + (_draftRequested ? '  (review-only draft; SAVE disabled)' : '  (authoritative committed JSON)'), state.level);
     // Snapshot system: wire the UI, then record the freshly-loaded level as the
     // baseline so an immediate SAVE of an unmodified level does not create a
     // pointless "on save" snapshot.
     SnapUI.initSnapshotUI();
     SnapUI.seedBaseline(state.level);
-    await _handleRecoveryOnBoot();
+    // Review draft must not be replaced by a recovery snapshot from ordinary Level 1.
+    if (!_draftRequested) await _handleRecoveryOnBoot();
     _recoverySuppress = false;
     console.info(`[editor] Boot OK — ${state.availableLevels.length} level(s), FSA save: ${Persistence.hasFSA() ? 'yes' : 'no (download-only)'}`);
   } catch (err) {

@@ -1,5 +1,6 @@
 // UI composition only. Existing controls keep their IDs and editing handlers.
 import { state, subscribe } from './state.js';
+import { levelChargeSummary } from './level-economy.js';
 
 export function mountWorkspace() {
   const root = document.getElementById('editor-root');
@@ -129,6 +130,14 @@ export function mountWorkspace() {
   const hints = { pointer: 'Move: click an object to select it, then drag to reposition.', select: 'Select: drag a box around tiles or objects. Delete removes the selection.', place: 'Paint: choose an asset on the left, then click or drag on the grid.', rect: 'Fill: drag a rectangle to fill it with the selected tile.', erase: 'Erase: click or drag over tiles to remove them.', pan: 'Pan: drag the canvas to explore the level.' };
   const update = () => {
     byId('workspace-hint').textContent = hints[state.tool] || 'Choose a tool to edit the level.';
+    const readout = byId('level-charge-readout');
+    if (readout) {
+      const sum = levelChargeSummary(state.level);
+      readout.innerHTML = sum.short
+        ? `⚠ CHARGE SHORT: ${sum.totalCharge} available, ${sum.mandatoryCost} needed (exit ${sum.exitCost} + switches ${sum.switchCost} + gates ${sum.plainGateCost}) — short by ${sum.deficit}`
+        : `CHARGE: ${sum.totalCharge} available / ${sum.mandatoryCost} needed (exit ${sum.exitCost} + switches ${sum.switchCost} + gates ${sum.plainGateCost})`;
+      readout.style.color = sum.short ? '#ff8844' : '#8aaabb';
+    }
     document.querySelectorAll('[data-tool]').forEach(btn => btn.setAttribute('aria-pressed', String(btn.dataset.tool === state.tool)));
     empty.classList.toggle('has-selection', byId('tp-selected-section').style.display !== 'none');
     const decorations = state.selection?.decorations?.size || 0;

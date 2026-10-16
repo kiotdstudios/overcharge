@@ -406,6 +406,46 @@ export function setBackgroundOffset(level, key, value) {
   };
 }
 
+// ── SetLevelAbilityAction ────────────────────────────────────────────────
+// AKI_26 1.6: per-level Bolt/Melee toggle, stored in level.abilities, e.g.
+// { bolt: false, melee: false }. Per the shared data contract with Codex,
+// a MISSING key (or a missing abilities object entirely) means that
+// ability is ON -- so enabling (the default) deletes the key to keep old
+// and untouched levels' JSON exactly as clean as before this feature
+// existed, matching the setBackgroundLayerHidden convention just above.
+export function setLevelAbility(level, key, enabled) {
+  if (!level) return null;
+  const hadMap = Object.prototype.hasOwnProperty.call(level, 'abilities');
+  const hadKey = !!level.abilities && Object.prototype.hasOwnProperty.call(level.abilities, key);
+  const old = hadKey ? !!level.abilities[key] : true; // missing means on
+  const next = !!enabled;
+  if (old === next) return null;
+  return {
+    type: 'set_level_ability',
+    forward() {
+      if (next) {
+        if (level.abilities) {
+          delete level.abilities[key];
+          if (Object.keys(level.abilities).length === 0) delete level.abilities;
+        }
+      } else {
+        if (!level.abilities) level.abilities = {};
+        level.abilities[key] = false;
+      }
+      notify();
+    },
+    inverse() {
+      if (!hadMap) delete level.abilities;
+      else {
+        if (!level.abilities) level.abilities = {};
+        if (hadKey) level.abilities[key] = old;
+        else delete level.abilities[key];
+      }
+      notify();
+    },
+  };
+}
+
 // ── SetBackgroundLayerHiddenAction ──────────────────────────────────────────
 // Per-layer visibility toggle beside the vertical-offset controls (same 4
 // named layers as BG_OFFSET_LAYERS). Stored in level.backgroundLayersHidden,
@@ -485,10 +525,12 @@ function _restoreLevel(level, snapshot) {
 // present, tileRotations/tileFlips — kept aligned per Chief's ruling that a
 // tiles-only shift silently corrupts levels that carry rotations), then
 // shifts every authored world-Y field by addedRows*TILE_SIZE: playerStart,
-// decorations, sources, gates, switches, checkpoints, platforms (y only —
-// x1/x2 are horizontal and untouched), enemies, crates, chests. Rejects if the
-// resulting height would exceed MAX_LEVEL_ROWS (mirrors src_scroll's
-// MAX_ROWS cap — the Builder must not silently raise it).
+// decorations, sources, gates, switches, checkpoints, platforms (y, plus
+// every point of a path-mode platform's own path — x1/x2 stay horizontal and
+// untouched), enemies, crates, chests, npcs (AKI_26 1.5: npcs were missing
+// here entirely until this fix). Rejects if the resulting height would
+// exceed MAX_LEVEL_ROWS (mirrors src_scroll's MAX_ROWS cap — the Builder
+// must not silently raise it).
 export function addSectionAbove(level, addedRows) {
   if (!level || !Number.isFinite(addedRows) || addedRows <= 0) return null;
   const curRows = Math.floor(level.tiles.length / level.cols);
@@ -519,10 +561,20 @@ export function addSectionAbove(level, addedRows) {
       for (const g of level.gates        || []) g.y += dy;
       for (const sw of level.switches    || []) sw.y += dy;
       for (const c of level.checkpoints  || []) c.y += dy;
-      for (const p of level.platforms    || []) p.y += dy;
+      for (const p of level.platforms    || []) {
+        p.y += dy;
+        // AKI_26 1.5: a path-mode platform route lives in p.path, not p.y --
+        // without this the path stays put while the rest of the level moves,
+        // detaching the platform travel from its own anchor.
+        if (Array.isArray(p.path)) for (const pt of p.path) pt.y += dy;
+      }
       for (const e of level.enemies      || []) e.y += dy;
       for (const cr of level.crates      || []) cr.y += dy;
       for (const ch of level.chests      || []) ch.y += dy;
+      // AKI_26 1.5: NPCs (added Order 22) were missing from this shift
+      // entirely -- adding rows above silently detached every NPC from the
+      // level they were standing in.
+      for (const n of level.npcs         || []) n.y += dy;
       notify();
     },
     inverse() {
@@ -581,7 +633,7 @@ export function addSectionRight(level, addedCols) {
 // this prevents a mistaken count from deleting authored terrain or objects.
 const SECTION_OBJECT_LISTS = [
   'decorations', 'sources', 'gates', 'switches', 'checkpoints',
-  'platforms', 'enemies', 'crates', 'chests',
+  'platforms', 'enemies', 'crates', 'chests', 'npcs',
 ];
 
 function _sectionGridIssue(level, amount) {
@@ -620,6 +672,10 @@ export function removeSectionAboveIssue(level, removedRows) {
   const cutoff = removedRows * TILE_SIZE;
   for (const [name, obj] of _sectionObjects(level)) {
     if (!Number.isFinite(obj.y) || obj.y < cutoff) return `A ${name} is in the top section. Move it first.`;
+    if (name === 'platform' && Array.isArray(obj.path) &&
+        obj.path.some(pt => !Number.isFinite(pt.y) || pt.y < cutoff)) {
+      return 'A platform path crosses the top section. Move it first.';
+    }
   }
   return null;
 }
@@ -638,7 +694,12 @@ export function removeSectionAbove(level, removedRows) {
       if (level.tileFlips) level.tileFlips = level.tileFlips.slice(cells);
       if (level.playerStart) level.playerStart.y -= dy;
       for (const key of SECTION_OBJECT_LISTS) {
-        for (const obj of level[key] || []) obj.y -= dy;
+        for (const obj of level[key] || []) {
+          obj.y -= dy;
+          if (key === 'platforms' && Array.isArray(obj.path)) {
+            for (const pt of obj.path) pt.y -= dy;
+          }
+        }
       }
       notify();
     },
