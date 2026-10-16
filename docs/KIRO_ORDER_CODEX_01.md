@@ -52,7 +52,11 @@ from **and** charged. Charge the player gives is held by the object until absorb
   an `uncharged` object starts dark, can be charged, and lights; cannot be overfilled; a checkpoint rewind
   restores a half-charged object; an old level JSON still loads with identical behaviour.
 
-### A5. Charge capacity system and the Capacitor Module (CONFIRMED round 10; do this BEFORE A2 and A3)
+> **SUPERSEDED 2026-10-15 by `KIRO_ORDER_CODEX_02.md`.** Chief ruled that a pip always banks at 10, so the
+> "per-player maxCharge" and the capacity pickup below are **on hold**; the 10-unit bar, whole-pip Q and the new
+> charge-speed rule are in CODEX 02. Do not build the capacity pickup.
+
+### A5. (ON HOLD) Charge capacity system and the Capacitor Module (round 10; superseded)
 Chief reversed the 25-unit bar. **The player starts with 10 charge and a full bar is one pip** (the first
 iteration's rule). A collectible raises the bar. See GAME_DESIGN_V2 sections 3.1, 3.2 and 3.8.
 - **Replace the global `MAX_CHARGE` with a per-player `maxCharge`** (start 10, hard maximum 30, both in

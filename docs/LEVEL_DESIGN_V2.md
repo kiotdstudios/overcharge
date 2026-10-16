@@ -409,8 +409,10 @@ vertical Level 1 the beacon should sit at the top of the level, so the beacon al
   reachable by a ladder the player passed at the start. The reward is an **Easter egg plus a story
   clue** (a poster or graffiti that tells the first piece of the world's story), which costs no new system.
   Add a real achievement system later, once the game has more than one level that wants it. A pip as the
-  reward is not recommended. **Round 10: the Easter-egg reward is the Capacitor Module** (GAME_DESIGN_V2 3.8):
-  the first capacity upgrade, found by turning around and powering the AC unit.
+  reward is not recommended. **Round 11 (Chief): the AC-secret room gives "that poster or piece of the story,
+  achievement or something"**, not the Capacitor Module. The poster is the first piece of the story (it can
+  now be written to the official canon). Whether an achievement needs a small system (a list, a pop-up) or the
+  poster is itself the achievement is OPEN (GAME_DESIGN_V2 section 13, question F).
 
 ### 4.7 Checkpoints (RECOMMENDED)
 Level 1 has one, at x 1824. With a longer route it needs at least three: before the shaft jump, at the
@@ -505,8 +507,7 @@ Results: the route takes **about 110 s**, inside the 90 to 120 s target. The fir
 and the first spend at **12.2 s** (the first-minute loop is met). The longest run without a beat is **6.9 s**
 (under the 8 s rule). Sprinting everything and skipping every beat takes **36.3 s**, so the floor is short;
 exploration (the opening ladder, the AC secret, the low route) is what adds time, as intended.
-**Charge-speed scaling (GAME_DESIGN_V2 3.3) shortens the absorb and charge beats by about 15 to 30 percent,
-so re-run this table after it lands.** The lift (segment 16) is the single new thing the player waits for;
+**Round 11 changes this: Chief chose a charge speed that is SLOW when the bar is empty (1.2 units/s) and reaches 3 units/s only when full (GAME_DESIGN_V2 3.3).** Calculated by simulation (_kiro_tools/absorb_time.mjs): the first 4-unit lamp takes **2.6 s instead of 1.3 s**, so the first absorb lands at about **9.3 s** instead of 8.0 s, and absorbing all three lamps (to 1 pip plus 2 charge) takes **6.55 s instead of 4.0 s**. Charging a gate is slower for the same reason when the bar is low. The route total in this table therefore grows by roughly 3 to 5 s; re-run it once the rule is built. The lift (segment 16) is the single new thing the player waits for;
 if it feels slow, raise its speed rather than shorten the ride.
 
 ### 5.2 What this table cannot tell us
@@ -624,11 +625,15 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 20 | Regenerate `PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
 | 21 | **Q pip use**: instant gate open, amend the "no one-press" comment, update `pip_gate_spend` | Runtime + test | none | CONFIRMED round 3 |
 | 22 | **Charge-speed scaling** (see GAME_DESIGN_V2 3.3: original for charging, mine for absorbing, OPEN) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
-| 40 | **Charge capacity system**: `maxCharge` per player starting at 10, pip = one full bar, `MAX_CHARGE` constant retired, tests updated (CODEX 01 task A5) | Runtime + test | none | CONFIRMED round 10 |
-| 41 | **Capacitor Module pickup**: entity, +capacity, bar-growth animation, checkpoint rule, Builder placement | Runtime + Builder | 40 | CONFIRMED round 10 |
+| 40 | **10-unit bar**: `MAX_CHARGE` becomes 10, a pip banks at 10, HUD reads / 10, tests rewritten (CODEX 02 task 1) | Runtime + test | none | CONFIRMED round 11 |
+| 41 | **Capacitor Module pickup**: entity, effect, animation, checkpoint rule, Builder placement | Runtime + Builder | what it raises (OPEN) | **ON HOLD** |
 | 42 | **Capacitor Module art** (48 x 48, 8-frame idle) | Art (Kiro) | none | **DONE round 10** |
 | 43 | **Charge bar colours** red, yellow, cyan | Runtime | none | CONFIRMED round 10 (Kiro) |
-| 44 | Place the first Capacitor Module in the AC-secret room | Content | 14, 41 | Chief |
+| 44 | Decide where the first Capacitor Module appears (not the AC-secret room) | Design | 41 | OPEN, Chief |
+| 45 | **Charge table** in one place in code; Builder defaults per object kind (GAME_DESIGN_V2 3.9) | Runtime + Builder | none | CONFIRMED round 11 (CODEX 02 task 4, AKI 26 addendum) |
+| 46 | **Q spends the whole pip** (remove the remainder refund) | Runtime | none | CONFIRMED round 11 (CODEX 02 task 2) |
+| 47 | **Charge speed: slow when empty, faster when full**, both directions, 1.2 to 3 units/s | Runtime + test | 40 | CONFIRMED round 11 (CODEX 02 task 3) |
+| 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are on the Desktop |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
 | 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
 | 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |

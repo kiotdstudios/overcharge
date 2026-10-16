@@ -2274,3 +2274,16 @@ The capacity system itself (Codex A5), the pickup entity, the Builder placement,
 ### Sync after merging 18 commits (2026-10-15)
 Codex built CODEX 01 Phases A and B (Q pip, two-way objects with uncharged, charge-speed M for both, duck, abilities). Chief and Orcha added official story canon (Malik Carter, Meridian Industries, MIOR, Project Tempest). My MIOR note is now confirmed. Post-merge suite: 2779 passed, 7 failed. Five are the known set; two are new and not mine: prop_sources 1 and 
 pc_dialogue 4 (was 3). I confirmed both fail on a clean checkout of origin before my commit (113/1 and 49/4), from Chief's Level 1 edits (five NPCs now, a decoration made absorbable). Import maps regenerated after resolving the usual conflict in index.html, editor.html and hero-lab.html. Code is ahead of the docs for Q, two-way objects and charge speed; the ledger has a status line saying so.
+
+## 2026-10-15 - Round 11: Chief's answers, Aki review, orders (docs only)
+Chief answered the seven questions. Recorded in GAME_DESIGN_V2 (ledger items 55-61, sections 3.1, 3.3, 3.8, new 3.9 charge table) and LEVEL_DESIGN_V2.
+- A pip always banks at 10, so the bar tops out at 10 and the Capacitor Module cannot make the bar bigger. What it raises is OPEN (my pick: one more pip slot). Its placement is OPEN (not the AC-secret room, which gives the poster / story piece / achievement). Capacity engine work is ON HOLD.
+- Q spends the whole pip, gate-only for now. Codex's Phase A refunds the remainder (`giveEnergy(pip - needed)`); CODEX 02 removes it.
+- Charge is slow when empty and faster when full, for absorbing and charging. Recommended numbers 1.2 to 3 units/s (floor 0.4). Simulated: first 4-unit lamp 2.61 s (was 1.33), three lamps 6.55 s (was 4.00), ending at 1 pip + 2 charge.
+- Free pip in Level 1 is fine (three lamps of 4 = 1 pip + 2 charge).
+- Charge table (3.9): camera 1; vending machine, fuse box, small sign, ATM, shutter motor, charge platform 2; AC 3; streetlight 4; large sign 4; generator 8; substation 10; never above 10; existing levels keep authored numbers.
+- New: docs/KIRO_ORDER_CODEX_02.md (10-unit bar, whole-pip Q, new charge speed, charge table). AKI 26 gets an addendum (rebase and push her branch; default charges by kind; Capacitor Module registration on hold).
+### Aki's work (checked, not re-graded)
+Branch agent/aki-order26: 16 commits, all pushed, but NOT on the live line (agent/orcha-gameplay), so Chief cannot see it in the game or Builder. Part 1 (level readout, platform path tool, reactive NPC fields, level-height fixes, ability checkboxes, ladder badge) is committed. Part 2 art: apartment facade FAIL (her verdict), window NPC art PASS, AC recolour geometry PASS with a border waiver request, pylon, cable, beacon, hatch room and pip pickup PASS. Nothing registered or placed. A dry-run merge into the live line conflicts only in the three generated import maps. Her suite figures (2761/24) are against her older base.
+### Review pages on Chief's Desktop
+OVERCHARGE_Review_Capacitor_Module.html (animated) and OVERCHARGE_Review_Aki26_Part2_Art.html (her sheets plus animated window NPC and pip). Both render with no errors.
