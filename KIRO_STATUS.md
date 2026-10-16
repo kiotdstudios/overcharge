@@ -2221,3 +2221,98 @@ Chief said nobody is working, so orders went out.
 - Shared data fields are listed in the Aki order so both builders agree. Neither order touches level files; Chief places everything.
 - `LEVEL_DESIGN_V2.md` section 8.1 maps the work list to owners. Kiro keeps the prover rows, retune and route checks, the juice module, the audio bus and music, hero duck and double-jump frames, and review.
 - The derived `AGENT_BOARD.md` is stale (last generated 2026-10-01) and not regenerated here.
+## 2026-10-14 - Kiro's own items: prover fixes, juice module, audio bus
+### Prover (work list row 2)
+- `completability.mjs` hard-coded 18 rows, so it scanned only the top half of the 36-row Level 2 and called 62% of it void. It now reads rows from the level data: 42 passed, 0 failed (was 39/3).
+- `reach.mjs` (the real-physics reachability prover) had two bugs on tall levels: it settled the spawn for a fixed 40 frames (Level 2 spawns high), and it threw away every state that was still falling after 70 frames, so the search could never leave the top of Level 2 (94 states). It now settles until grounded and follows long drops. Level 2's fence checks now pass for real: gate closed, chest unreachable (533 states); gate open, reachable; the lower route reaches the exit.
+- `camera_vertical.mjs` and `level_height.mjs` asserted that Level 2 is 18 rows. It is 36 now (Chief, 2026-10-11). Both keep the "pinned" guarantee for levels that fit the screen and test tall levels for scroll room instead.
+- **Genuine finding:** Level 5's fence can be bypassed. The real-physics prover reaches the exit with the fence CLOSED (382 states, via a running jump at x=3001). Level 5 is paused and Chief's; not fixed. The 2 remaining `level2_fork` failures are this.
+### Juice and audio (work list rows 8 and 12), first pass
+- New `src_scroll/juice.js`: particles (pooled, capped at 400), screen shake (capped at 6 px), hit-stop (capped at 0.12 s), all returning to rest. It only watches the game, so it needs no changes in `player.js`. `_dev/juice.mjs`: 32/0, including one that proves 60 observed frames leave the player identical.
+- New `src_scroll/audio.js`: synthesised sounds, no files. `_dev/audio_bus.mjs`: 34/0 against a fake AudioContext. Caught and fixed one real bug on the way (switching audio off did not stop the loops).
+- `main.js`: four small hooks. A shake translate was added as a separate line so the existing structural guard in `camera_vertical` still matches. `?juice=off`, `?audio=off` and `prefers-reduced-motion` switch the pieces off.
+- Real headless-browser run of the opening of Level 1: no page errors with the default, `?juice=off` and `?juice=off&audio=off`. The objective card shows "Try absorbing power from a street lamp" and the text fits.
+- `node scripts/version_editor.mjs` was run per `AGENTS.md`; it regenerated the import map in `index.html`, `editor.html`, `hero-lab.html`.
+### Not verified
+Nobody has heard the sounds or judged the particles in motion; the headless browser has no audio output and a still frame cannot show motion. Chief should play the first minute with and without `?juice=off`.
+### Suite
+2709 passed, 5 failed across 60 suites (was 2617/24): `level2_fork` 2 (Level 5 fence), `npc_dialogue` 3 (the "New line" placeholders), and `npc_geometry` and `order23_taskb_acceptance` crash before reporting, as they already did.
+### Orders
+Baselines in `KIRO_ORDER_CODEX_01.md` and `KIRO_ORDER_AKI_26.md` updated to 2709/5.
+### Still mine and not started
+Hero duck and double-jump frames (needs a PixelLab key; none is in the repo), Level 1 music, and the movement retune and six-level route check (after Codex's duck work).
+## 2026-10-14 - Fix: charge hum kept playing into Level 2
+Chief: "sfx for gate still going even until on level 2".
+Cause: the charge hum is a loop. `juice.observe()` only runs while the game state is PLAYING. Charging the exit gate to completion ends the level that same frame, so the state left PLAYING and the "stopped charging" edge was never seen. The loop was never told to stop, and a new level reset the observer's memory without sending a stop either.
+Fix: `juice.stopLoops()` ends any absorb or charge loop. It is called every frame that is not PLAYING (level complete, game over, title), on a level change, on a checkpoint rewind (`clear()`), and when the module is switched off. `main.js` has the one-line hook.
+Tests: `_dev/audio_bus.mjs` 44/0, now with a regression block: level complete, level change, rewind, module off, absorb loop, and structural checks that `main.js` carries both hooks. Against the previous code the block fails (`stopLoops` did not exist). Suite 2719 passed, 5 failed (the same 5 as before).
+Not verified: I cannot hear it. The headless browser run is clean (no page errors), but only Chief can confirm the hum now stops when the gate opens and stays off in Level 2.
+## 2026-10-14 - Round 10: start at 10 charge, capacity upgrades, red/yellow/cyan bar, Capacitor Module art
+Chief: the player starts with 10 charge; an obtainable item raises overall charge; bring back the first iteration's red, yellow, cyan bar; item #3 on his concept sheet is the upgrade, make the art; "when you have 10 charge you have a full pip".
+### History I found (git)
+- The first iteration (v0.1 to v0.3) had `MAX_CHARGE = 10`. A full bar banked a pip and reset to 0. **F** near a gate spent a banked pip and powered the device at once.
+- Discharge speed scaled with the bar: `max(0.5, DISCHARGE_RATE * charge / MAX_CHARGE)`. **Correction: earlier I told Chief this mechanic had never existed. That was wrong; it did, for discharge.** Absorbing stayed flat.
+- The bar colours were `CHARGE_LOW #ff4444`, `CHARGE_MED #ffcc00`, `CHARGE_HIGH #44ddff`, with steps at 30% and 60%, from the first commit. The 25-unit bar came from commit 582b07d on 2026-10-09. The cyan-to-violet blend replaced the red/yellow/cyan on 2026-09-25 with `energy-hud.js`.
+### Docs (GAME_DESIGN_V2, LEVEL_DESIGN_V2)
+- 3.1 rewritten: start 10, full bar is one pip (item 6 "25 fills a pip" is superseded). Pip value as capacity grows is my recommended reading, flagged OPEN.
+- 3.2: the pip and gate table repeated for a 10 bar. Measured by running the real engine with `MAX_CHARGE = 10` in a scratch copy: 39 of 53 `pip_gate_spend` checks pass; the 14 failures are the literal 25-based numbers. One pip now pays one 8-gate and leaves 2.
+- 3.3: F history, Q remainder question, **Level 1 now banks a pip** (12 charge against a 10 bar), charge-speed options O (original) and M (mine) with my recommendation O for charging and M for absorbing, and why.
+- New 3.8 Charge capacity upgrades (+4, permanent, cap 30, all recommended and flagged), Capacitor Module as the AC-secret reward, engine work for task A5. New 8.4 bar colours. Ledger items 51-54 and six new open questions A-F.
+- Work list rows 40-44. Orders: CODEX 01 gets task A5 (per-player `maxCharge`, `CapacityPickup`), A2 and A3 updated; AKI 26 asked to register the item; ORCHA 19 and STORY_BIBLE_DRAFT record the MIOR lore.
+### Lore Chief's concept sheet adds
+MIOR, "Meridian Institute of Research"; MIOR technology, atmospheric research, Project Tempest ("the original storm experiment"), MIOR drones. Candidate canon, not a decision.
+### Code
+- `src_scroll/energy-hud.js`: `chargeColors()` is now red (to 30%), yellow (to 60%), cyan (above). Pips stay violet. `_dev/charge_colors.mjs` 18/0. Rendered with the real HUD in headless Chromium at six fills: correct.
+### Art (assets/objects/capacity-upgrade/)
+- Capacitor Module: `item.png` 48 x 48 and `idle_00..08.png` (9 frames). PixelLab `/create-image-pixen` (seed 14) and `/animate-with-text-v3` (seed 4242). Eight candidates were compared; two read as treasure chests and were rejected. Art check passes on every frame (48 x 48, clean transparent border, no white border, 33 to 50 colours, feet line within 1 px). Known quirk: the core's triangle softens into a ring during the pulse. Not registered in the manifest yet (AKI 26).
+- The PixelLab key Chief pasted is stored in `_kiro_tools/pl_token.txt`, outside the repo. It is in this conversation, so Chief may want to rotate it.
+### Suite
+2737 passed, 5 failed across 61 suites (same 5 as before). Smoke run of the game: no page errors.
+### Not done
+The capacity system itself (Codex A5), the pickup entity, the Builder placement, the bar-growth animation, the pickup sound. The 25-unit bar is still in the code; the HUD still shows "/ 25".
+
+### Sync after merging 18 commits (2026-10-15)
+Codex built CODEX 01 Phases A and B (Q pip, two-way objects with uncharged, charge-speed M for both, duck, abilities). Chief and Orcha added official story canon (Malik Carter, Meridian Industries, MIOR, Project Tempest). My MIOR note is now confirmed. Post-merge suite: 2779 passed, 7 failed. Five are the known set; two are new and not mine: prop_sources 1 and 
+pc_dialogue 4 (was 3). I confirmed both fail on a clean checkout of origin before my commit (113/1 and 49/4), from Chief's Level 1 edits (five NPCs now, a decoration made absorbable). Import maps regenerated after resolving the usual conflict in index.html, editor.html and hero-lab.html. Code is ahead of the docs for Q, two-way objects and charge speed; the ledger has a status line saying so.
+
+## 2026-10-15 - Round 11: Chief's answers, Aki review, orders (docs only)
+Chief answered the seven questions. Recorded in GAME_DESIGN_V2 (ledger items 55-61, sections 3.1, 3.3, 3.8, new 3.9 charge table) and LEVEL_DESIGN_V2.
+- A pip always banks at 10, so the bar tops out at 10 and the Capacitor Module cannot make the bar bigger. What it raises is OPEN (my pick: one more pip slot). Its placement is OPEN (not the AC-secret room, which gives the poster / story piece / achievement). Capacity engine work is ON HOLD.
+- Q spends the whole pip, gate-only for now. Codex's Phase A refunds the remainder (`giveEnergy(pip - needed)`); CODEX 02 removes it.
+- Charge is slow when empty and faster when full, for absorbing and charging. Recommended numbers 1.2 to 3 units/s (floor 0.4). Simulated: first 4-unit lamp 2.61 s (was 1.33), three lamps 6.55 s (was 4.00), ending at 1 pip + 2 charge.
+- Free pip in Level 1 is fine (three lamps of 4 = 1 pip + 2 charge).
+- Charge table (3.9): camera 1; vending machine, fuse box, small sign, ATM, shutter motor, charge platform 2; AC 3; streetlight 4; large sign 4; generator 8; substation 10; never above 10; existing levels keep authored numbers.
+- New: docs/KIRO_ORDER_CODEX_02.md (10-unit bar, whole-pip Q, new charge speed, charge table). AKI 26 gets an addendum (rebase and push her branch; default charges by kind; Capacitor Module registration on hold).
+### Aki's work (checked, not re-graded)
+Branch agent/aki-order26: 16 commits, all pushed, but NOT on the live line (agent/orcha-gameplay), so Chief cannot see it in the game or Builder. Part 1 (level readout, platform path tool, reactive NPC fields, level-height fixes, ability checkboxes, ladder badge) is committed. Part 2 art: apartment facade FAIL (her verdict), window NPC art PASS, AC recolour geometry PASS with a border waiver request, pylon, cable, beacon, hatch room and pip pickup PASS. Nothing registered or placed. A dry-run merge into the live line conflicts only in the three generated import maps. Her suite figures (2761/24) are against her older base.
+### Review pages on Chief's Desktop
+OVERCHARGE_Review_Capacitor_Module.html (animated) and OVERCHARGE_Review_Aki26_Part2_Art.html (her sheets plus animated window NPC and pip). Both render with no errors.
+
+## 2026-10-15 - Round 12: the charge system settled (docs only)
+Chief rethought the pip bank. Final system, written into GAME_DESIGN_V2 (3.1, 3.2 note, 3.3, 3.8, new 3.10, ledger items 62-67) and LEVEL_DESIGN_V2 (work list 40, 41, 44, 46, scope rule):
+- The bar holds 10 and a pip is 10. The player starts with ONE pip slot (20 held at most). Each Capacitor Module, later, adds a slot (+10), up to 5 slots (60). Full bar plus full slots refuses extra absorbing and the source keeps its charge.
+- Q takes a banked pip, pays the gate's 8, and the other 2 returns to the bar (overflow lost). Codex's Phase A already does this, so no code change. Exits stay at 8; the "exits cost 10" and "growing bar" (option F) ideas were dropped.
+- Special moves become learnable projectile upgrades and new moves that cost more charge (3.10, concept, later).
+- The Capacitor Module appears later (not Level 1, not Level 2 by default, not the AC-secret room).
+- One level at a time: only Level 1's charge economy matters now.
+- KIRO_ORDER_CODEX_02.md rewritten: 10-unit bar and pip slots (start 1), Q edge-case tests only, charge speed 1.2 to 3 units/s (simulated: 2.61 s for the first lamp, 6.55 s for three), charge table in constants.js, Level 1 test (3 lamps = 1 pip + 2). Capacitor pickup not part of it.
+- Open: emblem steady or softening, charge-table numbers, speed floor, poster-as-achievement, locked pip icons dim or hidden.
+
+## 2026-10-16 - Round 13: Chief reviewed Aki's branch; pylon and AC secret placed in Level 1; orders for Codex and Aki
+### Chief's verdicts
+Pylon decent (placed). Apartment, window NPC (both animations), pip pickup and my Capacitor Module failed. Chief wants Codex to redo the art, Aki to read the new GDD and roadmap and work on finishing Level 1, and me to put the hatch and secret room in Level 1 so he can see it all together.
+### Level 1 (Chief's written order, logged in KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md)
+- Round trip of level1.json was byte-identical before my edit; the change is additive. Added: relay pylon (plaza, x 576), a one-way fire escape at y 288 (columns 3 to 13), a ladder (column 4), an uncharged AC unit (hvac, capacity 3, x 160), a wall switch "AC" (cost 2, x 224), a fence-style door (x 256) and a solid room shell (columns 8 to 13, rows 4 to 8) with Aki's four props. Level charge stays 12; nothing is required; the street is untouched.
+- `_dev/level1_secret.mjs` 23/0 drives the real Player and level: climb, locked door, pay 2, enter. In the real game (headless browser) the hero climbs to the fire escape and the door shows POWER REQUIRED with an empty bar.
+- Two tests tripped on first try and were handled, not loosened: parity_regression wants sources and switches grid-aligned and resting on a surface (fixed in the level), camera_vertical drops a hero at x=64 through the level (platform now starts at column 3). level2_fork's reachability scan treated a one-way tile as no floor; it now counts it as a floor.
+- Limits, stated plainly: the door opens from a switch, not from powering the AC, and it looks like an electric fence, not a hatch. Both need engine links (CODEX 03 tasks 5 and 6). The window NPC and apartment are not placed (art failed).
+### Found and fixed
+Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp". Restored "Try absorbing power from a street lamp" in both places in ui.js.
+### Measured
+The apartment draft is 95% blue-dominant pixels. Existing Night City families run 43% to 86% (filler_wall 80%). So "very blue" is true but the real gap is texture and warm/purple accents; CODEX 03 says so.
+### Orders
+- KIRO_ORDER_CODEX_03.md: redo window NPC, apartment, pip pickup, Capacitor Module (match concept #3: black and graphite metal, amber glow, MIOR triangle, no cyan), then state-linked hatch art and "barrier opens when the AC is powered". Comes before CODEX 02. Needs Chief to save the concept sheet at docs/reference/capacity_upgrade_concept_sheet.png (I cannot copy a chat attachment).
+- KIRO_ORDER_AKI_27.md: rebase and push Part 1, read the plan, build the vertical Level 1 as a separate draft file (src_scroll/levels/level1_vertical.json, not in levels.json, level1.json untouched), prove it with the provers.
+- docs/OVERCHARGE_Level1_Roadmap.pdf added to the repo (regenerated, 7 pages) and on the Desktop.
+### Suite
+2822 passed, 7 failed (level2_fork 2, npc_dialogue 4, prop_sources 1, plus two crashes): the same 7 as the live line before my change.

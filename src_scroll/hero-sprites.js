@@ -1,5 +1,5 @@
 export const HERO_STATES = {
- idle:[6,true],walk:[10,true],run:[14,true],jump:[10,false],
+ idle:[6,true],duck:[1,true],walk:[10,true],run:[14,true],jump:[10,false],
  'ledge-climb':[10,false],death:[9,false],hurt:[16,false],stunned:[8,true],
  'energy-strike':[18,false],'projectile-cast':[20,false],'wall-slide':[8,true],grapple:[10,false],
  'ladder-up':[10,true],'ladder-down':[8,true],absorb:[10,true],discharge:[10,true],
@@ -34,9 +34,9 @@ export const HERO_PACKS = {
   root:'assets/sprites/hero-v6', frames:16, cell:128, footAnchor:126, rev:2,
   alias:{
    'energy-strike':'melee','projectile-cast':'cast',
-   grapple:'jump','ladder-down':'ladder-up',
+   grapple:'jump','ladder-down':'ladder-up',duck:'idle',
   },
-  standIn:['grapple','ladder-down'],
+  standIn:['grapple','ladder-down','duck'],
  },
 };
 export function isStandIn(pack,state){return (HERO_PACKS[pack]?.standIn||[]).includes(state);}
@@ -45,6 +45,15 @@ export const DEFAULT_PACK='hero-v3';
 const cache=new Map();
 function framesFor(state,dir,gaitRoot,pack){
  const spec=HERO_PACKS[pack]||HERO_PACKS[DEFAULT_PACK];
+ // v3's takeoff frame is a grounded crouch. Hold that pose while ducking.
+ if(state==='duck'&&pack===DEFAULT_PACK){
+  const key=`${spec.root}/duck/${dir}`;
+  if(!cache.has(key)){
+   const img=new Image();img.src=`${spec.root}/jump/${dir}/frame_000.png`;
+   cache.set(key,[img]);
+  }
+  return cache.get(key);
+ }
  // The gait-v4 override only ever replaced v3's walk/run and does not apply to v6.
  const revised=gaitRoot&&pack===DEFAULT_PACK&&(state==='walk'||state==='run');
  const folder=spec.alias[state]||state;
@@ -121,6 +130,7 @@ export class PlayerSprites{
   else if(absorbing)state='absorb';
   else if(discharging)state='discharge';
   else if(airborne)state='jump';
+  else if(status.ducking)state='duck';
   else state=moving?(running?'run':'walk'):'idle';
   this.setState(state,right);
   if (status.traversalPaused) return;

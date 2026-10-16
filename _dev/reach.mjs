@@ -60,7 +60,15 @@ export function reachable(levelDef, targetFn, opts = {}) {
   const load  = (p,s) => { p.x=s.x; p.y=s.y; p.vx=s.vx; p.vy=s.vy; p.grounded=s.grounded; };
 
   // settle the spawn onto the ground first
-  setKeys([]); for (let i=0;i<40;i++){ probe.update(1/60, level); Input.update(); }
+  // Settle until grounded, not for a fixed 40 frames. Level 2 (36 rows) spawns the player
+  // high above its floor; 40 frames (0.67 s) is not enough to land, so the search started
+  // airborne and every neighbouring state was thrown away (only grounded states are queued).
+  setKeys([]);
+  { let groundedFrames = 0;
+    for (let i=0;i<900 && groundedFrames<10;i++){
+      probe.update(1/60, level); Input.update();
+      groundedFrames = probe.grounded ? groundedFrames+1 : 0;
+    } }
   const start = snap(probe);
   const seen = new Set([key(start)]);
   const queue = [start];
@@ -81,7 +89,13 @@ export function reachable(levelDef, targetFn, opts = {}) {
         frames++;
         if (frames > 6 && probe.grounded) break;
       }
-      if (probe.y > 2000 || Number.isNaN(probe.x)) continue;   // fell out of the world
+      // A long drop (Level 2 falls 23 rows, 736 px) is still airborne after the 70-frame arc.
+      // Keep the keys held and let the body land, or every drop is silently discarded and the
+      // search can never leave the top of a tall level. Stop once it is below the level.
+      for (let extra = 0; extra < 600 && !probe.grounded && probe.y <= level.pxH; extra++) {
+        probe.update(1/60, level); Input.update();
+      }
+      if (probe.y > level.pxH || Number.isNaN(probe.x)) continue;   // fell out of the world
       const ns = snap(probe);
       const k = key(ns);
       if (targetFn(probe)) { hit = { via:a.name, x:probe.x, y:probe.y }; return { reached:true, hit, explored:seen.size }; }

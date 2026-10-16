@@ -3,6 +3,8 @@
 **From:** Kiro, Technical Director | **To:** Orcha | **Authority:** Chief
 **Status:** work order, nothing started. **This order is writing only. You change no code, no level file and no art.**
 
+**Status update, 2026-10-15:** Chief has approved official story canon (`docs/STORY_CANON_THE_MERIDIAN_INCIDENT.md` and `docs/STORY_CANON_MALIK_CARTER.md`: Malik Carter, Meridian Industries, MIOR, Project Tempest, six chapters). **Step 1 (three premises) is done and superseded.** Read the canon first. Steps 2 and 3 remain: a short story bible that points at the canon, and `docs/LEVEL1_DIALOGUE.md` with every line the player reads in Level 1, written to the canon. The "New in round 10" section below is now confirmed rather than a candidate.
+
 Welcome back. You have been away, so this order gives you a short reading list and one job: **the story.**
 Chief assigned it to you himself.
 
@@ -20,6 +22,12 @@ Chief assigned it to you himself.
 2. `docs/GAME_DESIGN_V2.md`: sections 1 (identity), 7 (world and NPCs) and 13 (decision ledger).
 3. `docs/LEVEL_DESIGN_V2.md`: sections 3.2 to 3.5 and 4.6 (zones, NPCs, the foreshadow and the AC secret).
 4. `src_scroll/levels/level1.json`, only the `npcs` array (three NPCs; two still say the placeholder "New line").
+
+## New in round 10: Chief's concept sheet names MIOR and Project Tempest
+Chief sent a concept sheet for the charge-upgrade items. It is branded **MIOR, "Meridian Institute of
+Research"** and mentions **MIOR technology, atmospheric research, Project Tempest (a storm experiment) and
+MIOR drones.** Read the "NEW LORE FROM CHIEF" paragraph in `docs/STORY_BIBLE_DRAFT.md`. Treat it as a strong
+candidate for the premise. **Ask Chief whether it is canon before you build on it.**
 
 ## Chief's decisions you must respect
 - **Tone: Static Shock inspired.** A young, relatable street-level hero, humour beside real stakes, a

@@ -744,6 +744,15 @@ export function setLevelBackground(packKey) {
   state.dirty = true;
   notify();
 }
+// Absent abilities means legacy play: both attacks enabled.
+export function setLevelAbility(name, enabled) {
+  if (!state.level || !['melee', 'bolt'].includes(name)) return;
+  const abilities = { ...state.level.abilities, [name]: !!enabled };
+  if (abilities.melee !== false && abilities.bolt !== false) delete state.level.abilities;
+  else state.level.abilities = abilities;
+  state.dirty = true;
+  notify();
+}
 export function setShowGrid(v)          { state.showGrid = v; notify(); }
 export function setGuardsOn(v)           { state.guardsOn = !!v; notify(); }
 export function setMagneticSnap(v)       { state.magneticSnap = !!v; notify(); }

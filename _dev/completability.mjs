@@ -41,8 +41,11 @@ export function analyse(d) {
 
   // TERRAIN EXTENT — rightmost column holding any solid tile.
   let lastSolidCol = -1;
+  // Rows come from the level's own data. A hard-coded 18 scanned only the top half of
+  // Level 2 (36 rows) and called 62% of it void. Levels are per-level height now.
+  const rows = Math.max(1, Math.round(tiles.length / (cols || 1)));
   for (let c = 0; c < cols; c++)
-    for (let r = 0; r < ROWS; r++)
+    for (let r = 0; r < rows; r++)
       if (solid(tiles[r * cols + c])) { lastSolidCol = Math.max(lastSolidCol, c); break; }
   const terrainEndX = (lastSolidCol + 1) * TILE;
   const voidFrac = widthPx > 0 ? (widthPx - terrainEndX) / widthPx : 0;

@@ -23,11 +23,14 @@ export const PLAYER_SPEED = 75;
 export const JUMP_FORCE   = -430;
 export const PLAYER_W     = 20;
 export const PLAYER_H     = 30;
+// Ducking is 12px shorter: a 30px standing target becomes 18px tall.
+export const PLAYER_DUCK_H = 18;
 
 // Electricity
 export const MAX_CHARGE      = 25;    // Chief 2026-10-09: raised from 10 to 25
 export const ABSORB_RATE     = 3;     // units per second while holding E near source
 export const DISCHARGE_RATE  = 3;     // units per second while holding SPACE near device
+export const chargeTransferRate = held => 1 + Math.max(0, Math.min(MAX_CHARGE, held)) / MAX_CHARGE;
 // Chief 2026-10-11: L-fired electric bolt costs 1/4 of ONE charge unit.
 // K remains free melee. Spent
 // through the same spendEnergy() authority as discharge, so it drains the bar

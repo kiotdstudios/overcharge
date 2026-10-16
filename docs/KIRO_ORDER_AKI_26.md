@@ -91,6 +91,15 @@ All art uses the Night City prop palette and the manifest format of the existing
 | 7 | **Hatch and secret room dressing** | A closed hatch, an open hatch, and 3 to 5 small room props | The Easter egg room behind the AC unit. Content depends on the story. |
 | 8 | **Pip pickup** | 16 x 16 icon with a 4-frame idle bob, in the pip HUD style | World object for the full-reserve chest (CODEX 01 A4). |
 
+**ON HOLD (round 11): do not register the Capacitor Module yet.** Chief has not decided what it raises or where
+it appears, and he wants to review the art first. It is below only so you know it exists.
+
+**Delivered by Kiro in round 10 (on hold, see above):** the **Capacitor Module** (the charge capacity upgrade
+item, #3 on Chief's concept sheet): `assets/objects/capacity-upgrade/` holds `item.png` (48 x 48) and
+`idle_00.png` to `idle_07.png`. Add a manifest entry (**no BOM**) and a Builder palette entry that places a
+`capacity-upgrade` pickup (`amount` field, default 4) once Codex's task A5 defines it. Show Chief where it
+appears in the palette.
+
 Do **not** make: hero frames (Kiro does duck and double jump), the vending machine, fuse box, sign and shutter
 reactions (a later order, after Chief reviews these), or any music.
 
@@ -98,10 +107,31 @@ reactions (a later order, after Chief reviews these), or any music.
 - [ ] Each Part 1 item working in the Builder, with a short screen recording of Chief's workflow for 1.1, 1.3 and 1.4.
 - [ ] Old levels load and save unchanged (diff a round trip of every level JSON and show it is empty).
 - [ ] New tests for the checkbox round trip, the readout, path editing with undo and redo, and NPC fields.
-- [ ] Suite totals versus the baseline in CODEX 01 (2617 passed, 24 failed before this order). Name every new failure.
+- [ ] Suite totals versus the baseline in CODEX 01 (2709 passed, 5 failed before this order). Name every new failure.
 - [ ] Each art piece: the checks above, a contact sheet and in-game screenshots, shown to Chief before registering.
 - [ ] Commit and push everything, with SHA, file list and the build URL Chief should test.
 
 ## Report and stop
 Report as `AKI 26 PART <1|2>`: per item PASS/FAIL, SHA, files, tests, what you did not do. Then HOLD for review.
 Do not merge to the live line. Do not place anything in a level.
+
+## Addendum, round 11 (2026-10-15), from Kiro
+
+**Your branch `agent/aki-order26` is committed and pushed (16 commits).** Good. Chief cannot see it in the game
+or the Builder because it is not on the live line (`agent/orcha-gameplay`). Kiro has put your Part 2 art on
+Chief's Desktop as a review page. To get Part 1 (the Builder tools) onto the live line:
+1. **Rebase or merge `origin/agent/orcha-gameplay` into your branch** (it moved by about 25 commits). The only
+   conflicts are the generated import maps in `index.html`, `editor.html` and `hero-lab.html`: take the
+   upstream versions, then run `node scripts/version_editor.mjs` and commit the result. Kiro's dry run found
+   no other conflicts.
+2. Run the full suite and report totals against **2779 passed, 7 failed** (the live line today).
+3. Push, then say so. Kiro reviews Part 1 and merges it. **Do not merge to the live line yourself.**
+4. Part 2 art stays unregistered until Chief approves each piece. Do not redo the apartment facade yet; Chief
+   will say.
+
+**New work for Part 1: default charge by object kind** (GAME_DESIGN_V2 section 3.9). Make the palette and inspector
+defaults come from one table, not from numbers scattered in `editor/main.js` (today: generator 4 or 5, HVAC 4,
+props 4). Defaults for newly placed objects: security camera 1; vending machine, fuse box, small neon sign, ATM,
+shutter motor, charge platform 2; AC or HVAC unit 3; streetlight 4; large neon sign or billboard 4; generator 8;
+substation or transformer 10. Never above 10. Existing levels keep their authored numbers. The shared table is
+added to `constants.js` by Codex (CODEX 02 task 4); import it rather than copying it.

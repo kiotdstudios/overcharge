@@ -11,7 +11,7 @@ function check(value, label) {
   console.log(`✓ ${label}`);
 }
 check(!!def && def.walkAssetId === 'npc_streetlamp_woman_walk', 'Level 1 NPC uses the new walk art');
-for (const [id, count] of [[def.assetId,4],[def.greetingAssetId,4],[def.walkAssetId,6]]) {
+for (const [id, count] of [[def.assetId,4],[def.greetingAssetId,4],[def.walkAssetId,9]]) {
   const asset = manifest.assets.find(entry => entry.id === id);
   check(asset?.frame_count === count, `${id} has ${count} registered frames`);
   for (let i=0; i<count; i++) {
@@ -43,22 +43,26 @@ globalThis.fetch = async () => ({ok:true,json:async () => manifest});
 await loadDecoAnimations();
 npc._bubbleT = 0; npc._greetT = 0; npc._turnPauseT = 0;
 npc.update(0.1, null);
-check(npc._currentFrame()?.src.includes('/walk/'), 'moving NPC renders the walk animation');
+check(npc._currentFrame()?.src.includes('/walk-v2/'), 'moving NPC renders the corrected walk animation');
 npc.previewBubble('hello');
 check(npc._currentFrame()?.src.includes('/greeting/'), 'dialogue renders the matching greeting animation');
 npc._bubbleT = 0; npc._greetT = 0; npc._walking = false;
 check(npc._currentFrame()?.src.includes('/idle/'), 'stationary NPC renders the matching idle animation');
 const smooth = manifest.assets.find(entry => entry.id === def.walkAssetId);
-check(smooth.frameOrder.length === 8 && smooth.walkFrameStepPx === 3, 'walk cycle uses eight distance-paced poses');
+check(smooth.frame_count === 9 && !smooth.frameOrder && smooth.walkFrameStepPx === 3,
+  'walk cycle uses nine sequential distance-paced poses');
+check(smooth.footYByFrame.length === 9 && smooth.footYByFrame.every(y => y === 219),
+  'all walk poses keep the same shoe baseline');
 const paced = new Npc(def);
 paced._resolveSprites();
 const sampled=[];
-for(let i=0;i<8;i++){
+for(let i=0;i<9;i++){
   paced._walkDistance=i*3;
   paced._walking=true;
   sampled.push(paced._currentFrame()?.src.match(/(\d\d)\.png$/)?.[1]);
 }
-check(sampled.join(',') === '00,01,02,04,03,04,02,01', 'walk frames flow through contact and back without repeated wide-stance seam');
+check(sampled.join(',') === '00,01,02,03,04,05,06,07,08',
+  'walk frames progress through each new pose without skipping or reversing');
 const oldDistance=paced._walkDistance;
 paced._walking=false;
 paced._bubbleT=500;

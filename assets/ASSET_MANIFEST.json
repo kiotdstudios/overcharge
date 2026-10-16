@@ -1756,6 +1756,88 @@
       }
     },
     {
+      "id": "prop_ncp_bus_stop_shelter",
+      "name": "Night City bus stop shelter",
+      "path": "assets/objects/night-city-props/bus-stop/shelter.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "bus_stop",
+        "street",
+        "prop"
+      ],
+      "frame_width": 320,
+      "frame_height": 192,
+      "frame_count": 1,
+      "notes": "Placeable bus shelter with bench, timetable and BUS STOP sign. Separate from both waiting NPCs; non-colliding visual dressing."
+    },
+    {
+      "id": "npc_bus_stop_homeless",
+      "name": "Bus stop - unhoused man",
+      "path": "assets/sprites/npc-bus-stop/homeless-idle/00.png",
+      "category": "npc",
+      "spawnsKind": "npc",
+      "tags": [
+        "npc",
+        "night_city",
+        "bus_stop",
+        "ambient"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 5,
+      "displayHeightPx": 60,
+      "trim": {
+        "x": 0.3203,
+        "y": 0.0859,
+        "w": 0.3594,
+        "h": 0.875
+      },
+      "notes": "Independent grounded adult NPC waiting near the shelter. Five-frame idle loop: breath, blink and coat/scarf settle with planted feet. Builder-placeable with optional dialogue.",
+      "fps": 3,
+      "loop": true,
+      "footYByFrame": [
+        123,
+        123,
+        123,
+        123,
+        123
+      ]
+    },
+    {
+      "id": "npc_bus_stop_backpack",
+      "name": "Bus stop - backpack commuter",
+      "path": "assets/sprites/npc-bus-stop/backpack-idle/00.png",
+      "category": "npc",
+      "spawnsKind": "npc",
+      "tags": [
+        "npc",
+        "night_city",
+        "bus_stop",
+        "ambient"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 5,
+      "displayHeightPx": 60,
+      "trim": {
+        "x": 0.3125,
+        "y": 0.0859,
+        "w": 0.3672,
+        "h": 0.875
+      },
+      "notes": "Independent grounded commuter NPC with backpack, waiting at the bus stop. Five-frame idle loop: breath, small phone movement and bag-strap settle with planted feet. Builder-placeable with optional dialogue.",
+      "fps": 3,
+      "loop": true,
+      "footYByFrame": [
+        123,
+        123,
+        123,
+        123,
+        123
+      ]
+    },
+    {
       "id": "prop_ncp_vending_machine",
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/vending-machine/00.png",
@@ -2998,7 +3080,7 @@
       "fps": 4,
       "directions": null,
       "loop": true,
-      "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and six-frame heeled walk. Runtime mirrors east-facing art for left movement. Shared active-animation alpha bounds x50..160 y38..223 on the 236px canvas; visible figure displays 70 world pixels high with shoes on the feet anchor.",
+      "notes": "Reference-based adult nightlife NPC. Four-frame idle; separate greeting and nine-frame heeled walk. Runtime mirrors east-facing art for left movement. Shared active-animation alpha bounds x50..160 y38..223 on the 236px canvas; shoes stay on the feet anchor.",
       "displayHeightPx": 60,
       "footYByFrame": [
         221,
@@ -3068,7 +3150,7 @@
     },
     {
       "id": "npc_streetlamp_woman_walk",
-      "path": "assets/sprites/npc-streetlamp-woman/walk/00.png",
+      "path": "assets/sprites/npc-streetlamp-woman/walk-v2/00.png",
       "category": "npc",
       "tags": [
         "ambient",
@@ -3079,30 +3161,23 @@
       ],
       "frame_width": 236,
       "frame_height": 236,
-      "frame_count": 6,
+      "frame_count": 9,
       "fps": 8,
-      "frameOrder": [
-        0,
-        1,
-        2,
-        4,
-        3,
-        4,
-        2,
-        1
-      ],
       "walkFrameStepPx": 3,
       "directions": null,
       "loop": true,
       "footYByFrame": [
         219,
-        221,
-        223,
-        220,
-        223,
-        220
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219,
+        219
       ],
-      "notes": "Side-view heel strut. Eight playback poses use the smoothest five source frames in a forward/reverse contact cycle; cadence advances every three world pixels walked. Source PNGs remain unchanged. Referenced by walkAssetId; not independently placeable in the Builder.",
+      "notes": "Side-view heel strut with nine sequential poses and alternating leg contacts. Cadence advances every three world pixels walked; all shoes share the same source-pixel ground line. Referenced by walkAssetId; not independently placeable in the Builder.",
       "trim": null
     },
     {
@@ -3470,5 +3545,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 138
+  "count": 141
 }

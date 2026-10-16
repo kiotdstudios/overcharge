@@ -37,8 +37,8 @@ for (const source of levelWithSource.sources.slice(1)) {
   source.charge = 0;
   source.drained = true;
 }
-assert.equal(levelWithSource.isFailState(player), false,
-  'remaining source charge is not mislabeled as discharged');
+assert.equal(levelWithSource.isFailState(player), true,
+  'remaining source charge below the exit price still leaves the run unwinnable');
 
 const west = new Player(def.playerStart.x, def.playerStart.y);
 west.setEnergyState(1, 0);

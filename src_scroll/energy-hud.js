@@ -10,15 +10,25 @@ export function pipPulse(count, t, reduced = false) {
 }
 
 let sprites;
-export function chargeColors(fill) {
-  const f = Math.max(0, Math.min(1, fill));
-  // Hold a clear cyan at low charge, then blend into the banked-pip violet.
-  const blend = Math.max(0, (f - .2) / .8);
-  const mix = (a, b) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * blend)).join(',')})`;
-  return { body: mix([20, 146, 182], [108, 64, 160]),
-    bright: mix([44, 225, 255], [153, 81, 208]),
-    edge: mix([175, 249, 255], [219, 181, 255]) };
+
+// Charge bar colours: red when low, yellow in the middle, cyan when high. This is the first iteration's
+// scheme (ddbf42a, steps at 30% and 60%); Chief asked for it back because the colour change makes spending
+// and absorbing easy to read. The banked pips stay violet so the bar and the reserve read as different things.
+// Each band has a body, a bright top and a light edge, like the cyan set the bar already used.
+export const CHARGE_BANDS = Object.freeze({
+  mediumFrom: 0.3,   // above this fraction: yellow
+  highFrom: 0.6,     // above this fraction: cyan
+});
+const BAND_COLORS = Object.freeze({
+  low:    { body: 'rgb(150,34,48)',  bright: 'rgb(255,68,68)',  edge: 'rgb(255,170,170)' },
+  medium: { body: 'rgb(170,128,10)', bright: 'rgb(255,204,0)',  edge: 'rgb(255,236,150)' },
+  high:   { body: 'rgb(20,146,182)', bright: 'rgb(44,225,255)', edge: 'rgb(175,249,255)' },
+});
+export function chargeBand(fill) {
+  const f = Math.max(0, Math.min(1, Number.isFinite(fill) ? fill : 0));
+  return f > CHARGE_BANDS.highFrom ? 'high' : f > CHARGE_BANDS.mediumFrom ? 'medium' : 'low';
 }
+export function chargeColors(fill) { return { ...BAND_COLORS[chargeBand(fill)] }; }
 
 // Integer horizontal/vertical segments keep the electrical filaments pixel crisp.
 function sparkLine(ctx, x, y, length, seed, amplitude, color) {

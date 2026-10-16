@@ -72,17 +72,26 @@ sec('D7 / CHIEF RULING — the reward is ONE PIP and the BAR IS UNTOUCHED');
   ok(p.charge < MAX_CHARGE, 'and the bar never filled/flushed (no "gained then lost" read)', `charge=${p.charge}`);
 }
 
-sec('bankPip() respects MAX_BANKED_PIPS, and a refused chest does NOT open');
+sec('A full reserve leaves a persistent pip pickup when the chest opens');
 {
   const L=mkLevel(); const p=mkPlayer(L, 8, MAX_BANKED_PIPS);
   const ch=L.chests[0];
   p.spendEnergy(ch.receive(ch.cost));
   const barAfterCost=p.charge;
   const opened=ch.tryOpen(p);
-  ok(!opened, 'at the pip cap the chest REFUSES to open (reward not wasted)');
+  ok(opened, 'at the pip cap the chest opens');
   ok(p.bankedPips===MAX_BANKED_PIPS, 'pips never exceed the cap', `pips=${p.bankedPips}/${MAX_BANKED_PIPS}`);
-  ok(ch.opened===false, 'and it stays closed so the player can return');
-  ok(ch.charged===0, 'the accumulation is refunded, so he is not billed for nothing', `charged=${ch.charged}`);
+  ok(ch.opened===true, 'the open state latches');
+  ok(L.pipPickups.length===1, 'one permanent pip drops beside the chest');
+  const snap=L.snapshot();
+  L.pipPickups=[];
+  L.restore(snap);
+  ok(L.pipPickups.length===1, 'the dropped pip survives checkpoint rewind');
+  p.bankedPips--;
+  p.x=L.pipPickups[0].x-p.w/2;
+  p.y=L.pipPickups[0].y-p.h/2;
+  p._collectPickups(L);
+  ok(p.bankedPips===MAX_BANKED_PIPS && L.pipPickups[0].done, 'touching pip with a free slot collects it');
 }
 
 sec('D4 — opens ONCE and latches');

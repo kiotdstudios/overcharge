@@ -122,7 +122,7 @@ crates" rule and the "no enemies with crates" rule are therefore enforced by tes
 |---|---|---|
 | The fork | **Already there.** Level 1 has a high/low split at x about 1500. | Keep it as an exploration reward (CONFIRMED). |
 | Switch plus fence | **Not recommended** | It is a costly decision ("spend 2 or skip"). That lesson belongs to Level 2, and a mandatory 2 would cut Level 1's spare. A *secret* built from a switch and a barrier is fine (section 4.6). |
-| Chest (1 pip) | **Not recommended** | Level 1 never fills the 25-unit bar, so a pip has no context there, and the chest has the open refusal bug (GAME_DESIGN_V2 3.7). |
+| Chest (1 pip) | **Not recommended** | With a 10-unit bar (round 10) Level 1 can bank a pip from its spare lamp, but a chest still adds a second pip source to a tutorial, so it is not recommended for Level 1. (The chest's refusal bug is replaced by the pickup design, GAME_DESIGN_V2 3.7.) |
 | The cost of a decision | **Already satisfied** by reclaimable charged objects | Charged objects teach "charge is something you spend" without a punishing choice. |
 
 **CONFIRMED (round 2): keep Level 2 separate.** Level 1 borrows its *tools* (a switch, a barrier) for the
@@ -360,6 +360,24 @@ tower lands on the street, which is safe; the pit at col 26 stays the only death
 decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the charged-object props (not built, GAME_DESIGN_V2 3.5),
 the pylon and cable art, and the AC hatch art.
 
+### 4.3b The relay pylon and the first working AC secret, now in Level 1 (Chief's order, 2026-10-16)
+Chief: "use the relay pylon in the level so I can see how it looks all together" and "implement [the hatch and
+secret room] in lvl 1 ... so I can see it all together." Kiro added the following to `level1.json` (additive only; the file
+round-tripped byte for byte before the edit). Test: `_dev/level1_secret.mjs`, 23 checks.
+- **Relay pylon:** plaza, x 576, on the walkway. Aki's art (96 x 256).
+- **Fire escape:** a one-way platform at y 288 (six tiles above the street), columns 2 to 13.
+- **Ladder:** column 4 (x 128), street up to the fire escape. The first ladder in any shipped level; the test climbs it.
+- **AC unit:** a charged object (`kind: hvac`, capacity 3, starts **uncharged**, so the level's charge stays 12).
+- **Wall switch "AC":** costs 2. Pay it (hold SPACE next to it) and the door opens.
+- **Door:** a fence-style barrier at x 256 (the room's left wall, rows 7 to 8).
+- **Room:** a solid shell, columns 8 to 13, rows 4 to 8; the fire escape is its floor. Inside: an archive monitor, a blank
+  poster, a signal cassette and a memory cell (Aki's story-neutral props; the poster is where the first story piece goes).
+- **What it does today:** the door opens when the wall switch is paid, not when the AC unit is powered, and it looks like an
+  electric fence, not a hatch. Both are engine gaps, ordered in CODEX 03 (tasks 5 and 6). The window NPC and the apartment
+  are not in yet (their art failed review).
+- **Not required to finish the level:** the lamps still pay the exit on their own, and the street is untouched.
+- **Level economy unchanged:** the AC is uncharged, the switch costs 2 and is optional, and the three lamps are still 12 in total.
+
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
 (For the vertical layout, see 4.3a: pylon plus cable.) In the horizontal draft the gate was 4,300 px from
 the spawn, far off-screen. Two ways to show it:
@@ -409,7 +427,10 @@ vertical Level 1 the beacon should sit at the top of the level, so the beacon al
   reachable by a ladder the player passed at the start. The reward is an **Easter egg plus a story
   clue** (a poster or graffiti that tells the first piece of the world's story), which costs no new system.
   Add a real achievement system later, once the game has more than one level that wants it. A pip as the
-  reward is not recommended: a pip is 25 charge, which dwarfs Level 1's whole 12.
+  reward is not recommended. **Round 11 (Chief): the AC-secret room gives "that poster or piece of the story,
+  achievement or something"**, not the Capacitor Module. The poster is the first piece of the story (it can
+  now be written to the official canon). Whether an achievement needs a small system (a list, a pop-up) or the
+  poster is itself the achievement is OPEN (GAME_DESIGN_V2 section 13, question F).
 
 ### 4.7 Checkpoints (RECOMMENDED)
 Level 1 has one, at x 1824. With a longer route it needs at least three: before the shaft jump, at the
@@ -504,8 +525,9 @@ Results: the route takes **about 110 s**, inside the 90 to 120 s target. The fir
 and the first spend at **12.2 s** (the first-minute loop is met). The longest run without a beat is **6.9 s**
 (under the 8 s rule). Sprinting everything and skipping every beat takes **36.3 s**, so the floor is short;
 exploration (the opening ladder, the AC secret, the low route) is what adds time, as intended.
-**Charge-speed scaling (GAME_DESIGN_V2 3.3) shortens the absorb and charge beats by about 15 to 30 percent,
-so re-run this table after it lands.** The lift (segment 16) is the single new thing the player waits for;
+**Scope rule (Chief, round 12): one level at a time. This table and the economy section are about Level 1 only; do not rework Levels 2 to 6 yet.**
+
+**Round 11 changes this: Chief chose a charge speed that is SLOW when the bar is empty (1.2 units/s) and reaches 3 units/s only when full (GAME_DESIGN_V2 3.3).** Calculated by simulation (_kiro_tools/absorb_time.mjs): the first 4-unit lamp takes **2.6 s instead of 1.3 s**, so the first absorb lands at about **9.3 s** instead of 8.0 s, and absorbing all three lamps (to 1 pip plus 2 charge) takes **6.55 s instead of 4.0 s**. Charging a gate is slower for the same reason when the bar is low. The route total in this table therefore grows by roughly 3 to 5 s; re-run it once the rule is built. The lift (segment 16) is the single new thing the player waits for;
 if it feels slow, raise its speed rather than shorten the ride.
 
 ### 5.2 What this table cannot tell us
@@ -522,7 +544,8 @@ read, or get lost, which adds time; skilled players skip optional charged object
 - Reclaimable charged objects return their charge, so they cost nothing net.
 - Permanent costs (section 1.4): the AC secret (2) and, worst case, the unreclaimed ferry (2) = 4.
   12 - 4 = 8, so even a player who buys every permanent payoff can still pay the exit.
-- **Level 1 never fills the 25-unit bar:** the player can hold at most 12. So no pip is banked and **the
+- **Round 10 supersedes the next note.** The bar is 10 now, so a player who absorbs all 12 banks one pip.
+  Older note, true only for a 25 bar: **Level 1 never fills the 25-unit bar:** the player can hold at most 12. So no pip is banked and **the
   reserve is never seen in Level 1** (unless the trophy is a pip).
 
 ### 6.2 The projectile case (CONFIRMED; measured)
@@ -597,17 +620,17 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | # | Work | Kind | Depends on | Status |
 |---|---|---|---|---|
 | 1 | Remove the two `"New line"` placeholder lines | Content | none | CONFIRMED defect |
-| 2 | Fix the prover's hard-coded 18 rows | Test infra | none | RECOMMENDED |
+| 2 | Fix the prover's hard-coded 18 rows | Test infra | none | **DONE round 10**: `completability` 42/0, `level2_fork` 44/2, plus the reachability prover now settles until grounded and follows long drops. Two stale 18-row guards (`camera_vertical`, `level_height`) updated for the 36-row Level 2. |
 | 3 | Fail-state fix, in-play respawn, and "out of charge" prompt | Runtime | none | RECOMMENDED |
 | 4 | Objective-card stage 1 line (two places) | Runtime | none | **DONE round 3** ("Try absorbing power from a street lamp"). The "Charge gate to open." world label above exit gates is still to build. |
 | 5 | Movement retune with before and after (Appendix A) | Runtime | 2 | CONFIRMED authorized |
 | 6 | Route verification across all six levels | Test | 2, 5 | CONFIRMED |
 | 7 | **Two-way charged objects**: `capacity` plus `startCharge` on every source, a `receive()` that revives a drained object, conservation test, checkpoint snapshot | Runtime | none | CONFIRMED round 5; blocks 9 |
-| 8 | Juice module (particles, shake, hit-stop) and land/jump feedback | Runtime | 5 | RECOMMENDED |
+| 8 | Juice module (particles, shake, hit-stop) and land/jump feedback | Runtime | 5 | **FIRST PASS BUILT round 10** (`juice.js`, 32 tests); needs Chief's eyes and tuning |
 | 9 | Charged-object payoffs: vending machine, fuse box and sign, shutter, AC unit | Art + runtime | 7 | CONFIRMED direction |
 | 10 | Ambient actors: pedestrians, passing cars, drifting birds | Runtime + art | none | CONFIRMED direction |
 | 11 | Ducking and double-jump **animations** (no ability implied) | Art | none | CONFIRMED |
-| 12 | Audio bus and effects: absorb hum, gate open, charged objects, land, ambience | Runtime + audio | none | GAME_DESIGN_V2 sections 9 and 10 |
+| 12 | Audio bus and effects: absorb hum, gate open, charged objects, land, ambience | Runtime + audio | none | **FIRST PASS BUILT round 10** (`audio.js`, 34 tests, not yet heard by a person). Ambience and the charged-object reactions are still to do. |
 | 13 | Replacement Level 1 music | Audio (Kiro) | 12 | CONFIRMED; pending assets |
 | 14 | Lengthen or stack Level 1; place zones, NPCs, props, beacon | Content | 1, 4, 7, 9, 10 | Chief |
 | 15 | Hint copy and NPC role tags | Content | 14 | RECOMMENDED |
@@ -621,7 +644,20 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 19 | Gate the dev keys (`P`, `F2`, `[`, `]`) | Runtime | none | RECOMMENDED |
 | 20 | Regenerate `PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
 | 21 | **Q pip use**: instant gate open, amend the "no one-press" comment, update `pip_gate_spend` | Runtime + test | none | CONFIRMED round 3 |
-| 22 | **Charge-speed scaling** (rate x `1 + held / 25`) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
+| 22 | **Charge-speed scaling** (see GAME_DESIGN_V2 3.3: original for charging, mine for absorbing, OPEN) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
+| 40 | **10-unit bar and pip slots**: `MAX_CHARGE` becomes 10, a pip is 10, the player starts with 1 slot, HUD reads / 10 with dim locked icons, tests rewritten (CODEX 02 task 1) | Runtime + test | none | CONFIRMED round 12 |
+| 41 | **Capacitor Module pickup** (adds one pip slot): entity, animation, checkpoint rule, Builder placement | Runtime + Builder | 40 | Later (not Level 1) |
+| 42 | **Capacitor Module art** (48 x 48, 8-frame idle) | Art (Kiro) | none | **DONE round 10** |
+| 43 | **Charge bar colours** red, yellow, cyan | Runtime | none | CONFIRMED round 10 (Kiro) |
+| 44 | Decide where the first Capacitor Module appears (not Level 1, not the AC-secret room) | Design | 41 | Later, Chief |
+| 45 | **Charge table** in one place in code; Builder defaults per object kind (GAME_DESIGN_V2 3.9) | Runtime + Builder | none | CONFIRMED round 11 (CODEX 02 task 4, AKI 26 addendum) |
+| 46 | **Q**: a pip pays the gate's 8, the other 2 returns to the bar (already built by Codex Phase A; add the edge-case tests) | Runtime + test | none | CONFIRMED round 12 (CODEX 02 task 2) |
+| 47 | **Charge speed: slow when empty, faster when full**, both directions, 1.2 to 3 units/s | Runtime + test | 40 | CONFIRMED round 11 (CODEX 02 task 3) |
+| 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are on the Desktop |
+| 49 | **Redo four failed art pieces**: window NPC (both animations), apartment, pip pickup, Capacitor Module to match concept #3 | Art (Codex) | Chief's reference sheet | CONFIRMED round 13 (CODEX 03) |
+| 50 | **Relay pylon and a first AC secret in Level 1** | Content (Kiro, by Chief's order) | none | **DONE round 13**, `_dev/level1_secret.mjs` 23/0 |
+| 51 | **State-linked hatch art** and **a barrier that opens when the AC is powered** | Runtime (Codex) | 49 not required | CONFIRMED round 13 (CODEX 03 tasks 5 and 6) |
+| 52 | **Vertical Level 1 as a separate draft file**, with proof from the provers | Content (Aki) | her Part 1 on the live line | CONFIRMED round 13 (AKI 27) |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
 | 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
 | 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |

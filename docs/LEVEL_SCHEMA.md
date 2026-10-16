@@ -87,6 +87,12 @@ obvious home and is why it stays reserved.
 
 ## Source (ElectricalSource / Generator)
 
+`charge` is the source's capacity and, by default, its starting charge. Optional
+`uncharged: true` starts it empty without changing that capacity. SPACE transfers
+player charge into a source with room; E absorbs its stored charge. Gates,
+switches, chests, and a valid crate bridge take charging priority in overlapping
+interaction ranges. Existing source records remain fully charged at spawn.
+
 ```js
 {
   id:     string,   // ✅ Unique ID within the level, e.g. "A1"
@@ -497,9 +503,8 @@ authored before this order.
   There is no `charge` field. It is a wire, not a power bank.
 - **Contact** = AABB overlap with the crate box inflated by `CRATE_CONTACT_PAD`
   (2px). Strict inequality, so exactly 2px is the exclusive boundary.
-- **Delivery targets are GATES and SWITCHES ONLY.** `ElectricalSource` has no
-  `receive()` method, so a source is never a target. Absorb-through-crate is
-  deferred to v2.
+- **Crate delivery targets are gates and switches only.** Sources accept direct
+  SPACE charging, but absorb-through-crate remains deferred.
 - **A crate must bridge EXACTLY ONE device.** Touching none → refuses
   (`NOT CONNECTED`). Touching two or more → refuses and console-warns
   (`AMBIGUOUS CONTACT`). It never guesses which device gets the energy.

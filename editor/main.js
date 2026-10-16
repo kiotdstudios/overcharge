@@ -9,7 +9,7 @@ import {
   snapPoint, effectiveSnap,
   getTile, tileAssetIdFor,
   manifestItemById,
-  setLevelBackground, currentLevelBackground,
+  setLevelBackground, currentLevelBackground, setLevelAbility,
   BG_OFFSET_LAYERS, currentBackgroundOffsets, currentBackgroundLayersHidden,
   DEFAULT_SECTION_ROWS, DEFAULT_SECTION_COLS, MAX_LEVEL_ROWS,
 } from './state.js';
@@ -2597,6 +2597,11 @@ function _refreshBgInspector() {
 }
 if (tpBgSelect) {
   tpBgSelect.addEventListener('change', () => setLevelBackground(tpBgSelect.value || null));
+}
+for (const name of ['melee', 'bolt']) {
+  const box = document.getElementById(`level-ability-${name}`);
+  box?.addEventListener('change', () => setLevelAbility(name, box.checked));
+  subscribe(() => { if (box) box.checked = state.level?.abilities?.[name] !== false; });
 }
 _wireBgOffsetControls();
 

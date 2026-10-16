@@ -1,6 +1,8 @@
 # OVERCHARGE: story bible, first draft
 
-**Status: BRAINSTORM, 2026-09-06. Nothing here is decided.** Chief asked to "start tossing ideas". Every
+**SUPERSEDED 2026-10-14: Chief approved official story canon. Read `docs/STORY_CANON_THE_MERIDIAN_INCIDENT.md` and `docs/STORY_CANON_MALIK_CARTER.md` instead.** This file is kept as the brainstorm that led there; the MIOR paragraph below is now confirmed.
+
+**Status (original): BRAINSTORM, 2026-09-06. Nothing here is decided.** Chief asked to "start tossing ideas". Every
 name, line and plot beat below is a **proposal** until Chief marks it. Tags: **FACT** (already in the repo),
 **PROPOSAL** (Kiro), **QUESTION** (needs Chief). This file is a working draft and is not part of the design
 documents' law until Chief says so.
@@ -46,6 +48,15 @@ villain and no company** anywhere. What exists is a mood and a handful of named 
 - **Sample lines written by me earlier for tests, never in Chief's data:** "Third blackout this week" and
   "Funny how the gates never lose power." They hint at a **blackout** and **gates that keep their power.**
 - **Tone words from GDD v1:** compact, readable, "puzzle first", "complexity over grind", light action.
+
+**NEW LORE FROM CHIEF (round 10), a concept sheet for the charge-capacity upgrade items.** It is branded
+**MIOR, "Meridian Institute of Research"** (a triangle logo) and its item descriptions say: compact energy
+core "extracted from **MIOR technology**"; capacitor "used in **atmospheric research**"; crystallised energy
+"from **Project Tempest**"; a "**Tempest Fragment**, fragment of the original storm experiment"; a reactor
+"used in **MIOR drones**"; a data drive with "charge-enhancing firmware." Taken together: a research
+institute, a storm experiment (Project Tempest) and drones that belong to it. This fits the blackout premise
+(B) and gives the drones an owner. **QUESTION for Chief:** are MIOR and Project Tempest canon? If yes, Orcha
+should build the story around them.
 
 **IP note (QUESTION, already flagged in GAME_DESIGN_V2):** the first concept was inspired by *Static Shock*.
 The hero, name and city must be original before release. Everything below is written to avoid borrowing.

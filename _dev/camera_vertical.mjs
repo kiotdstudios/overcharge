@@ -19,6 +19,14 @@ sec('REGRESSION GUARANTEE — every shipped level is unaffected');
   for (const n of [1,2,3,4,5]) {
     const def = JSON.parse(fs.readFileSync(`src_scroll/levels/level${n}.json`,'utf8'));
     const pxH = Math.floor(def.tiles.length/def.cols) * 32;
+    // Level 2 is a 36-row level now (Chief, 2026-10-11). The "pinned" guarantee is for levels that
+    // FIT the screen; a tall level must instead have scroll room, or the camera would pin and the
+    // player would walk off the bottom of the view.
+    if (maxCamY(pxH, VH) > 0) {
+      ok(true, `level${n} (${pxH}px) is a tall level, so it is exempt from the pinned guarantee`);
+      ok(maxCamY(pxH, VH) === pxH - VH, `and level${n} scrolls the whole way to its floor`, `maxCamY ${maxCamY(pxH, VH)}`);
+      continue;
+    }
     ok(maxCamY(pxH, VH) === 0, `level${n} (${pxH}px) has zero scroll room`, `so camY is pinned`);
     // Walk the player over the full height; camY must never budge off 0.
     let cam = 0, moved = 0;
@@ -306,6 +314,11 @@ sec('SHIPPED LEVELS MUST NOT SHIFT — the inset is tall-level only');
   for (const n of [1,2,3,4,5]) {
     const def = JSON.parse(fs.readFileSync(`src_scroll/levels/level${n}.json`,'utf8'));
     const pxH = Math.floor(def.tiles.length/def.cols) * 32;
+    // The inset is deliberately for tall levels only, so a tall Level 2 is expected to shift.
+    if (maxCamY(pxH, VH) > 0) {
+      ok(minCamY(pxH, VH) < 0, `level${n} (${pxH}px, tall) gets the HUD inset`, `minCamY ${minCamY(pxH, VH)}`);
+      continue;
+    }
     ok(minCamY(pxH, VH) === 0, `level${n} still has minCamY 0 — no downward shift`);
     ok(camYForSpawn(def.playerStart.y, pxH, VH) === 0, `level${n} spawn camera still 0`);
     let cam = 0, moved = 0;

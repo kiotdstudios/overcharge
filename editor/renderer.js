@@ -1230,19 +1230,10 @@ function _drawNpcs(ctx, arr) {
     } else {
       _npcSchematic(ctx, p, COLOR, z);
     }
-    // Dialogue indicator + id label under the feet point.
-    ctx.save();
-    ctx.fillStyle = COLOR;
-    ctx.font = `${Math.max(7, Math.round(8 * z))}px monospace`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    const tag = (npc.id || 'npc') + (npc.dialogue && npc.dialogue.enabled ? ' \uD83D\uDCAC' : '');
-    ctx.fillText(tag, p.x, p.y + 2);
-    ctx.restore();
     // Builder "Preview Bubble" overlay — set by the NPC inspector, cleared
     // by expiry (no cleanup timer; render loop just stops drawing once
     // Date.now() passes `until`). Screen-space bubble font is NOT zoom-scaled
-    // (matches the id-tag label above) — a documented simplification, the
-    // bubble is slightly oversized/undersized away from zoom 1.
+    // Bubble text stays readable at any zoom.
     if (state.npcPreview && state.npcPreview.ref === npc && Date.now() < state.npcPreview.until) {
       drawSpeechBubble(ctx, p.x, topY, state.npcPreview.text);
     }

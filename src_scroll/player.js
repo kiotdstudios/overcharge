@@ -1,13 +1,13 @@
 // Player: movement, jumping, absorb (E) / charge (SPACE) / attack (K), charge meter
 import {
   TILE, COLS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
-  PLAYER_W, PLAYER_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, C,
+  PLAYER_W, PLAYER_H, PLAYER_DUCK_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, chargeTransferRate, C,
   RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS,
   PROJECTILE_CHARGE_COST
 } from './constants.js';
 import * as Input from './input.js';
 import { drawGlowRect, drawSparks, drawLightningArc } from './render.js';
-import { ChargePickup } from './electricity.js';
+import { ChargePickup, ElectricalSource, PowerGate, Switch } from './electricity.js';
 import { ElectricBolt } from './entities.js';
 import { PlayerSprites } from './hero-sprites.js';
 import { HERO_SIZE, HERO_FEET_Y } from './hero-render.js';
@@ -37,7 +37,7 @@ const loadFxFrames = (folder, prefix) => Array.from({ length: 4 }, (_, i) => {
 const transferFrames = loadFxFrames('energy-transfer', 'fx');
 const arrivalFrames = loadFxFrames('energy-arrival', 'impact');
 
-function drawTransfer(ctx, x1, y1, x2, y2, time, phase = 0) {
+function drawTransfer(ctx, x1, y1, x2, y2, time, phase = 0, width = 28) {
   const frame = transferFrames[Math.floor(time * 12 + phase) % transferFrames.length];
   if (!frame?.complete || !frame.naturalWidth) return;
   const dx = x2 - x1, dy = y2 - y1;
@@ -49,17 +49,17 @@ function drawTransfer(ctx, x1, y1, x2, y2, time, phase = 0) {
   ctx.imageSmoothingEnabled = false;
   // The generated frame has a common 96px canvas; its electric ribbon lies
   // in this 32px-high center strip. Nearest-neighbor scaling keeps hard pixels.
-  ctx.drawImage(frame, 0, 32, 96, 32, 0, -14, Math.round(distance), 28);
+  ctx.drawImage(frame, 0, 32, 96, 32, 0, -Math.round(width / 2), Math.round(distance), width);
   ctx.restore();
 }
 
-function drawArrival(ctx, x, y, time, alpha = 1) {
+function drawArrival(ctx, x, y, time, alpha = 1, size = 32) {
   const frame = arrivalFrames[Math.floor(time * 14) % arrivalFrames.length];
   if (!frame?.complete || !frame.naturalWidth) return;
   ctx.save();
   ctx.globalAlpha *= alpha;
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(frame, Math.round(x - 16), Math.round(y - 16), 32, 32);
+  ctx.drawImage(frame, Math.round(x - size / 2), Math.round(y - size / 2), size, size);
   ctx.restore();
 }
 
@@ -71,6 +71,7 @@ export class Player {
     this.vy      = 0;
     this.w       = PLAYER_W;
     this.h       = PLAYER_H;
+    this.ducking = false;
     this.grounded = false;
     this.charge  = 0;
 
@@ -87,6 +88,8 @@ export class Player {
     this.bankedPips  = 0;
     this._pipBankFx  = 0;  // flash when a pip is banked
     this._pipSpendFx = 0;  // flash when a pip is spent
+    this._pipSurgeT = 0;
+    this._pipSurgeTarget = null;
 
     // Visual
     this._t          = 0;
@@ -136,6 +139,7 @@ export class Player {
 
   // ── Update ────────────────────────────────────
   update(dt, level) {
+    this.levelAbilities = level.abilities;
     this._t             += dt;
     this._stunTime       = Math.max(0, this._stunTime       - dt);
     this._hurtFlash      = Math.max(0, this._hurtFlash      - dt);
@@ -146,6 +150,7 @@ export class Player {
     this._attackFx       = Math.max(0, this._attackFx       - dt);
     this._pipBankFx      = Math.max(0, this._pipBankFx      - dt);
     this._pipSpendFx     = Math.max(0, this._pipSpendFx     - dt);
+    this._pipSurgeT      = Math.max(0, this._pipSurgeT      - dt);
     this._sprintSquash   = Math.max(0, this._sprintSquash   - dt);
     // Decay after-image alphas; fully-faded ghosts are dropped
     for (const img of this._afterImages) img.alpha -= dt * 4;
@@ -157,11 +162,8 @@ export class Player {
     this._updateAbsorb(dt, level);    // hold E near source  → absorb
     this._updateAttack(dt, level);    // K melee; L charged projectile
     this._updateBolts(dt, level);     // advance + cull live bolts
+    this._updatePipSpend(level);      // Q spends one reserve pip at a gate or switch
     this._updateDischarge(dt, level); // hold SPACE near gate/switch → gradual charge
-    // ORDER SPACE_CHARGE: _updatePipSpend() is GONE. No button may complete a
-    // gate in one press. The spendPip() authority function is retained (the
-    // reserve path and Order 004 ruling-3 tests use it) — only its KeyF input
-    // binding was removed.
     this._collectPickups(level);
 
     // NOTE: there is deliberately NO unconditional reserve-pull here.
@@ -192,6 +194,7 @@ export class Player {
     this._sprites.update(dt, isMoving, this._facingRight, this.absorbing, this.running, !this.grounded, this.discharging, Math.abs(this.vx), this.vy, this._wallBlocked, {
       dead: this.dead, hurt: this._hurtFlash > 0, stunned: this._stunTime > 0,
       attacking: this._attackFx > 0, projectile: this._attackAnimationProjectile,
+      ducking: this.ducking,
       traversal: this._ladder ? (this._ladderDirection > 0 ? 'ladder-down' : 'ladder-up') :
         this._ledgeClimb ? 'ledge-climb' : this._grapple ? 'grapple' : null,
       traversalPaused: (!!this._ladder && this._ladderDirection === 0) || (!!this._grapple && this.vx === 0 && this.vy === 0),
@@ -437,6 +440,7 @@ export class Player {
       }
     }
     if (canEnter && shaftClear && !(left || right)) {
+      this._standIfClear(level);
       this._ladder = ladder;
       this._ladderDirection = up ? -1 : down ? 1 : 0;
       this.x = ladder.x + (ladder.w - this.w) / 2;
@@ -455,10 +459,20 @@ export class Player {
     this._ladderDirection = 0;
     // Jump: Up / W only. SPACE is the charge button, K is attack.
     const jump = Input.pressedAny('ArrowUp', 'KeyW');
+    const dropping = down && jump && this.grounded && this._onOneWay(level);
+    if (dropping) {
+      this._dropTimer = 0.25;
+      this.vy = Math.max(this.vy, 60);
+      this.grounded = false;
+      this._coyote = 0;
+      this._jumpBuf = 0;
+    }
+    if (down && !dropping && (this.grounded || this.ducking)) this._duck();
+    else if (!down) this._standIfClear(level);
 
     const shift      = Input.heldAny('ShiftLeft', 'ShiftRight');
     const wasRampedUp = this._sprintRamp > 0.6;
-    this.running      = shift && (left || right);
+    this.running      = !this.ducking && shift && (left || right);
 
     // Smooth acceleration: reaches full sprint in ~0.14s, slides out in ~0.25s
     const rampTarget = this.running ? 1 : 0;
@@ -473,12 +487,13 @@ export class Player {
 
     const speed = PLAYER_SPEED * (1 + (RUN_MULTIPLIER - 1) * this._sprintRamp);
 
-    if (left)  { this.vx = -speed; this._facingRight = false; }
+    if (this.ducking) { this.vx *= 0.75; if (Math.abs(this.vx) < 5) this.vx = 0; }
+    else if (left)  { this.vx = -speed; this._facingRight = false; }
     else if (right) { this.vx =  speed; this._facingRight = true; }
     // Ground friction only — preserve horizontal momentum through jump arcs
     else if (this.grounded) { this.vx *= 0.75; if (Math.abs(this.vx) < 5) this.vx = 0; }
 
-    if (jump) this._jumpBuf = JUMP_BUFFER;
+    if (jump && !down && !this.ducking) this._jumpBuf = JUMP_BUFFER;
     this._jumpBuf = Math.max(0, this._jumpBuf - dt);
 
     if (this._jumpBuf > 0 && (this.grounded || this._coyote > 0)) {
@@ -487,6 +502,32 @@ export class Player {
       this._coyote   = 0;
       this._jumpBuf  = 0;
     }
+  }
+
+  _onOneWay(level) {
+    const feet = this.y + this.h;
+    const row = Math.round(feet / TILE);
+    if (Math.abs(feet - row * TILE) > 2) return false;
+    for (let tx = Math.floor(this.x / TILE); tx <= Math.floor((this.x + this.w - 1) / TILE); tx++)
+      if (level.tileAt(tx, row) === 2) return true;
+    return false;
+  }
+
+  _duck() {
+    if (this.ducking) return;
+    this.y += this.h - PLAYER_DUCK_H;
+    this.h = PLAYER_DUCK_H;
+    this.ducking = true;
+  }
+
+  _standIfClear(level) {
+    if (!this.ducking) return true;
+    const y = this.y - (PLAYER_H - this.h);
+    if (!this._bodyClearAt(level, this.x, y, PLAYER_H)) return false;
+    this.y = y;
+    this.h = PLAYER_H;
+    this.ducking = false;
+    return true;
   }
 
   // ── Physics + AABB tilemap collision ─────────
@@ -558,10 +599,7 @@ export class Player {
 
     // Drop-through one-way platforms: press Down/S while grounded to open a 0.25s window.
     // A small downward nudge gets the player moving before the window closes.
-    if (Input.pressedAny('ArrowDown', 'KeyS') && wasGrounded) {
-      this._dropTimer = 0.25;
-      this.vy = Math.max(this.vy, 60); // nudge past the platform surface
-    }
+    // Drop window starts only from Down+jump on a one-way tile.
     this._dropTimer = Math.max(0, this._dropTimer - dt);
     const dropDown  = this._dropTimer > 0;
 
@@ -590,13 +628,13 @@ export class Player {
     }
   }
 
-  _bodyClearAt(level, x, y) {
-    if (x < 0 || y < 0 || x + this.w > level.pxW || y + this.h > level.pxH) return false;
-    for (let ty = Math.floor(y / TILE); ty <= Math.floor((y + this.h - 0.01) / TILE); ty++)
+  _bodyClearAt(level, x, y, h = this.h) {
+    if (x < 0 || y < 0 || x + this.w > level.pxW || y + h > level.pxH) return false;
+    for (let ty = Math.floor(y / TILE); ty <= Math.floor((y + h - 0.01) / TILE); ty++)
       for (let tx = Math.floor(x / TILE); tx <= Math.floor((x + this.w - 0.01) / TILE); tx++)
         if (level.solidAt(tx, ty)) return false;
     return ![...level.gates.filter(g => !g.open && !g.isExit), ...level.crates].some(o =>
-      x < o.x + o.w && x + this.w > o.x && y < o.y + o.h && y + this.h > o.y);
+      x < o.x + o.w && x + this.w > o.x && y < o.y + o.h && y + h > o.y);
   }
 
   _ropeClear(level, anchor) {
@@ -839,7 +877,8 @@ export class Player {
     if (holdE && this.nearSource && this.energyHeadroom > 1e-9) {
       this.absorbing    = true;
       this.absorbTarget = this.nearSource;
-      const request  = Math.min(ABSORB_RATE * dt, this.nearSource.charge, this.energyHeadroom);
+      const request  = Math.min(ABSORB_RATE * chargeTransferRate(this.charge) * dt,
+        this.nearSource.charge, this.energyHeadroom);
       const drained  = this.nearSource.drain(request);
       const accepted = this.giveEnergy(drained);
       // Refund whatever wouldn't fit — energy is conserved, never deleted.
@@ -861,14 +900,14 @@ export class Player {
   _updateAttack(dt, level) {
     if (this._stunTime > 0) return;
     if (this._attackCooldown > 0) return;
-    if (Input.pressed('KeyK')) {
+    if (level.abilities?.melee !== false && Input.pressed('KeyK')) {
       this._attackAnimationProjectile = false;
       if (this.nearEnemy) this.nearEnemy.hit(level);
       this._attackCooldown = ATTACK_COOLDOWN;
       this._attackFx = 0.15;
       return;
     }
-    if (!Input.pressed('KeyL')) return;
+    if (level.abilities?.bolt === false || !Input.pressed('KeyL')) return;
 
     // Fire an electric bolt in aimed direction (8-directional)
     // Direction: held arrow/WASD keys at moment of L press; fallback = _facingRight.
@@ -929,6 +968,27 @@ export class Player {
   //    the transfer never visibly stalls at a pip boundary.
   //  • Affordability is asked via `usableEnergy` — same authority the HUD
   //    prompt uses, so UI and gameplay can never disagree.
+  _updatePipSpend(level) {
+    if (!Input.pressed('KeyQ') || this.bankedPips <= 0) return;
+    const target = this.nearDevice instanceof PowerGate || this.nearDevice instanceof Switch
+      ? this.nearDevice
+      : [...(level?.gates || []), ...(level?.switches || [])]
+          .find(device => device.inRange(this.cx, this.cy) && !device.blockOnly);
+    if (!(target instanceof PowerGate || target instanceof Switch)) return;
+    if (!target.inRange(this.cx, this.cy)) return;
+    if (target.blockOnly || target.open || target.on) return;
+    const needed = target.required - target.charged;
+    if (needed <= 1e-9 || needed > MAX_CHARGE + 1e-9) return;
+    const pip = this.spendPip();
+    const opened = target.receive(needed);
+    this.giveEnergy(pip - needed);
+    this._pipSpendFx = 0.75;
+    this._pipSurgeT = 0.75;
+    this._pipSurgeTarget = target;
+    target._pipFlash = 0.75;
+    if (opened && target.isExit) target._justOpenedByPlayer = true;
+  }
+
   _updateDischarge(dt, level) {
     const holdCharge = Input.heldAny('Space');
 
@@ -949,6 +1009,9 @@ export class Player {
       target   = this.crateTarget;
       viaCrate = this.nearCrate;
     }
+    // Devices and valid crate bridges win over a nearby source. This keeps an
+    // exit payable even when its streetlight overlaps the interaction radius.
+    if (!target) target = this.nearChargeSource;
     // D4 / D5: a crate bridging NOTHING, or bridging AMBIGUOUSLY, leaves `target`
     // null — so the guard below refuses and the player keeps every unit of
     // energy. Refusal is silent in the arithmetic and LOUD in the HUD
@@ -961,7 +1024,9 @@ export class Player {
       return;
     }
 
-    const needed = target.required - target.charged;
+    const needed = target instanceof ElectricalSource
+      ? target.max - target.charge
+      : target.required - target.charged;
     if (needed <= 1e-9) {
       this.discharging     = false;
       this.dischargeTarget = null;
@@ -979,7 +1044,7 @@ export class Player {
     // so dormancy wake, _reactT, charged/open and conservation are identical to
     // charging the device directly. There is deliberately no second transfer
     // path for crates.
-    const want       = Math.min(DISCHARGE_RATE * dt, needed);
+    const want       = Math.min(DISCHARGE_RATE * chargeTransferRate(this.charge) * dt, needed);
     const frameSpend = this.spendEnergy(want);
 
     if (frameSpend > 1e-9) {
@@ -996,7 +1061,7 @@ export class Player {
       // defines tryOpen, so gates and switches are untouched. tryOpen() returns false
       // at MAX_BANKED_PIPS and refunds its own accumulation, so a full-reserve player
       // is never billed for a chest that did not open (Chief's cap ruling).
-      if (target.tryOpen) target.tryOpen(this);
+      if (target.tryOpen) target.tryOpen(this, level);
       if (viaCrate) viaCrate._bridgeFx = 0.15;   // visual only
     } else {
       this.discharging     = false;
@@ -1005,27 +1070,13 @@ export class Player {
     }
   }
 
-  // ── REMOVED: _updatePipSpend() — the F instant-fill ─────────────
-  // ORDER SPACE_CHARGE (Chief, 2026-09-11): pressing F near a device inserted a
-  // whole battery (MAX_CHARGE = 10) in a single press. With Level 1's exit gate
-  // at required=3 (later 8), one tap opened it outright. Chief rejected that:
-  // "hitting f auto completes the charge gate, i dont want that".
-  //
-  // The handler is gone and KeyF is now unbound. Charging is SPACE-only and
-  // strictly rate-based, so no button can complete a gate in one press.
-  //
-  // spendPip() itself SURVIVES in the energy authority above and is deliberately
-  // NOT deleted:
-  //   - it is the documented withdraw-one-whole-battery primitive,
-  //   - Order 004 ruling 3 (partial-pip: whole pip consumed, surplus returned)
-  //     is asserted against it directly in _dev/energy_authority.mjs,
-  //   - a future device/ability can reuse it without re-deriving the arithmetic.
-  // Only the input binding was removed, exactly as the order specified.
-
   // ── Collect dropped charge pickups ───────────
   // Also routes through giveEnergy() so a pickup that tops the bar out
   // banks a pip exactly like source absorption does.
   _collectPickups(level) {
+    for (const p of level.pipPickups || []) {
+      if (!p.done && p.inRange(this.cx, this.cy) && this.bankPip()) p.done = true;
+    }
     for (const p of level.pickups) {
       if (p.done || !p.collectable) continue;
       if (!p.inRange(this.cx, this.cy)) continue;
@@ -1112,6 +1163,15 @@ export class Player {
               `A crate must bridge exactly ONE device.`);
           }
           if (b.state !== 'ambiguous') cr._warnedAmbiguous = false;
+          break;
+        }
+      }
+    }
+    this.nearChargeSource = null;
+    if (!this.nearDevice && !this.crateTarget) {
+      for (const src of level.sources) {
+        if (src.charge < src.max - 1e-9 && src.inRange(this.cx, this.cy)) {
+          this.nearChargeSource = src;
           break;
         }
       }
@@ -1228,6 +1288,25 @@ export class Player {
         const ty = tgt.y + tgt.h / 2 + Math.sin(t * 7 + i * 2.3) * (tgt.h * 0.28);
         drawTransfer(ctx, handX, handY, tx, ty, t, i);
       }
+    }
+
+    // A reserve pip arrives in one burst. Reuse the authored pixel-electric
+    // ribbon and impact frames at a larger scale; the timer outlives the gate's
+    // closed state, so the surge remains visible through its opening flash.
+    if (this._pipSurgeT > 0 && this._pipSurgeTarget) {
+      const gate = this._pipSurgeTarget;
+      const life = Math.min(1, this._pipSurgeT / 0.75);
+      const impactX = gate.cx;
+      const impactY = gate.cy;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, life * 1.4);
+      for (let i = 0; i < 5; i++) {
+        const spread = (i - 2) * Math.min(12, gate.h * 0.15);
+        drawTransfer(ctx, handX, handY, impactX + spread * 0.45,
+          impactY + spread, t, i, 38);
+      }
+      drawArrival(ctx, impactX, impactY, t, life, 72);
+      ctx.restore();
     }
 
     // Attack arc: player → enemy on swing

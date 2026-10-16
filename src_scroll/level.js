@@ -2,7 +2,7 @@
 import { TILE, COLS, ROWS, MAX_ROWS, C, MAX_CHARGE } from './constants.js';
 import { drawTile } from './render.js';
 import { tileIsSolid } from './terrain-policy.js';
-import { ElectricalSource, PowerGate, Switch } from './electricity.js';
+import { ElectricalSource, PowerGate, Switch, PipPickup } from './electricity.js';
 import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
@@ -16,6 +16,7 @@ export class Level {
   constructor(def) {
     this.name    = def.name || 'LEVEL';
     this.number  = def.number || 1;
+    this.abilities = { melee: def.abilities?.melee !== false, bolt: def.abilities?.bolt !== false };
     this.tiles          = def.tiles;
     // Parallel rotation array (0/90/180/270 degrees). Optional in the JSON —
     // missing / short array renders as all-zero rotation (backward-compatible).
@@ -69,10 +70,12 @@ export class Level {
     // ORCHA_CHEST_V1_SEMANTICS (ratified): an absent or empty chests array means
     // ZERO behavioural change for every existing level - same discipline as crates.
     this.chests      = (def.chests      || []).map(d => new Chest(d));
+    for (const chest of this.chests) chest._level = this;
     // ORDER 22: an absent or empty npcs array means ZERO behavioural change for
     // every level authored before this order — same discipline as crates/chests.
     this.npcs        = (def.npcs        || []).map(d => new Npc(d));
     this.pickups  = [];
+    this.pipPickups = [];
     this.streetLitter = new StreetLitter();
 
     // Background decoration sprites (buildings, props) drawn behind tiles.
@@ -144,12 +147,7 @@ export class Level {
     const needed = exit.required - exit.charged;
     if (needed <= 0) return false;
 
-    // A shortfall against the exit price is not the same as being discharged.
-    // In particular, firing at 8 charge leaves 7.75 after a 0.25-cost shot;
-    // ending the run on that frame hides the projectile and reports zero charge
-    // while the player still has some. Keep play active while usable energy remains.
-    if (player.usableEnergy > 1e-9) return false;
-    // Let a final shot finish travelling before showing the loss screen.
+    // Let a final shot finish travelling before evaluating an exit shortfall.
     if (player._bolts?.some(b => b.alive)) return false;
 
     const sourcesLeft  = this.sources
@@ -180,9 +178,8 @@ export class Level {
 
     const pipCharge = player.bankedPips * MAX_CHARGE;
     const available = player.charge + pipCharge + sourcesLeft + platformCharge + pickupsLeft + enemyDrops + chestNet;
-    // The loss screen says "All charge lost." A remaining source, pickup,
-    // enemy drop, chest reward, or player charge means that is not true yet.
-    return available <= 1e-9;
+    // Remaining energy counts even when it is held by an object or pickup.
+    return available + 1e-9 < needed;
   }
 
   update(dt, player, viewWidth = 800) {
@@ -197,6 +194,7 @@ export class Level {
     for (const gate of this.gates)    gate.update(dt, player);
     for (const sw   of this.switches) sw.update(dt);
     for (const p    of this.pickups)  p.update(dt, this);
+    for (const p    of this.pipPickups) p.update(dt);
     for (const cp   of this.checkpoints) cp.update(dt);
     for (const npc  of this.npcs)      npc.update(dt, player);
     for (const e    of this.enemies)  {
@@ -212,6 +210,7 @@ export class Level {
     }
 
     this.pickups = this.pickups.filter(p => !p.done);
+    this.pipPickups = this.pipPickups.filter(p => !p.done);
 
     for (const sw of this.switches) {
       if (sw.on && sw.linkedId) {
@@ -295,6 +294,7 @@ export class Level {
       // no special-casing. `charged` is included so a partial open is not banked
       // across a death either.
       chests:      this.chests.map(c => ({ opened: c.opened, charged: c.charged, _openT: c._openT })),
+      pipPickups:  this.pipPickups.map(p => ({ x: p.x, y: p.y, id: p.id })),
       complete:    this.complete,
     };
   }
@@ -347,7 +347,8 @@ export class Level {
         Object.assign(this.chests[i], snap.chests[i]);
       }
     }
-    this.pickups  = [];   // transient — any post-checkpoint drops vanish on rewind
+    this.pickups  = [];   // transient - any post-checkpoint drops vanish on rewind
+    this.pipPickups = (snap.pipPickups || []).map(p => new PipPickup(p.x, p.y, p.id));
     this.complete = snap.complete;
   }
 
@@ -419,6 +420,7 @@ export class Level {
     for (const sw   of this.switches) sw.draw(ctx);
     for (const cp   of this.checkpoints) cp.draw(ctx);
     for (const p    of this.pickups)  p.draw(ctx);
+    for (const p    of this.pipPickups) p.draw(ctx);
     for (const e    of this.enemies)  e.draw(ctx);
     // NPCs draw last so their speech bubbles float above everything else
     // (platforms, crates, other entities) exactly like Chief would expect text
