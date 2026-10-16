@@ -363,30 +363,40 @@ tower lands on the street, which is safe; the pit at col 26 stays the only death
 decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the charged-object props (not built, GAME_DESIGN_V2 3.5),
 the pylon and cable art, and the AC hatch art.
 
-### 4.3b The relay pylon in Level 1 (Chief's order, 2026-10-16; the secret-room preview was REMOVED in round 14)
+### 4.3b The relay pylon and the ladder in Level 1 (Chief's order, 2026-10-16; the secret-room preview was REMOVED in round 14, the ladder came back)
 Chief asked to see the pylon and the secret room together. He liked the pylon ("looks good") and scrapped the rest
 ("im not liking any of that we can scrap that for now"). `level1.json` now differs from before the preview by **one decoration only**:
-- **Relay pylon:** plaza, x 576, on the walkway. Aki's art (96 x 256). Test: `_dev/level1_pylon.mjs` (12 checks; also proves the
-  preview is gone and the street is clean).
+- **Relay pylon:** plaza, x 576, on the walkway. Aki's art (96 x 256). Test: `_dev/level1_pylon.mjs` (16 checks; also proves the
+  ladder climbs, the preview is gone and the street is unchanged).
 - **What the pylon is for (RECOMMENDED, Chief asked "not sure what its doing"):** it is the **start of a lit cable line** that runs along the
   route to the exit gate, so the player always has something to follow. The cable pieces arrive with the vertical build (Aki's `light-cable`
   art, AKI 27). Until then it is scenery. Optional later: a slow lantern pulse (needs frames registered in the manifest).
+- **Ladder (put back by Chief's order, round 14):** x 128, from the street up to y 288, with a one-way upper walkway at row 9, columns 3 to 13.
+  The test climbs it. It is the way up to the second area (4.3c). Its art is still the old blue and purple ladder until Codex's Night City version is approved.
 - **Level economy unchanged:** three 4-charge lamps (12), exit 8.
 
 ### 4.3c The tenant sequence (round 14, replaces the hidden room; Chief's design, Kiro's layout is RECOMMENDED)
 CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a **tenant in a window**; an **AC unit**; a **small switch that sits
 on a wall panel at player height, like a light switch**; **powering the AC makes the tenant relieved, and the achievement is awarded automatically**
 (no room, no poster, no pickup).
-- **Flow:** the tenant complains ("It's an oven in here"). The player walks up to the wall panel, spends charge at the plate switch, the AC fan
-  spins and hums, cool air drips, she changes to the relieved animation, says thanks, a toast appears: **GOOD NEIGHBOR** (placeholder title; Orcha writes the text).
-- **Cost (RECOMMENDED):** 2 charge at the switch (the AC is a charged object, capacity 3, placed **uncharged**, so the level's lamp total stays 12).
-  Optional and permanent, like the old design. It is **not** needed to finish: three lamps pay the exit with spare.
-- **Where (RECOMMENDED):** the plaza stretch after the pylon, near x 700 to 1100, on the street so the player sees the tenant before they can power the AC.
-  Aki places it after Chief approves Codex's art; Chief can move it in the Builder.
+- **Flow (CONFIRMED, Chief's own wording, 2026-10-16):** "Above the spawn area is the second level (vertical area the player can go to). Until
+  they get enough charge the player can't do anything. The tenant in the window complains about the heat. The player powers on the AC unit
+  (a charged object that was off). The AC fan spins and hums. She turns relieved, and GOOD NEIGHBOR is awarded automatically. An achievement pops up on screen."
+  - So the sequence lives in the **upper area**, reached by the **ladder** at the start of the level. A player who climbs with an empty bar can see
+    the tenant and the dark AC but cannot act yet: they go back down, absorb from a lamp, and return. That is the backtracking reason.
+  - The ladder is back in `level1.json` (x 128, street up to y 288) with a one-way upper walkway at row 9, columns 3 to 13. That is only the
+    **start** of the upper area; the building and the rest come with Codex's art and Aki's vertical build.
+  - **Ladder art:** the current ladder is blue and purple with cyan lights. Chief wants a **Night City prop coloured** ladder; Codex makes it
+    (CODEX 03 task 9). The engine needs the file to be exactly `assets/objects/night-city-props/ladder/ladder.png`, so the new art replaces that file
+    after Chief approves it.
+- **Cost (RECOMMENDED):** 2 charge to power the AC on (the AC is a charged object, capacity 3, placed **uncharged**, so the level's lamp total stays 12).
+  Optional and permanent. It is **not** needed to finish: three lamps pay the exit with spare.
+- **The control:** the player powers the AC on either at the small wall-plate switch (Chief's round 14 design) or by charging the AC directly; both count.
+  Kiro RECOMMENDS the plate switch as the one obvious action. If Chief wants direct charging only, the plate switch can be dropped.
+- **Where (RECOMMENDED):** the upper area above the spawn, up the ladder. Aki places it after Chief approves Codex's art; Chief can move it in the Builder.
 - **Pieces and owners:** building art, window NPC (two animations), plate switch art, `style: 'plate'` Switch, reactive tenant lines,
   AC on-state effects, achievements system: **Codex (CODEX 03 tasks 1 to 3, 6 to 8)**. Placement: **Aki**. Text: **Orcha**.
-- **Two small questions for Chief (OPEN):** (a) should the player only flip the wall switch, or also be able to charge the AC directly by holding
-  near it? Kiro RECOMMENDS the switch only for this sequence (a single clear action). (b) Is 2 the right price? (GAME_DESIGN_V2 section 3.9 has AC 3 as its stored charge.)
+- **Small questions for Chief (OPEN):** (a) plate switch, direct charging, or both (above)? (b) Is 2 the right price? (GAME_DESIGN_V2 section 3.9 has AC 3 as its stored charge.)
 
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
 (For the vertical layout, see 4.3a: pylon plus cable.) In the horizontal draft the gate was 4,300 px from

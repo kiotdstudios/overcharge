@@ -8,10 +8,12 @@
 - **Pylon:** "decent". Kiro placed it in Level 1 so Chief can see it with everything else. Keep it.
 - **Hatch and secret room:** SCRAPPED by Chief ("we can scrap that for now"). Kiro removed the room, fire escape, ladder, AC, switch and door
   from `level1.json`; only the pylon stays. Your hatch and room props are not used. Do not rebuild them.
-- **What replaces it (round 14):** a **tenant sequence**: a new 4-panel apartment (Codex makes the art, CODEX 03), a tenant in a window, an AC unit
-  under her window, and a small light-switch-style plate on the wall at player height. Powering the AC makes her relieved and awards an
-  achievement automatically. **You place it only after Chief approves Codex's art.** Until then, leave a clearly named empty marker (a comment in your
-  report and the plaza stretch near x 700 to 1100 kept free).
+- **What replaces it (round 14):** a **tenant sequence in the upper area above the spawn**, reached by the ladder at the start (Kiro put the ladder and a
+  one-way upper walkway back in `level1.json`, x 128, row 9 columns 3 to 13; Codex is redrawing the ladder in Night City colours, same file path and size).
+  The sequence: a new 4-panel apartment (Codex's art, CODEX 03), a tenant in a window, an AC unit that starts **off**, and a small light-switch-style plate
+  on the wall at player height. Powering the AC makes her relieved and an achievement pops up on screen automatically. With an empty bar the player can
+  see it but cannot act, so they go back down, absorb, and return. **You place it only after Chief approves Codex's art.** Until then, keep the upper
+  area above the spawn free for it and name the gap in your report. In the vertical draft, the upper area is the first tier of the climb.
 - **The pylon's job:** it is the start of a **lit cable line** that runs along the route to the exit. In the vertical draft, run your `light-cable`
   pieces from the pylon toward the exit gate so the player can follow it up. (Chief: "the relay pole looks good, not sure what its doing".)
 - **Apartment, window NPC, pip pickup, Capacitor Module:** failed. Those four are **reassigned to Codex** (`KIRO_ORDER_CODEX_03.md`). Do not

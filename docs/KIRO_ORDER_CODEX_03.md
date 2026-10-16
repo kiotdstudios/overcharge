@@ -8,8 +8,12 @@
 ## What changed in this revision (round 14)
 Chief scrapped the hidden room, the hatch, the fire escape and the room props ("im not liking any of that we can scrap that for now").
 Kiro has already removed them from `level1.json`. **Do not build any hatch art and do not build "open a barrier from a charged object".**
-The sequence is now a **tenant**: a person in an apartment window is too hot; the player powers the AC unit under her window with a
-**small light-switch-style control on the wall**; she is relieved; **the achievement is awarded automatically** (no room, no poster).
+The sequence is now a **tenant**, in the **upper area above the spawn**, reached by the **ladder** at the start (Chief's flow: *"Above the spawn area is
+the second level (vertical area the player can go to). Until they get enough charge the player can't do anything. The tenant in the window complains
+about the heat. The player powers on the AC unit (a charged object that was off). The AC fan spins and hums. She turns relieved, and GOOD NEIGHBOR is
+awarded automatically. An achievement pops up on screen."*). A person in an apartment window is too hot; the player powers the AC unit under her window with a
+**small light-switch-style control on the wall** (or by charging it directly; either counts); she is relieved; **the achievement is awarded automatically**
+(no room, no poster). The ladder is already back in `level1.json`; its art needs a Night City redo (task 9).
 
 ## What Chief said (2026-10-16)
 | Piece | Chief's verdict |
@@ -72,7 +76,8 @@ and 256 px tall like the earlier set (Kiro's measured sizes, change only if the 
   **warm light** so she reads at night. Sill at a height the NPC art sits on cleanly.
 - **A flat, empty stretch of wall directly below that window, with a ledge or mount for the AC unit** (the AC hangs on the wall
   under or beside her window; she is hot because it is dead). Nothing painted on that stretch that would clash with the AC.
-- **A ground-floor wall panel at player height** (the hero's chest, roughly 40 to 56 px above the street surface) that is a plain,
+- **A wall panel at player height on the walkway level** (the hero's chest, roughly 40 to 56 px above the floor the hero stands on; the tenant scene is in the
+  upper area, so the "floor" is the upper walkway, not the street) that is a plain,
   slightly recessed or framed **control plate area** where task 3's wall switch sits. It must look like part of the building,
   like a meter box or a junction plate, not like a hole.
 - **Tiles match the current rooftop tiles** (Chief's round 2 complaint). Compare with Level 1's rooftops side by side.
@@ -140,6 +145,21 @@ There is **no achievement system in the code today.** Build the smallest one tha
   the moment the tenant switches to relieved (task 6). No pickup, no room, no button.
 - Expose the list for a later menu page; do not build the menu yet.
 - Tests: unlock once only; persisted across a reload (in the test harness); toast queue handles two unlocks in a row; off switch.
+
+### 9. Ladder in the Night City prop colours (art, new from Chief, 2026-10-16)
+Chief: "ladder needs to be put back; but make codex make a ladder night city prop colored." Kiro put the ladder back in Level 1. The current
+`assets/objects/night-city-props/ladder/ladder.png` (**128 x 605**) is a blue and purple frame with cyan glow panels and rounded caps; it does not
+read as part of the Night City prop family. Redraw it:
+- **Same file and same shape** so it drops in: a vertical ladder, **two rails and evenly spaced rungs**, transparent background, 128 x 605, with the
+  rails centred so it still looks right when the Builder resizes it (Level 1 uses it at 32 px wide by 192 px tall, so check it at **that** size, not only full size).
+- **Colours and material from the Night City props** (look at the street lamp, fuse box, pipes, vents and the building trim): rusty or painted steel, dark
+  grey and brown metal, worn edges, a little warm rust and a few teal or magenta edge highlights if the neighbouring props have them. **No large
+  cyan glow panels.** A small amber or teal accent at the top is fine.
+- It must look right **stacked**: the top and bottom must not carry caps that look wrong when the ladder is placed twice in a row or resized.
+- Rungs must stay readable at 32 x 192 (visible gaps, a clear lighter rung edge).
+- Deliver for review in `assets/objects/night-city-props/ladder_review/` (the new file, a side-by-side with the old one, and a screenshot at game size
+  next to the hero on the Level 1 upper walkway). **Do not overwrite `ladder.png` until Chief approves**; then swap it in the same commit as the approval note.
+  Same checks as every other piece, stop after two weak tries.
 
 ## Report
 Report as `CODEX 03`: per task PASS/FAIL, commit SHA, files, the contact sheets and in-game screenshots (paths), the automated check

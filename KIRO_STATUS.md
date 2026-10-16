@@ -2327,3 +2327,13 @@ Pylon looks good but "just sitting there" (what is it doing?). The hidden room i
 Start of a lit cable line leading along the route to the exit. It is scenery until Aki's cable pieces go in with the vertical build.
 ### Open for Chief
 Switch only, or may the player also charge the AC directly? Is 2 the right switch price? Still needed: the Capacitor Module concept sheet saved at docs/reference/capacity_upgrade_concept_sheet.png.
+## 2026-10-16 - Round 14b: Chief corrected the flow; ladder back; Night City ladder to Codex
+### Chief's correction
+"Above the spawn area is the second level (vertical area player can go to); until they get enough charge player can't do anything. The tenant in the window complains about the heat. The player powers on the AC unit (charged object, was off). AC fan spins and hums. She turns relieved, GOOD NEIGHBOR awarded automatically, achievement pops up on screen. Ladder needs to be put back; make Codex make a ladder night city prop colored."
+### Done
+- `level1.json`: ladder (x128, y288, 32x192) and a one-way upper walkway (row 9, columns 3 to 13) added back. Nothing else. The scrapped room, AC, switch and door stay removed. `_dev/level1_pylon.mjs` now 16/0 (climb to y 288, street identical with and without the walkway).
+- Docs: LEVEL_DESIGN_V2 4.3b/4.3c with Chief's flow in his words (tenant is in the upper area; empty-bar player can see but not act); GDD ledger 78 to 80; CODEX 03 gets task 9 (Night City ladder, 128x605, same path, review folder first, swap only after approval) and the wall panel is on the walkway level; AKI 27 says the tenant goes in the upper area; roadmap PDF regenerated.
+- Observed: the street is blocked at x 364 when walking from the spawn in both the old and new file, so the player must jump there; that is Chief's layout and unchanged.
+- Suite: 2795 passed, 7 failed (the same 7).
+### Open
+Plate switch, direct charging, or both for powering the AC (Kiro recommends the plate switch). Is 2 the right price? Capacitor Module concept sheet still needs saving.

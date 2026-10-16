@@ -738,7 +738,13 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     The old wall switch (56 x 56 art) was "too large." New `style: 'plate'` (CODEX 03 task 3).
 77. **Generate a new 4-panel apartment building that fits this sequence** (window for the tenant, mount for the AC, a control plate area at
     player height, tiles matching the current rooftop tiles). Codex makes it (CODEX 03 task 2). Full flow in `LEVEL_DESIGN_V2` 4.3c.
-73. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
+78. **Chief's flow, in his words (round 14b):** "Above the spawn area is the second level (vertical area player can go to); until they get enough charge
+    player can't do anything. The tenant in the window complains about the heat. The player powers on the AC unit (charged object, was off). AC fan spins
+    and hums. She turns relieved, and GOOD NEIGHBOR is awarded automatically. On-screen achievement pops up." So the tenant scene is in the **upper area**
+    reached by the **ladder**, and an empty-bar player can see it but not act.
+79. **The ladder is put back** in Level 1 (x 128, street to y 288, with a one-way upper walkway). **Codex redraws the ladder in the Night City prop colours**
+    (CODEX 03 task 9; same file `ladder.png`, 128 x 605, replaced only after Chief approves).
+80. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
     Kiro put "Try absorbing power from a street lamp" back in both places in `ui.js`.
 
 ### CONFIRMED by Chief (round 12, 2026-10-15)
