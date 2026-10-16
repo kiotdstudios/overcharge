@@ -20,7 +20,7 @@ Chief assigned it to you himself.
 1. `docs/STORY_BIBLE_DRAFT.md`. This is my starting material: what the repo already says (almost nothing),
    three premises, an outline, Level 1 story beats and open questions.
 2. `docs/GAME_DESIGN_V2.md`: sections 1 (identity), 7 (world and NPCs) and 13 (decision ledger).
-3. `docs/LEVEL_DESIGN_V2.md`: sections 3.2 to 3.5 and 4.6 (zones, NPCs, the foreshadow and the AC secret).
+3. `docs/LEVEL_DESIGN_V2.md`: sections 3.2 to 3.5 and 4.3c (zones, NPCs, the foreshadow and the tenant sequence; the old hidden room in 4.6 is scrapped).
 4. `src_scroll/levels/level1.json`, only the `npcs` array (three NPCs; two still say the placeholder "New line").
 
 ## New in round 10: Chief's concept sheet names MIOR and Project Tempest
@@ -64,9 +64,10 @@ The level has these slots (the layout is in LEVEL_DESIGN_V2 4.3a):
 | Streetlamp woman | keep her four lines or rewrite | Chief ruled her tone "per NPC"; she is flirtatious today |
 | Hint NPCs | 3 | Observations only; one near the vending machine, one on the upper roof, one at the tower |
 | Flavor NPCs | 4 | Colour, no information |
-| **Window NPC, two line sets** | 2 to 4 each | Before the AC is powered she complains about the heat; after, she thanks God it is back on |
+| **Tenant (window NPC), two line sets** | 2 to 4 each | Before the AC is switched on she complains about the heat; after, she is relieved and thanks the hero. Placeholders: "It's an oven in here" / "Oh, thank God. It's back on." |
+| **Achievement text** | 1 title + 1 line | Awarded **automatically** when the tenant is relieved (Chief, round 14). Placeholder title "GOOD NEIGHBOR". A short toast line, about 40 characters, that fits Static Shock-style warmth |
 | Drone foreshadow | graffiti text, a sign text, one NPC line | Told by story, not a live enemy |
-| AC secret room clue | 1 poster or graffiti | The first story clue; depends on the premise |
+| ~~AC secret room clue~~ | scrapped | The hidden room was scrapped in round 14; no poster is needed for now |
 | Objective card, level-complete line | optional | The card already reads "Try absorbing power from a street lamp" and "POWER THE EXIT" |
 
 **Format limits (from `npc.js`):** a speech bubble is about 220 px wide and at most 6 lines; the default

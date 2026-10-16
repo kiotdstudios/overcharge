@@ -6,7 +6,16 @@
 
 ## What Chief said about your Part 2 art
 - **Pylon:** "decent". Kiro placed it in Level 1 so Chief can see it with everything else. Keep it.
-- **Hatch and secret room:** Chief was not sure what they were for. Kiro built a first working secret in Level 1 (below).
+- **Hatch and secret room:** SCRAPPED by Chief ("we can scrap that for now"). Kiro removed the room, fire escape, ladder, AC, switch and door
+  from `level1.json`; only the pylon stays. Your hatch and room props are not used. Do not rebuild them.
+- **What replaces it (round 14):** a **tenant sequence in the upper area above the spawn**, reached by the ladder at the start (Kiro put the ladder and a
+  one-way upper walkway back in `level1.json`, x 128, row 9 columns 3 to 13; Codex is redrawing the ladder in Night City colours, same file path and size).
+  The sequence: a new 4-panel apartment (Codex's art, CODEX 03), a tenant in a window, an AC unit that starts **off**, and a small light-switch-style plate
+  on the wall at player height. Powering the AC makes her relieved and an achievement pops up on screen automatically. With an empty bar the player can
+  see it but cannot act, so they go back down, absorb, and return. **You place it only after Chief approves Codex's art.** Until then, keep the upper
+  area above the spawn free for it and name the gap in your report. In the vertical draft, the upper area is the first tier of the climb.
+- **The pylon's job:** it is the start of a **lit cable line** that runs along the route to the exit. In the vertical draft, run your `light-cable`
+  pieces from the pylon toward the exit gate so the player can follow it up. (Chief: "the relay pole looks good, not sure what its doing".)
 - **Apartment, window NPC, pip pickup, Capacitor Module:** failed. Those four are **reassigned to Codex** (`KIRO_ORDER_CODEX_03.md`). Do not
   redo them. Your remaining Part 2 pieces (AC recolour, cable, beacon top) wait for Chief's approval; the AC recolour needs his decision on the full-bleed border.
 - Thank you for committing and pushing: Chief reviewed your branch from the Desktop review page.
@@ -26,14 +35,14 @@ Kiro reviews Part 1 and merges it. **Do not register the failed art and do not m
 
 ## Task 2: build the vertical Level 1 as a DRAFT file
 Chief: "she can start working to finish it." Level 1 is his, so you build it **as a new file he can compare and swap**:
-- Start from the current `src_scroll/levels/level1.json` (it already holds everything Chief placed, the relay pylon, and Kiro's first AC secret).
+- Start from the current `src_scroll/levels/level1.json` (it already holds everything Chief placed, and the relay pylon).
   Save your work as **`src_scroll/levels/level1_vertical.json`**. **Do not edit `level1.json`. Do not add the draft to `levels.json`.**
   Chief opens the draft in the Builder and in the game with a dev flag (add `?level=level1_vertical` if the loader does not already offer a way; tell Kiro what you add).
 - Build the layout in `LEVEL_DESIGN_V2.md` section 4.3a with your Builder tools: add rows on top (18 to 34, shift everything +512 px), the tower at the east end,
   ladders (the ladder art must be exactly `ladder.png`), the upper roof and its ladder lesson, the fork, checkpoints CP1 to CP3, the exit on the gatehouse roof at h+19,
   and the **lift** as a charge platform with a vertical `path` (it will not move until Codex's path runtime exists: CODEX 01 C1; place it anyway).
 - **Keep what Chief built:** the street, the three 4-charge lamps (12 total), the exit cost 8, the fork, the NPCs and the decorations.
-- **Move Kiro's secret** (fire escape, ladder, AC unit, wall switch, door and room, currently rows 4 to 9 above the plaza) into the new taller level where it fits section 4.6, or leave it where it is.
+- **Kiro's secret is gone** (scrapped). Nothing to move. Keep a free stretch on the plaza for the tenant building (see above).
 - **Dress it** only with art that already exists and is approved (the pylon; the existing night-city buildings and props). Mark every gap where new art is coming
   (window NPC, apartment, cable, beacon) with a clearly named placeholder decoration or a comment in your report, not with the rejected art.
 - Use the default charges from `GAME_DESIGN_V2.md` section 3.9 for anything you place that holds charge. Anything placed charged adds to the level total; Level 1's source total must stay 12 unless Chief says otherwise.

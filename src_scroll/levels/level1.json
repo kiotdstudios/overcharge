@@ -412,12 +412,6 @@
     0,
     0,
     0,
-    46,
-    46,
-    46,
-    46,
-    46,
-    46,
     0,
     0,
     0,
@@ -512,12 +506,10 @@
     0,
     0,
     0,
-    46,
     0,
     0,
     0,
     0,
-    46,
     0,
     0,
     0,
@@ -612,12 +604,10 @@
     0,
     0,
     0,
-    46,
     0,
     0,
     0,
     0,
-    46,
     0,
     0,
     0,
@@ -717,7 +707,6 @@
     0,
     0,
     0,
-    46,
     0,
     0,
     0,
@@ -817,7 +806,18 @@
     0,
     0,
     0,
-    46,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
     0,
     0,
     0,
@@ -3207,34 +3207,6 @@
       "y": 288,
       "w": 32,
       "h": 192
-    },
-    {
-      "src": "assets/objects/night-city-props/secret-room/archive_monitor.png",
-      "x": 296,
-      "y": 248,
-      "w": 48,
-      "h": 40
-    },
-    {
-      "src": "assets/objects/night-city-props/secret-room/archive_poster.png",
-      "x": 352,
-      "y": 196,
-      "w": 32,
-      "h": 48
-    },
-    {
-      "src": "assets/objects/night-city-props/secret-room/signal_cassette.png",
-      "x": 352,
-      "y": 264,
-      "w": 32,
-      "h": 24
-    },
-    {
-      "src": "assets/objects/night-city-props/secret-room/memory_cell.png",
-      "x": 388,
-      "y": 256,
-      "w": 24,
-      "h": 32
     }
   ],
   "sources": [
@@ -3271,15 +3243,6 @@
       "frames": 8,
       "artW": 192,
       "artH": 192
-    },
-    {
-      "id": "src_ac",
-      "x": 160,
-      "y": 260,
-      "charge": 3,
-      "label": "AC",
-      "kind": "hvac",
-      "uncharged": true
     }
   ],
   "gates": [
@@ -3292,30 +3255,9 @@
       "label": "GATE",
       "required": 8,
       "isExit": true
-    },
-    {
-      "id": "SECRET_DOOR",
-      "x": 256,
-      "y": 224,
-      "w": 32,
-      "h": 64,
-      "required": 1,
-      "blockOnly": true,
-      "label": "DOOR",
-      "style": "fence"
     }
   ],
-  "switches": [
-    {
-      "id": "SW_AC",
-      "x": 224,
-      "y": 266,
-      "required": 2,
-      "linkedId": "SECRET_DOOR",
-      "label": "AC",
-      "style": "wall"
-    }
-  ],
+  "switches": [],
   "checkpoints": [
     {
       "id": "CP1",

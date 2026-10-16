@@ -316,7 +316,7 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
   can hold **10 more charge**: 20 becomes 30, up to 5 slots and 60. Chief: "an additional 1 pip, or the ability
   to hold 10 more charge, so then a player can have a total of 30 max charge."
 - **CONFIRMED: it appears later,** not in Level 1 (Level 1 uses up the starting slot) and not in the AC-secret
-  room (that reward is the poster / story piece / achievement). Which level, and how it is earned, is decided
+  room (scrapped in round 14; the tenant sequence gives an automatic achievement instead). Which level, and how it is earned, is decided
   when that level is designed. It must never be required to finish a level.
 - **At most four modules** are needed (slots 2 to 5). The concept sheet's other eleven items stay available for
   other upgrades, for example stronger shots (section 3.10).
@@ -722,11 +722,29 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     like number 3").
 70. **The Capacitor Module must match concept #3 exactly:** black and graphite gunmetal with amber glow and the pale MIOR triangle,
     not a cyan core. Chief provides the reference sheet at `docs/reference/capacity_upgrade_concept_sheet.png`.
-71. **The hatch and secret room are implemented in Level 1** as a first working version so Chief can see them (see
-    `LEVEL_DESIGN_V2` 4.3b). They use today's mechanics; two engine links are ordered (CODEX 03 tasks 5 and 6).
+71. ~~The hatch and secret room are implemented in Level 1 as a first working version.~~ **SCRAPPED in round 14** (see below).
+    (Chief saw it and did not like it. Everything but the pylon has been removed from `level1.json`.)
 72. **Aki reads the new game design document and the roadmap, then builds the vertical Level 1 as a separate draft file**
-    (`KIRO_ORDER_AKI_27.md`). Codex redoes the four failed art pieces first.
-73. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
+    (`KIRO_ORDER_AKI_27.md`). Codex redoes the failed art pieces first.
+
+### CONFIRMED by Chief (round 14, 2026-10-16: review of the secret-room preview)
+73. **The relay pylon "looks good," but Chief could not tell what it does.** Kiro's answer (RECOMMENDED, not yet confirmed): it is the
+    start of a lit cable line that leads the player along the route to the exit. Until the cable pieces arrive it is scenery.
+74. **The hidden room, hatch, fire escape, room tiles and room props are scrapped "for now."** The room walls did not match the current
+    rooftop tiles and the fence looked crunched. All removed from Level 1.
+75. **The achievement is awarded automatically** when the player provides AC power to the tenant. No room, no poster, no pickup. This needs a
+    small achievements system (CODEX 03 task 8). Title and text are Orcha's; placeholder "GOOD NEIGHBOR".
+76. **The power switch must be small and part of a wall panel**, sitting on the wall like a light switch at player height so the hero can use it.
+    The old wall switch (56 x 56 art) was "too large." New `style: 'plate'` (CODEX 03 task 3).
+77. **Generate a new 4-panel apartment building that fits this sequence** (window for the tenant, mount for the AC, a control plate area at
+    player height, tiles matching the current rooftop tiles). Codex makes it (CODEX 03 task 2). Full flow in `LEVEL_DESIGN_V2` 4.3c.
+78. **Chief's flow, in his words (round 14b):** "Above the spawn area is the second level (vertical area player can go to); until they get enough charge
+    player can't do anything. The tenant in the window complains about the heat. The player powers on the AC unit (charged object, was off). AC fan spins
+    and hums. She turns relieved, and GOOD NEIGHBOR is awarded automatically. On-screen achievement pops up." So the tenant scene is in the **upper area**
+    reached by the **ladder**, and an empty-bar player can see it but not act.
+79. **The ladder is put back** in Level 1 (x 128, street to y 288, with a one-way upper walkway). **Codex redraws the ladder in the Night City prop colours**
+    (CODEX 03 task 9; same file `ladder.png`, 128 x 605, replaced only after Chief approves).
+80. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
     Kiro put "Try absorbing power from a street lamp" back in both places in `ui.js`.
 
 ### CONFIRMED by Chief (round 12, 2026-10-15)
@@ -825,7 +843,8 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 A. **Emblem in the Capacitor Module's pulse:** steady or softening? Chief reviews the Desktop page first. (3.8)
 B. **Charge table numbers** (3.9): confirm or edit, especially the AC unit (3) and the lift (2).
 C. **Charge-speed floor:** is 40% (1.2 units/s empty, 3 full) the right feel? Tune in play. (3.3)
-D. **Is the poster itself the achievement,** or does an achievement need a small system (a list, a pop-up)? (`LEVEL_DESIGN_V2` 4.6)
+D. ~~Is the poster itself the achievement?~~ **Closed round 14:** no poster. The achievement is awarded automatically when the tenant is relieved, so a small achievements system (toast, sound, saved list) is needed (CODEX 03 task 8).
+F. **Tenant sequence, two details:** switch only, or may the player also charge the AC directly? (Kiro recommends the switch only.) Is 2 the right switch price? (`LEVEL_DESIGN_V2` 4.3c)
 E. **Locked pip icons:** show the locked slots dim (my pick), or hide them until unlocked? (3.8)
 
 ### OPEN questions (older)
