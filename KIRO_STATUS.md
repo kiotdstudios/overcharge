@@ -2316,3 +2316,14 @@ The apartment draft is 95% blue-dominant pixels. Existing Night City families ru
 - docs/OVERCHARGE_Level1_Roadmap.pdf added to the repo (regenerated, 7 pages) and on the Desktop.
 ### Suite
 2822 passed, 7 failed (level2_fork 2, npc_dialogue 4, prop_sources 1, plus two crashes): the same 7 as the live line before my change.
+## 2026-10-16 - Round 14: Chief scrapped the secret room; tenant sequence replaces it
+### Chief's verdicts
+Pylon looks good but "just sitting there" (what is it doing?). The hidden room is scrapped for now. The achievement is awarded automatically after AC reaches the tenant. The room's wall tiles did not match the current rooftop tiles, the fence is still crunched, and the switch is too large: it should be a small light-switch plate on a wall panel at player height. Generate a new 4-panel building that fits this.
+### Done
+- `level1.json` reverted to its pre-preview state **plus the pylon only** (diff against the file before the preview: one added decoration). Removed the unused `secret-room` asset folder. Replaced `_dev/level1_secret.mjs` with `_dev/level1_pylon.mjs` (12/0: pylon placed, preview gone, three 4-charge lamps, exit 8, street walkable). Logged Chief's order in the standing-orders file.
+- Docs: GAME_DESIGN_V2 ledger round 14 (items 73 to 77), question D closed, new question F; LEVEL_DESIGN_V2 sections 4.3a, 4.3b, 4.6 marked superseded, new 4.3c "The tenant sequence", work list rows 16, 49 to 53.
+- Orders: CODEX 03 rewritten (new 4-panel tenant building matched to rooftop tiles, window NPC, plate switch art + `style: 'plate'`, tenant reacts to AC, AC on effects, achievements system with automatic "GOOD NEIGHBOR"; hatch and barrier-link tasks dropped). AKI 27 (secret scrapped, keep a free plaza stretch, run a lit cable from the pylon). ORCHA 19 (tenant lines and achievement text).
+### Pylon purpose (RECOMMENDED, needs Chief's yes)
+Start of a lit cable line leading along the route to the exit. It is scenery until Aki's cable pieces go in with the vertical build.
+### Open for Chief
+Switch only, or may the player also charge the AC directly? Is 2 the right switch price? Still needed: the Capacitor Module concept sheet saved at docs/reference/capacity_upgrade_concept_sheet.png.

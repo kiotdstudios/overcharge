@@ -1,36 +1,46 @@
-# KIRO ORDER: CODEX 03 (redo four pieces of art, then two small engine links)
+# KIRO ORDER: CODEX 03 (redo the art, build the tenant sequence)
 
-**From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief's review of 2026-10-16
+**From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief's reviews of 2026-10-16 (two rounds, the second replaces the hidden room)
 **Priority:** this order comes **before** `KIRO_ORDER_CODEX_02.md`. Chief is waiting to see the art in the game.
 **Branch:** your own branch, push as `AGENTS.md` describes. Never force-push. Do not merge to the live line.
-**Status:** work order, nothing started.
+**Status:** work order, REVISED 2026-10-16 (round 14). Nothing started.
 
-## Why this is yours
-Chief reviewed the art that Aki and Kiro made and failed four pieces. His words are quoted below. He thinks you
-may do better on art than Aki did, so these four are yours. **Aki keeps the Builder and Level 1 construction.**
-Orcha and Aki both had trouble with PixelLab output, so the checks below are mandatory and strict.
+## What changed in this revision (round 14)
+Chief scrapped the hidden room, the hatch, the fire escape and the room props ("im not liking any of that we can scrap that for now").
+Kiro has already removed them from `level1.json`. **Do not build any hatch art and do not build "open a barrier from a charged object".**
+The sequence is now a **tenant**: a person in an apartment window is too hot; the player powers the AC unit under her window with a
+**small light-switch-style control on the wall**; she is relieved; **the achievement is awarded automatically** (no room, no poster).
 
 ## What Chief said (2026-10-16)
 | Piece | Chief's verdict |
 |---|---|
-| Apartment building | "very blue, no real resemblance to Night City props" |
+| Apartment building (round 1) | "very blue, no real resemblance to Night City props" |
+| Apartment (round 2) | "those wall tiles covering the hidden whatever also dont match current rooftop tiles; and the fence is still crunched up". Applies to the new building too: **tiles must match the current rooftop tiles.** |
 | Window NPC, complaining | "looks like she is sucking on her finger or breathing on her hand, not fanning herself because she's hot" |
-| Window NPC, relieved | "when the AC is fixed it also doesn't look like she is happy; her animation needs to change completely" |
+| Window NPC, relieved | "doesn't look happy; needs to change completely" |
 | Pip pickup (dropped pip) | "looks like a blob" |
 | Capacitor Module | "not bad, but I want it to look exactly like number 3" on his concept sheet |
-| Relay pylon | "decent". Kiro has already placed it in Level 1. Do not redo it. |
+| Power switch | "too large and needs to be a apart of a wall pannel; switch needs to 'sit' on the wall almost like a light switch on a regular wall at player height so he can interact with it" |
+| New building | "i suggest generating a 4 panel building like the ones we been doing but one that fits what we are trying to acheive" |
+| Relay pylon | "decent". Placed in Level 1. Do not redo it. |
+
+## Why this is yours
+Chief thinks you may do better on art than Aki did, so these pieces are yours. **Aki keeps the Builder and Level 1 construction.**
+Orcha and Aki both had trouble with PixelLab output, so the checks below are mandatory and strict.
 
 ## Reference material
 - **Capacitor Module concept sheet:** Chief supplies the file at `docs/reference/capacity_upgrade_concept_sheet.png`.
-  **If it is not there when you start, stop that task and ask Chief for it.** (Kiro cannot copy a chat attachment
-  into the repo.) What the sheet shows, as Kiro reads it, is under task 4.
-- Existing Night City building art: `assets/objects/night-city-buildings/` (families `abandoned_apartment`,
-  `apartment_complex`, `convenience_store`, `garrys_electronics`, `gatehouse`, `library`, `tire_shop`, `warehouse`).
-- Existing prop palette art: `assets/objects/night-city-props/`.
+  **If it is not there when you start, stop that task and ask Chief for it.** (Kiro cannot copy a chat attachment into the repo.)
+- Existing Night City building art: `assets/objects/night-city-buildings/` (families `abandoned_apartment`, `apartment_complex`,
+  `convenience_store`, `garrys_electronics`, `gatehouse`, `library`, `tire_shop`, `warehouse`).
+- **The rooftop and wall tiles Chief means:** look at what Level 1 uses today (`src_scroll/levels/level1.json` tile values and
+  `assets/tilesets/`). Your building's parapet, slab bands and wall texture must read as the same tiles.
+- Existing prop palette art: `assets/objects/night-city-props/` (the AC unit is the existing HVAC prop; find it there, and read how
+  `ElectricalSource` kind `hvac` draws it).
 - Aki's rejected drafts, to see what NOT to repeat: branch `agent/aki-order26`, folders
   `assets/objects/night-city-buildings/apartment_hint/`, `assets/sprites/npc-window-woman/`, `assets/objects/pip-pickup/`.
 - Kiro's rejected Capacitor Module: `assets/objects/capacity-upgrade/`.
-- The HUD pip icon, which the dropped pip must match in design: `assets/objects/pip/charged.png`.
+- The HUD pip icon, which the dropped pip must match: `assets/objects/pip/charged.png`.
 
 ## Mandatory art checks (every piece, before you show it)
 1. Correct size, listed per task. 2. Fully transparent border (tiles and full-bleed facades excepted, say so).
@@ -49,73 +59,94 @@ is fine; the **poses are what failed.**
 - **Complaining (loops):** she is **too hot.** Read it from across the street: **one hand fans her face fast and flat**
   (or a folded paper fan), her head tilts back a little, eyes squeezed or squinting, mouth open and panting or
   grimacing, a **sweat drop** or two, a shirt tug at the collar in some frames. The fanning hand must move **in front
-  of the face as a sweeping arc**, not touch the mouth or fingers. If you can read "she is eating her finger", it
-  failed.
+  of the face as a sweeping arc**, not touch the mouth or fingers. If you can read "she is eating her finger", it failed.
 - **Relieved (plays once, then holds the last frame):** the AC has just come on. **Clearly happy:** eyes close, a
   big breath out, **a real smile**, shoulders drop, one hand to the chest ("thank God"), then a relaxed lean on
   the sill. Hair or collar lifts as if in a cool breeze. If you can read "tired" or "neutral", it failed.
-- Her lines (for context only): before, "It's an oven in here"; after, "Oh, thank God. It's back on."
+- Her lines (placeholders, Orcha writes the final text): before, "It's an oven in here"; after, "Oh, thank God. It's back on."
 
-### 2. Apartment building: four panels in the Night City prop family
-Same sizes as Aki's draft (left 192 x 256, wall bay 160 x 256, front bay with one window 160 x 256, right 128 x 256) so
-they can replace it.
-- **Kiro measured the real situation,** because "very blue" is not the whole answer. Share of blue-dominant pixels:
-  existing families run from 43% (`abandoned_apartment`) to 86% (`garrys_electronics`), with `filler_wall` at 80%.
-  **Aki's draft is 95%, bluer than every existing family,** and it is flat. What makes the real families read as
-  Night City is **texture and accents**: brick and panel detail, **lit windows with warm amber or pink light,
-  purple and teal neon accents, signage, pipes, stains and trim.** So: **target 50% to 80% blue-dominant**, at least a
-  few percent **warm accent pixels** (lit window, lamp), plus a **purple or magenta accent** as in the neighbouring families.
-- The four panels must **line up**: the parapet, slab bands and window sill sit at the same heights on every panel
-  (the previous attempt drifted at the seams). Include a tiling proof image.
-- The front bay has **one window opening** that an NPC can stand in (the window NPC from task 1), and the window shows a
-  **dark interior with a warm light** so she reads at night.
-- Compare side by side with `abandoned_apartment` and `apartment_complex`. It should look like it was drawn for the
-  same city.
+### 2. NEW apartment building for the tenant sequence: four panels, Night City prop family
+**Not Aki's old facade; a new building designed for this job.** Four panels that line up, around 192 + 160 + 160 + 128 px wide
+and 256 px tall like the earlier set (Kiro's measured sizes, change only if the design needs it and tell Kiro). Required features:
+- **A window opening with room for the tenant** (the window NPC from task 1) on an **upper floor**, with a dark interior and a
+  **warm light** so she reads at night. Sill at a height the NPC art sits on cleanly.
+- **A flat, empty stretch of wall directly below that window, with a ledge or mount for the AC unit** (the AC hangs on the wall
+  under or beside her window; she is hot because it is dead). Nothing painted on that stretch that would clash with the AC.
+- **A ground-floor wall panel at player height** (the hero's chest, roughly 40 to 56 px above the street surface) that is a plain,
+  slightly recessed or framed **control plate area** where task 3's wall switch sits. It must look like part of the building,
+  like a meter box or a junction plate, not like a hole.
+- **Tiles match the current rooftop tiles** (Chief's round 2 complaint). Compare with Level 1's rooftops side by side.
+- **Not too blue.** Kiro measured: existing families run from 43% (`abandoned_apartment`) to 86% (`garrys_electronics`) blue-dominant
+  pixels, `filler_wall` 80%. Aki's old draft was 95%. What makes the real families read as Night City is **texture and accents**:
+  brick and panel detail, **lit windows with warm amber or pink light, purple and teal accents, signage, pipes, stains, trim.**
+  Target **50% to 80% blue-dominant**, a few percent **warm accent pixels**, and a **purple or magenta accent**.
+- The four panels must **line up**: parapet, slab bands and window sill sit at the same heights on every panel.
+  Include a tiling proof image and a **side-by-side with `abandoned_apartment` and `apartment_complex`.**
+- Roof edge works as a platform top the same way the existing buildings do (read how `night-city-buildings` families are used in
+  Level 1 so the player can stand on the roof).
 
-### 3. Pip pickup (the pip that drops beside a full chest)
+### 3. Wall-plate power switch (art, then engine)
+Chief: the old switch was "too large". It must be **small, a light switch on a wall at player height.**
+- **Art:** a small plate, **16 x 24 px sprite** (the hitbox stays close to the plate), with a **lever or rocker** that is clearly
+  **OFF** (lever down, one dim red dot) and **ON** (lever up, a green or cyan dot, a small glow). 2 frames plus a 3-frame flip.
+  No big frame. It sits on the wall panel from task 2.
+- **Engine:** add a `style: 'plate'` to the Switch (Level 2 already has the wall style, 56 x 56 art / 22 x 22 hitbox: that is the
+  too-large one). Plate style: small hitbox that fits the art, draws the plate art, shows the flip, and keeps the existing rules (costs its
+  `required` charge, hold the use key to pay, rewinds on checkpoint). It is hung on a wall, so it is **not** required to rest on a floor tile:
+  state this plainly and **fix the `parity_regression` rule** ("switches rest on a surface, y+22 = surface") so a plate switch only has to
+  be inside a wall at its stated height. Test it. Old switches unchanged.
+
+### 4. Pip pickup (the pip that drops beside a full chest)
 - **Not a blob.** It must read as the **same object as the HUD pip icon** (`assets/objects/pip/charged.png`): a charged
-  capsule or crystal with a clear outline, a bright core, a darker body and a rim light. Size **24 x 24** (16 x 16 was
-  too small to read), 4 frames: a gentle bob of 1 to 2 px and a pulsing core.
-- Check: at 1x in a game screenshot next to the hero, a person must recognise it as a pip without a label.
-  Minimum 5 distinct tones; no single colour above 40% of the opaque pixels.
+  capsule or crystal with a clear outline, a bright core, a darker body and a rim light. Size **24 x 24**, 4 frames:
+  a gentle bob of 1 to 2 px and a pulsing core.
+- Check: at 1x next to the hero, a person recognises it as a pip without a label. Minimum 5 distinct tones; no single colour above 40% of opaque pixels.
 
-### 4. Capacitor Module: match concept #3 exactly
-Chief wants it to look **exactly like number 3** on his concept sheet ("03 | CAPACITOR MODULE: Industrial capacitor
-used in atmospheric research"). Kiro's first version was a cyan-cored box with orange stripes; that is the wrong
-design. As Kiro reads the sheet:
-- **The large render:** a chunky rectangular canister in three-quarter view with **bevelled corners and a heavy riveted
-  frame**, in **black and graphite gunmetal**. The faces carry **amber and gold glowing panels**: tall vertical amber
-  light strips on the left face, an amber-lit panel on the right, and in the middle a **dark recessed panel with a pale
-  grey triangular emblem** (the MIOR mark) and a small **amber warning-triangle plate**. Palette: black, graphite,
-  brass, **amber glow** (about #ffb000 to #ffd24a). **No cyan core.**
-- **The four small thumbnails (IDLE, PICKUP, SPIN, GLOW):** a **small upright capacitor can** (a cylinder with grey
-  end caps and an amber glowing body). These are the in-game scale. Treat the large render as the design, and the
-  thumbnails as how it looks at pixel size.
-- **Deliver:** `item.png` 48 x 48 (the box design, as close to the render as pixel art allows), `idle` 6 frames (soft amber
-  pulse), `glow` 4 frames (bright pulse), `spin` 8 frames (a slow turn), and an `icon` 24 x 24 of the thumbnail can.
-  Keep the emblem **steady** in every frame (Kiro's version softened it, which Chief has not approved).
-- Check against the sheet side by side. If it does not look like #3, it fails.
+### 5. Capacitor Module: match concept #3 exactly
+Chief wants it **exactly like number 3** on his concept sheet ("03 | CAPACITOR MODULE: Industrial capacitor used in atmospheric
+research"). Kiro's first version was a cyan-cored box with orange stripes; wrong design. As Kiro reads the sheet:
+- **The large render:** a chunky rectangular canister in three-quarter view with **bevelled corners and a heavy riveted frame**, in
+  **black and graphite gunmetal**. Faces carry **amber and gold glowing panels**: tall vertical amber light strips on the left face, an
+  amber-lit panel on the right, and in the middle a **dark recessed panel with a pale grey triangular emblem** (the MIOR mark) and a
+  small **amber warning-triangle plate**. Palette: black, graphite, brass, **amber glow** (about #ffb000 to #ffd24a). **No cyan core.**
+- **The four small thumbnails (IDLE, PICKUP, SPIN, GLOW):** a **small upright capacitor can** (cylinder, grey end caps, amber glowing body).
+  These are the in-game scale. Treat the large render as the design, the thumbnails as how it looks at pixel size.
+- **Deliver:** `item.png` 48 x 48, `idle` 6 frames (soft amber pulse), `glow` 4 frames, `spin` 8 frames, and an `icon` 24 x 24 of the
+  thumbnail can. Keep the emblem **steady** in every frame. Check side by side with the sheet; if it does not look like #3, it fails.
 
-## Engine tasks, after the art is approved or while Chief reviews
-### 5. State-linked hatch art (CONFIRMED need)
-Aki's `hatch_closed.png` and `hatch_open.png` (64 x 32, on her branch under `secret-room/`) cannot be used today: a
-barrier gate always draws as the electric fence, and a decoration cannot change. Add to `PowerGate` an optional
-`style: 'hatch'` with `closedSrc` and `openSrc`: it draws the closed art while shut and the open art once open, with the
-same collision rules as a fence. Keep `style: 'fence'` unchanged. Test: draws the right art in both states; rewinds on
-checkpoint; an old fence gate is unchanged. (Kiro placed the Level 1 secret door as a fence for now.)
+## Engine tasks (start while Chief reviews the art)
 
-### 6. Open a barrier from a charged object
-Today only a Switch can open a barrier. Add an optional `openWhenSourceCharged: { id, min }` to a `blockOnly` barrier:
-it opens when the named charged object holds at least `min` charge (for the AC, 3 means fully powered) and closes
-again if it drops below. Then Chief's design works as drawn: **power the AC unit and the door opens.** The wall switch
-Kiro placed (`SW_AC`) stays until this is built and tested. Test with the real Level 1 data. Also check this
-against the reactive NPC dialogue task (CODEX 01 C4): the same "is this object powered" check serves both.
+### 6. The tenant reacts to the AC (CODEX 01 task C4, now with a concrete use)
+The window NPC gets two line sets: `lines` (complaining) and `poweredLines` (relieved), with `linkedObjectId` naming the AC source.
+Rule: "powered" means **the AC has been switched on**. Build the check once: a helper on the level, e.g. `level.isPowered(id)`
+that is true for a source with charge >= its capacity OR for a source or switch the player has turned on. The NPC draws the complaining
+animation until powered, then plays the relieved animation once and holds it, and says the `poweredLines`. State rewinds on checkpoint.
+Build it for the **real Level 1 AC** once Aki places it (or in a test level), not as a one-off.
+
+### 7. The AC turns on
+The AC is an existing `ElectricalSource` of kind `hvac`, placed **uncharged** (`uncharged: true`), capacity 3. The wall plate switch is
+linked to it (`linkedId` is the source id): paying the switch's cost (**2 charge**, from `CHARGE_TABLE` once it exists) turns the AC on. When
+on it must **look and sound on**: the fan spins, the unit hums (reuse an existing loop in `src_scroll/audio.js` or add `ac_hum`), a few
+cool-air particles drip from the vents (`src_scroll/juice.js`). Keep the old behaviour that the player can also charge a charged object
+directly; either path counts as powered. Tests with the real Level 1 data.
+
+### 8. Achievements (new, small, CONFIRMED need)
+There is **no achievement system in the code today.** Build the smallest one that works:
+- `src_scroll/achievements.js`: a table `{id, title, text}`, `unlock(id)`, `has(id)`, and a persisted record (localStorage under one key;
+  fall back quietly if storage is blocked). `?achievements=off` switch for tests.
+- A **toast**: a slim banner at the top of the screen for about 3 seconds with a small icon placeholder, the title and the text, and a sound
+  (add `achievement` to `audio.js`: a bright three-note rise). It must not pause the game or block input.
+- First entry: id `good_neighbor`, title **"GOOD NEIGHBOR"** (placeholder, **Orcha writes the final title and text**), unlocked **automatically**
+  the moment the tenant switches to relieved (task 6). No pickup, no room, no button.
+- Expose the list for a later menu page; do not build the menu yet.
+- Tests: unlock once only; persisted across a reload (in the test harness); toast queue handles two unlocks in a row; off switch.
 
 ## Report
-Report as `CODEX 03`: per task PASS/FAIL, commit SHA, files, the contact sheets and the in-game screenshots (paths),
-the automated check results, and what you did not do. Say how many tries each piece took. Then HOLD for review.
-Chief reviews the art piece by piece. **Do not place anything in a level; do not register in the manifest.**
+Report as `CODEX 03`: per task PASS/FAIL, commit SHA, files, the contact sheets and in-game screenshots (paths), the automated check
+results, and what you did not do. Say how many tries each piece took. Then HOLD for review.
+Chief reviews the art piece by piece. **Do not place anything in a level; do not register art in the manifest until Chief approves it.**
+Tasks 6 to 8 are engine work and need no approval to build, but use test levels only; Aki places the pieces in Level 1.
 
 ## Do not
-Redo the relay pylon. Touch level files. Repeat Aki's rejected facade. Change the bar, pip or charge rules (that is
-CODEX 02, which follows this order).
+Redo the relay pylon. Touch `src_scroll/levels/level1.json` or any other level file. Repeat Aki's rejected facade. Build hatch art.
+Change the bar, pip or charge rules (that is CODEX 02, which follows this order).

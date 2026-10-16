@@ -319,7 +319,10 @@ the tower.** The pylon is on screen at the start; the cable climbs out of the to
 leads the eye to the tower. The beacon on the gatehouse roof is the same colour. All of this is ordinary
 decoration (buildable today; the cable and pylon art are new).
 
-**The AC secret (CONFIRMED round 4): above and behind the spawn, hinted by a window NPC.**
+**SUPERSEDED in round 14 (Chief, 2026-10-16): the hidden room, hatch, fire escape and room props are SCRAPPED. The AC
+now belongs to the tenant sequence in section 4.3c. The text below is kept only as history.**
+
+**The AC secret (round 4, superseded): above and behind the spawn, hinted by a window NPC.**
 - **The hint (Chief's design).** An **apartment building** in the Night City prop colour palette stands by
   the plaza. In one window an **NPC complains about the heat.** That line is the hint: it tells the player
   something up there needs power, with no tutorial text.
@@ -360,23 +363,30 @@ tower lands on the street, which is safe; the pit at col 26 stays the only death
 decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the charged-object props (not built, GAME_DESIGN_V2 3.5),
 the pylon and cable art, and the AC hatch art.
 
-### 4.3b The relay pylon and the first working AC secret, now in Level 1 (Chief's order, 2026-10-16)
-Chief: "use the relay pylon in the level so I can see how it looks all together" and "implement [the hatch and
-secret room] in lvl 1 ... so I can see it all together." Kiro added the following to `level1.json` (additive only; the file
-round-tripped byte for byte before the edit). Test: `_dev/level1_secret.mjs`, 23 checks.
-- **Relay pylon:** plaza, x 576, on the walkway. Aki's art (96 x 256).
-- **Fire escape:** a one-way platform at y 288 (six tiles above the street), columns 2 to 13.
-- **Ladder:** column 4 (x 128), street up to the fire escape. The first ladder in any shipped level; the test climbs it.
-- **AC unit:** a charged object (`kind: hvac`, capacity 3, starts **uncharged**, so the level's charge stays 12).
-- **Wall switch "AC":** costs 2. Pay it (hold SPACE next to it) and the door opens.
-- **Door:** a fence-style barrier at x 256 (the room's left wall, rows 7 to 8).
-- **Room:** a solid shell, columns 8 to 13, rows 4 to 8; the fire escape is its floor. Inside: an archive monitor, a blank
-  poster, a signal cassette and a memory cell (Aki's story-neutral props; the poster is where the first story piece goes).
-- **What it does today:** the door opens when the wall switch is paid, not when the AC unit is powered, and it looks like an
-  electric fence, not a hatch. Both are engine gaps, ordered in CODEX 03 (tasks 5 and 6). The window NPC and the apartment
-  are not in yet (their art failed review).
-- **Not required to finish the level:** the lamps still pay the exit on their own, and the street is untouched.
-- **Level economy unchanged:** the AC is uncharged, the switch costs 2 and is optional, and the three lamps are still 12 in total.
+### 4.3b The relay pylon in Level 1 (Chief's order, 2026-10-16; the secret-room preview was REMOVED in round 14)
+Chief asked to see the pylon and the secret room together. He liked the pylon ("looks good") and scrapped the rest
+("im not liking any of that we can scrap that for now"). `level1.json` now differs from before the preview by **one decoration only**:
+- **Relay pylon:** plaza, x 576, on the walkway. Aki's art (96 x 256). Test: `_dev/level1_pylon.mjs` (12 checks; also proves the
+  preview is gone and the street is clean).
+- **What the pylon is for (RECOMMENDED, Chief asked "not sure what its doing"):** it is the **start of a lit cable line** that runs along the
+  route to the exit gate, so the player always has something to follow. The cable pieces arrive with the vertical build (Aki's `light-cable`
+  art, AKI 27). Until then it is scenery. Optional later: a slow lantern pulse (needs frames registered in the manifest).
+- **Level economy unchanged:** three 4-charge lamps (12), exit 8.
+
+### 4.3c The tenant sequence (round 14, replaces the hidden room; Chief's design, Kiro's layout is RECOMMENDED)
+CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a **tenant in a window**; an **AC unit**; a **small switch that sits
+on a wall panel at player height, like a light switch**; **powering the AC makes the tenant relieved, and the achievement is awarded automatically**
+(no room, no poster, no pickup).
+- **Flow:** the tenant complains ("It's an oven in here"). The player walks up to the wall panel, spends charge at the plate switch, the AC fan
+  spins and hums, cool air drips, she changes to the relieved animation, says thanks, a toast appears: **GOOD NEIGHBOR** (placeholder title; Orcha writes the text).
+- **Cost (RECOMMENDED):** 2 charge at the switch (the AC is a charged object, capacity 3, placed **uncharged**, so the level's lamp total stays 12).
+  Optional and permanent, like the old design. It is **not** needed to finish: three lamps pay the exit with spare.
+- **Where (RECOMMENDED):** the plaza stretch after the pylon, near x 700 to 1100, on the street so the player sees the tenant before they can power the AC.
+  Aki places it after Chief approves Codex's art; Chief can move it in the Builder.
+- **Pieces and owners:** building art, window NPC (two animations), plate switch art, `style: 'plate'` Switch, reactive tenant lines,
+  AC on-state effects, achievements system: **Codex (CODEX 03 tasks 1 to 3, 6 to 8)**. Placement: **Aki**. Text: **Orcha**.
+- **Two small questions for Chief (OPEN):** (a) should the player only flip the wall switch, or also be able to charge the AC directly by holding
+  near it? Kiro RECOMMENDS the switch only for this sequence (a single clear action). (b) Is 2 the right price? (GAME_DESIGN_V2 section 3.9 has AC 3 as its stored charge.)
 
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
 (For the vertical layout, see 4.3a: pylon plus cable.) In the horizontal draft the gate was 4,300 px from
@@ -416,7 +426,9 @@ vertical Level 1 the beacon should sit at the top of the level, so the beacon al
   sunken street, reached by dropping 160 px, a short-cut that skips lamp 3 and the checkpoint. **Both must
   complete the level from zero** (rule 3), so lamp 3 stays genuinely optional. Make the high route the
   *rewarding* one (extra life and a checkpoint) and the low route the *fast* one.
-- **Secret (CONFIRMED round 4; full spec in 4.3a).** Powering the AC unit (permanent cost 2) changes the
+- **Secret: SUPERSEDED in round 14 by the tenant sequence (4.3c). The hidden room and its poster are scrapped; the achievement is awarded
+  automatically when the tenant is relieved. The text below is history.**
+- **Secret (round 4, superseded; spec in 4.3a).** Powering the AC unit (permanent cost 2) changes the
   window NPC's line, opens a hidden room and gives an Easter egg plus a story clue. The "trophy" is that
   in-game collectible; there is no separate achievement system yet.
   **Buildable today:** a Switch (cost 2) linked to a `blockOnly` barrier that seals the alcove.
@@ -634,7 +646,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 13 | Replacement Level 1 music | Audio (Kiro) | 12 | CONFIRMED; pending assets |
 | 14 | Lengthen or stack Level 1; place zones, NPCs, props, beacon | Content | 1, 4, 7, 9, 10 | Chief |
 | 15 | Hint copy and NPC role tags | Content | 14 | RECOMMENDED |
-| 16 | The AC-unit secret: hatch (switch plus barrier), room, Easter egg and clue | Content + art | 14 | CONFIRMED round 4 |
+| 16 | ~~The AC-unit secret: hatch, room, Easter egg and clue~~ **SCRAPPED round 14**; replaced by the tenant sequence (4.3c, rows 49 to 51, 53) | Content + art | none | SUPERSEDED |
 | 34 | **Apartment building in the Night City prop palette**, with a window NPC position | Art (Aki) | none | CONFIRMED round 4 |
 | 35 | **Window NPC** sprite (complaining pose, thankful pose) | Art | 34 | CONFIRMED round 4 |
 | 36 | **AC unit recolour**, same animation and behaviour, as a charged object | Art + runtime | 7 | CONFIRMED round 4 |
@@ -654,10 +666,11 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 46 | **Q**: a pip pays the gate's 8, the other 2 returns to the bar (already built by Codex Phase A; add the edge-case tests) | Runtime + test | none | CONFIRMED round 12 (CODEX 02 task 2) |
 | 47 | **Charge speed: slow when empty, faster when full**, both directions, 1.2 to 3 units/s | Runtime + test | 40 | CONFIRMED round 11 (CODEX 02 task 3) |
 | 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are on the Desktop |
-| 49 | **Redo four failed art pieces**: window NPC (both animations), apartment, pip pickup, Capacitor Module to match concept #3 | Art (Codex) | Chief's reference sheet | CONFIRMED round 13 (CODEX 03) |
-| 50 | **Relay pylon and a first AC secret in Level 1** | Content (Kiro, by Chief's order) | none | **DONE round 13**, `_dev/level1_secret.mjs` 23/0 |
-| 51 | **State-linked hatch art** and **a barrier that opens when the AC is powered** | Runtime (Codex) | 49 not required | CONFIRMED round 13 (CODEX 03 tasks 5 and 6) |
+| 49 | **Redo failed art**: window NPC (both animations), **NEW 4-panel apartment for the tenant sequence** (tiles match rooftops), pip pickup, Capacitor Module to match concept #3, **small wall-plate switch art** | Art (Codex) | Chief's reference sheet | CONFIRMED round 13, revised round 14 (CODEX 03 tasks 1 to 5) |
+| 50 | **Relay pylon in Level 1** (the secret-room preview was removed in round 14) | Content (Kiro, by Chief's order) | none | **DONE**, `_dev/level1_pylon.mjs` 12/0 |
+| 51 | **Tenant sequence runtime**: `style: 'plate'` Switch, reactive tenant lines and relieved animation, AC on effects, **achievements system** (automatic unlock "GOOD NEIGHBOR") | Runtime (Codex) | 49 not required | CONFIRMED round 14 (CODEX 03 tasks 3, 6, 7, 8). Replaces the hatch art and barrier-link tasks, which are dropped |
 | 52 | **Vertical Level 1 as a separate draft file**, with proof from the provers | Content (Aki) | her Part 1 on the live line | CONFIRMED round 13 (AKI 27) |
+| 53 | **Place the tenant building, tenant, AC and wall switch** in Level 1 once Chief approves the art; run the pylon's lit cable toward the exit | Content (Aki) | 49, 51 | NEW round 14 |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
 | 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
 | 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |
