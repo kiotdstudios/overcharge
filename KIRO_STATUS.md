@@ -2270,3 +2270,7 @@ MIOR, "Meridian Institute of Research"; MIOR technology, atmospheric research, P
 2737 passed, 5 failed across 61 suites (same 5 as before). Smoke run of the game: no page errors.
 ### Not done
 The capacity system itself (Codex A5), the pickup entity, the Builder placement, the bar-growth animation, the pickup sound. The 25-unit bar is still in the code; the HUD still shows "/ 25".
+
+### Sync after merging 18 commits (2026-10-15)
+Codex built CODEX 01 Phases A and B (Q pip, two-way objects with uncharged, charge-speed M for both, duck, abilities). Chief and Orcha added official story canon (Malik Carter, Meridian Industries, MIOR, Project Tempest). My MIOR note is now confirmed. Post-merge suite: 2779 passed, 7 failed. Five are the known set; two are new and not mine: prop_sources 1 and 
+pc_dialogue 4 (was 3). I confirmed both fail on a clean checkout of origin before my commit (113/1 and 49/4), from Chief's Level 1 edits (five NPCs now, a decoration made absorbable). Import maps regenerated after resolving the usual conflict in index.html, editor.html and hero-lab.html. Code is ahead of the docs for Q, two-way objects and charge speed; the ledger has a status line saying so.

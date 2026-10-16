@@ -165,7 +165,7 @@ pays three gates" no longer holds). A hit (1 unit) at bar 0 with 1 pip leaves ba
   code" is withdrawn. Today both rates are a flat 3 units/s.
   **Two options (OPEN):** **(O) the original:** rate proportional to the fill, slow when the bar is low.
   **(M) mine:** rate x `(1 + fill)`, where `fill` is bar / capacity: 3 units/s empty, 6 at a full bar.
-  **RECOMMENDED: O for charging a gate, M for absorbing.** *Why:* applying O to absorbing makes the very
+  **BUILT by Codex in Phase A (2026-10-14): `chargeTransferRate(held) = 1 + held / MAX_CHARGE` for every transfer, which is option M for both.** The O-versus-M choice below is therefore a change request on top of working code. **RECOMMENDED: O for charging a gate, M for absorbing.** *Why:* applying O to absorbing makes the very
   first lamp sluggish. From an empty bar the rate sits at the 0.5 floor until some charge exists, so a
   4-unit lamp takes about 6 s instead of 1.3 s, which breaks the "first absorb at about 8 s" target. At a
   gate the player already holds charge, so O feels right there. Either way `fill` uses the current
@@ -344,7 +344,7 @@ nothing can be spent, the player dies. Pickups last 6 seconds.
 - **Lore hook (from the concept sheet, flagged for the story):** the sheet is branded **MIOR, "Meridian
   Institute of Research"**, and its item descriptions name **MIOR technology, atmospheric research, Project
   Tempest ("the original storm experiment") and MIOR drones.** That suggests the drones are MIOR's. These
-  are Chief's own words, so they are story candidates, not decisions. See `STORY_BIBLE_DRAFT.md`.
+  are Chief's own words, and Chief has since approved them as **OFFICIAL STORY CANON** (`docs/STORY_CANON_THE_MERIDIAN_INCIDENT.md`, `docs/STORY_CANON_MALIK_CARTER.md`): Meridian Industries, then MIOR, then Project Tempest. See `STORY_BIBLE_DRAFT.md`.
 
 ---
 
@@ -642,6 +642,8 @@ Every effect must return to rest and must respect `prefers-reduced-motion`.
 ---
 
 ## 13. Decision ledger
+
+**Status sync, 2026-10-15 (after merging 18 commits from Codex and Chief):** Codex has built CODEX 01 Phases A and B. In the code now: Q spends a banked pip at a gate (`player.js`), two-way charged objects with the `uncharged` field and `ElectricalSource.receive()`, charge-speed scaling (M for both), the duck movement and ability controls, and an exit gate that shows opening for four seconds. Where this document still says "NOT BUILT" for those items, the code is ahead of the text. **Still not built:** the 10-unit bar (code says `MAX_CHARGE = 25`), capacity upgrades and the Capacitor Module pickup (task A5), path platforms, the chest pip pickup, and the reactive NPC lines. The story is now canon (Malik Carter, Meridian Industries, MIOR, Project Tempest).
 
 ### CONFIRMED by Chief (this revision)
 1. OVERCHARGE is the final name.

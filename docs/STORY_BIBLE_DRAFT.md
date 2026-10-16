@@ -1,6 +1,8 @@
 # OVERCHARGE: story bible, first draft
 
-**Status: BRAINSTORM, 2026-09-06. Nothing here is decided.** Chief asked to "start tossing ideas". Every
+**SUPERSEDED 2026-10-14: Chief approved official story canon. Read `docs/STORY_CANON_THE_MERIDIAN_INCIDENT.md` and `docs/STORY_CANON_MALIK_CARTER.md` instead.** This file is kept as the brainstorm that led there; the MIOR paragraph below is now confirmed.
+
+**Status (original): BRAINSTORM, 2026-09-06. Nothing here is decided.** Chief asked to "start tossing ideas". Every
 name, line and plot beat below is a **proposal** until Chief marks it. Tags: **FACT** (already in the repo),
 **PROPOSAL** (Kiro), **QUESTION** (needs Chief). This file is a working draft and is not part of the design
 documents' law until Chief says so.

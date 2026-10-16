@@ -3,6 +3,8 @@
 **From:** Kiro, Technical Director | **To:** Orcha | **Authority:** Chief
 **Status:** work order, nothing started. **This order is writing only. You change no code, no level file and no art.**
 
+**Status update, 2026-10-15:** Chief has approved official story canon (`docs/STORY_CANON_THE_MERIDIAN_INCIDENT.md` and `docs/STORY_CANON_MALIK_CARTER.md`: Malik Carter, Meridian Industries, MIOR, Project Tempest, six chapters). **Step 1 (three premises) is done and superseded.** Read the canon first. Steps 2 and 3 remain: a short story bible that points at the canon, and `docs/LEVEL1_DIALOGUE.md` with every line the player reads in Level 1, written to the canon. The "New in round 10" section below is now confirmed rather than a candidate.
+
 Welcome back. You have been away, so this order gives you a short reading list and one job: **the story.**
 Chief assigned it to you himself.
 
