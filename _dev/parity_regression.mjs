@@ -231,8 +231,12 @@ for (const filename of levelFiles) {
   }
   for (const s of data.switches ?? []) {
     if (s.style === undefined || s.style === null) continue;
-    check(s.style === 'default' || s.style === 'wall',
-      `${filename}: switch ${s.id} style is a known value (default|wall), got "${s.style}"`);
+    check(s.style === 'default' || s.style === 'wall' || s.style === 'plate',
+      `${filename}: switch ${s.id} style is a known value (default|wall|plate), got "${s.style}"`);
+    if (s.style === 'plate') {
+      check(typeof s.linkedId === 'string' && (data.sources ?? []).some(src => src.id === s.linkedId),
+        `${filename}: wall plate ${s.id} links to an existing source`);
+    }
     if (s.style === 'wall') {
       // A wall switch exists to short out a fence, so it must actually link to
       // something — an unlinked wall switch is a dead-end puzzle.
@@ -335,6 +339,18 @@ console.log('\n[ Placement: grid alignment + grounding ]');
     };
 
     const checkPlacement = (kind, obj, w, h, label) => {
+      if (kind === 'switches' && obj.style === 'plate') {
+        // The plate is deliberately attached to facade art at hero chest height.
+        // It must not be grounded like a floor switch (y+22 = surface).
+        const surfaceY = surfaceUnder(obj.x, 16, obj.y);
+        const wall = (L.decorations ?? []).some(d => /night-city-buildings/.test(d.src || '') &&
+          obj.x >= d.x && obj.x + 16 <= d.x + d.w &&
+          obj.y >= d.y && obj.y + 24 <= d.y + d.h);
+        check(Number.isInteger(obj.x) && Number.isInteger(obj.y) && wall &&
+          surfaceY !== null && surfaceY - (obj.y + 24) >= 40 && surfaceY - (obj.y + 24) <= 56,
+          `${filename}: plate ${obj.id} is inside facade art 40-56px above the walkway`);
+        return;
+      }
       // Absorbable Night City props use source entries, but Chief positions
       // their art at pixel precision and may deliberately lift it above a roof.
       if (kind === 'sources' && obj.kind === 'prop') {
@@ -373,7 +389,8 @@ console.log('\n[ Placement: grid alignment + grounding ]');
     for (const g of L.gates ?? [])
       checkPlacement('gates', g, g.w ?? 32, g.h ?? 64, `gate ${g.id}`);
     for (const sw of L.switches ?? [])
-      checkPlacement('switches', sw, 22, FOOT_H.switches, `switch ${sw.id}`);
+      checkPlacement('switches', sw, sw.style === 'plate' ? 16 : 22,
+        sw.style === 'plate' ? 24 : FOOT_H.switches, `switch ${sw.id}`);
     for (const cp of L.checkpoints ?? [])
       checkPlacement('checkpoints', cp, 22, FOOT_H.checkpoints, `checkpoint ${cp.id}`);
     for (const c of L.crates ?? [])

@@ -1,0 +1,29 @@
+{
+  "apartment": {
+    "files": 4,
+    "failures": [],
+    "blue_share": 0.7429,
+    "warm_share": 0.0618,
+    "purple_share": 0.0407
+  },
+  "npc": {
+    "files": 12,
+    "failures": []
+  },
+  "pip": {
+    "files": 4,
+    "failures": []
+  },
+  "capacitor": {
+    "files": 20,
+    "failures": []
+  },
+  "ladder": {
+    "files": 1,
+    "failures": []
+  },
+  "plate": {
+    "files": 5,
+    "failures": []
+  }
+}

@@ -54,6 +54,8 @@ export class Npc {
     this.assetId         = def.assetId || null;
     this.greetingAssetId = def.greetingAssetId || null;
     this.walkAssetId     = def.walkAssetId || null;
+    this.poweredAssetId  = def.poweredAssetId || null;
+    this.linkedObjectId  = def.linkedObjectId || null;
     this.x               = Number(def.x) || 0;   // feet anchor, world px (bottom-centre)
     this.y               = Number(def.y) || 0;   // ground line the feet rest on
     this.facing          = def.facing === 'left' ? 'left' : 'right';
@@ -85,6 +87,9 @@ export class Npc {
       oncePerLevel:  !!d.oncePerLevel,
       durationMs:    clampDuration(d.durationMs),
       lines:         Array.isArray(d.lines) ? d.lines.filter(l => l && typeof l.text === 'string' && l.text.length > 0) : [],
+      poweredLines:  (Array.isArray(d.poweredLines) ? d.poweredLines :
+        Array.isArray(def.poweredLines) ? def.poweredLines : [])
+        .filter(l => l && typeof l.text === 'string' && l.text.length > 0),
       selectionMode: d.selectionMode === 'random' ? d.selectionMode : DEFAULT_DIALOGUE.selectionMode,
     };
 
@@ -119,6 +124,9 @@ export class Npc {
     this._greetStartedAt = 0;
     this._clock         = 0;     // per-instance elapsed seconds, drives ambient frame choice
     this._sprites       = null;  // resolved lazily — see _resolveSprites()
+    this._powered = false;
+    this._reliefClock = 0;
+    this._justRelieved = false;
   }
 
   // Deterministic-but-varied per-instance RNG (mulberry32), seeded once from
@@ -148,14 +156,16 @@ export class Npc {
     const greeting = this.greetingAssetId ? assetById(this.greetingAssetId) : null;
     const walk     = this.walkAssetId ? assetById(this.walkAssetId) : null;
     const smoke    = this.ambient && this.ambient.smokeAssetId ? assetById(this.ambient.smokeAssetId) : null;
+    const powered  = this.poweredAssetId ? assetById(this.poweredAssetId) : null;
     if (!ambient) return null; // manifest not loaded yet, or unknown id — retry next frame
     const anim = {
       ambient:  { asset: ambient,  frames: null, img: null },
       greeting: greeting ? { asset: greeting, frames: null, img: null } : null,
       walk: walk ? { asset: walk, frames: null, img: null } : null,
       smoke:    smoke    ? { asset: smoke,    frames: null, img: null } : null,
+      powered:  powered  ? { asset: powered,  frames: null, img: null } : null,
     };
-    for (const key of ['ambient', 'greeting', 'walk', 'smoke']) {
+    for (const key of ['ambient', 'greeting', 'walk', 'smoke', 'powered']) {
       const slot = anim[key];
       if (!slot) continue;
       const a = slot.asset;
@@ -215,8 +225,22 @@ export class Npc {
     return 2000;
   }
 
-  update(dt, player) {
+  update(dt, player, level) {
     this._clock += dt;
+    this._justRelieved = false;
+    const powered = !!(this.linkedObjectId && level?.isPowered(this.linkedObjectId));
+    if (powered && !this._powered) {
+      this._reliefClock = 0;
+      this._justRelieved = true;
+      this._cooldownT = 0;
+      this._triggeredOnce = false;
+      if (this.dialogue.enabled && this.dialogue.poweredLines.length) this._fire(this.dialogue.poweredLines);
+    } else if (!powered && this._powered) {
+      this._bubbleT = 0;
+      this._triggeredOnce = false;
+    }
+    this._powered = powered;
+    if (powered) this._reliefClock += dt;
     if (this._cooldownT > 0) this._cooldownT = Math.max(0, this._cooldownT - dt * 1000);
     if (this._bubbleT   > 0) this._bubbleT   = Math.max(0, this._bubbleT   - dt * 1000);
     if (this._greetT    > 0) this._greetT    = Math.max(0, this._greetT    - dt * 1000);
@@ -256,13 +280,12 @@ export class Npc {
     if (!enteredNow) return;
     if (this.dialogue.oncePerLevel && this._triggeredOnce) return;
     if (this._cooldownT > 0) return;
-    if (!this.dialogue.lines.length) return;
+    if (!(this._powered ? this.dialogue.poweredLines : this.dialogue.lines).length) return;
 
     this._fire();
   }
 
-  _fire() {
-    const lines = this.dialogue.lines;
+  _fire(lines = this._powered ? this.dialogue.poweredLines : this.dialogue.lines) {
     const idx = this.dialogue.selectionMode === 'random'
       ? Math.floor(Math.random() * lines.length)
       : (this._lineIdx % lines.length);
@@ -289,19 +312,20 @@ export class Npc {
   _currentFrame() {
     const sprites = this._resolveSprites();
     if (!sprites) return null;
-    const useGreeting = this._greetT > 0 && sprites.greeting;
+    const usePowered = this._powered && sprites.powered;
+    const useGreeting = !usePowered && this._greetT > 0 && sprites.greeting;
     const useWalk = !useGreeting && this._walking && sprites.walk;
     const useSmoke = !useGreeting && !useWalk && this.ambient && this._ambState === 'smoke' && sprites.smoke;
-    const slot = useGreeting ? sprites.greeting : useWalk ? sprites.walk : (useSmoke ? sprites.smoke : sprites.ambient);
+    const slot = usePowered ? sprites.powered : useGreeting ? sprites.greeting : useWalk ? sprites.walk : (useSmoke ? sprites.smoke : sprites.ambient);
     this._frameSlot = slot;
     // The one-shot smoke clip is timed from its own elapsed counter (resets to
     // 0 the instant the state machine enters 'smoke'), never from this._clock,
     // so it always starts at frame 0 regardless of how long the NPC has existed.
     const stepPx = Number(slot.asset?.walkFrameStepPx);
     const walkTime = stepPx > 0 ? this._walkDistance / (stepPx * slot.fps) : this._walkClock;
-    const t = useGreeting ? this._clock - this._greetStartedAt : useWalk ? walkTime : useSmoke ? this._smokeElapsed / 1000 : this._clock;
+    const t = usePowered ? this._reliefClock : useGreeting ? this._clock - this._greetStartedAt : useWalk ? walkTime : useSmoke ? this._smokeElapsed / 1000 : this._clock;
     if (slot.frames) {
-      const fake = { frames: slot.frames, fps: slot.fps, loop: (useGreeting || useSmoke) ? false : slot.loop, phase: 0 };
+      const fake = { frames: slot.frames, fps: slot.fps, loop: (usePowered || useGreeting || useSmoke) ? false : slot.loop, phase: 0 };
       return frameAt(fake, t);
     }
     return slot.img;
