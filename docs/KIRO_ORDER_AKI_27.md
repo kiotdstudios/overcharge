@@ -10,8 +10,9 @@
   from `level1.json`; only the pylon stays. Your hatch and room props are not used. Do not rebuild them.
 - **What replaces it (round 14):** a **tenant sequence in the upper area above the spawn**, reached by the ladder at the start (Kiro put the ladder and a
   one-way upper walkway back in `level1.json`, x 128, row 9 columns 3 to 13; Codex is redrawing the ladder in Night City colours, same file path and size).
-  The sequence: a new 4-panel apartment (Codex's art, CODEX 03), a tenant in a window, an AC unit that starts **off**, and a small light-switch-style plate
-  on the wall at player height. Powering the AC makes her relieved and an achievement pops up on screen automatically. With an empty bar the player can
+  The sequence: a new 4-panel apartment (Codex's art, CODEX 03), a tenant in a window, an AC unit that starts **off** (a charged object, uncharged, capacity 3,
+  placed with the Builder's "Uncharged" checkbox; the player charges it directly, **no switch**: Chief, "switch is only meant for powering down a fence").
+  Powering the AC makes her relieved and an achievement pops up on screen automatically. With an empty bar the player can
   see it but cannot act, so they go back down, absorb, and return. **You place it only after Chief approves Codex's art.** Until then, keep the upper
   area above the spawn free for it and name the gap in your report. In the vertical draft, the upper area is the first tier of the climb.
 - **The pylon's job:** it is the start of a **lit cable line** that runs along the route to the exit. In the vertical draft, run your `light-cable`

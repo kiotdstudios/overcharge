@@ -363,6 +363,9 @@ function _drawScrollGame() {
   level.draw(ctx, t, { x: camX, y: camY + 156, w: viewW(), h: viewH() - 156 });
   player.draw(ctx);
   juice.draw(ctx);
+  // Street litter is the front-most world object (Chief, 2026-10-16): it never hides behind a lamp,
+  // an NPC or the hero. Level.draw() no longer draws it; Level.drawLitter() is called here, last.
+  level.drawLitter(ctx);
   // World-anchored prompts belong INSIDE the camera transform — they position
   // themselves on world objects, so drawing them in screen space offset them by
   // camX. Screen-space HUD (charge meter, banner, pips) stays in drawHUD().

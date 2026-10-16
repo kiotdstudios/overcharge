@@ -376,8 +376,8 @@ Chief asked to see the pylon and the secret room together. He liked the pylon ("
 - **Level economy unchanged:** three 4-charge lamps (12), exit 8.
 
 ### 4.3c The tenant sequence (round 14, replaces the hidden room; Chief's design, Kiro's layout is RECOMMENDED)
-CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a **tenant in a window**; an **AC unit**; a **small switch that sits
-on a wall panel at player height, like a light switch**; **powering the AC makes the tenant relieved, and the achievement is awarded automatically**
+CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a **tenant in a window**; an **AC unit that the player charges directly**;
+**powering the AC makes the tenant relieved, and the achievement is awarded automatically**
 (no room, no poster, no pickup).
 - **Flow (CONFIRMED, Chief's own wording, 2026-10-16):** "Above the spawn area is the second level (vertical area the player can go to). Until
   they get enough charge the player can't do anything. The tenant in the window complains about the heat. The player powers on the AC unit
@@ -389,14 +389,17 @@ on a wall panel at player height, like a light switch**; **powering the AC makes
   - **Ladder art:** the current ladder is blue and purple with cyan lights. Chief wants a **Night City prop coloured** ladder; Codex makes it
     (CODEX 03 task 9). The engine needs the file to be exactly `assets/objects/night-city-props/ladder/ladder.png`, so the new art replaces that file
     after Chief approves it.
-- **Cost (RECOMMENDED):** 2 charge to power the AC on (the AC is a charged object, capacity 3, placed **uncharged**, so the level's lamp total stays 12).
-  Optional and permanent. It is **not** needed to finish: three lamps pay the exit with spare.
-- **The control:** the player powers the AC on either at the small wall-plate switch (Chief's round 14 design) or by charging the AC directly; both count.
-  Kiro RECOMMENDS the plate switch as the one obvious action. If Chief wants direct charging only, the plate switch can be dropped.
+- **The control (CONFIRMED, Chief round 14b):** the player **charges the AC directly, like any other charged object.** *"Switch is only meant for powering down a
+  fence."* There is no switch on the AC.
+- **Cost (derived, RECOMMENDED):** the AC is a charged object of capacity **3** (charge table 3.9), placed **uncharged**, so powering it costs its full 3 and the
+  level's lamp total stays 12. With the AC powered and not taken back, 12 &minus; 3 = 9, the exit still costs 8, and **1** is left. Optional: two lamps (8) pay the exit
+  on their own. One lamp (4) is enough to power the AC, so "enough charge" arrives early, and a player who spends lamp 1 on the AC must still absorb lamps 2 and 3.
+  The charge economy page on the Desktop (`OVERCHARGE_Level1_Charge_Economy.html`) shows each route computed.
 - **Where (RECOMMENDED):** the upper area above the spawn, up the ladder. Aki places it after Chief approves Codex's art; Chief can move it in the Builder.
-- **Pieces and owners:** building art, window NPC (two animations), plate switch art, `style: 'plate'` Switch, reactive tenant lines,
-  AC on-state effects, achievements system: **Codex (CODEX 03 tasks 1 to 3, 6 to 8)**. Placement: **Aki**. Text: **Orcha**.
-- **Small questions for Chief (OPEN):** (a) plate switch, direct charging, or both (above)? (b) Is 2 the right price? (GAME_DESIGN_V2 section 3.9 has AC 3 as its stored charge.)
+- **Pieces and owners:** building art, window NPC (two animations), reactive tenant lines, AC on-state effects, achievements system: **Codex (CODEX 03 tasks
+  1, 2, 6 to 8)**. The small wall-plate switch (CODEX 03 task 3) is now only for fence gates. Placement: **Aki**. Text: **Orcha**.
+- **Small questions for Chief (OPEN):** (a) the AC takes its full 3, leaving 1 spare: right, or should the tenant need less? (b) If the player takes the charge back,
+  the fan stops but the tenant stays relieved and the achievement stays (Kiro RECOMMENDS): yes?
 
 ### 4.4 Show the exit early (CONFIRMED; method OPEN)
 (For the vertical layout, see 4.3a: pylon plus cable.) In the horizontal draft the gate was 4,300 px from
@@ -678,9 +681,9 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are on the Desktop |
 | 49 | **Redo failed art**: window NPC (both animations), **NEW 4-panel apartment for the tenant sequence** (tiles match rooftops), pip pickup, Capacitor Module to match concept #3, **small wall-plate switch art** | Art (Codex) | Chief's reference sheet | CONFIRMED round 13, revised round 14 (CODEX 03 tasks 1 to 5) |
 | 50 | **Relay pylon in Level 1** (the secret-room preview was removed in round 14) | Content (Kiro, by Chief's order) | none | **DONE**, `_dev/level1_pylon.mjs` 12/0 |
-| 51 | **Tenant sequence runtime**: `style: 'plate'` Switch, reactive tenant lines and relieved animation, AC on effects, **achievements system** (automatic unlock "GOOD NEIGHBOR") | Runtime (Codex) | 49 not required | CONFIRMED round 14 (CODEX 03 tasks 3, 6, 7, 8). Replaces the hatch art and barrier-link tasks, which are dropped |
+| 51 | **Tenant sequence runtime** (plate Switch is now fence-only): reactive tenant lines and relieved animation, AC on effects, **achievements system** (automatic unlock "GOOD NEIGHBOR") | Runtime (Codex) | 49 not required | CONFIRMED round 14 (CODEX 03 tasks 3, 6, 7, 8). Replaces the hatch art and barrier-link tasks, which are dropped |
 | 52 | **Vertical Level 1 as a separate draft file**, with proof from the provers | Content (Aki) | her Part 1 on the live line | CONFIRMED round 13 (AKI 27) |
-| 53 | **Place the tenant building, tenant, AC and wall switch** in Level 1 once Chief approves the art; run the pylon's lit cable toward the exit | Content (Aki) | 49, 51 | NEW round 14 |
+| 53 | **Place the tenant building, tenant and AC (no switch)** in Level 1 once Chief approves the art; run the pylon's lit cable toward the exit | Content (Aki) | 49, 51 | NEW round 14 |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
 | 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
 | 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |

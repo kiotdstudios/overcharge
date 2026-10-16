@@ -11,8 +11,8 @@ Kiro has already removed them from `level1.json`. **Do not build any hatch art a
 The sequence is now a **tenant**, in the **upper area above the spawn**, reached by the **ladder** at the start (Chief's flow: *"Above the spawn area is
 the second level (vertical area the player can go to). Until they get enough charge the player can't do anything. The tenant in the window complains
 about the heat. The player powers on the AC unit (a charged object that was off). The AC fan spins and hums. She turns relieved, and GOOD NEIGHBOR is
-awarded automatically. An achievement pops up on screen."*). A person in an apartment window is too hot; the player powers the AC unit under her window with a
-**small light-switch-style control on the wall** (or by charging it directly; either counts); she is relieved; **the achievement is awarded automatically**
+awarded automatically. An achievement pops up on screen."*). A person in an apartment window is too hot; the player powers the AC unit under her window **by charging it
+directly, like any other charged object** (Chief, round 14b: *"switch is only meant for powering down a fence"*, so there is no switch on the AC); she is relieved; **the achievement is awarded automatically**
 (no room, no poster). The ladder is already back in `level1.json`; its art needs a Night City redo (task 9).
 
 ## What Chief said (2026-10-16)
@@ -76,10 +76,9 @@ and 256 px tall like the earlier set (Kiro's measured sizes, change only if the 
   **warm light** so she reads at night. Sill at a height the NPC art sits on cleanly.
 - **A flat, empty stretch of wall directly below that window, with a ledge or mount for the AC unit** (the AC hangs on the wall
   under or beside her window; she is hot because it is dead). Nothing painted on that stretch that would clash with the AC.
-- **A wall panel at player height on the walkway level** (the hero's chest, roughly 40 to 56 px above the floor the hero stands on; the tenant scene is in the
-  upper area, so the "floor" is the upper walkway, not the street) that is a plain,
-  slightly recessed or framed **control plate area** where task 3's wall switch sits. It must look like part of the building,
-  like a meter box or a junction plate, not like a hole.
+- **Reach:** the player powers the AC by standing near it and holding the charge key, like any charged object (Chief, round 14b), so the AC mount must sit
+  where the hero can reach it **from the upper walkway** (the AC's centre within about 56 px of a standable floor, at roughly hero chest height). The wall-panel
+  and light-switch idea is dropped for the AC: Chief ruled switches are only for powering down fences.
 - **Tiles match the current rooftop tiles** (Chief's round 2 complaint). Compare with Level 1's rooftops side by side.
 - **Not too blue.** Kiro measured: existing families run from 43% (`abandoned_apartment`) to 86% (`garrys_electronics`) blue-dominant
   pixels, `filler_wall` 80%. Aki's old draft was 95%. What makes the real families read as Night City is **texture and accents**:
@@ -90,11 +89,12 @@ and 256 px tall like the earlier set (Kiro's measured sizes, change only if the 
 - Roof edge works as a platform top the same way the existing buildings do (read how `night-city-buildings` families are used in
   Level 1 so the player can stand on the roof).
 
-### 3. Wall-plate power switch (art, then engine)
-Chief: the old switch was "too large". It must be **small, a light switch on a wall at player height.**
+### 3. Wall-plate switch for FENCES (art, then engine; not used for the AC)
+Chief (round 14b): "switch is only meant for powering down a fence." The AC is charged directly. This task is still wanted because the old fence switch
+was "too large": it must be **small, a light switch on a wall at player height.** It is the control for a **power gate / fence**, not for the tenant.
 - **Art:** a small plate, **16 x 24 px sprite** (the hitbox stays close to the plate), with a **lever or rocker** that is clearly
   **OFF** (lever down, one dim red dot) and **ON** (lever up, a green or cyan dot, a small glow). 2 frames plus a 3-frame flip.
-  No big frame. It sits on the wall panel from task 2.
+  No big frame. It sits on any wall panel, for example beside a fence gate (Level 2 uses the old wall style today).
 - **Engine:** add a `style: 'plate'` to the Switch (Level 2 already has the wall style, 56 x 56 art / 22 x 22 hitbox: that is the
   too-large one). Plate style: small hitbox that fits the art, draws the plate art, shows the flip, and keeps the existing rules (costs its
   `required` charge, hold the use key to pay, rewinds on checkpoint). It is hung on a wall, so it is **not** required to rest on a floor tile:
@@ -124,16 +124,17 @@ research"). Kiro's first version was a cyan-cored box with orange stripes; wrong
 ### 6. The tenant reacts to the AC (CODEX 01 task C4, now with a concrete use)
 The window NPC gets two line sets: `lines` (complaining) and `poweredLines` (relieved), with `linkedObjectId` naming the AC source.
 Rule: "powered" means **the AC has been switched on**. Build the check once: a helper on the level, e.g. `level.isPowered(id)`
-that is true for a source with charge >= its capacity OR for a source or switch the player has turned on. The NPC draws the complaining
+that is true for a source whose charge has reached its capacity (and, for the tenant, stays relieved once it has happened). The NPC draws the complaining
 animation until powered, then plays the relieved animation once and holds it, and says the `poweredLines`. State rewinds on checkpoint.
 Build it for the **real Level 1 AC** once Aki places it (or in a test level), not as a one-off.
 
 ### 7. The AC turns on
-The AC is an existing `ElectricalSource` of kind `hvac`, placed **uncharged** (`uncharged: true`), capacity 3. The wall plate switch is
-linked to it (`linkedId` is the source id): paying the switch's cost (**2 charge**, from `CHARGE_TABLE` once it exists) turns the AC on. When
-on it must **look and sound on**: the fan spins, the unit hums (reuse an existing loop in `src_scroll/audio.js` or add `ac_hum`), a few
-cool-air particles drip from the vents (`src_scroll/juice.js`). Keep the old behaviour that the player can also charge a charged object
-directly; either path counts as powered. Tests with the real Level 1 data.
+The AC is an existing `ElectricalSource` of kind `hvac`, placed **uncharged** (`uncharged: true`), capacity 3. **The player charges it directly,
+like any other charged object** (hold the charge key near it; `receive()` already exists from Codex Phase A). There is no switch. It is **on** when its
+charge reaches its capacity (3), and **off** below that (a half-charged AC may flicker or sputter but the fan stays still). When it turns on it must **look and
+sound on**: the fan spins, the unit hums (reuse an existing loop in `src_scroll/audio.js` or add `ac_hum`), a few cool-air particles drip from the vents
+(`src_scroll/juice.js`). If the player takes the charge back (the AC is a two-way object), the fan stops; the tenant and the achievement do **not** reverse
+(RECOMMENDED; Chief to confirm). Tests with the real Level 1 data: charging to 3 turns it on, 2.9 does not, charging a second time works, state rewinds on a checkpoint.
 
 ### 8. Achievements (new, small, CONFIRMED need)
 There is **no achievement system in the code today.** Build the smallest one that works:

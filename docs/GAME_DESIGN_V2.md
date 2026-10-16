@@ -734,7 +734,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     rooftop tiles and the fence looked crunched. All removed from Level 1.
 75. **The achievement is awarded automatically** when the player provides AC power to the tenant. No room, no poster, no pickup. This needs a
     small achievements system (CODEX 03 task 8). Title and text are Orcha's; placeholder "GOOD NEIGHBOR".
-76. **The power switch must be small and part of a wall panel**, sitting on the wall like a light switch at player height so the hero can use it.
+76. **(Round 14; narrowed in round 14b, see item 81.) The power switch must be small and part of a wall panel**, sitting on the wall like a light switch at player height so the hero can use it.
     The old wall switch (56 x 56 art) was "too large." New `style: 'plate'` (CODEX 03 task 3).
 77. **Generate a new 4-panel apartment building that fits this sequence** (window for the tenant, mount for the AC, a control plate area at
     player height, tiles matching the current rooftop tiles). Codex makes it (CODEX 03 task 2). Full flow in `LEVEL_DESIGN_V2` 4.3c.
@@ -744,6 +744,12 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     reached by the **ladder**, and an empty-bar player can see it but not act.
 79. **The ladder is put back** in Level 1 (x 128, street to y 288, with a one-way upper walkway). **Codex redraws the ladder in the Night City prop colours**
     (CODEX 03 task 9; same file `ladder.png`, 128 x 605, replaced only after Chief approves).
+81. **The player charges the AC directly, like any other charged object. A switch is only for powering down a fence** (Chief, round 14b). So the AC has no switch,
+    no wall panel is needed for it, and the small wall-plate switch (item 76) is now a fence-gate control only. The AC takes its full capacity of 3; the level's
+    spare drops from 4 to 1 if the player does not take it back (the lamp total stays 12).
+82. **Chief asked for a charge economy page on the Desktop:** `OVERCHARGE_Level1_Charge_Economy.html`, with the rules, the Level 1 ledger, computed routes, a playable
+    simulator and the charge table. It reproduces the document's numbers (first lamp 2.6 s, three lamps 6.6 s, ending 1 pip + 2).
+83. **Street litter must be the front-most object** (it draws over lamps, NPCs and the hero) **and must never sink into a rooftop tile** (Chief, round 14b). Done.
 80. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
     Kiro put "Try absorbing power from a street lamp" back in both places in `ui.js`.
 
@@ -844,7 +850,7 @@ A. **Emblem in the Capacitor Module's pulse:** steady or softening? Chief review
 B. **Charge table numbers** (3.9): confirm or edit, especially the AC unit (3) and the lift (2).
 C. **Charge-speed floor:** is 40% (1.2 units/s empty, 3 full) the right feel? Tune in play. (3.3)
 D. ~~Is the poster itself the achievement?~~ **Closed round 14:** no poster. The achievement is awarded automatically when the tenant is relieved, so a small achievements system (toast, sound, saved list) is needed (CODEX 03 task 8).
-F. **Tenant sequence, two details:** switch only, or may the player also charge the AC directly? (Kiro recommends the switch only.) Is 2 the right switch price? (`LEVEL_DESIGN_V2` 4.3c)
+F. **Tenant sequence, two details:** the AC takes its full 3 (spare 1): right, or should the tenant need less? If the player takes the charge back, the fan stops but the tenant stays relieved and the achievement stays (RECOMMENDED): yes? (`LEVEL_DESIGN_V2` 4.3c; the Desktop page `OVERCHARGE_Level1_Charge_Economy.html` shows the numbers)
 E. **Locked pip icons:** show the locked slots dim (my pick), or hide them until unlocked? (3.8)
 
 ### OPEN questions (older)

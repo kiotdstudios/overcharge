@@ -33,15 +33,58 @@ const LITTER_SPRITES = [
   { img: litterImg('can'),       originX: 10, originY: 17 }, // kind 3: crushed soda can
 ];
 
+// Opaque pixel bounds of a sprite, in source pixels, found once from its alpha channel. In a
+// headless harness (no canvas) it falls back to the full image, which is only more cautious.
+function opaqueBounds(img){
+  if(img._opaque) return img._opaque;
+  let b = { x0: 0, y0: 0, x1: img.naturalWidth, y1: img.naturalHeight };
+  try{
+    const c = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(img.naturalWidth, img.naturalHeight)
+      : (typeof document !== 'undefined' ? Object.assign(document.createElement('canvas'), { width: img.naturalWidth, height: img.naturalHeight }) : null);
+    if(c){
+      const g = c.getContext('2d'); g.drawImage(img, 0, 0);
+      const d = g.getImageData(0, 0, img.naturalWidth, img.naturalHeight).data;
+      let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+      for(let y = 0; y < img.naturalHeight; y++) for(let x = 0; x < img.naturalWidth; x++){
+        if(d[(y * img.naturalWidth + x) * 4 + 3] > 16){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+      }
+      if(x1 >= 0) b = { x0, y0, x1: x1 + 1, y1: y1 + 1 };
+    }
+  }catch(e){ /* tainted or unsupported canvas: keep the full-image bounds */ }
+  img._opaque = b;
+  return b;
+}
+
+// Lowest point (positive = below the anchor) of the sprite's opaque box after the horizontal fold
+// and the rotation, in drawn pixels. Used to keep a tumbling piece ON the rooftop instead of
+// swinging its corners through the tile (Chief: "sometimes it goes through the floor").
+export function litterLowestPoint(def, angle, foldX){
+  const img = def.img;
+  const b = opaqueBounds(img);
+  const x0 = b.x0 * DRAW_SCALE - def.originX, x1 = b.x1 * DRAW_SCALE - def.originX;
+  const y0 = b.y0 * DRAW_SCALE - def.originY, y1 = b.y1 * DRAW_SCALE - def.originY;
+  const s = Math.sin(angle), c = Math.cos(angle);
+  let low = -1e9;
+  for(const [px, py] of [[x0, y0], [x1, y0], [x0, y1], [x1, y1]]){
+    const y = px * foldX * s + py * c;     // scale(foldX, 1) first, then rotate, as drawn below
+    if(y > low) low = y;
+  }
+  return low;
+}
+
 function drawLitterSprite(ctx, def, piece){
   const img = def.img;
   if(!(img.complete && img.naturalWidth > 0)) return;
   const w = img.naturalWidth * DRAW_SCALE, h = img.naturalHeight * DRAW_SCALE;
-  ctx.save();
-  ctx.translate(Math.round(piece.x), Math.round(piece.y - (piece.lift || 0)));
-  ctx.rotate(piece.angle || 0);
+  const angle = piece.angle || 0;
   // Paper folds edge-on as it tumbles; cups and cans roll without mirroring.
-  if(piece.kind < 2) ctx.scale(Math.cos(piece.angle || 0) * 0.45 + 0.55, 1);
+  const foldX = piece.kind < 2 ? Math.cos(angle) * 0.45 + 0.55 : 1;
+  // Raise the piece so its lowest opaque point rests exactly on the rooftop (plus any gust lift).
+  const rest = litterLowestPoint(def, angle, foldX);
+  ctx.save();
+  ctx.translate(Math.round(piece.x), Math.floor(piece.y - (piece.lift || 0) - rest));   // floor: never round DOWN into the tile
+  ctx.rotate(angle);
+  if(foldX !== 1) ctx.scale(foldX, 1);
   ctx.drawImage(img, -def.originX, -def.originY, w, h);
   ctx.restore();
 }

@@ -352,6 +352,9 @@ export class Level {
     this.complete = snap.complete;
   }
 
+  // Front-most ambient layer. Drawn last by main.js, over lamps, NPCs, entities and the hero.
+  drawLitter(ctx) { this.streetLitter.draw(ctx); }
+
   draw(ctx, t, viewport) {
     // 1. Background decorations (buildings, props) - behind ground tiles.
     // Older levels have no tileLayer field and retain this drawing order.
@@ -405,7 +408,7 @@ export class Level {
 
     // Art explicitly moved above the ground in Builder stays above it in TEST.
     drawDecorations('front');
-    this.streetLitter.draw(ctx);
+    // Street litter is NOT drawn here: it is the front-most object, so main.js calls drawLitter() after the hero.
 
     // 3. Moving platforms
     for (const pl of this.platforms) pl.draw(ctx);
