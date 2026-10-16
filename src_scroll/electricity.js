@@ -34,6 +34,7 @@ export class ElectricalSource {
     this.max    = Number.isFinite(charge) ? Math.max(0, charge) : 0;
     this.charge = uncharged ? 0 : this.max;
     this.drained = this.charge === 0;
+    this.requiresFullPower = this.kind === 'hvac' && !!uncharged;
     this._lightLevel = this.drained ? 0 : 1;
     this._fanSpeed = this.drained ? 0 : 1;
     this._fanPhase = 0;
@@ -62,8 +63,13 @@ export class ElectricalSource {
   get cx() { return this.x + this.w / 2; }
   get cy() { return this.y + this.h / 2; }
   // On while it holds any charge, off when drained: the rule every charged prop has always followed (fan, light, hum).
-  // The tenant NPC reads it through Level.isPowered().
-  get powered() { return !this.drained; }
+  // EXCEPTION (Chief, round 15c: "ac unit takes 4 charge"): an HVAC unit placed UNCHARGED takes its whole capacity
+  // to turn on. It is on only when full; below that it holds the charge but stays off. Zap any of it out and it is off.
+  // The tenant NPC reads this through Level.isPowered().
+  get powered() {
+    if (this.requiresFullPower) return this.max > 0 && this.charge >= this.max - 1e-9;
+    return !this.drained;
+  }
 
   update(dt) {
     this._t += dt;
@@ -75,7 +81,7 @@ export class ElectricalSource {
     if (this._absorbT > 0) this._absorbT = Math.max(0, this._absorbT - dt);
     if (this._dryFlash > 0) this._dryFlash = Math.max(0, this._dryFlash - dt);
     // Fan: ramp speed toward target (1 = active, 0 = drained), spin phase
-    this._fanSpeed = Math.max(0, this._fanSpeed + ((this.drained ? 0 : 1) - this._fanSpeed) * Math.min(1, dt * 2));
+    this._fanSpeed = Math.max(0, this._fanSpeed + ((this.powered ? 1 : 0) - this._fanSpeed) * Math.min(1, dt * 2));
     this._fanPhase = (this._fanPhase + this._fanSpeed * dt * 4) % (Math.PI * 2);
     // Advance animation frames 1-8 when active (frame 0 = drained state)
     if (!this.drained) {

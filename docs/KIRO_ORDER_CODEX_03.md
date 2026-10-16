@@ -132,7 +132,7 @@ Build it for the **real Level 1 AC** once Aki places it (or in a test level), no
 ### 7. The AC turns on
 The AC is an existing `ElectricalSource` of kind `hvac`, placed **uncharged** (`uncharged: true`), capacity **4** (round 15; set it from `CHARGE_TABLE` once CODEX 02 adds it). **The player
 charges it directly, like any other charged object** (hold the charge key near it; `receive()` already exists from Codex Phase A). There is no switch. It is **on**
-while it holds any charge and **off** when it is drained: the standard rule every charged prop follows (Chief, round 15b: *"AC unit should work how its been working as a night city prop powered object"*; the earlier "full power only" rule is withdrawn). When it turns on it must **look and
+only when it holds its **full capacity of 4** and **off** below that (Chief, round 15c: *"ac unit takes 4 charge"*). It is otherwise an ordinary charged prop: Space charges it, E zaps it, 3 of 4 leaves it off with the charge still inside, and zapping even a little out of a full AC turns it off. No switch. In the code this is `requiresFullPower` on an HVAC placed uncharged (already on the live line). When it turns on it must **look and
 sound on**: the fan spins, the unit hums (reuse an existing loop in `src_scroll/audio.js` or add `ac_hum`), a few cool-air particles drip from the vents
 (`src_scroll/juice.js`). **It works both ways (CONFIRMED, Chief round 15):** if the player zaps the charge out (hold E), the fan stops, the hum stops and the
 tenant is hot again; the **achievement stays**. Tests with the real Level 1 data: charging it turns it on, zapping it empty turns it off, the tenant goes

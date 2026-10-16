@@ -130,7 +130,8 @@ export function drawStreetlightPool(ctx, source) {
 export function drawHvac(ctx, source) {
   const b = sourceBox(source);
   const img = image('assets/tilesets/purple_rooftop/props/hvac_a.png');
-  const drained = source.drained ?? source.charge <= 0;
+  // powered is only defined on live ElectricalSource objects; the Builder passes plain data, so fall back to drained.
+  const drained = source.powered === undefined ? (source.drained ?? source.charge <= 0) : !source.powered;
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   if (img.complete && img.naturalWidth) ctx.drawImage(img, b.dX, b.dY, b.dW, b.dH);

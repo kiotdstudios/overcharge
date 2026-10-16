@@ -391,8 +391,8 @@ CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a
     after Chief approves it.
 - **The control (CONFIRMED, Chief round 14b):** the player **charges the AC directly, like any other charged object.** *"Switch is only meant for powering down a
   fence."* There is no switch on the AC.
-- **Both ways (CONFIRMED, Chief rounds 15 and 15b):** the AC is an **ordinary charged HVAC prop**, capacity **4** (charge table 3.9), placed **uncharged**. It is on while it holds
-  any charge and off when drained (the standard prop rule; no switch, no full-power rule). Charge it with Space, zap it with E. **The tenant is relieved while it is on and gets hot again when it is off, but the achievement stays** ("let her suffer").
+- **Both ways (CONFIRMED, Chief rounds 15 and 15b):** the AC is an **ordinary charged HVAC prop**, capacity **4** (charge table 3.9), placed **uncharged**. **It takes its whole 4
+  to turn on** (Chief round 15c: "ac unit takes 4 charge"); 3 of 4 leaves it off, and zapping even a little out turns it off. No switch. Charge it with Space, zap it with E. **The tenant is relieved while it is on and gets hot again when it is off, but the achievement stays** ("let her suffer").
 - **Economy (round 15; computed on the Desktop page `OVERCHARGE_Level1_Charge_Economy.html`):** Level 1's three lamps are 3 each (9). Chief adds a 24/7 market with a
   vending machine (2) where the streetlamp woman walks (total 11), and "one more prop" (Kiro suggests the fuse box, 4, total 15). One lamp (3) is **not** enough for the
   AC (4), so the player needs two sources before the AC can be turned on. **Trap to avoid:** with 11 only, an AC left on leaves 7, one short of the exit's 8

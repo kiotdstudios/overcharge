@@ -17,7 +17,7 @@ sec('WHAT IS PLACED');
 const d = def();
 const acDef = d.sources.find(s => s.id === 'AC_TENANT');
 const npcDef = d.npcs.find(n => n.id === 'NPC_TENANT');
-ok(!!acDef && acDef.kind === 'hvac' && acDef.uncharged === true && acDef.charge === 4, 'an ordinary HVAC prop, capacity 4, placed uncharged (off)');
+ok(!!acDef && acDef.kind === 'hvac' && acDef.uncharged === true && acDef.charge === 4, 'an HVAC prop, capacity 4, placed uncharged (off); it takes the full 4 to turn on');
 ok(d.switches.length === 0 && !d.gates.some(g => g.style === 'plate'), 'there is no switch of any kind in Level 1');
 ok(!!npcDef && npcDef.assetId === 'npc_window_tenant' && npcDef.poweredAssetId === 'npc_window_tenant_relieved' && npcDef.linkedObjectId === 'AC_TENANT', 'the tenant is linked to the AC and carries the relieved clip');
 ok(npcDef.dialogue.lines.length >= 1 && npcDef.dialogue.poweredLines.length >= 1, 'she has a hot line and a relieved line (placeholders, Orcha writes the final text)');
@@ -78,6 +78,31 @@ sec('THE TENANT FOLLOWS THE AC, BOTH WAYS');
   ok(ac.powered && npc._powered, 'restoring a checkpoint brings back both the AC and the relieved tenant');
 }
 
+sec('THE AC TAKES ITS WHOLE 4 (Chief: "ac unit takes 4 charge")');
+{
+  const lv = new Level(def());
+  const ac = lv.sources.find(s => s.id === 'AC_TENANT'), npc = lv.npcs.find(n => n.id === 'NPC_TENANT');
+  const p = new Player(500, 250);
+  run(p, lv, [], 0.5);
+  p.giveEnergy(8);
+  held(['Space']);
+  for (let i = 0; i < 60 * 8 && ac.charge < 3 - 1e-6; i++) step(p, lv);
+  held([]);
+  for (let i = 0; i < 10; i++) step(p, lv);
+  ok(Math.abs(ac.charge - 3) < 0.05 && !ac.drained, 'after 3 charge the AC holds 3', `charge ${ac.charge.toFixed(2)}`);
+  ok(!ac.powered && !lv.isPowered('AC_TENANT') && !npc._powered, 'but it is still OFF, and the tenant is still hot (3 of 4 is not enough)');
+  ok(!createAchievements({ storage: mem(), search: '' }).has('good_neighbor') && !npc._justRelieved, 'and no achievement yet');
+  held(['Space']);
+  for (let i = 0; i < 60 * 8 && ac.charge < 4 - 1e-6; i++) step(p, lv);
+  held([]);
+  for (let i = 0; i < 10; i++) step(p, lv);
+  ok(Math.abs(ac.charge - 4) < 1e-6 && ac.powered && npc._powered, 'the fourth charge turns it on and relieves her');
+  held(['KeyE']);
+  for (let i = 0; i < 60 && ac.charge > 3.5; i++) step(p, lv);
+  held([]);
+  for (let i = 0; i < 10; i++) step(p, lv);
+  ok(ac.charge < 4 && !ac.powered && !npc._powered, 'zapping even a little out turns it off and she is hot again');
+}
 sec('THE RIGHT CLIP IS ON SCREEN (real manifest, real frame files)');
 {
   globalThis.fetch = async () => ({ ok: true, json: async () => JSON.parse(fs.readFileSync(new URL('../assets/ASSET_MANIFEST.json', import.meta.url), 'utf8')) });
