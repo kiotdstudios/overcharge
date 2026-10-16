@@ -90,6 +90,35 @@ sec('LOOPS: absorb and charge');
   ok(a.play('jump') === false, 'and nothing plays while it is off');
 }
 
+sec('AC HUM FADES WITH DISTANCE (walking away is heard, not just toggled)');
+{
+  const { ctx, log } = fakeContext();
+  const a = createAudio({ contextFactory: () => ctx }); a.unlock();
+  const peakOf = voice => Math.max(...voice.gain.calls.filter(c => c[0] === 'lin' || c[0] === 'set').map(c => c[1]));
+
+  a.setLoop('ac_hum', true, 1, 1);
+  ok(a.activeLoops.includes('ac_hum'), 'full gain starts the hum like any other loop');
+  const g = log.gains.find(n => peakOf(n) > 0);           // the main gain node (not the tremolo depth node)
+  const loudPeak = peakOf(g);
+
+  a.setLoop('ac_hum', false);
+  a.setLoop('ac_hum', true, 1, 0.2);
+  const g2 = log.gains.filter(n => n.gain.calls.some(c => c[0] === 'lin' || c[0] === 'set')).pop();
+  const quietPeak = peakOf(g2);
+  ok(quietPeak < loudPeak, 'a lower gain starts the loop quieter (closer vs. farther from the unit)',
+    `${quietPeak.toFixed(4)} vs ${loudPeak.toFixed(4)}`);
+
+  // Still looping (not restarted): a new gain glides the existing voice rather than snapping.
+  const before = g2.gain.calls.length;
+  a.setLoop('ac_hum', true, 1, 0.9);
+  const glide = g2.gain.calls.slice(before);
+  ok(glide.length > 0 && glide.every(c => c[0] === 'target'), 'moving back toward the unit glides volume up via setTargetAtTime, no snap');
+  ok(glide[glide.length - 1][1] > quietPeak, 'and the new target is louder than the old one', `${glide.at(-1)[1].toFixed(4)} vs ${quietPeak.toFixed(4)}`);
+
+  a.setLoop('ac_hum', false);
+  ok(a.activeLoops.length === 0, 'walking fully out of range (active:false) stops the hum like any other loop');
+}
+
 sec('VOLUME');
 {
   const { ctx } = fakeContext();
@@ -171,6 +200,9 @@ sec('REGRESSION: the charge hum must not outlive the level (Chief: gate sfx kept
   const mainSrc = fs.readFileSync(new URL('../src_scroll/main.js', import.meta.url), 'utf8');
   ok(/if \(state !== STATES\.PLAYING\) (\{ juice\.stopLoops\(\); sfx\.setLoop\('ac_hum', false\); \}|juice\.stopLoops\(\);)/.test(mainSrc),
     'main.js stops the loops in every state except PLAYING (level complete, game over, title)');
+  ok(/const d = Math\.hypot\(player\.cx - src\.cx, player\.cy - src\.cy\);/.test(mainSrc) &&
+     /sfx\.setLoop\('ac_hum', acGain > 0, 1, acGain\);/.test(mainSrc),
+    'the ac_hum gain is driven by distance to the nearest powered unit, not a flat on/off');
   ok(/function _respawn\(\) \{\s*_applySnapshot\(\);\s*juice\.clear\(\);/.test(mainSrc), 'and clears them on a checkpoint rewind');
 }
 

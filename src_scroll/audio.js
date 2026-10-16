@@ -111,26 +111,32 @@ export function createAudio(opts = {}) {
     charge: { type: 'triangle', base: 150, lfo: 8, vol: 0.06, cutoff: 1100 },
     ac_hum: { type: 'sine', base: 82, lfo: 2, vol: 0.018, cutoff: 260 },
   };
-  function setLoop(name, active, rate = 1) {
+  function setLoop(name, active, rate = 1, gain = 1) {
     const spec = LOOPS[name];
     if (!ready() || !spec) return;
     let voice = state.loops.get(name);
     const t = now();
     const pitch = spec.base * (0.8 + 0.45 * Math.min(2, rate));           // rate 1 -> x1.25, rate 2 -> x1.7
+    const vol = spec.vol * Math.max(0, Math.min(1, gain));                // gain: proximity falloff (e.g. AC hum fading with distance)
     if (active) {
       if (!voice) {
         const o = state.ctx.createOscillator(), lfo = state.ctx.createOscillator(), lg = state.ctx.createGain(),
               g = state.ctx.createGain(), fl = state.ctx.createBiquadFilter();
         o.type = spec.type; fl.type = 'lowpass'; fl.frequency.value = spec.cutoff;
-        lfo.frequency.value = spec.lfo; lg.gain.value = spec.vol * 0.6;
+        lfo.frequency.value = spec.lfo; lg.gain.value = vol * 0.6;
         lfo.connect(lg); lg.connect(g.gain);                                  // tremolo: the crackle
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.linearRampToValueAtTime(spec.vol, t + 0.06);
+        g.gain.linearRampToValueAtTime(vol, t + 0.06);
         o.connect(fl); fl.connect(g); g.connect(state.sfx);
         o.frequency.setValueAtTime(pitch, t);
         o.start(t); lfo.start(t);
-        voice = { o, lfo, g };
+        voice = { o, lfo, g, lg };
         state.loops.set(name, voice);
+      } else {
+        // already looping: glide volume toward the new gain, slower than the pitch
+        // snap below, so walking away reads as a fade, not a cut.
+        voice.g.gain.setTargetAtTime(vol, t, 0.15);
+        voice.lg.gain.setTargetAtTime(vol * 0.6, t, 0.15);
       }
       voice.o.frequency.setTargetAtTime(pitch, t, 0.05);
     } else if (voice) {
