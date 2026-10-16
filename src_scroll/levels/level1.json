@@ -3182,6 +3182,17 @@
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall"
+    },
+    {
+      "id": "deco_bus_stop_01",
+      "src": "assets/objects/night-city-props/bus-stop/shelter.png",
+      "assetId": "prop_ncp_bus_stop_shelter",
+      "x": 2170,
+      "y": 234,
+      "w": 256,
+      "h": 154,
+      "snap": 1,
+      "tileLayer": "back"
     }
   ],
   "sources": [
@@ -6919,6 +6930,30 @@
         "rangePx": 0,
         "speedPxPerSec": 22,
         "turnPauseSec": 0.55
+      }
+    },
+    {
+      "id": "npc_bus_stop_homeless_01",
+      "assetId": "npc_bus_stop_homeless",
+      "x": 2230,
+      "y": 384,
+      "facing": "right",
+      "patrol": {
+        "rangePx": 0,
+        "speedPxPerSec": 0,
+        "turnPauseSec": 0
+      }
+    },
+    {
+      "id": "npc_bus_stop_backpack_01",
+      "assetId": "npc_bus_stop_backpack",
+      "x": 2320,
+      "y": 384,
+      "facing": "right",
+      "patrol": {
+        "rangePx": 0,
+        "speedPxPerSec": 0,
+        "turnPauseSec": 0
       }
     },
     {

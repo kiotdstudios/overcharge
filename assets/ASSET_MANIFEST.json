@@ -1756,6 +1756,70 @@
       }
     },
     {
+      "id": "prop_ncp_bus_stop_shelter",
+      "name": "Night City bus stop shelter",
+      "path": "assets/objects/night-city-props/bus-stop/shelter.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "bus_stop",
+        "street",
+        "prop"
+      ],
+      "frame_width": 320,
+      "frame_height": 192,
+      "frame_count": 1,
+      "notes": "Placeable bus shelter with bench, timetable and BUS STOP sign. Separate from both waiting NPCs; non-colliding visual dressing."
+    },
+    {
+      "id": "npc_bus_stop_homeless",
+      "name": "Bus stop - unhoused man",
+      "path": "assets/sprites/npc-bus-stop/homeless.png",
+      "category": "npc",
+      "spawnsKind": "npc",
+      "tags": [
+        "npc",
+        "night_city",
+        "bus_stop",
+        "ambient"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 1,
+      "displayHeightPx": 60,
+      "trim": {
+        "x": 0.3203,
+        "y": 0.0859,
+        "w": 0.3594,
+        "h": 0.875
+      },
+      "notes": "Independent grounded adult NPC waiting near the shelter. Builder-placeable with optional dialogue."
+    },
+    {
+      "id": "npc_bus_stop_backpack",
+      "name": "Bus stop - backpack commuter",
+      "path": "assets/sprites/npc-bus-stop/backpack.png",
+      "category": "npc",
+      "spawnsKind": "npc",
+      "tags": [
+        "npc",
+        "night_city",
+        "bus_stop",
+        "ambient"
+      ],
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 1,
+      "displayHeightPx": 60,
+      "trim": {
+        "x": 0.3125,
+        "y": 0.0859,
+        "w": 0.3672,
+        "h": 0.875
+      },
+      "notes": "Independent grounded commuter NPC with backpack, waiting at the bus stop. Builder-placeable with optional dialogue."
+    },
+    {
       "id": "prop_ncp_vending_machine",
       "spawnsKind": "source-prop",
       "path": "assets/objects/night-city-props/vending-machine/00.png",
@@ -3463,5 +3527,5 @@
       "notes": "Vending machine, lit display. States: powered(f0-1), absorbing(f2-5), drained(f6). 128x128px draw."
     }
   ],
-  "count": 138
+  "count": 141
 }
