@@ -141,8 +141,22 @@ sec('Level 1: Chief\u2019s lamp is a real source he can walk to and drain');
   const def=JSON.parse(fs.readFileSync('src_scroll/levels/level1.json','utf8'));
   const lamp=(def.sources||[]).find(s=>s.kind==='prop');
   ok(!!lamp, 'level1 has a prop source', 'this is the lamp Chief placed');
-  ok(!(def.decorations||[]).some(d=>/night-city-props/.test(d.src||'')),
-    'and it is NO LONGER a decoration', 'a decoration can never be absorbed');
+  // Night-city-props art is shared by pure decoration (bus stop, pylon, ladder — never
+  // absorbable) AND charged objects (lamp, vending machine), which can go both ways. The
+  // real invariant isn't "no night-city-props decoration", it's "no object placed twice":
+  // once something is a real source, it must not ALSO sit in decorations[] at the same spot.
+  const propSources = (def.sources||[]).filter(s=>s.kind==='prop');
+  // Position-only matching is too tight: a hand- or editor-placed duplicate rarely lands
+  // within a few px. A real duplicate instead shares the SAME sprite sheet (same art
+  // directory) AND sits within half the art's footprint of the source, which is the
+  // actual "this is the same object drawn twice" signature, not an exact-pixel one.
+  const sameSheet = (d, s) => (d.src||'').startsWith((s.sprite||'').replace(/\/$/, ''));
+  const duplicated = (def.decorations||[]).filter(d =>
+    propSources.some(s => sameSheet(d, s) &&
+      Math.abs((d.x??NaN)-s.x) < (s.artW||64)/2 && Math.abs((d.y??NaN)-s.y) < (s.artH||64)/2));
+  ok(duplicated.length===0,
+    'and no prop source is ALSO duplicated as a decoration (same art, overlapping position)',
+    duplicated.length ? JSON.stringify(duplicated.map(d=>d.id||d.src)) : 'none found');
   if (lamp) {
     const lv0=new Level(def); const s=lv0.sources.find(x=>x.kind==='prop');
     const b=SV.sourceBox(s);

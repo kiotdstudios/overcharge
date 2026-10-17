@@ -6997,7 +6997,15 @@
         "lines": [
           {
             "id": "L1",
-            "text": "New line"
+            "text": "Five minutes. That's all I get before they dock my pay."
+          },
+          {
+            "id": "L2",
+            "text": "You see sparks out there? Yeah. Me too. Pretend you didn't."
+          },
+          {
+            "id": "L3",
+            "text": "Don't tell the foreman I'm out here. He's already got a list."
           }
         ]
       },
@@ -7032,7 +7040,15 @@
         "lines": [
           {
             "id": "L1",
-            "text": "New line"
+            "text": "You again? City never runs out of people walking nowhere."
+          },
+          {
+            "id": "L2",
+            "text": "Smoke break's the only honest minute in this whole shift."
+          },
+          {
+            "id": "L3",
+            "text": "Watch yourself near the gates, kid. They don't ask twice."
           }
         ]
       },
