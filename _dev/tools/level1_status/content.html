@@ -1,0 +1,90 @@
+<div class="head"><div class="tag">OVERCHARGE &nbsp;//&nbsp; KIOTD STUDIOS</div><h1>Level 1 Roadmap</h1>
+<div class="sub">Neon Rise: what is on the level today, and what is left to finish it</div>
+<p style="margin:8px 0 0;font-size:9pt;color:#9fb0e0">Prepared by Kiro, Technical Director, for Chief. Updated October 17, 2026. The map and every number below are read from the real <code style="background:#2a2358;color:#cfe">level1.json</code>.</p></div>
+
+<h2>1. Where Level 1 stands today</h2>
+<div class="kpi">
+<div><b>{{cols}} x {{rows}}</b><span>tiles (3,200 x 704 px)</span></div>
+<div><b>{{totalCharge}} / {{exitCost}}</b><span>charge placed / exit cost</span></div>
+<div><b>{{npcs}}</b><span>NPCs, {{lines}} lines of dialogue</span></div>
+<div><b>{{checkpoints}}</b><span>checkpoint</span></div>
+<div><b>3146 / 0</b><span>tests passing / failing</span></div>
+</div>
+<p>Level 1 is a street run that climbs onto rooftops. It teaches absorb, carry and spend with three streetlamps and a vending machine, has an apartment with a hot tenant and an air conditioner to power (the optional Easter egg), a QuickMart, a bus stop and a few people to talk to, and ends at an exit gate that costs 8. Chief play-tested it on October 17 and called it a winner.</p>
+<div class="card ok"><b>What changed since the October 16 roadmap.</b>
+<ul>
+<li><b>The tall tower and the lift are not in Level 1.</b> The vertical draft (tower, two ladder floors, charge-powered lift, gatehouse roof) was replaced by the level Chief built in the Builder. It stays 100 x 22.</li>
+<li><b>The relay pylon, light cable and beacon are not in Level 1.</b> Chief was not sold on them; Aki moved the whole set to the new Level 7. CONFIRMED by Chief, October 17.</li>
+<li><b>The tenant sequence is built and placed.</b> A plain, colour-matched apartment; the tenant (an adult woman with curly hair) in the window beside the ladder, so her "It's an oven in here" bubble plays as the player climbs; the AC unit at the far left of the roof (it takes the full 4, like any charged object, with no switch). Powering it plays her relief clip and the GOOD NEIGHBOR Easter egg card, whose icon pops up.</li>
+<li><b>New life on the street:</b> QuickMart, a bus stop with two NPCs on 8-second loops, the graffiti artist, the streetlamp woman, two smoke-break workers.</li>
+<li><b>Charge:</b> lamps 3 each, vending machine 2, so 11 charge is placed. The AC holds 4 and returns it when zapped. The exit costs 8.</li>
+</ul></div>
+
+<h2>2. The map: what is actually on Level 1 right now</h2>
+<div class="map">{{MAP}}</div>
+<h3>Reading it left to right</h3>
+<table>
+<tr><th style="width:17%">Stretch (world px)</th><th>What is there</th></tr>
+<tr><td>0 to 480<br><span class="small">spawn and the apartment</span></td><td>Spawn at x 32 on the street. A ladder at x 128 climbs to the second-level rooftop; a second ladder at x 352 climbs to the apartment roof. The tenant's window is beside that ladder, so the player passes her on the way up; the AC unit (4, starts off) is at the far left of the roof, so they run back across it to power it.</td></tr>
+<tr><td>384 to 770<br><span class="small">the walkway</span></td><td>A raised walkway from x 384 with lamp 1 (3) at x 451: the first absorb.</td></tr>
+<tr><td>770 to 1500<br><span class="small">pillar, pit, rooftop</span></td><td>A pillar, a one-tile pit at x 832, then a rooftop block (surface y 480) with lamp 2 (3) at x 933, the graffiti artist at x 1000 and the two smoke-break workers at x 1392 and 1438.</td></tr>
+<tr><td>1500 to 2140<br><span class="small">the fork</span></td><td>A low street (y 640) underneath, and a high one-way strip (y 448) reached by two small step platforms. On the strip: QuickMart, lamp 3 (3) at x 1664, the streetlamp woman at x 1741, the checkpoint at x 1824 and the vending machine (2) at x 2035.</td></tr>
+<tr><td>2140 to 2400<br><span class="small">the bus stop</span></td><td>A raised block with the shelter and two NPCs (the unhoused man at x 2230, the commuter at x 2320).</td></tr>
+<tr><td>2400 to 3136<br><span class="small">the last stretch</span></td><td>A flat street with nothing on it until the exit gate (8) at x 3136. This is the gap flagged in red on the map: {{gapText}}.</td></tr>
+</table>
+
+<h2 class="pb">3. What "finished" means, and where each item stands</h2>
+<p>From <code>LEVEL_DESIGN_V2.md</code> section 7, reworded for the level as it is. "Kiro" items I can do without a decision; "Needs Chief" items wait on you.</p>
+<table>
+<tr><th>#</th><th>The test</th><th>Status</th><th>What is left</th></tr>
+<tr><td>1</td><td>A new player absorbs, carries and spends within 60 s of spawning, unprompted.</td><td>{{KIRO}} {{OPEN}}</td><td>Timed headless run. Lamp 1 is 450 px from spawn, so it should pass; not measured.</td></tr>
+<tr><td>2</td><td>The main route takes 90 to 120 s.</td><td>{{KIRO}} {{OPEN}}</td><td>Timed run on the real file. Not measured since the level was rebuilt.</td></tr>
+<tr><td>3</td><td>No 600 px window of the main route lacks a beat.</td><td>{{CHIEF}}</td><td>Fails once: {{gapText}}. Chief's written order (2026-10-17) covers one beat in that stretch.</td></tr>
+<tr><td>4</td><td>The exit is visible or signposted from spawn.</td><td>{{CHIEF}}</td><td>The gate is 3,100 px from spawn and the relay pylon and cable that did this job are gone. A new signpost is needed: see section 6.</td></tr>
+<tr><td>5</td><td>The fork is a real choice and both branches finish from zero charge.</td><td>{{KIRO}} {{OPEN}}</td><td>Chief says keep the fork. Lamp 3 and the vending machine are both on the high strip; lamps 1 and 2 give only 6 and the gate costs 8. If the low street skips both, it cannot finish the level. The route prover will answer this.</td></tr>
+<tr><td>6</td><td>The level's own charge total pays the exit plus every required spend.</td><td>{{DONE}}</td><td>11 placed against 8; the AC's 4 is returned when zapped. Economy page and simulator agree.</td></tr>
+<tr><td>7</td><td>Every charged object can be reached again from the gate by two-way paths (ladder, stairs, lift), never only a one-way drop.</td><td>{{KIRO}} {{OPEN}}</td><td>The apartment route is proven (ladders). The full set of charged objects is not yet tested together.</td></tr>
+<tr><td>8</td><td>No placeholder text; hints read as observations.</td><td>{{WAIT}}</td><td>All {{lines}} lines are real text, but the tenant's lines and the hints are placeholders until Orcha writes the final copy.</td></tr>
+<tr><td>9</td><td>Every action has feedback; sound and motion can be switched off.</td><td>{{KIRO}} {{OPEN}}</td><td>First pass of effects and sounds is built. Left: street ambience and the reactions of the charged objects.</td></tr>
+<tr><td>10</td><td>Movement retuned (Level 1 only) with before and after numbers.</td><td>{{KIRO}} {{OPEN}}</td><td>Chief chose to retune. The controller is shared, so the paused levels change feel too; keep it small and keep a rollback to today's numbers.</td></tr>
+<tr><td>11</td><td>Level 1 music.</td><td>{{WAIT}}</td><td>Chief supplies a track; Kiro wires it. No audio files exist yet. Nothing else waits on it.</td></tr>
+<tr><td>12</td><td>Tests pass, the Builder module version is current, Chief signs off.</td><td>{{DONE}} / {{CHIEF}}</td><td>3146 passed, 0 failed. The old <code>level_guard</code> check no longer exists, so this item is reworded. Chief's sign-off is the last step.</td></tr>
+</table>
+<p class="small">Dropped by Chief: the "Charge gate to open." world label. Removed from the level: the tower, the lift, the relay pylon, the light cable and the beacon.</p>
+
+<h2>4. The finish list, in order</h2>
+<table>
+<tr><th>#</th><th>Task</th><th>Owner</th><th>Blocked by</th></tr>
+<tr><td>1</td><td>Timed headless run: first absorb and spend under 60 s, whole route 90 to 120 s. Report the numbers.</td><td>{{KIRO}}</td><td>nothing</td></tr>
+<tr><td>2</td><td>Route prover on the real file: both fork branches from zero charge, and every charged object reachable by two-way paths. Report what the low street really does.</td><td>{{KIRO}}</td><td>nothing</td></tr>
+<tr><td>3</td><td>Decide how the exit is signposted now that the pylon is gone (section 6).</td><td>{{CHIEF}}</td><td>nothing</td></tr>
+<tr><td>4</td><td>Place one beat in the empty stretch (x 2400 to 3136) and a second checkpoint. Written order covers both.</td><td>{{KIRO}} places, {{CHIEF}} approves</td><td>tasks 2 and 3 (the fork answer may move the checkpoint)</td></tr>
+<tr><td>5</td><td>Place the exit signpost.</td><td>{{KIRO}} places, {{CHIEF}} approves</td><td>task 3</td></tr>
+<tr><td>6</td><td>Final copy for the {{lines}} dialogue lines and the hints.</td><td>{{WAIT}} Orcha, {{CHIEF}} approves</td><td>nothing; Kiro swaps it in under the written order</td></tr>
+<tr><td>7</td><td>Movement retune for Level 1 with before and after numbers in Appendix A; regenerate the movement metrics; re-verify the Level 1 routes.</td><td>{{KIRO}}</td><td>task 4 (so the routes are final)</td></tr>
+<tr><td>8</td><td>Street ambience and the charged-object reactions (vending machine, sign, AC).</td><td>{{KIRO}}</td><td>nothing</td></tr>
+<tr><td>9</td><td>Wire the music track and set its level.</td><td>{{KIRO}}</td><td>the file from Chief</td></tr>
+<tr><td>10</td><td>Clean up: drop the stale <code>aki27_draft</code> test and close the obsolete AKI 28 order; fix the dead <code>level_guard</code> reference and the removed-tower sections in the design document.</td><td>{{KIRO}}</td><td>nothing</td></tr>
+<tr><td>11</td><td>Final full test run, Builder module version, then Chief plays it and signs off.</td><td>{{KIRO}} then {{CHIEF}}</td><td>tasks 1 to 10</td></tr>
+</table>
+
+<h2>5. Who does what now</h2>
+<table>
+<tr><th>Owner</th><th>Level 1 job</th></tr>
+<tr><td><b>Chief</b></td><td>Decide the exit signpost; approve the beat, checkpoint and signpost placements; supply the music; approve Orcha's copy; play it and sign off. Level files stay Chief's: Kiro edits only on a written order that names the file.</td></tr>
+<tr><td><b>Kiro</b></td><td>Everything marked KIRO above: timed run, route prover, placements under the written order, movement retune, ambience and reactions, music wiring, clean-up, final run.</td></tr>
+<tr><td><b>Orcha</b></td><td>The final text for every line the player reads in Level 1. Writing only.</td></tr>
+<tr><td><b>Aki</b></td><td>Done for Level 1: the relay pylon set is moved to Level 7. Her vertical-draft order (AKI 28) is obsolete and is being closed.</td></tr>
+<tr><td><b>Codex</b></td><td>Done for Level 1: orders 04 (bus stop loops) and 05 (apartment, tenant) are finished and closed.</td></tr>
+</table>
+
+<h2>6. What we need from Chief</h2>
+<ol>
+<li><b>How should the exit be signposted?</b> The gate sits at x 3136, far off screen from spawn. Kiro recommends two small things: a lit neon arrow or sign on a building near the start that points east, and the gate's own glow growing as you approach. Other options: a tall lit billboard in the far background, or no sign and a clearer line on the objective card. Pick one (or say a different idea).</li>
+<li><b>The track for Level 1.</b> Send the file when you have it; nothing else waits on it.</li>
+<li><b>Is the fork's low street meant to finish the level?</b> If the answer is yes, the vending machine or lamp 3 has to be reachable from it, or the gate cost has to drop on that branch. If it is only a scenic shortcut that loops back to the strip, say so and I mark it that way. The prover will show which one it is today.</li>
+<li><b>Orcha's final copy</b> when she delivers it.</li>
+<li><b>Play it once more</b> after the retune and say if the feel is still right. If not, I roll back to today's numbers.</li>
+</ol>
+<div class="card warn"><b>Risk to watch.</b> The movement controller is shared by all six levels. The retune is scoped to Level 1 routes, but it changes how the paused levels feel too. Today's numbers are recorded as the baseline so the change can be undone in one step.</div>
+<p class="small">This is a plan, not a promise of dates. Each task ends when its check passes. Sources: <code>docs/design/LEVEL_DESIGN_V2.md</code>, <code>KIRO_STATUS.md</code>, <code>docs/orders/KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md</code>.</p>

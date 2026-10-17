@@ -1,6 +1,6 @@
 # OVERCHARGE: Level Design V2
 
-**Status:** Draft 1 for Chief's review. Written after commit `5ad4f1b` (2026-10-13).
+**Status:** Draft 1 for Chief's review, written after commit `5ad4f1b` (2026-10-13). **Updated 2026-10-17 (round 21): section 0 describes Level 1 as it is built now; the tower, lift and relay-pylon plans below are superseded.**
 **Supersedes:** `docs/archive/OVERCHARGE_LEVEL_BREAKDOWN.md`, the Level 3, 4/5 and 5 briefs, the first
 Level 1 world-build plan and the route preview (all kept unchanged in `docs/archive/`).
 **Companion:** [`docs/design/GAME_DESIGN_V2.md`](GAME_DESIGN_V2.md). Tags (CONFIRMED, CARRIED, BUILT, RECOMMENDED,
@@ -12,6 +12,46 @@ hand to an agent under a named order.
 
 ---
 
+## 0. Level 1 as it is now (2026-10-17, BUILT, read from `level1.json`)
+
+The picture and the finish list are in `docs/design/OVERCHARGE_Level1_Roadmap.pdf` (the map there is drawn from the level file by `_dev/tools/level1_status/`). The rest of this document is the longer design record; where it disagrees with this section, **this section wins**.
+
+**The level:** 100 x 22 tiles (3,200 x 704 px), a street run that climbs onto rooftops. 5 charge sources (lamps 3 + 3 + 3, vending machine 2 = 11 charge placed; the AC unit holds 4, starts off and is returned when zapped), an exit gate that costs 8 at x 3136, one checkpoint (x 1824), 7 NPCs, 12 dialogue lines, no enemies, no platforms, no switches. The tenant sequence is in: a plain apartment (`assets/objects/night-city-buildings/apartment_plain/`), the tenant in the window beside the ladder (her bubble plays as the player climbs), the AC at the far left of the walkable apartment roof, the GOOD NEIGHBOR Easter egg card with its pop-up icon.
+
+```
+    col 0         10        20        30        40        50        60        70        80        90
+        |         |         |         |         |         |         |         |         |         |
+  2  
+  3   A
+  4  ###########=###
+  5             H
+  6             H T
+  7             H
+  8             H
+  9             H
+ 10             H
+ 11  
+ 12  ####=#######
+ 13      H                                               3 n  C      V
+ 14      H                        2 n           nn    =================
+ 15      H                      ####################                      n  n
+ 16      H                   ## ####################           ===       ########
+ 17      H         1         ## ####################                    #########                      G
+ 18   S          ############## ####################       ===          #########
+ 19  ########################## ####################                   ##################################
+ 20  ########################## #########################################################################
+ 21  ########################## #########################################################################
+```
+Legend: `#` solid, `=` one-way platform, `H` ladder, `S` spawn, `1 2 3` lamps, `V` vending machine, `A` AC unit, `T` the tenant, `n` other NPCs, `C` checkpoint, `G` exit gate. Each column is 32 px; the rows shown are 2 to 21.
+
+**Removed or never built (CONFIRMED by Chief, 2026-10-17):**
+- The tall tower, the two ladder floors, the charge-powered lift and the gatehouse roof (section 4.3a) are **not** in Level 1. The level Chief built in the Builder replaced that draft.
+- The **relay pylon, the light cable and the beacon are not in Level 1.** Chief was not sold on them; Aki moved the whole set to the new Level 7. Sections 4.3b and 4.4 below describe a plan that is no longer used.
+- The "Charge gate to open." world label is dropped (Chief).
+
+**What is left to finish Level 1** is the list in section 7.1 and the roadmap PDF. In one line: signpost the exit without the pylon, fill the 816 px empty stretch before the exit, add a second checkpoint, check the fork and the two-way reachability with the prover, timed runs, final copy from Orcha, Level 1 movement retune, ambience and reactions, music (Chief supplies), clean-up, Chief's sign-off.
+
+---
 ## 1. Level design rules
 
 ### 1.1 Standing rules (binding; each traced to its source)
@@ -135,7 +175,7 @@ through **ladders and vertical traversal.**
 
 Everything here is a specification. Tags say what is decided.
 
-### 3.1 What Level 1 contains today (BUILT, parsed from `level1.json`)
+### 3.1 What Level 1 contained at `5ad4f1b` (BUILT then; STALE, see section 0 for today)
 See Appendix B for coordinates. In short: a 100-column street, 3 identical streetlight sources, one exit
 gate, one checkpoint, three NPCs and 129 decorations.
 
@@ -276,7 +316,7 @@ x(px)  0     400  680  900       1500  1600     2112 2430    3230   3630  4010 4
        |      |    |    |shaft L2 |work |high L3 |block|shutter  | NPC  |pass|     |
 ```
 
-### 4.3a The vertical layout (RECOMMENDED draft, round 3; geometry not yet checked against tiles)
+### 4.3a The vertical layout (RECOMMENDED draft, round 3; **SUPERSEDED 2026-10-17: the tower, lift and gatehouse are not in Level 1**)
 
 **Chief said go ahead (round 3).** This replaces the horizontal plan above. It follows the rule *keep what
 Chief already built*: the 100-column street stays as the ground floor, and **16 rows are added on top**
@@ -363,7 +403,7 @@ tower lands on the street, which is safe; the pit at col 26 stays the only death
 decorations, a vertical platform path (GAME_DESIGN_V2 4.5), the charged-object props (not built, GAME_DESIGN_V2 3.5),
 the pylon and cable art, and the AC hatch art.
 
-### 4.3b The relay pylon and the ladder in Level 1 (Chief's order, 2026-10-16; the secret-room preview was REMOVED in round 14, the ladder came back)
+### 4.3b The relay pylon and the ladder in Level 1 (Chief's order, 2026-10-16; the secret-room preview was REMOVED in round 14, the ladder came back). **UPDATE 2026-10-17: the relay pylon, light cable and beacon were REMOVED from Level 1 and moved to Level 7 (Chief, Aki). The ladder stays.**
 Chief asked to see the pylon and the secret room together. He liked the pylon ("looks good") and scrapped the rest
 ("im not liking any of that we can scrap that for now"). `level1.json` now differs from before the preview by **one decoration only**:
 - **Relay pylon:** plaza, x 576, on the walkway. Aki's art (96 x 256). Test: `_dev/level1_pylon.mjs` (16 checks; also proves the
@@ -609,6 +649,20 @@ gate and no pip is spent. They matter from the first level that has a chest.
 
 ## 7. Level 1: definition of done
 
+### 7.0 Rewordings after the 2026-10-17 review (CONFIRMED by Chief unless marked)
+- Item 4 (exit visible or signposted from spawn): the relay pylon and cable were the signpost; they are gone. **OPEN:** Chief picks a new signpost (Kiro recommends a lit arrow or sign near the start pointing east, plus the gate's own glow).
+- Item 6 (the fork): **kept** (Chief). Unverified on today's layout: lamp 3 and the vending machine are both on the high strip, and lamps 1 and 2 give 6 against an 8-charge gate. The route prover decides whether the low street can finish the level.
+- Item 12 ("Charge gate to open." label): **dropped** by Chief.
+- Item 14 (routes re-verified in all six levels): reworded to **Level 1 routes only**; Levels 2 to 6 stay paused.
+- Item 15 (music): Chief **supplies** the track; Kiro wires it. Nothing else waits on it.
+- Item 13 (movement retune): **Chief chose to retune, Level 1 only**, with before and after numbers in Appendix A and a rollback to the frozen baseline in A.1. Risk: the controller is shared, so the paused levels change feel too.
+- Item 17 (`level_guard.mjs`): that file does not exist anywhere in the repo; reworded to "the full test suite passes, the Builder module version is current, and Chief signs off".
+- Written order (Chief, 2026-10-17) for `level1.json`, four changes only: a beat in the 816 px stretch from the bus stop (x 2320) to the exit (x 3136); a second checkpoint; an exit signpost; the final copy once Orcha delivers it. Logged in `docs/orders/KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md` when executed.
+
+### 7.1 The finish list (2026-10-17)
+See the roadmap PDF, section 4, for owners and blockers. Order: (1) timed run; (2) route prover for the fork and two-way reachability; (3) Chief picks the signpost; (4) beat and second checkpoint; (5) signpost; (6) Orcha's copy; (7) Level 1 movement retune; (8) ambience and charged-object reactions; (9) music wiring; (10) clean-up (drop the stale `aki27_draft` test, close AKI 28, fix this document); (11) final run and Chief's sign-off.
+
+
 Level 1 is "completely finished" when **all** of these are true. Items marked (test) are to be written; none
 exist yet.
 
@@ -685,13 +739,13 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 47 | **Charge speed: slow when empty, faster when full**, both directions, 1.2 to 3 units/s | Runtime + test | 40 | CONFIRMED round 11 (CODEX 02 task 3) |
 | 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are in `docs/reference/review-pages/` |
 | 49 | **Redo failed art**: window NPC (both animations), **NEW 4-panel apartment for the tenant sequence** (tiles match rooftops), pip pickup, Capacitor Module to match concept #3, **small wall-plate switch art** | Art (Codex) | Chief's reference sheet | CONFIRMED round 13, revised round 14 (CODEX 03 tasks 1 to 5). **Art DONE round 18** (Codex made the review set, Kiro finished it): plain apartment kit `apartment_plain/` (registered as Builder decorations) and the tenant `npc-window-tenant-v3/`. Not yet in `level1.json`. |
-| 50 | **Relay pylon in Level 1** (the secret-room preview was removed in round 14) | Content (Kiro, by Chief's order) | none | **DONE**, `_dev/level1_pylon.mjs` 12/0 |
+| 50 | **Relay pylon in Level 1** (the secret-room preview was removed in round 14) | Content (Kiro, by Chief's order) | none | **DONE**, `_dev/level1_pylon.mjs` 12/0 **UPDATE 2026-10-17: REMOVED from Level 1 (moved to Level 7).** |
 | 51 | **Tenant sequence runtime** (plate Switch is now fence-only): reactive tenant lines and relieved animation, AC on effects, **achievements system** (automatic unlock "GOOD NEIGHBOR") | Runtime (Codex) | 49 not required | CONFIRMED round 14 (CODEX 03 tasks 3, 6, 7, 8). Replaces the hatch art and barrier-link tasks, which are dropped |
-| 52 | **Vertical Level 1 as a separate draft file**, with proof from the provers | Content (Aki) | her Part 1 on the live line | CONFIRMED round 13 (AKI 27) |
+| 52 | **Vertical Level 1 as a separate draft file**, with proof from the provers | Content (Aki) | her Part 1 on the live line | CONFIRMED round 13 (AKI 27) **UPDATE 2026-10-17: OBSOLETE; Chief built the level in the Builder. AKI 28 is closed.** |
 | 53 | **Place the tenant building, tenant and AC (no switch)** in Level 1 once Chief approves the art; run the pylon's lit cable toward the exit | Content (Aki) | 49, 51 | NEW round 14. **Art is ready (round 18); waits for Chief's written order to edit `level1.json`** (swap the three grey panels for `left_end_tenant_window`, a plain bay and `right_end`; move `NPC_TENANT` to x 102, y 234) |
 | 23 | **Path-based moving platforms** (waypoints, vertical, rider carry) | Runtime | none | CONFIRMED round 3 |
 | 24 | **Builder path tool** for platforms (waypoints, mode, line, dots) | Builder (Aki) | 23 | CONFIRMED round 3 |
-| 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief |
+| 25 | Vertical camera and 34-row Level 1: add rows, shift decorations +512 px | Content | 1 | Chief **UPDATE 2026-10-17: DONE differently; the level is 22 rows, not 34.** |
 | 26 | Test a ladder in a real level (none exists); ladder art and tops | Content + test | none | RECOMMENDED |
 | 27 | Pip pickup object and art | Art + runtime | 18 | NEW |
 | 28 | Per-level ability list: hide bolt and melee in Level 1, prompts and dev bar | Runtime | none | CONFIRMED round 3 |
@@ -699,7 +753,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 38 | **Builder "Uncharged" checkbox** on every charged object (default: charged), a capacity field, and a live "level total" readout | Builder (Aki) | 7 | CONFIRMED round 5 |
 | 39 | **Per-level objective system** (the card exists only for Level 1) so Level 3 can teach the bolt | Runtime | none | CONFIRMED round 5 |
 | 30 | Charged-object pricing applied to props; charge stored in objects counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
-| 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED |
+| 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED **UPDATE 2026-10-17: REMOVED from Level 1; the pylon, cable and beacon moved to Level 7.** |
 | 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/archive/STORY_BIBLE_DRAFT.md` |
 | 33 | ~~"Charge gate to open." world label above exit gates~~ | Runtime | none | **DROPPED by Chief, round 18** ("dont need it") |
 
@@ -782,6 +836,13 @@ the work list ordering in 8.
 - Prices follow prop size; Kiro sets them. (GAME_DESIGN_V2 3.5)
 - Start the story bible. (`docs/archive/STORY_BIBLE_DRAFT.md`)
 
+### CONFIRMED by Chief (round 21, 2026-10-17)
+- **The relay pylon, light cable and beacon are not used in Level 1.** Aki moved the whole set to the new Level 7. The tower, lift and gatehouse plan (4.3a) is not used either.
+- **The tenant and the AC unit swapped places:** the tenant is in the window beside the ladder (her bubble plays as the player climbs), the AC unit is at the far left of the apartment roof, and the roof is walkable across the whole building.
+- **Level 1 music:** Chief will supply a track. **Movement:** retune, Level 1 only. **Fork:** kept. **"Charge gate to open." label:** dropped.
+- **Written order for `level1.json` (four changes only):** a beat in the empty stretch before the exit, a second checkpoint, an exit signpost, and the final copy when Orcha delivers it.
+- OPEN: how the exit is signposted now that the pylon cable is gone; whether the fork's low street must be able to finish the level on its own.
+
 ### OPEN questions (need Chief)
 1. **Check the 4.3a draft** in the Builder: zone heights, the 34-row total, the lift's route, the
    pylon-and-cable signpost. Chief has not reviewed it yet. The lift speed and tower position are Kiro's
@@ -831,7 +892,7 @@ The existing `docs/reference/PLAYER_MOVEMENT_METRICS.md` is stale (it lists a 45
    reported to Chief, not fixed.
 7. Regenerate `docs/reference/PLAYER_MOVEMENT_METRICS.md` from the same harness.
 
-## Appendix B: Level 1 as built (BUILT, parsed from `level1.json` at `5ad4f1b`)
+## Appendix B: Level 1 as built (BUILT, parsed from `level1.json` at `5ad4f1b`; **STALE since 2026-10-17, see section 0 for the current file**)
 
 | Item | Detail |
 |---|---|

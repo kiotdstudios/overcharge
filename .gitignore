@@ -25,3 +25,4 @@ _kiro/live/
 # Derived from git, never authored. Must never be committed (a shared/committed
 # watermark is what caused RELAY's 26-message replay incident).
 _dev/agent_bus/
+_dev/tools/level1_status/out/

@@ -2498,3 +2498,16 @@ Find the Level 1 walls in PixelLab and make a 9-tile set (grass-block layout) fr
 
 ### Not done
 - The pop is verified by slow motion and by a curve test, not by watching it at full speed; at full speed it lasts 0.42 s.
+
+## Round 21: Level 1 breakdown brought up to date
+
+### Chief's ask
+Aki is removing the relay beacon and moving it to Level 7 (not sold on it for Level 1). Update the Level 1 breakdown, make the little map diagram show what is really on Level 1 now, list what is needed to finish Level 1, create a workflow and complete it.
+
+### Done
+- **Roadmap PDF rebuilt** (`docs/design/OVERCHARGE_Level1_Roadmap.pdf`, also on the Desktop): the old one was the October 16 plan (tower, lift, pylon, cable, 100 x 18). The new one is 5 sections: where Level 1 stands, the map, what finished means with a real status per item, the finish list in order with owners and blockers, and what is needed from Chief. The map is drawn from `level1.json` by `_dev/tools/level1_status/` (so it cannot drift): 100 x 22 tiles, the apartment with ladders, tenant window and AC, lamps 1 to 3, graffiti artist, workers, QuickMart, checkpoint, vending machine, bus stop, exit gate, the fork's low street and high strip, and the 816 px empty stretch flagged in red.
+- **`LEVEL_DESIGN_V2.md` updated:** new section 0 "Level 1 as it is now" with a text map generated from the level file; the tower/lift plan (4.3a) and the pylon plan (4.3b) marked superseded or removed; section 7.0 rewordings and 7.1 finish list; work-list rows 25, 31, 50 and 52 updated; a round 21 CONFIRMED block in the ledger; Appendix B marked stale.
+- **Findings from reading the real file (not guesses):** the relay pylon, cable and beacon are already gone from `level1.json` (Aki's push 3829687); the only gap over 600 px is x 2320 to 3136 (816 px); and lamp 3 and the vending machine are both on the high strip, so if the fork's low street skips both, lamps 1 and 2 give 6 against an 8-charge gate. Unverified until the route prover runs.
+
+### Still open
+Exit signpost (Chief picks), the fork question, everything in the roadmap's finish list. The workflow for it is in `.kiro/specs/level1-finish/`.
