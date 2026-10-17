@@ -517,4 +517,8 @@ export function drawNpcBubbles(ctx, npcs, viewport) {
     }
     drawSpeechBubble(ctx, anchorX, topY, npc._bubbleText, viewport, lift);
   }
+  // Returned so other screen-space systems that float their own text near a
+  // world object (ui.js's "[E] ABSORB" etc.) can steer clear of wherever a
+  // bubble actually landed this frame — see Level.draw()/drawWorldPrompts().
+  return placed;
 }

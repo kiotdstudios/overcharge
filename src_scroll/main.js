@@ -393,7 +393,7 @@ function _drawScrollGame() {
   // World-anchored prompts belong INSIDE the camera transform — they position
   // themselves on world objects, so drawing them in screen space offset them by
   // camX. Screen-space HUD (charge meter, banner, pips) stays in drawHUD().
-  drawWorldPrompts(ctx, player, t);
+  drawWorldPrompts(ctx, player, t, level._lastBubbleRects);
   ctx.restore();
 }
 

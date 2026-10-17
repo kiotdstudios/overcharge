@@ -74,6 +74,12 @@ export class Level {
     // ORDER 22: an absent or empty npcs array means ZERO behavioural change for
     // every level authored before this order — same discipline as crates/chests.
     this.npcs        = (def.npcs        || []).map(d => new Npc(d));
+    // Bubble rects this frame's drawNpcBubbles() actually placed — read by
+    // main.js so drawWorldPrompts() can steer "[E] ABSORB" etc. clear of a
+    // live NPC bubble instead of drawing over it (Chief screenshot: the
+    // streetlamp woman's bubble and that same lamp's ABSORB prompt landed on
+    // top of each other). Empty until the first draw() call.
+    this._lastBubbleRects = [];
     this.pickups  = [];
     this.pipPickups = [];
     this.streetLitter = new StreetLitter();
@@ -450,6 +456,6 @@ export class Level {
     // other (e.g. the smoke-break pair, only 46px apart) instead of letting
     // the later one draw over the earlier one.
     for (const npc  of this.npcs)     npc.draw(ctx, viewport);
-    drawNpcBubbles(ctx, this.npcs, viewport);
+    this._lastBubbleRects = drawNpcBubbles(ctx, this.npcs, viewport);
   }
 }

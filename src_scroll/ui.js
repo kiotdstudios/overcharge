@@ -143,8 +143,8 @@ function _drawLevelOneObjective(ctx, player, level, t) {
 // screen-x, i.e. shifted right by exactly camX — invisible at level start where
 // camX is 0, and increasingly wrong the further right the player walked. Chief
 // hit it as "POWER REQUIRED / ABSORB ENERGY text is waaay to the right".
-export function drawWorldPrompts(ctx, player, t) {
-  _drawContextPrompts(ctx, player, t);
+export function drawWorldPrompts(ctx, player, t, bubbleRects) {
+  _drawContextPrompts(ctx, player, t, bubbleRects);
 }
 
 // ── Player avatar box — top-left corner ──────────────────────────
@@ -425,7 +425,35 @@ function _drawLevelBanner(ctx, level, t) {
 // "[E] ABSORB" is NEVER shown on a gate — it appears only under nearSource.
 // The old "[F] SPEND PIP" prompt is GONE: F is unbound and no button completes
 // a gate in one press.
-function _drawContextPrompts(ctx, player, t) {
+// Reported bug (Chief screenshot): the streetlamp woman's dialogue bubble and
+// that same lamp's "[E] ABSORB" prompt both anchor near the lamp and landed
+// on top of each other — two independent systems (npc.js bubbles, this file's
+// context prompts) with no mutual awareness. Rather than hardcode a fix for
+// that one lamp, any one-line world prompt can call this first: if its own
+// (cx, cy) text box would overlap a currently-drawn bubble, it lifts clear
+// above the highest bubble it collides with. No bubbles active (the common
+// case) or no collision: returns cy unchanged.
+function _clearOfBubbles(ctx, cx, cy, text, bubbleRects) {
+  if (!bubbleRects || !bubbleRects.length) return cy;
+  const fontSize = parseInt((/(\d+)px/.exec(ctx.font) || [])[1], 10) || 11;
+  const halfW = ctx.measureText(text).width / 2 + 4;
+  // textBaseline is left at its default ('alphabetic') for every prompt that
+  // calls this, so cy is the text's baseline: the glyphs sit roughly from
+  // cy - fontSize (ascent) to cy + fontSize * 0.25 (descent).
+  const rect = { bx: cx - halfW, by: cy - fontSize, w: halfW * 2, h: fontSize * 1.25 };
+  let highestTop = null;
+  for (const b of bubbleRects) {
+    const overlap = rect.bx < b.bx + b.w && rect.bx + rect.w > b.bx && rect.by < b.by + b.h && rect.by + rect.h > b.by;
+    if (overlap) highestTop = highestTop === null ? b.by : Math.min(highestTop, b.by);
+  }
+  // Place the prompt's own bottom edge `gap` px above the collided bubble's
+  // top edge, converting back from box-top to baseline the same way `rect.by`
+  // above converted from baseline to box-top.
+  const gap = 8;
+  return highestTop === null ? cy : highestTop - gap - fontSize * 0.25;
+}
+
+function _drawContextPrompts(ctx, player, t, bubbleRects) {
   const pulse = 0.7 + 0.3 * Math.sin(t * 4);
 
   // ── Near a source: [E] ABSORB ──
@@ -447,7 +475,7 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.textAlign   = 'center';
     ctx.shadowBlur  = 8;
     ctx.shadowColor = '#ffcc00';
-    ctx.fillText(`[E] ABSORB`, cx, cy);
+    ctx.fillText(`[E] ABSORB`, cx, _clearOfBubbles(ctx, cx, cy, '[E] ABSORB', bubbleRects));
     ctx.restore();
   }
 
@@ -462,7 +490,8 @@ function _drawContextPrompts(ctx, player, t) {
     ctx.fillStyle = '#b981f3';
     ctx.font = 'bold 11px monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('[SPACE] CHARGE', src.cx, anchor ? anchor.belowY : src.y + src.h + 12);
+    const chargeCy = anchor ? anchor.belowY : src.y + src.h + 12;
+    ctx.fillText('[SPACE] CHARGE', src.cx, _clearOfBubbles(ctx, src.cx, chargeCy, '[SPACE] CHARGE', bubbleRects));
     ctx.restore();
   }
 
