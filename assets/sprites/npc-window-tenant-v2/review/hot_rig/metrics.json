@@ -1,0 +1,13 @@
+{
+  "frames": 216,
+  "fps": 12,
+  "duration_s": 18,
+  "method": "generated-body-plus-generated-fan-layer",
+  "max_step_pct": 4.8,
+  "seam_pct": 1.8,
+  "visible_width_max": 41,
+  "visible_height_max": 42,
+  "footYByFrame": [
+    58
+  ]
+}

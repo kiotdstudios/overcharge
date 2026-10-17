@@ -1,0 +1,4 @@
+{
+  "npc_bus_stop_backpack": {"frame_count": 48, "fps": 6, "footYByFrame": 123, "trim": [37, 6, 91, 123], "path": "backpack/loop/"},
+  "npc_bus_stop_homeless": {"frame_count": 48, "fps": 6, "footYByFrame": 123, "trim": [41, 11, 88, 123], "path": "homeless/loop/"}
+}
