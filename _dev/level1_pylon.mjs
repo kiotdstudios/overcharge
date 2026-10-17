@@ -31,14 +31,34 @@ sec('THE BEACON SITS ON THE GATEHOUSE ROOF (AKI_26 #6)');
   }
 }
 
-sec('THE LIGHT CABLE CLIMBS FROM THE PYLON (AKI_26 #5)');
+sec('THE LIGHT CABLE RUNS THE FULL SKYLINE, PYLON TO GATEHOUSE (AKI_26 #5)');
 {
   const cables = d.decorations.filter(x => /light-cable\//.test(x.src));
-  ok(cables.length === 6, 'the pylon-side cable climb is placed (3 straight-v + 1 corner + 2 straight-h)', `${cables.length}`);
-  const corner = cables.find(x => /cable_corner/.test(x.src));
-  ok(corner && corner.rotation === 90, 'the corner piece is rotated to bend the climb into a rightward run', corner ? `rotation ${corner.rotation}` : 'missing');
-  const pylon = d.decorations.find(x => /relay-pylon\/pylon\.png$/.test(x.src));
-  ok(cables.every(c => Math.abs(c.x - pylon.x) < 300), 'the whole cable run is near the pylon it climbs from', cables.map(c => c.x).join(','));
+  ok(cables.length === 81, 'the full cable run is placed (pylon climb + skyline run to the gatehouse)', `${cables.length}`);
+  const hs = cables.filter(x => /cable_straight_h/.test(x.src));
+  const vs = cables.filter(x => /cable_straight_v/.test(x.src));
+  const corners = cables.filter(x => /cable_corner/.test(x.src));
+  ok(corners.length === 5, 'five corners: one climb at the pylon, two height-step transitions (2 corners each)', `${corners.length}`);
+  ok(corners.every(c => [0, 90, 180, 270].includes(c.rotation || 0)), 'every corner has a valid 90-degree rotation');
+  const minX = Math.min(...cables.map(c => c.x));
+  const maxX = Math.max(...cables.map(c => c.x + c.w));
+  ok(minX < 800, 'the run starts at the pylon', `min x ${minX}`);
+  const gate = d.gates.find(g => g.isExit);
+  ok(maxX > gate.x - 100, 'the run reaches all the way to the gatehouse', `max x ${maxX}, gate x ${gate.x}`);
+  // No gaps along each horizontal row (straight_h pieces + the corners that sit in that row connecting to them).
+  // Vertical straight_v pieces are excluded: they stack at one x, not meant to chain horizontally.
+  const rowPieces = cables.filter(x => /cable_straight_h|cable_corner/.test(x.src));
+  let maxGapSameRow = 0;
+  const byY = {};
+  for (const c of rowPieces) { (byY[c.y] = byY[c.y] || []).push(c); }
+  for (const y of Object.keys(byY)) {
+    const row = byY[y].sort((a, b) => a.x - b.x);
+    for (let i = 1; i < row.length; i++) {
+      const gap = row[i].x - (row[i - 1].x + row[i - 1].w);
+      if (gap > maxGapSameRow) maxGapSameRow = gap;
+    }
+  }
+  ok(maxGapSameRow <= 0, 'no horizontal gaps within any single cable height level (chain is unbroken)', `max gap ${maxGapSameRow}px`);
 }
 
 sec('THE SCRAPPED ROOM IS GONE');

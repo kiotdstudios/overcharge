@@ -3711,6 +3711,535 @@
       "h": 32
     },
     {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 856,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 888,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 920,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 952,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 984,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1016,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1048,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1080,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1112,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1144,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1176,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1208,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1240,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1272,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1304,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1336,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1368,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1400,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1432,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1464,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_corner.png",
+      "x": 1496,
+      "y": 207,
+      "w": 32,
+      "h": 32,
+      "rotation": 180
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_v.png",
+      "x": 1496,
+      "y": 239,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_corner.png",
+      "x": 1496,
+      "y": 271,
+      "w": 32,
+      "h": 32,
+      "rotation": 0
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1528,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1560,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1592,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1624,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1656,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1688,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1720,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1752,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1784,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1816,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1848,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1880,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1912,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1944,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 1976,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2008,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2040,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2072,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2104,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2136,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2168,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2200,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2232,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2264,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2296,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2328,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2360,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_corner.png",
+      "x": 2392,
+      "y": 271,
+      "w": 32,
+      "h": 32,
+      "rotation": 180
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_v.png",
+      "x": 2392,
+      "y": 303,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_corner.png",
+      "x": 2392,
+      "y": 335,
+      "w": 32,
+      "h": 32,
+      "rotation": 0
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2424,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2456,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2488,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2520,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2552,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2584,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2616,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2648,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2680,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2712,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2744,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2776,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2808,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2840,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2872,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2904,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2936,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 2968,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 3000,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 3032,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 3064,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 3096,
+      "y": 335,
+      "w": 32,
+      "h": 32
+    },
+    {
       "src": "assets/objects/night-city-props/ladder/ladder.png",
       "x": 128,
       "y": 384,
