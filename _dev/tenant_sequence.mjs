@@ -23,7 +23,7 @@ ok(!!acDef && acDef.kind === 'hvac' && acDef.uncharged === true && acDef.charge 
 ok(d.switches.length === 0 && !d.gates.some(g => g.style === 'plate'), 'there is no switch of any kind in Level 1');
 ok(!!npcDef && npcDef.assetId === 'npc_window_tenant' && npcDef.poweredAssetId === 'npc_window_tenant_relieved' && npcDef.linkedObjectId === 'AC_TENANT', 'the tenant is linked to the AC and carries the relieved clip');
 ok(npcDef.dialogue.lines.length >= 1 && npcDef.dialogue.poweredLines.length >= 1, 'she has a hot line and a relieved line (placeholders, Orcha writes the final text)');
-const panels = d.decorations.filter(x => /apartment_tenant\/tenant_/.test(x.src));
+const panels = d.decorations.filter(x => /apartment_(tenant\/tenant_|plain\/)/.test(x.src));
 ok(panels.length >= 1, 'the apartment building is placed (Chief rearranges the panels in the Builder)', `${panels.length} panel(s)`);
 { const lv0 = new Level(def()); const a0 = lv0.sources.find(s => s.id === 'AC_TENANT');
   ok(lv0.solidAt(Math.floor((a0.x + 14) / 32), Math.floor((a0.y + 28) / 32)), 'the AC stands on solid roof, not in the air', `x ${a0.x}, y ${a0.y}`); }
