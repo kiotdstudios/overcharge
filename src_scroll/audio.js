@@ -100,6 +100,18 @@ export function createAudio(opts = {}) {
     },
     achievement: () => [523, 659, 880].forEach((f, i) =>
       tone({ type: 'triangle', f0: f, dur: 0.24, vol: 0.075, at: i * 0.11 })),
+    // The level's own fanfare: bigger and longer than the objective/achievement chime, timed
+    // to the completion card's center-strike impact. A rising power surge resolves into a
+    // bright ascending triad with a sub thump for weight and a sparkle tail.
+    'level-complete': () => {
+      tone({ type: 'sawtooth', f0: 60, f1: 220, dur: 0.3, vol: 0.16 });
+      tone({ type: 'sine', f0: 90, f1: 40, dur: 0.4, vol: 0.12 });
+      noise({ filter: 'bandpass', f0: 400, f1: 2200, dur: 0.28, vol: 0.08, q: 3 });
+      [523, 659, 784, 1047].forEach((f, i) =>
+        tone({ type: 'triangle', f0: f, dur: 0.5, vol: 0.11, at: 0.26 + i * 0.045 }));
+      tone({ type: 'sine', f0: 1047, dur: 1.0, vol: 0.07, at: 0.3 });
+      noise({ filter: 'highpass', f0: 5000, dur: 0.6, vol: 0.045, at: 0.3 });
+    },
   };
 
   function play(name, data) {
