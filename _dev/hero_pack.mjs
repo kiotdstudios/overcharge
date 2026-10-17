@@ -193,7 +193,7 @@ if (existsSync(v6dir)) {
 
   // Mirrored west must be byte-for-byte derivable, i.e. same count and size as east.
   const states = readdirSync(v6dir).filter(d => existsSync(v6dir + '/' + d + '/east'));
-  eq('v6 state folder count', states.length, 16);
+  eq('v6 state folder count', states.length, 17); // 16 original + double-jump (art only, round 18)
   for (const s of states) {
     const e = readdirSync(v6dir + '/' + s + '/east').filter(f => f.endsWith('.png')).sort();
     const w = readdirSync(v6dir + '/' + s + '/west').filter(f => f.endsWith('.png')).sort();

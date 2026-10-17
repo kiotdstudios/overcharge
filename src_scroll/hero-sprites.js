@@ -4,7 +4,11 @@ export const HERO_STATES = {
  'energy-strike':[18,false],'projectile-cast':[20,false],'wall-slide':[8,true],grapple:[10,false],
  'ladder-up':[10,true],'ladder-down':[8,true],absorb:[10,true],discharge:[10,true],
  // Added with hero-v6, which has dedicated airborne-descent and touchdown clips.
- fall:[8,true],land:[14,false]
+ fall:[8,true],land:[14,false],
+ // Art only: the clip exists (hero-v6/double-jump) but NO double-jump ability is implied or wired;
+ // nothing in the game triggers it yet. 16 frames: electric push-off burst, one tight somersault, open out to the
+ // arms-out airborne pose. Plays through status.traversal or setState('double-jump').
+ 'double-jump':[12,false]
 };
 
 // Two hero packs exist and they are NOT interchangeable: different canvas size,
@@ -24,14 +28,14 @@ export const HERO_STATES = {
 export const HERO_PACKS = {
  'hero-v3':{
   root:'assets/sprites/hero-v3', frames:8, cell:512, footAnchor:496,
-  alias:{fall:'jump',land:'jump'},
-  standIn:['fall','land'],
+  alias:{fall:'jump',land:'jump','double-jump':'jump'},
+  standIn:['fall','land','double-jump'],
  },
  'hero-v6':{
   // rev is appended to every frame URL. Bump it whenever frames are replaced in
   // place, or browsers keep serving the old PNGs under the same filename.
-  // rev 2: run regenerated as a seamless loop.
-  root:'assets/sprites/hero-v6', frames:16, cell:128, footAnchor:126, rev:2,
+  // rev 2: run regenerated as a seamless loop. rev 3: double-jump clip added.
+  root:'assets/sprites/hero-v6', frames:16, cell:128, footAnchor:126, rev:3,
   alias:{
    'energy-strike':'melee','projectile-cast':'cast',
    grapple:'jump','ladder-down':'ladder-up',duck:'idle',

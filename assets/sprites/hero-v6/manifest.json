@@ -12,8 +12,22 @@
     "east",
     "west"
   ],
-  "paletteColours": 23,
+  "paletteColours": 29,
   "states": {
+    "double-jump": {
+      "fps": 12,
+      "loop": false,
+      "frames": 16,
+      "note": "Art only, no ability wired. Generated from jump frame 9 (PixelLab animate_image_pixminimax, 2 generations, job 06b34baf), snapped to the pack palette plus 6 FX colours. West is the exact mirror of east.",
+      "bounds": {
+        "x0": 24,
+        "y0": 7,
+        "x1": 102,
+        "y1": 121,
+        "w": 79,
+        "h": 115
+      }
+    },
     "absorb": {
       "fps": 10,
       "loop": true,

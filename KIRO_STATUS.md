@@ -2430,3 +2430,28 @@ Find the Level 1 walls in PixelLab and make a 9-tile set (grass-block layout) fr
 ### Not done / open
 - NOT registered in `ASSET_MANIFEST.json`, NOT in `level1.json`. Open question for Chief: Builder decoration (32 x 32 family, no engine work) or a real background tile type (tile ids, a non-solid layer, `tile_registry` work)?
 - The set is very calm and dark compared with the old panels. If Chief wants more brick contrast, that is a tuning pass.
+
+## Round 18: Level 1 finish list, vending machine, dev keys, crashed suites, double-jump art
+
+### Chief's answers
+- "Charge gate to open." label: not needed (work item 33 and done-list item 12 dropped).
+- Vending machine: make it 2.
+- Hero has a duck; work on the double jump.
+- Fix the rest and the crashed suites.
+
+### Done
+- **Vending machine set to 2** in `level1.json` (one line, surgical; logged in `KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md`). It was 4 again by `fc82fae`. Likely cause is the Builder save `2aa76e3` carrying an older copy (not confirmed). Level 1 total is 11 (3 + 3 + 3 + 2), the exit takes 8, the AC takes 4 and can be reclaimed.
+- **Dev keys gated:** F2 (skip) and P (+charge) work only in dev mode (localhost or `?dev=1`). The controls bar shows the dev hints only there. No test used them.
+- **Fail state was already built** (my earlier "missing" was wrong): `Level.isFailState`, DISCHARGED screen with the reason and [R] Retry, fall-off respawn at the checkpoint. Work item 3 marked built and verified.
+- **Crashed suites fixed:** `npc_geometry` and the Builder NPC-inspector check both asserted the streetlamp woman is 70 px (and over 150 px). The manifest says 60 (`displayHeightPx`, the NPC size ruling). Both now read the 60. `order23_taskb_acceptance` is a Playwright harness that needs the package and args, so it is now a documented manual run in `run_all.mjs`; I ran it by hand: 22 passed, 0 failed.
+- **Double-jump art (no ability wired):** `assets/sprites/hero-v6/double-jump/{east,west}`, 16 frames at 128 x 128, 0.67 s. Electric push-off burst under the feet, one tight somersault, opens out to the arms-out airborne pose. Made from jump frame 9 with PixelLab `animate_image_pixminimax` (2 generations; job 06b34baf, gallery asset d5946ade-d0f5-55c4-bedf-f1efaa1647e6), then snapped to the pack's 23 colours plus 6 FX colours (29 in the pack manifest). West is the exact mirror. State `double-jump` registered in `hero-sprites.js` (hero-v3 falls back to its jump frames). Nothing triggers it. Checked in a real browser: all 32 frames load, 0.67 s, no errors. Preview: `docs/reference/double_jump_preview.png`.
+- PixelLab is connected to Kiro (`~/.kiro/settings/mcp.json`). Balance after this round: about 928 of 2000 generations.
+- Suite: 3024 passed, 0 failed across 76 suites (only `aki27_draft` skipped, waiting on AKI 28).
+
+### Not done / open
+- The hero-v6 `duck` is still a stand-in for idle in that pack (Chief says the hero has a duck; v3 holds a crouch frame).
+- Level 1 data, flagged for Chief: an empty stretch of 816 px between the bus stop and the exit, one checkpoint, route time not re-measured since the vertical rebuild, tenant still at the old position and size until Codex's art.
+- Wall tileset (`assets/tilesets/night_city_wall/`): decoration or real tile type? Not registered.
+- Movement retune with before and after (work items 5, 6, 20): not started, waits on Chief's go.
+- Audio ambience and charged-object reactions; Level 1 music needs assets.
+- PixelLab key was pasted in chat and shown in a screenshot: Chief should rotate it.
