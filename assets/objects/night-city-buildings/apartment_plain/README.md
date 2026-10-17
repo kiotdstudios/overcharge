@@ -1,0 +1,28 @@
+# night-city-buildings/apartment_plain
+
+The finished plain apartment kit. Codex made the eight wall bays and the two end caps (`../apartment_plain_review/`, CODEX 05 Task 1). Kiro finished them on 2026-10-17 because the review set failed the order on four points.
+
+## Panels
+- `wall_01` to `wall_08`: 160 x 256 bays. Window states: amber blinds, dark blinds, empty dark, cracked dark glass. No two neighbouring windows alike when stacked in any order.
+- `wall_tenant_window`: 160 x 256 bay with the tenant window.
+- `left_end` (192 x 256) and `right_end` (128 x 256): end caps with a plain vertical trim.
+- `left_end_tenant_window` (192 x 256): the left end cap with the tenant window. This is where Chief wants her (left panel, top floor).
+
+Nothing is baked in: no ladders, fire escapes, pipes, AC units, signs or boxes.
+
+## The tenant window (exact)
+- Glass opening: **56 x 64**. In `wall_tenant_window` it is x 52 to 107, y 44 to 107. In `left_end_tenant_window` it is x 74 to 129, y 44 to 107.
+- **Sill top line: y = 108** (a clean horizontal line, first sill row). The tenant sprite's bottom edge sits on this line.
+- Frame outer box: lintel y 36 to 43, jambs 6 px, sill y 108 to 114 (2 px wider each side).
+- The room behind the glass is empty and warm (lower part lit, dusky ceiling, a lamp glow top right). Warm pixels are 7.5% of the panel.
+
+## What Kiro changed from the review set
+1. **Course alignment.** Five panels had their brick courses 1 px off the other three from y 119 down, which showed as a seam when panels touched. Rows from y 104 are re-mapped onto the shared course lines.
+2. **Edge seams.** The 3 px purple and black outline columns at the left and right edge of each panel are replaced by the brick next to them, so panels join without a line.
+3. **Colour.** The brick is graded to the street wall (27, 31, 69). Every panel measures (27, 31, 69), 99.7 to 100% blue-dominant, mean hue 234 to 235 (street wall 236). Lit windows are left alone.
+4. **The tenant window** is drawn by script at exactly 56 x 64 (Codex's windows were about 44 x 38).
+
+`palette_audit.json` has the table. `previews/` has the tiling proof in random orders, a contact sheet and a before and after strip.
+
+## Rebuild
+`_dev/tools/apartment_plain/apt_build.mjs` (needs Node and the Playwright package; reads `../apartment_plain_review/`).

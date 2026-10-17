@@ -3416,6 +3416,306 @@
       }
     },
     {
+      "id": "building_nc_apt_plain_wall_01",
+      "name": "Night City plain apartment - Wall bay 1 - amber blinds",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_01.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Window state: blinds down, light on behind them. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_02",
+      "name": "Night City plain apartment - Wall bay 2 - dark blinds + amber blinds",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_02.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Two windows: dark blinds beside amber blinds. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_03",
+      "name": "Night City plain apartment - Wall bay 3 - dark blinds",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_03.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Window state: blinds down, dark. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_04",
+      "name": "Night City plain apartment - Wall bay 4 - empty dark window",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_04.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Window state: empty and dark (black interior, no blinds). Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_05",
+      "name": "Night City plain apartment - Wall bay 5 - amber blinds + dark blinds",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_05.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Two windows: amber blinds beside dark blinds. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_06",
+      "name": "Night City plain apartment - Wall bay 6 - cracked dark glass",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_06.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Window state: bare cracked glass, dark. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_07",
+      "name": "Night City plain apartment - Wall bay 7 - two amber blinds",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_07.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Two windows, both amber blinds. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_08",
+      "name": "Night City plain apartment - Wall bay 8 - dark blinds",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_08.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Window state: blinds down, dark. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_wall_tenant_window",
+      "name": "Night City plain apartment - Wall bay - tenant window (56 x 64 opening)",
+      "path": "assets/objects/night-city-buildings/apartment_plain/wall_tenant_window.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 160,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Tenant window: empty, warm lit room. Glass opening 56 x 64 at x 52, y 44; the sill top line is y 108. The tenant sprite bottom edge sits on that line. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_left_end",
+      "name": "Night City plain apartment - Left end cap",
+      "path": "assets/objects/night-city-buildings/apartment_plain/left_end.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Left end with a plain vertical trim and a dark-blinds window. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_left_end_tenant_window",
+      "name": "Night City plain apartment - Left end cap - tenant window (56 x 64 opening)",
+      "path": "assets/objects/night-city-buildings/apartment_plain/left_end_tenant_window.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 192,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Left end with the tenant window: glass opening 56 x 64 at x 74, y 44; the sill top line is y 108. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
+      "id": "building_nc_apt_plain_right_end",
+      "name": "Night City plain apartment - Right end cap",
+      "path": "assets/objects/night-city-buildings/apartment_plain/right_end.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Right end with a plain vertical trim and one amber-blinds window. Plain kit (CODEX 05 Task 1, finished by Kiro 2026-10-17): no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). Stack panels at 160 px, ends at 192 and 128. 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
       "id": "building_nc_tenant_wall",
       "name": "Night City Tenant apartment - wall bay (vent, pipe, fuse box)",
       "path": "assets/objects/night-city-buildings/apartment_tenant/tenant_wall.png",
