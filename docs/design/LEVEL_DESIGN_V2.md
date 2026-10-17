@@ -630,7 +630,7 @@ exist yet.
 
 **Engine and content**
 11. Reclaimable-charge props exist, react visibly and audibly, and have a regression test. (NEW engine)
-12. The text "Charge gate to open." appears above exit gates in the world, and the stage 1 card reads
+12. ~~The text "Charge gate to open." appears above exit gates in the world~~ (DROPPED by Chief, round 18); the stage 1 card reads
     "Try absorbing power from a street lamp" (done). (GAME_DESIGN_V2 8.2)
 13. Movement is retuned, with Appendix A's before and after both filled in.
 14. Every route in all six levels is re-verified after the retune.
@@ -651,7 +651,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 |---|---|---|---|---|
 | 1 | Remove the two `"New line"` placeholder lines | Content | none | CONFIRMED defect |
 | 2 | Fix the prover's hard-coded 18 rows | Test infra | none | **DONE round 10**: `completability` 42/0, `level2_fork` 44/2, plus the reachability prover now settles until grounded and follows long drops. Two stale 18-row guards (`camera_vertical`, `level_height`) updated for the 36-row Level 2. |
-| 3 | Fail-state fix, in-play respawn, and "out of charge" prompt | Runtime | none | RECOMMENDED |
+| 3 | Fail-state fix, in-play respawn, and "out of charge" prompt | Runtime | none | **ALREADY BUILT (verified round 18)**: `Level.isFailState` counts player charge, banked pips, undrained sources (including charge held in two-way objects), platforms, pickups and chests; the DISCHARGED screen reads "Not enough charge to power the exit." with [R] Retry. Falling off the level respawns at the last checkpoint. |
 | 4 | Objective-card stage 1 line (two places) | Runtime | none | **DONE round 3** ("Try absorbing power from a street lamp"). The "Charge gate to open." world label above exit gates is still to build. |
 | 5 | Movement retune with before and after (Appendix A) | Runtime | 2 | CONFIRMED authorized |
 | 6 | Route verification across all six levels | Test | 2, 5 | CONFIRMED |
@@ -659,7 +659,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 8 | Juice module (particles, shake, hit-stop) and land/jump feedback | Runtime | 5 | **FIRST PASS BUILT round 10** (`juice.js`, 32 tests); needs Chief's eyes and tuning |
 | 9 | Charged-object payoffs: vending machine, fuse box and sign, shutter, AC unit | Art + runtime | 7 | CONFIRMED direction |
 | 10 | Ambient actors: pedestrians, passing cars, drifting birds | Runtime + art | none | CONFIRMED direction |
-| 11 | Ducking and double-jump **animations** (no ability implied) | Art | none | CONFIRMED |
+| 11 | Ducking and double-jump **animations** (no ability implied) | Art | none | Duck: Chief says the hero has one (note: in the hero-v6 pack `duck` is still a stand-in for idle). **Double-jump: DONE round 18**, art only: `hero-v6/double-jump`, 16 frames, 0.67 s, not wired to any input. Preview: `docs/reference/double_jump_preview.png` |
 | 12 | Audio bus and effects: absorb hum, gate open, charged objects, land, ambience | Runtime + audio | none | **FIRST PASS BUILT round 10** (`audio.js`, 34 tests, not yet heard by a person). Ambience and the charged-object reactions are still to do. |
 | 13 | Replacement Level 1 music | Audio (Kiro) | 12 | CONFIRMED; pending assets |
 | 14 | Lengthen or stack Level 1; place zones, NPCs, props, beacon | Content | 1, 4, 7, 9, 10 | Chief |
@@ -671,7 +671,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 37 | **Reactive NPC dialogue**: a second line set shown while a linked object is powered; rewinds on checkpoint | Runtime + Builder | 7 | NEW, CONFIRMED round 4 |
 | 17 | Level 1 pacing, economy and coverage tests | Test | 14 | RECOMMENDED |
 | 18 | Chest at the pip cap: "CHARGE FULL", pip drops as a pickup (replaces "refund") | Runtime + art | none | CONFIRMED design, reading OPEN |
-| 19 | Gate the dev keys (`P`, `F2`, `[`, `]`) | Runtime | none | RECOMMENDED |
+| 19 | Gate the dev keys (`P`, `F2`, `[`, `]`) | Runtime | none | **DONE round 18**: F2 and P work only in dev mode (localhost or `?dev=1`); the controls bar shows the dev hints only there |
 | 20 | Regenerate `docs/reference/PLAYER_MOVEMENT_METRICS.md` | Docs | 5 | CONFIRMED |
 | 21 | **Q pip use**: instant gate open, amend the "no one-press" comment, update `pip_gate_spend` | Runtime + test | none | CONFIRMED round 3 |
 | 22 | **Charge-speed scaling** (see GAME_DESIGN_V2 3.3: original for charging, mine for absorbing, OPEN) and HUD tell | Runtime + test | none | CONFIRMED mechanic; curve OPEN |
@@ -701,7 +701,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 30 | Charged-object pricing applied to props; charge stored in objects counted by the fail-state check | Runtime | 7, 3 | CONFIRMED prices; RECOMMENDED check |
 | 31 | Relay pylon, light cable and tower beacon art (the early-exit signpost) | Art + content | 25 | RECOMMENDED |
 | 32 | Story bible, then story NPC lines and the AC-room clue | Writing | none | Started: `docs/archive/STORY_BIBLE_DRAFT.md` |
-| 33 | "Charge gate to open." world label above exit gates | Runtime | none | CONFIRMED |
+| 33 | ~~"Charge gate to open." world label above exit gates~~ | Runtime | none | **DROPPED by Chief, round 18** ("dont need it") |
 
 ### 8.1 Who does what (issued 2026-10-14)
 | Owner | Order | Rows |

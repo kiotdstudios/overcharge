@@ -200,7 +200,8 @@ const bboxCheck = await page.evaluate(async () => {
   return { boxA, boxS, workerAAssetId: workerA.assetId, workerARef: { x: workerA.x, y: workerA.y, scale: workerA.scale }, itemFound: !!item, item };
 });
 ok(bboxCheck.boxA && bboxCheck.boxA.h < 120 && bboxCheck.boxA.h > 40, 'worker A bounding box reflects scaled sprite height (not generic 128)', JSON.stringify(bboxCheck.boxA));
-ok(bboxCheck.boxS && bboxCheck.boxS.h > 150, 'streetlamp woman bounding box is tall (her own real sprite size, not generic 128 either)', JSON.stringify(bboxCheck.boxS));
+// Her box is her own displayHeightPx (60 px NPC size), not the generic 128 box; it was > 150 before the NPC size ruling.
+ok(bboxCheck.boxS && bboxCheck.boxS.h > 40 && bboxCheck.boxS.h < 120 && Math.abs(bboxCheck.boxS.h - 60) < 1, 'streetlamp woman bounding box is her own 60 px display height, not the generic 128', JSON.stringify(bboxCheck.boxS));
 
 // level7/8/.. 404s are editor/persistence.js probing for optional level
 // slots beyond what exists on disk — pre-existing startup behavior,

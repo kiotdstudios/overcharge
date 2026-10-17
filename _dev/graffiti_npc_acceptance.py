@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parents[1]
 manifest = json.loads((root / "assets/ASSET_MANIFEST.json").read_text(encoding="utf-8"))
 level = json.loads((root / "src_scroll/levels/level1.json").read_text(encoding="utf-8"))
 asset = next(a for a in manifest["assets"] if a["id"] == "npc_graffiti_artist")
-npc = next(n for n in level["npcs"] if n["id"] == "NPC_GRAFFITI_ARTIST_01")
+npc = next(n for n in level["npcs"] if n["id"] == "npc_graffiti_artist_01")
 directory = root / "assets/sprites/npc-graffiti-artist"
 
 assert manifest["count"] == len(manifest["assets"])
@@ -16,8 +16,13 @@ assert asset["frame_count"] == 48 and asset["fps"] == 2 and asset["loop"] is Tru
 assert asset["frame_count"] / asset["fps"] == 24
 assert npc["assetId"] == asset["id"] and npc["facing"] == "right"
 assert npc["patrol"]["rangePx"] == 0
-assert level["tiles"][14 * level["cols"] + npc["x"] // 32] != 0
-assert npc["y"] == 448
+assert npc["x"] == 1000 and npc["y"] == 480
+assert level["tiles"][15 * level["cols"] + npc["x"] // 32] != 0
+# The scaled painted strip lands on the filler wall at x=1034..1162.
+anchor_x = (asset["trim"]["x"] + asset["trim"]["w"] / 2) * asset["frame_width"] * npc["scale"]
+paint_left = npc["x"] + 140 * npc["scale"] - anchor_x
+paint_right = npc["x"] + 236 * npc["scale"] - anchor_x
+assert 1034 <= paint_left < paint_right <= 1162
 
 
 def color_counts(index):

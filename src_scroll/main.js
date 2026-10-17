@@ -287,12 +287,13 @@ function _update(dt) {
       }
 
       // Dev shortcuts
-      if (Input.pressed('F2')) advanceLevel();
+      // Dev keys (F2 skip, P +charge) work only in dev mode (localhost or ?dev=1), never in a shipped build.
+      if (_DEV_MODE && Input.pressed('F2')) advanceLevel();
 
       // Dev P now feeds energy through the SAME rule the game uses
       // (fill bar first, roll to pip when bar tops out). No shortcut
       // that bypasses the charge model.
-      if (Input.pressed('KeyP')) player.giveEnergy(2);
+      if (_DEV_MODE && Input.pressed('KeyP')) player.giveEnergy(2);
 
       // Fall off level → respawn at last checkpoint (not a full game over).
       // _respawn() restores the full snapshot: level state + player
@@ -404,8 +405,9 @@ function _drawDevBar() {
   ctx.textAlign = 'center';
   const attacks = `${level.abilities.melee ? '   K MELEE' : ''}${level.abilities.bolt ? '   L BOLT' : ''}`;
   const controls = `\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   \u2193/S DUCK   E ABSORB   SPACE CHARGE${attacks}`;
-  ctx.fillText(controls + (_DEV_MODE && _DEV_LEVELS.length > 1
-    ? '   [F2] skip   [[] PREV   []] NEXT' : '   [F2] skip   [P] +charge'), viewW() / 2, 13);
+  const devHints = !_DEV_MODE ? '' : (_DEV_LEVELS.length > 1
+    ? '   [F2] skip   [[] PREV   []] NEXT' : '   [F2] skip   [P] +charge');
+  ctx.fillText(controls + devHints, viewW() / 2, 13);
 }
 
 function _drawCpFlash() {
