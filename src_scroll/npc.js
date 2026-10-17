@@ -328,11 +328,16 @@ export class Npc {
     this._greetStartedAt = this._clock;
   }
 
-  _currentFrame() {
+  // skipGreeting bypasses the greeting slot even while _greetT > 0 — used
+  // by draw() to look ahead at whatever pose will take over once the
+  // greeting ends, for the crossfade in its final BUBBLE_FADE_MS (see
+  // draw() below). Every existing caller passes nothing, so skipGreeting is
+  // undefined/falsy for them and behavior is unchanged.
+  _currentFrame(skipGreeting) {
     const sprites = this._resolveSprites();
     if (!sprites) return null;
     const usePowered = this._powered && sprites.powered;
-    const useGreeting = !usePowered && this._greetT > 0 && sprites.greeting;
+    const useGreeting = !usePowered && !skipGreeting && this._greetT > 0 && sprites.greeting;
     const useWalk = !useGreeting && this._walking && sprites.walk;
     const useSmoke = !useGreeting && !useWalk && this.ambient && this._ambState === 'smoke' && sprites.smoke;
     const slot = usePowered ? sprites.powered : useGreeting ? sprites.greeting : useWalk ? sprites.walk : (useSmoke ? sprites.smoke : sprites.ambient);
@@ -363,13 +368,48 @@ export class Npc {
     // speech bubble AFTER every NPC's sprite, so overlap-avoidance can see
     // every active bubble's real on-screen anchor before any of them render.
     this._lastGeom = g;
+
+    // Chief: the greeting pose used to snap straight to idle/walk/smoke the
+    // instant _greetT hit zero, while the speech bubble above it fades out
+    // smoothly over that same window (see BUBBLE_FADE_MS) — a visual
+    // mismatch between a soft fade and a hard pose snap. During a greeting's
+    // final BUBBLE_FADE_MS we now also look ahead at whatever pose comes
+    // next, draw it underneath at full opacity, then dissolve the greeting
+    // pose out on top of it, so the two poses crossfade instead of popping.
+    // Every other frame — by far the common case — is still exactly one
+    // drawImage() call, pixel-identical to before this change.
+    const wasGreeting = this._sprites && slot === this._sprites.greeting;
+    const fading = wasGreeting && this._greetT > 0 && this._greetT < BUBBLE_FADE_MS;
+    let nextImg = null, nextG = null;
+    if (fading) {
+      nextImg = this._currentFrame(true);
+      const nextSlot = this._frameSlot;
+      if (nextImg && nextImg.complete && nextImg.naturalWidth) {
+        const nextFrameIndex = nextSlot?.frames ? nextSlot.frames.indexOf(nextImg) : 0;
+        const nextFrameFootY = nextSlot?.frameFootY?.[nextFrameIndex];
+        nextG = npcGeometry(asset || { frame_width: nextImg.naturalWidth, frame_height: nextImg.naturalHeight },
+          this.x, this.y, this.scale, this.facing, nextFrameFootY);
+      } else {
+        nextImg = null; // lookahead frame isn't ready — fall back to the
+                         // greeting frame alone, at full opacity, below.
+      }
+      // The lookahead call above just overwrote this._frameSlot with its own
+      // slot — restore it to the greeting slot so anything reading
+      // this._frameSlot after draw() returns sees the frame actually on top.
+      this._frameSlot = slot;
+    }
+
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     if (this.facing === 'left') {
       ctx.translate(this.x, 0);
       ctx.scale(-1, 1);
+      if (nextImg) ctx.drawImage(nextImg, nextG.drawX - this.x, nextG.drawY, nextG.drawW, nextG.drawH);
+      ctx.globalAlpha = nextImg ? Math.max(0, this._greetT / BUBBLE_FADE_MS) : 1;
       ctx.drawImage(img, g.drawX - this.x, g.drawY, g.drawW, g.drawH);
     } else {
+      if (nextImg) ctx.drawImage(nextImg, nextG.drawX, nextG.drawY, nextG.drawW, nextG.drawH);
+      ctx.globalAlpha = nextImg ? Math.max(0, this._greetT / BUBBLE_FADE_MS) : 1;
       ctx.drawImage(img, g.drawX, g.drawY, g.drawW, g.drawH);
     }
     ctx.restore();
