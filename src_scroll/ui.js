@@ -8,13 +8,19 @@ import { PowerGate, Switch } from './electricity.js';
 
 // SCREEN-SPACE HUD only. Called after the camera transform has been restored,
 // so everything in here is positioned in viewport pixels.
+// Returns true the one frame an onboarding objective's checkbox just ticked, so main.js
+// can fire the "achievement" chime for it (Chief: objective completion should sound just
+// like earning an achievement). false the rest of the time, including the easter-egg card
+// branch, which has its own completion sound (sfx.play('egg-complete')) wired in main.js.
 export function drawHUD(ctx, player, level, t) {
   _drawPlayerAvatar(ctx);
   drawEnergyHUD(ctx, player, t, { x: safeInsetX() + 84, y: 22 });
   _drawLevelBanner(ctx, level, t);
+  let objectiveJustCompleted = false;
   if (_easterEggActive(level, t)) _drawEasterEggCard(ctx, t);
-  else _drawLevelOneObjective(ctx, player, level, t);
+  else objectiveJustCompleted = _drawLevelOneObjective(ctx, player, level, t);
   if (level.cols > 25) _drawProgressBar(ctx, player, level);
+  return objectiveJustCompleted;
 }
 
 // Level 1's two short onboarding objectives are derived from live gameplay state.
@@ -37,8 +43,9 @@ export function levelOneObjective(level, player) {
 export function advanceLevelOneObjectivePresentation(state, objective, t) {
   if (!state || objective.stage < state.stage) {
     return { stage: objective.stage, enteredAt: t, checked: objective.checked,
-      sparkAt: -Infinity, nextAt: null };
+      sparkAt: -Infinity, nextAt: null, justCompleted: false };
   }
+  state.justCompleted = false;   // reset every call; set below only on a genuine fresh completion
   if (state.nextAt !== null && objective.stage === state.stage) {
     state.nextAt = null;
     state.checked = objective.checked;
@@ -48,6 +55,7 @@ export function advanceLevelOneObjectivePresentation(state, objective, t) {
     state.checked = true;
     state.sparkAt = t;
     state.nextAt = t + 0.8;
+    state.justCompleted = true;   // finished this stage's task, moving to the next one
   }
   if (state.nextAt !== null && t >= state.nextAt) {
     state.stage = objective.stage;
@@ -56,8 +64,10 @@ export function advanceLevelOneObjectivePresentation(state, objective, t) {
     state.sparkAt = objective.checked ? t : -Infinity;
     state.nextAt = null;
   } else if (state.nextAt === null && state.checked !== objective.checked) {
+    const becameChecked = objective.checked && !state.checked;
     state.checked = objective.checked;
     if (state.checked) state.sparkAt = t;
+    if (becameChecked) state.justCompleted = true;   // the last objective (no further stage) just got checked
   }
   return state;
 }
@@ -65,7 +75,7 @@ export function advanceLevelOneObjectivePresentation(state, objective, t) {
 const _objectivePresentations = new WeakMap();
 function _drawLevelOneObjective(ctx, player, level, t) {
   const objective = levelOneObjective(level, player);
-  if (!objective) return;
+  if (!objective) return false;
   const state = advanceLevelOneObjectivePresentation(_objectivePresentations.get(level), objective, t);
   _objectivePresentations.set(level, state);
   const second = state.stage === 1;
@@ -132,6 +142,7 @@ function _drawLevelOneObjective(ctx, player, level, t) {
     for (let i = 0; i < 4; i++) ctx.fillRect(edge + (i % 2) * 3, y + 8 + i * 12, 3, 4);
     ctx.restore();
   }
+  return state.justCompleted;
 }
 
 // WORLD-SPACE prompts. MUST be called INSIDE the camera translate (see
