@@ -2,7 +2,7 @@
 // when persistence is unavailable or the display is disabled for tests.
 export const ACHIEVEMENTS = Object.freeze([
   // egg: true = an Easter egg. It is shown as the objective-style card for `seconds` (6 to 9), not as the small toast.
-  { id: 'good_neighbor', title: 'GOOD NEIGHBOR', text: 'Restore power for the tenant.', egg: true, seconds: 8 },
+  { id: 'good_neighbor', title: 'GOOD NEIGHBOR', text: 'Restore power for the tenant.', egg: true, seconds: 8, icon: 'assets/ui/achievements/good_neighbor.png' },
 ]);
 
 export const ACHIEVEMENT_STORAGE_KEY = 'overcharge.achievements.v1';

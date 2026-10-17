@@ -1072,7 +1072,7 @@ export function drawGameOver(ctx, t, player = null) {
 const EGG_SECONDS = 8;
 let _egg = null;
 export function showEasterEggCard(card, t, seconds = EGG_SECONDS) {
-  _egg = { title: String(card?.title || 'EASTER EGG'), text: String(card?.text || ''), at: t,
+  _egg = { title: String(card?.title || 'EASTER EGG'), text: String(card?.text || ''), icon: card?.icon ? String(card.icon) : null, at: t,
     seconds: Math.min(9, Math.max(6, Number(seconds) || EGG_SECONDS)) };
 }
 export function clearEasterEggCard() { _egg = null; }
@@ -1088,6 +1088,22 @@ function _easterEggActive(level, t) {
   if (s.active) return true;
   if (s.ended) { _egg = null; _objectivePresentations.delete(level); }   // the objective charges back in
   return false;
+}
+// The achievement's icon art (assets/ui/achievements/*.png), loaded once. Returns null until the image is ready.
+const _eggIcons = new Map();
+function _eggIcon(src) {
+  if (!src) return null;
+  let img = _eggIcons.get(src);
+  if (!img) { img = new Image(); img.src = src; _eggIcons.set(src, img); }
+  return (img.complete && img.naturalWidth) ? img : null;
+}
+export function preloadEasterEggIcon(src) { _eggIcon(src); }
+// Pop-up scale for the icon: 0 -> a bit past 1 -> 1 (ease out back), over `dur` seconds.
+export function eggIconScale(pa, dur = 0.42, overshoot = 2.2) {
+  if (pa <= 0) return 0;
+  if (pa >= dur) return 1;
+  const p = pa / dur - 1;
+  return 1 + (overshoot + 1) * p * p * p + overshoot * p * p;
 }
 function _drawEasterEggCard(ctx, t) {
   const s = easterEggCardState(t);
@@ -1146,35 +1162,61 @@ function _drawEasterEggCard(ctx, t) {
     ctx.strokeRect(x + 3.5, y + 0.5, w - 4, h - 1);
     ctx.textAlign = 'left';
     ctx.fillStyle = '#ffcf6a'; ctx.font = 'bold 8px monospace';
-    ctx.fillText('EASTER EGG COMPLETE', x + 13, y + 13, 170);
+    const icon = _eggIcon(s.card.icon);
+    const L = s.card.icon ? 76 : 13;                       // left edge of the text column
+    ctx.fillText('EASTER EGG COMPLETE', x + L, y + 13, 170);
     ctx.textAlign = 'right'; ctx.fillStyle = '#7de6ff';
     ctx.fillText('CIRCUIT CLOSED', x + w - 10, y + 13, 110);
     // the charged circuit line with a travelling pulse
     ctx.textAlign = 'left';
     ctx.strokeStyle = '#44ddff'; ctx.lineWidth = 2;
     if (!reduced) { ctx.shadowColor = '#44ddff'; ctx.shadowBlur = 5 + 6 * pulse; }
-    ctx.beginPath(); ctx.moveTo(x + 13, y + 20); ctx.lineTo(x + w - 10, y + 20); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x + L, y + 20); ctx.lineTo(x + w - 10, y + 20); ctx.stroke();
     ctx.shadowBlur = 0;
     if (!reduced) {
-      const px = x + 13 + ((age * 0.55) % 1) * (w - 23);
+      const px = x + L + ((age * 0.55) % 1) * (w - L - 10);
       ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(px) - 2, y + 18, 5, 4);
     }
-    // the diamond (filled this time) and the achievement name
-    const dx = x + 21, dy = y + 40, r = 7 + (reduced ? 0 : 1.5 * Math.sin(age * 6));
-    ctx.fillStyle = '#ffcf6a';
-    ctx.beginPath(); ctx.moveTo(dx, dy - r); ctx.lineTo(dx + r, dy); ctx.lineTo(dx, dy + r); ctx.lineTo(dx - r, dy); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#2a1840'; ctx.fillRect(dx - 1, dy - 3, 2, 4); ctx.fillRect(dx - 1, dy + 2, 2, 2);
+    // the icon pops up (or the gold diamond if the art is missing) and the achievement name
+    const popAt = 0.78;                                      // just after the card has finished revealing
+    const pa = age - popAt;
+    let tx = 40;
+    if (icon) {
+      tx = L;
+      const S = reduced ? 1 : eggIconScale(pa);
+      if (S > 0) {
+        const size = 64, icx = Math.round(x + 40), icy = Math.round(y + 41 + (reduced ? 0 : Math.sin(age * 3) * 1.2));
+        ctx.save();
+        ctx.imageSmoothingEnabled = false;
+        if (!reduced) { ctx.shadowColor = '#44ddff'; ctx.shadowBlur = 8 + 6 * pulse; }
+        ctx.translate(icx, icy); ctx.scale(S, S);
+        ctx.drawImage(icon, -size / 2, -size / 2, size, size);
+        ctx.restore();
+        // a ring and a few pixel sparks leave the icon as it lands
+        if (!reduced && pa >= 0 && pa < 0.55) {
+          const q = pa / 0.55;
+          ctx.save(); ctx.globalAlpha = fade * (1 - q);
+          ctx.strokeStyle = '#ffcf6a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(icx, icy, 16 + q * 30, 0, Math.PI * 2); ctx.stroke();
+          for (let i = 0; i < 8; i++) { const ang = i * Math.PI / 4 + 0.4; ctx.fillStyle = i % 2 ? '#ffffff' : '#44ddff'; ctx.fillRect(Math.round(icx + Math.cos(ang) * (18 + q * 34)), Math.round(icy + Math.sin(ang) * (18 + q * 34)), 3, 3); }
+          ctx.restore();
+        }
+      }
+    } else {
+      const dx = x + 21, dy = y + 40, r = 7 + (reduced ? 0 : 1.5 * Math.sin(age * 6));
+      ctx.fillStyle = '#ffcf6a';
+      ctx.beginPath(); ctx.moveTo(dx, dy - r); ctx.lineTo(dx + r, dy); ctx.lineTo(dx, dy + r); ctx.lineTo(dx - r, dy); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#2a1840'; ctx.fillRect(dx - 1, dy - 3, 2, 4); ctx.fillRect(dx - 1, dy + 2, 2, 2);
+    }
     if (!reduced) { ctx.shadowColor = '#cc44ff'; ctx.shadowBlur = 10 * pulse; }
     ctx.fillStyle = '#f4ecff'; ctx.font = 'bold italic 16px monospace';
-    ctx.fillText(card.title, x + 40, y + 46, w - 52);
+    ctx.fillText(card.title, x + tx, y + 46, w - tx - 12);
     ctx.shadowBlur = 0;
     // the checked box and the achievement text
-    const bx = x + 41, by = y + 56;
+    const bx = x + tx + 1, by = y + 56;
     ctx.strokeStyle = '#44ddff'; ctx.lineWidth = 1; ctx.strokeRect(bx + 0.5, by + 0.5, 11, 11);
     ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx + 2, by + 6); ctx.lineTo(bx + 5, by + 9); ctx.lineTo(bx + 10, by + 2); ctx.stroke();
     ctx.fillStyle = '#9fe4ee'; ctx.font = '10px monospace';
-    ctx.fillText(card.text, x + 59, y + 66, w - 70);
-    // time left, as a thin bar
+    ctx.fillText(card.text, bx + 18, y + 66, w - tx - 30);    // time left, as a thin bar
     ctx.fillStyle = 'rgba(255,207,106,0.55)';
     ctx.fillRect(x + 3, y + h - 3, Math.round((w - 3) * Math.max(0, left / s.seconds)), 1);
     // pixel sparks pop off the box once, like the objective check

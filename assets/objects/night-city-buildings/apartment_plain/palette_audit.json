@@ -132,6 +132,16 @@
       "blue_dominant_pct": 99.9,
       "mean_hue": 234,
       "warm_pct_of_opaque": 2.4
+    },
+    "right_end_tenant": {
+      "wall_mean_rgb": [
+        27,
+        31.1,
+        69
+      ],
+      "blue_dominant_pct": 99.9,
+      "mean_hue": 234,
+      "warm_pct_of_opaque": 9.42
     }
   }
 }

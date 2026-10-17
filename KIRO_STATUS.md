@@ -2485,3 +2485,16 @@ Find the Level 1 walls in PixelLab and make a 9-tile set (grass-block layout) fr
 
 ### PixelLab
 80 generations spent this round (about 850 of 2000 left): key pose 6, relaxed pose 6, clips A, B, C, D, relieved 6 each, idle 3, a second idle 3, the spare neck-fanning clip 6, plus cancelled and rejected retries. Two jobs stalled for over 30 minutes and I cancelled them. The service was slow and unreliable for a while. Gallery IDs: key `a7a5888f`, relaxed `c454da51`, A `15e21a3a`, C `c2027ad7`, relieved `e778fa78`, idle `421f6316`, spare neck-fanning `168d1cf8`.
+
+## Round 20: tenant and AC swapped, Easter egg icon
+
+### Chief's asks
+1. "Do we have the Easter egg card art? I want the icon to pop up."
+2. "We don't get the text bubble of her being hot, so switch her and the AC unit so the player gets her bubble as they pass her on the ladder, then runs to the far left to power the AC."
+
+### Done
+- **Easter egg icon:** there was no art (the card only drew a gold diamond). Made two icons with PixelLab (5 generations each): a cute smiling wall air conditioner with a snowflake and a heart (used), and a round medal version (kept as `good_neighbor_medal_alt.png`). `assets/ui/achievements/good_neighbor.png` (64 x 64, 32 colours, transparent). The card now has an icon column on the left; the icon pops up just after the card finishes revealing (scales from nothing, overshoots to 1.15, settles at 1.0, with a gold ring and pixel sparks, then a slow bob and glow). Reduced-motion players get it static; if the art fails to load the old diamond is drawn. Wired through an `icon` field on the achievement (`achievements.js`) and `ui.js`. Slow-motion proof (game clock at 1/4 speed): `docs/reference/easter_egg_icon_pop_slowmo.png`. Tests: `_dev/egg_icon_pop.mjs` (6), `_dev/easter_egg_card.mjs` (25).
+- **Swap (Chief's order, logged in the standing-orders file):** tenant now in the window beside the ladder (new panel `right_end_tenant_window`, 12th to 13th kit piece), AC at the far left of the apartment roof (x 32), roof made walkable across the whole building (11 tiles). Played in the real game: the hero climbs the ladder, her bubble "It's an oven in here." appears as he passes, and he runs left to the AC. Screenshots: `docs/reference/tenant_v3/climb_passes_tenant_bubble.png`, `climb_far_left_ac.png`.
+
+### Not done
+- The pop is verified by slow motion and by a curve test, not by watching it at full speed; at full speed it lasts 0.42 s.
