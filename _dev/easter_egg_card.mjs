@@ -69,12 +69,41 @@ sec('THE ACHIEVEMENT SIDE');
   ok(createAchievements({ storage: store, search: '' }).unlock('good_neighbor'), '?achievements=reset forgets it so the egg can be tested again');
 }
 
+sec('TESTING BUILD: resetOnLoad forgets everything on every refresh');
+{
+  // Chief: "the achievement needs to reset each time i refresh until i
+  // finish the game and publish it" — a tester's browser must start every
+  // single page load with nothing earned, not just the first visit.
+  const store = mem();
+  ok(createAchievements({ storage: store, search: '', resetOnLoad: true }).unlock('good_neighbor'),
+    'with resetOnLoad, a fresh instance unlocks it the first time, same as always');
+  // Simulate a page refresh: a brand new createAchievements() call against
+  // the SAME storage (localStorage survives a refresh; the module instance
+  // does not) — without resetOnLoad this would already be earned (proven
+  // right above by the plain '?achievements=reset' case), but WITH it the
+  // instance must come up blank every time, exactly like the very first load.
+  ok(!createAchievements({ storage: store, search: '', resetOnLoad: true }).has('good_neighbor'),
+    'a second instance (simulated refresh) with resetOnLoad does NOT see it as already earned');
+  ok(createAchievements({ storage: store, search: '', resetOnLoad: true }).unlock('good_neighbor'),
+    'so it can unlock again on that "new" page load, visible to every tester');
+  // The default (resetOnLoad omitted / false) is completely untouched — this
+  // is the normal, permanent-persistence behavior every other test above
+  // already relies on, and it must stay that way for the eventual real
+  // release once Chief flips the flag back off in main.js.
+  const storeB = mem();
+  createAchievements({ storage: storeB, search: '' }).unlock('good_neighbor');
+  ok(createAchievements({ storage: storeB, search: '' }).has('good_neighbor'),
+    'without resetOnLoad (the default), a second instance still sees it earned - zero regression');
+}
+
 sec('WIRING');
 {
   const mn = fs.readFileSync(new URL('../src_scroll/main.js', import.meta.url), 'utf8');
   const au = fs.readFileSync(new URL('../src_scroll/audio.js', import.meta.url), 'utf8');
   ok(/showEasterEggCard\(shown, t, shown\.seconds\)/.test(mn) && /sfx\.play\('egg-complete'\)/.test(mn), 'main.js shows the card and plays the fanfare when an egg unlocks');
   ok(/'egg-complete':\s*\(\) =>/.test(au), 'audio.js has the egg-complete fanfare');
+  ok(/createAchievements\(\{\s*resetOnLoad:\s*_TESTING_RESET_ACHIEVEMENTS\s*\}\)/.test(mn),
+    'main.js currently wires resetOnLoad through the _TESTING_RESET_ACHIEVEMENTS flag (remove this assertion once that flag is retired for the real release)');
 }
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
