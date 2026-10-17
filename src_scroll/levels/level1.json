@@ -3633,23 +3633,23 @@
       "tileLayer": "back"
     },
     {
-      "src": "assets/objects/night-city-buildings/apartment_tenant/tenant_left.png",
+      "src": "assets/objects/night-city-buildings/apartment_plain/left_end_tenant_window.png",
       "x": 1,
       "y": 126,
       "w": 192,
       "h": 256
     },
     {
-      "src": "assets/objects/night-city-buildings/apartment_tenant/tenant_wall.png",
+      "src": "assets/objects/night-city-buildings/apartment_plain/wall_06.png",
       "x": 193,
-      "y": 123,
+      "y": 126,
       "w": 160,
       "h": 256
     },
     {
-      "src": "assets/objects/night-city-buildings/apartment_tenant/tenant_right.png",
+      "src": "assets/objects/night-city-buildings/apartment_plain/right_end.png",
       "x": 351,
-      "y": 128,
+      "y": 126,
       "w": 128,
       "h": 256
     },
@@ -8343,8 +8343,8 @@
       "assetId": "npc_window_tenant",
       "poweredAssetId": "npc_window_tenant_relieved",
       "linkedObjectId": "AC_TENANT",
-      "x": 258,
-      "y": 301,
+      "x": 102,
+      "y": 234,
       "facing": "right",
       "dialogue": {
         "enabled": true,
