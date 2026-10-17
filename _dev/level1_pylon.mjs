@@ -10,55 +10,14 @@ const sec = t => console.log(`\n[ ${t} ]`);
 const d = JSON.parse(fs.readFileSync(new URL('../src_scroll/levels/level1.json', import.meta.url), 'utf8'));
 const run = (p, lv, keys, seconds, until) => { held(keys); for (let i = 0; i < Math.round(seconds * 60); i++) { step(p, lv); if (until && until()) break; } held([]); };
 
-sec('THE PYLON STAYS');
+sec('THE PYLON, BEACON AND LIGHT-CABLE MOVED OUT TO LEVEL 7');
 {
-  const pylon = d.decorations.filter(x => /relay-pylon\/pylon\.png$/.test(x.src));
-  ok(pylon.length === 1, 'exactly one relay pylon is placed', `${pylon.length}`);
-}
-
-sec('THE BEACON SITS ON THE GATEHOUSE ROOF (AKI_26 #6)');
-{
-  const beacon = d.decorations.filter(x => /beacon-top\/beacon_top\.png$/.test(x.src));
-  ok(beacon.length === 1, 'exactly one beacon-top is placed', `${beacon.length}`);
-  const gate = d.gates.find(g => g.isExit);
-  const b = beacon[0];
-  ok(Math.abs(b.x - gate.x) < 200, 'the beacon sits near the exit gate', `beacon x ${b.x}, gate x ${gate.x}`);
-  const roofBuildings = d.decorations.filter(x => /filler_wall_04/.test(x.src) && Math.abs(x.x - b.x) < 150);
-  ok(roofBuildings.length > 0, 'there is a gatehouse roof under the beacon', `${roofBuildings.length} roof pieces nearby`);
-  if (roofBuildings.length > 0) {
-    const roofTop = Math.min(...roofBuildings.map(r => r.y));
-    ok(b.y + b.h === roofTop, 'the beacon sits flush on the roof top (no float, no sink)', `beacon bottom ${b.y + b.h}, roof top ${roofTop}`);
-  }
-}
-
-sec('THE LIGHT CABLE RUNS THE FULL SKYLINE, PYLON TO GATEHOUSE (AKI_26 #5)');
-{
-  const cables = d.decorations.filter(x => /light-cable\//.test(x.src));
-  ok(cables.length === 81, 'the full cable run is placed (pylon climb + skyline run to the gatehouse)', `${cables.length}`);
-  const hs = cables.filter(x => /cable_straight_h/.test(x.src));
-  const vs = cables.filter(x => /cable_straight_v/.test(x.src));
-  const corners = cables.filter(x => /cable_corner/.test(x.src));
-  ok(corners.length === 5, 'five corners: one climb at the pylon, two height-step transitions (2 corners each)', `${corners.length}`);
-  ok(corners.every(c => [0, 90, 180, 270].includes(c.rotation || 0)), 'every corner has a valid 90-degree rotation');
-  const minX = Math.min(...cables.map(c => c.x));
-  const maxX = Math.max(...cables.map(c => c.x + c.w));
-  ok(minX < 800, 'the run starts at the pylon', `min x ${minX}`);
-  const gate = d.gates.find(g => g.isExit);
-  ok(maxX > gate.x - 100, 'the run reaches all the way to the gatehouse', `max x ${maxX}, gate x ${gate.x}`);
-  // No gaps along each horizontal row (straight_h pieces + the corners that sit in that row connecting to them).
-  // Vertical straight_v pieces are excluded: they stack at one x, not meant to chain horizontally.
-  const rowPieces = cables.filter(x => /cable_straight_h|cable_corner/.test(x.src));
-  let maxGapSameRow = 0;
-  const byY = {};
-  for (const c of rowPieces) { (byY[c.y] = byY[c.y] || []).push(c); }
-  for (const y of Object.keys(byY)) {
-    const row = byY[y].sort((a, b) => a.x - b.x);
-    for (let i = 1; i < row.length; i++) {
-      const gap = row[i].x - (row[i - 1].x + row[i - 1].w);
-      if (gap > maxGapSameRow) maxGapSameRow = gap;
-    }
-  }
-  ok(maxGapSameRow <= 0, 'no horizontal gaps within any single cable height level (chain is unbroken)', `max gap ${maxGapSameRow}px`);
+  // Chief: the cable corners did not actually connect in-game (wrong rotation), and he was not sure what the
+  // feature was for sitting mid-level-1. Moved the whole relay-pylon/beacon-top/light-cable set to level7.json
+  // (a dedicated showcase) and stripped it out of level1 entirely. This guard now asserts the opposite of what
+  // it used to: level1 carries NONE of it any more.
+  const stray = d.decorations.filter(x => /relay-pylon|beacon-top|light-cable/.test(x.src));
+  ok(stray.length === 0, 'level1 has no relay-pylon, beacon-top or light-cable pieces left', `${stray.length} found`);
 }
 
 sec('THE SCRAPPED ROOM IS GONE');
