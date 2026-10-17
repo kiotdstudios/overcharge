@@ -3407,7 +3407,7 @@
     {
       "id": "npc_graffiti_artist",
       "name": "Graffiti artist (three-color 24-second tag)",
-      "path": "assets/sprites/npc-graffiti-artist/00.png",
+      "path": "assets/sprites/npc-graffiti-artist/000.png",
       "category": "npc",
       "spawnsKind": "npc",
       "tags": [
@@ -3419,8 +3419,8 @@
       ],
       "frame_width": 256,
       "frame_height": 128,
-      "frame_count": 48,
-      "fps": 2,
+      "frame_count": 288,
+      "fps": 12,
       "loop": true,
       "trim": {
         "x": 0.2,
@@ -3428,7 +3428,7 @@
         "w": 0.24,
         "h": 0.70625
       },
-      "notes": "Grounded hooded graffiti artist and wall tag in one synchronized transparent 24-second loop. Cyan paints first, then violet, then amber; the last three seconds display the completed mark. Place facing right against a wall with about 80px clear space to the right at scale 0.8. No collision or dialogue. Generated pose and tag source sheets are in _dev/graffiti_npc."
+      "notes": "Grounded hooded graffiti artist with a pivot-rigged spray arm in a transparent 24-second, 12 fps loop. Cyan paints first, then violet, then amber; the completed mark holds and fades for a clean reset. Place facing right against a wall with about 80px clear space to the right at scale 0.8. No collision or dialogue. Generated pose and tag source sheets are in _dev/graffiti_npc."
     },
     {
       "id": "npc_window_tenant",

@@ -12,7 +12,7 @@ npc = next(n for n in level["npcs"] if n["id"] == "npc_graffiti_artist_01")
 directory = root / "assets/sprites/npc-graffiti-artist"
 
 assert manifest["count"] == len(manifest["assets"])
-assert asset["frame_count"] == 48 and asset["fps"] == 2 and asset["loop"] is True
+assert asset["frame_count"] == 288 and asset["fps"] == 12 and asset["loop"] is True
 assert asset["frame_count"] / asset["fps"] == 24
 assert npc["assetId"] == asset["id"] and npc["facing"] == "right"
 assert npc["patrol"]["rangePx"] == 0
@@ -26,7 +26,7 @@ assert 1034 <= paint_left < paint_right <= 1162
 
 
 def color_counts(index):
-    image = Image.open(directory / f"{index:02d}.png").convert("RGBA")
+    image = Image.open(directory / f"{index:03d}.png").convert("RGBA")
     assert image.size == (256, 128)
     # The mural occupies the right-hand strip; the painter stays to its left.
     pixels = list(image.crop((140, 25, 236, 73)).getdata())
@@ -37,17 +37,26 @@ def color_counts(index):
     )
 
 
-for frame in range(48):
-    assert (directory / f"{frame:02d}.png").is_file()
-
 assert color_counts(0) == (0, 0, 0)
-assert color_counts(12)[0] > 50 and color_counts(12)[1:] == (0, 0)
-assert color_counts(26)[0] > 50 and color_counts(26)[1] > 50 and color_counts(26)[2] == 0
-assert all(count > 20 for count in color_counts(38))
-assert all(count > 20 for count in color_counts(47))
+assert color_counts(6 * 12)[0] > 50 and color_counts(6 * 12)[1:] == (0, 0)
+assert color_counts(13 * 12)[0] > 50 and color_counts(13 * 12)[1] > 50 and color_counts(13 * 12)[2] == 0
+assert all(count > 20 for count in color_counts(19 * 12))
+assert all(count > 20 for count in color_counts(22 * 12))
 
 # The authored visible-foot anchor is 116 source pixels, the feet in all poses.
 trim = asset["trim"]
 assert round((trim["y"] + trim["h"]) * asset["frame_height"]) == 116
-assert all(Image.open(directory / f"{frame:02d}.png").convert("RGBA").getbbox()[3] == 116 for frame in range(48))
-print("PASS: grounded 24-second NPC loop paints cyan, violet, then amber")
+assert all((directory / f"{frame:03d}.png").is_file() for frame in range(288))
+assert all(Image.open(directory / f"{frame:03d}.png").convert("RGBA").getbbox()[3] == 116 for frame in range(288))
+# The painter itself has no render-swap pop, including the loop seam. The tag
+# deliberately fades during the last second, so compare the actor crop.
+body = [Image.open(directory / f"{frame:03d}.png").convert("RGBA").crop((18, 0, 95, 128)) for frame in range(288)]
+steps = []
+for a, b in zip(body, body[1:] + body[:1]):
+    aa, bb = list(a.getdata()), list(b.getdata())
+    area = sum(bool(x[3] or y[3]) for x, y in zip(aa, bb))
+    changed = sum(x != y and bool(x[3] or y[3]) for x, y in zip(aa, bb))
+    steps.append(100 * changed / max(1, area))
+assert max(steps) < 25, max(steps)
+assert steps[-1] <= max(steps[:-1]), steps[-1]
+print(f"PASS: grounded 24-second NPC loop paints cyan, violet, amber; body max step {max(steps):.1f}%, seam {steps[-1]:.1f}%")
