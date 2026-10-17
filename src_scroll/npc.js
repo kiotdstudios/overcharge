@@ -135,7 +135,7 @@ export class Npc {
     // always starts an NPC in the "never triggered" state.
     this._wasInside     = false;
     this._cooldownT     = 0;     // seconds remaining before this NPC may trigger again
-    this._bubbleT       = 0;     // seconds remaining the bubble stays visible
+    this._bubbleT       = 0;     // MILLISECONDS remaining the bubble stays visible
     this._bubbleText    = '';
     this._lineIdx       = 0;
     this._triggeredOnce = false; // for oncePerLevel
@@ -412,6 +412,13 @@ export const BUBBLE_ACCENT_PALETTE = Object.freeze([
   '#ffb454',     // amber  — 3rd simultaneous speaker
   '#6cf2a3',     // mint   — 4th+ simultaneous speaker
 ]);
+// Chief: "text boxes should fade away" — a bubble now ramps from fully
+// opaque down to fully transparent over its last BUBBLE_FADE_MS of life
+// instead of popping off screen the instant its timer hits zero. Measured
+// off the REMAINING time (npc._bubbleT), not elapsed time, so it applies
+// identically whether the authored duration was 500ms or 30000ms — every
+// bubble gets the same fade window at the end, not a proportional one.
+export const BUBBLE_FADE_MS = 400;
 
 function wrapText(ctx, text, maxWidth) {
   const words = String(text).split(/\s+/);
@@ -461,8 +468,9 @@ function rectsOverlap(a, b) {
   return a.bx < b.bx + b.w && a.bx + a.w > b.bx && a.by < b.by + b.h && a.by + a.h > b.by;
 }
 
-export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra = 0, accent = BUBBLE_ACCENT) {
+export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra = 0, accent = BUBBLE_ACCENT, alpha = 1) {
   ctx.save();
+  ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
   const { lines, w, h } = measureBubble(ctx, text);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
@@ -536,12 +544,15 @@ export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra =
 // NPCs are talking in the same frame, each gets a distinct accent color
 // from BUBBLE_ACCENT_PALETTE (by speaking-order index) so nearby overlapping
 // conversations stay visually distinguishable even when they're stacked.
+// Every bubble also fades out over its last BUBBLE_FADE_MS instead of
+// popping off screen (see BUBBLE_FADE_MS above).
 export function drawNpcBubbles(ctx, npcs, viewport) {
   const active = npcs.filter(npc => npc._bubbleT > 0 && npc._bubbleText && npc._lastGeom);
   const placed = [];
   active.forEach((npc, i) => {
     const anchorX = npc.x, topY = npc._lastGeom.visible.y;
     const accent = active.length > 1 ? BUBBLE_ACCENT_PALETTE[i % BUBBLE_ACCENT_PALETTE.length] : BUBBLE_ACCENT;
+    const alpha = npc._bubbleT < BUBBLE_FADE_MS ? Math.max(0, npc._bubbleT / BUBBLE_FADE_MS) : 1;
     ctx.save();
     const measured = measureBubble(ctx, npc._bubbleText);
     ctx.restore();
@@ -552,7 +563,7 @@ export function drawNpcBubbles(ctx, npcs, viewport) {
       if (!placed.some(r => rectsOverlap(rect, r))) { placed.push(rect); break; }
       lift += measured.h + 16; // extra room so the tail + glow of the stacked bubble clear the one below
     }
-    drawSpeechBubble(ctx, anchorX, topY, npc._bubbleText, viewport, lift, accent);
+    drawSpeechBubble(ctx, anchorX, topY, npc._bubbleText, viewport, lift, accent, alpha);
   });
   // Returned so other screen-space systems that float their own text near a
   // world object (ui.js's "[E] ABSORB" etc.) can steer clear of wherever a
