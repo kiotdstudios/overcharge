@@ -133,6 +133,7 @@ export function mechanicsSnapshot() {
 }
 let t      = 0;
 let completeTimer = 0;
+let _levelCompleteChimePlayed = false;   // one-shot: fires right as the completion card strikes in
 // Keep the gate and its electrical opening fully visible before the completion card.
 const EXIT_REVEAL_SECONDS = 4;
 const COMPLETE_CARD_REVEAL_SECONDS = 1.15;
@@ -324,12 +325,20 @@ function _update(dt) {
       if (level.complete) {
         state = STATES.LEVEL_COMPLETE;
         completeTimer = 0;
+        _levelCompleteChimePlayed = false;
       }
       break;
 
     case STATES.LEVEL_COMPLETE:
       completeTimer += dt;
       level.update(dt, player);
+      // The gate already had its own 'gate-open' sound; this is the level's own fanfare,
+      // timed to the completion card's center-strike impact (Chief: level completion needs
+      // its own sfx, distinct from the objective/achievement chime).
+      if (!_levelCompleteChimePlayed && completeTimer >= EXIT_REVEAL_SECONDS) {
+        sfx.play('level-complete');
+        _levelCompleteChimePlayed = true;
+      }
       if (completeTimer > EXIT_REVEAL_SECONDS + COMPLETE_CARD_REVEAL_SECONDS && Input.pressedAny('Space', 'Enter')) advanceLevel();
       break;
 

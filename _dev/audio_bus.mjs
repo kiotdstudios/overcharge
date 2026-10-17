@@ -204,6 +204,13 @@ sec('REGRESSION: the charge hum must not outlive the level (Chief: gate sfx kept
      /sfx\.setLoop\('ac_hum', acGain > 0, 1, acGain\);/.test(mainSrc),
     'the ac_hum gain is driven by distance to the nearest powered unit, not a flat on/off');
   ok(/function _respawn\(\) \{\s*_applySnapshot\(\);\s*juice\.clear\(\);/.test(mainSrc), 'and clears them on a checkpoint rewind');
+
+  // 6. The level's own completion fanfare: distinct from the gate-open sound and the
+  //    objective/achievement chime, fired once as the completion card strikes in.
+  ok(/sfx\.play\('level-complete'\)/.test(mainSrc), "main.js plays the level's own fanfare");
+  ok(/_levelCompleteChimePlayed = false;/.test(mainSrc), 'the one-shot guard resets on every fresh level completion');
+  const { createAudio: createAudio2 } = await import('../src_scroll/audio.js');
+  ok(createAudio2().soundNames.includes('level-complete'), "'level-complete' is a real, distinct sound (not reused from achievement/gate-open)");
 }
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);
