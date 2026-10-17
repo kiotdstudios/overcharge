@@ -38,6 +38,7 @@ const Actions = await import('../editor/actions.js');
 const History = await import('../editor/history.js');
 const S = await import('../editor/state.js');
 
+let ROWS0 = 0;   // Level 1's height today, set by the first section
 let pass = 0, fail = 0;
 const ok = (c, m, d = '') => { if (c) { pass++; console.log(`  \u2713 ${m}${d ? ' \u2014 ' + d : ''}`); } else { fail++; console.log(`  \u2717 ${m}${d ? ' \u2014 ' + d : ''}`); } };
 const sec = t => console.log(`\n[ ${t} ]`);
@@ -59,7 +60,8 @@ sec('Real Level 1 fixture sanity (read-only load)');
 {
   const lvl = loadLevel1Copy();
   ok(lvl.cols === 100, 'Level 1 is 100 cols wide', `got ${lvl.cols}`);
-  ok(lvl.tiles.length / lvl.cols === 18, 'Level 1 is 18 rows tall today', `got ${lvl.tiles.length / lvl.cols}`);
+  ROWS0 = lvl.tiles.length / lvl.cols;   // Level 1 grows in the Builder; every number below is relative to today's height
+ok(ROWS0 >= 18 && ROWS0 <= 38, 'Level 1 has a sane height today', `got ${ROWS0}`);
   ok(Array.isArray(lvl.npcs) && lvl.npcs.length >= 3, 'Level 1 has at least 3 authored npcs', `got ${lvl.npcs?.length}`);
   ok(lvl.platforms.length === 0, 'Level 1 has no platforms today (path-shift fix needs a synthetic fixture)');
 }
@@ -77,8 +79,8 @@ sec('addSectionAbove: Level 1 copy, 18 -> 34 rows (+16 rows, +512px)');
   ok(!!action, 'addSectionAbove(16) produces an action for Level 1 (34 rows is well under the 54 cap)');
   History.apply(action);
 
-  ok(lvl.tiles.length / lvl.cols === 34, 'level grew from 18 to 34 rows', `got ${lvl.tiles.length / lvl.cols}`);
-  ok(lvl.tiles.length === 3400, 'tiles array length is cols*rows = 3400', `got ${lvl.tiles.length}`);
+  ok(lvl.tiles.length / lvl.cols === ROWS0 + 16, `level grew from ${ROWS0} to ${ROWS0 + 16} rows`, `got ${lvl.tiles.length / lvl.cols}`);
+  ok(lvl.tiles.length === lvl.cols * (ROWS0 + 16), 'tiles array length is cols*rows', `got ${lvl.tiles.length}`);
   ok(lvl.playerStart.y === playerYBefore + 512, 'playerStart shifted by +512px');
   ok(lvl.npcs.every((n, i) => n.y === npcYsBefore[i] + 512), 'all authored npcs shifted by +512px (THE GAP -- previously unshifted)');
   ok(lvl.decorations.every((d, i) => d.y === decoYsBefore[i] + 512), 'all decorations shifted by +512px');
@@ -86,12 +88,12 @@ sec('addSectionAbove: Level 1 copy, 18 -> 34 rows (+16 rows, +512px)');
   ok(lvl.gates.every((g, i) => g.y === gateYsBefore[i] + 512), 'the gate shifted by +512px');
 
   History.undo();
-  ok(lvl.tiles.length / lvl.cols === 18, 'undo restores 18 rows');
+  ok(lvl.tiles.length / lvl.cols === ROWS0, 'undo restores the original rows');
   ok(lvl.npcs.every((n, i) => n.y === npcYsBefore[i]), 'undo restores original npc y positions');
   ok(JSON.stringify(lvl) === rawBefore.replace(/\s+/g, '') ? true : JSON.stringify(JSON.parse(rawBefore)) === JSON.stringify(lvl), 'undo restores the clone to byte-for-byte the original parsed level');
 
   History.redo();
-  ok(lvl.tiles.length / lvl.cols === 34, 'redo re-grows to 34 rows');
+  ok(lvl.tiles.length / lvl.cols === ROWS0 + 16, 'redo re-grows by 16 rows');
   ok(lvl.npcs.every((n, i) => n.y === npcYsBefore[i] + 512), 'redo re-shifts npcs by +512px');
 }
 
@@ -161,9 +163,10 @@ sec('removeSectionAboveIssue blocks when a platform PATH (not just its anchor) s
 sec('MAX_LEVEL_ROWS cap still enforced (unaffected by this fix)');
 {
   const lvl = setLevel(loadLevel1Copy()); // 18 rows
-  const tooMany = Actions.addSectionAbove(lvl, 54 - 18 + 1); // would push to 55 > 54 cap
-  ok(tooMany === null, 'adding past MAX_LEVEL_ROWS (54) is still rejected', `rows requested would be ${18 + (54 - 18 + 1)}`);
-  const exact = Actions.addSectionAbove(lvl, 54 - 18); // exactly 54
+  const ROWS1 = lvl.tiles.length / lvl.cols;
+const tooMany = Actions.addSectionAbove(lvl, 54 - ROWS1 + 1); // would push to 55 > 54 cap
+  ok(tooMany === null, 'adding past MAX_LEVEL_ROWS (54) is still rejected', `rows requested would be ${ROWS1 + (54 - ROWS1 + 1)}`);
+  const exact = Actions.addSectionAbove(lvl, 54 - ROWS1); // exactly 54
   ok(exact !== null, 'adding exactly up to the 54-row cap is still allowed');
 }
 

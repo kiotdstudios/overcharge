@@ -415,10 +415,10 @@
     0,
     0,
     0,
+    2,
     46,
     46,
     46,
-    46,
     0,
     0,
     0,
@@ -1208,7 +1208,7 @@
     43,
     43,
     43,
-    43,
+    2,
     43,
     43,
     43,
@@ -3663,9 +3663,9 @@
     {
       "src": "assets/objects/night-city-props/ladder/ladder.png",
       "x": 128,
-      "y": 416,
+      "y": 384,
       "w": 32,
-      "h": 192
+      "h": 224
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
@@ -3678,10 +3678,10 @@
     },
     {
       "src": "assets/objects/night-city-props/ladder/ladder.png",
-      "x": 494,
-      "y": 38,
-      "w": 128,
-      "h": 605,
+      "x": 352,
+      "y": 128,
+      "w": 32,
+      "h": 256,
       "snap": 1,
       "tileLayer": "front"
     }
@@ -3723,8 +3723,8 @@
     },
     {
       "id": "AC_TENANT",
-      "x": 352,
-      "y": 356,
+      "x": 416,
+      "y": 100,
       "label": "HVAC",
       "charge": 4,
       "kind": "hvac",

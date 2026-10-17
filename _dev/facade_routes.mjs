@@ -13,8 +13,9 @@ unit.forward();assert.deepEqual(fixture.tiles,[2,2,0,0]);
 assert.equal(fixture.decorations[1].rotation,90);assert.equal(fixture.decorations[1].flipX,true);
 const fixtureAfter=JSON.stringify(fixture);unit.inverse();assert.equal(JSON.stringify(fixture),fixtureBefore);
 unit.forward();assert.equal(JSON.stringify(fixture),fixtureAfter);
+const R0=def.tiles.length/def.cols-18;   // Level 1 grows in the Builder: shift every row by the added rows
 const cells=[];
-for(let row=12;row<=14;row++)for(let col=67;col<=75;col++){
+for(let row=12+R0;row<=14+R0;row++)for(let col=67;col<=75;col++){
   const asset=manifest.assets.find(a=>a.id===tileAssetIdFor(def.tiles[row*def.cols+col]));
   cells.push({row,col,path:asset?.path});
 }
@@ -22,15 +23,15 @@ const original=JSON.stringify(def);
 const action=facadeAction(def,cells);
 if(action){action.forward();const converted=JSON.stringify(def);action.inverse();assert.equal(JSON.stringify(def),original);action.forward();assert.equal(JSON.stringify(def),converted);}
 const level=new Level({...def,enemies:[]});
-const p=new Player(66*32,480-30);p.grounded=true;
+const p=new Player(66*32,480+R0*32-30);p.grounded=true;
 held(['ArrowRight']);for(let i=0;i<290;i++)step(p,level);held([]);
 assert.ok(p.x>76*32,'walks in front of the whole new structure');
-assert.equal(p.y+p.h,480,'supported by the actual lower rooftop');
-const upper=new Player(76*32,480-30);upper.grounded=true;
+assert.equal(p.y+p.h,480+R0*32,'supported by the actual lower rooftop');
+const upper=new Player(76*32,480+R0*32-30);upper.grounded=true;
 held(['ArrowLeft','ArrowUp']);step(upper,level);held(['ArrowLeft']);
 for(let i=0;i<110;i++)step(upper,level);held([]);
 assert.ok(upper.x<76*32 && upper.x>67*32);
-assert.equal(upper.y+upper.h,384,'lands on the structure roof');
+assert.equal(upper.y+upper.h,384+R0*32,'lands on the structure roof');
 assert.deepEqual(def.gates,JSON.parse(original).gates);
 assert.equal(level.complete,false);
 if(process.argv.includes('--apply'))fs.writeFileSync(path,JSON.stringify(def,null,2)+'\n');

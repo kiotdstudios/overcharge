@@ -3,7 +3,7 @@
 **From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief's reviews of 2026-10-16 (two rounds, the second replaces the hidden room)
 **Priority:** this order comes **before** `docs/orders/KIRO_ORDER_CODEX_02.md`. Chief is waiting to see the art in the game.
 **Branch:** your own branch, push as `AGENTS.md` describes. Never force-push. Do not merge to the live line.
-**Status:** REVIEWED 2026-10-16 (round 15b). Tasks 1, 2 (art), 6, 7, 8 were taken onto the live line by Kiro and placed in Level 1. **Task 3 (wall-plate switch) and task 9 (ladder) are CANCELLED by Chief.** Tasks 4 (pip pickup) and 5 (Capacitor Module) are still open. See PART 0 of `docs/orders/KIRO_ORDER_CODEX_04.md` for the verdict and the new rules.
+**Status:** REVIEWED 2026-10-16 (round 15b). **Round 16: tasks 1 and 2 (the tenant and the apartment art) are REDONE in `KIRO_ORDER_CODEX_05.md`; do not use the CODEX 03 art for them.** Tasks 1, 2 (art), 6, 7, 8 were taken onto the live line by Kiro and placed in Level 1. **Task 3 (wall-plate switch) and task 9 (ladder) are CANCELLED by Chief.** Tasks 4 (pip pickup) and 5 (Capacitor Module) are still open. See PART 0 of `docs/orders/KIRO_ORDER_CODEX_04.md` for the verdict and the new rules.
 
 ## What changed in this revision (round 14)
 Chief scrapped the hidden room, the hatch, the fire escape and the room props ("im not liking any of that we can scrap that for now").

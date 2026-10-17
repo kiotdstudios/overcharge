@@ -31,7 +31,8 @@ const holdX = npc.x;
 npc.update(0.1, null);
 check(npc.x === holdX && !npc._walking, 'dialogue pauses the strut');
 const cols = level.cols;
-check([1708,1740,1772].every(x => level.tiles[10*cols+Math.floor(x/32)] === 2),
+const patrolRow = Math.floor(def.y / 32);   // the NPC's feet row (Level 1 grows in the Builder)
+check([1708,1740,1772].every(x => { const v = level.tiles[patrolRow*cols+Math.floor(x/32)]; return v === 2 || v >= 10; }),
   'entire patrol sits above existing Level 1 rooftop ground');
 
 globalThis.Image = class {

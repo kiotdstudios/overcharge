@@ -9,6 +9,7 @@ Naming: `KIRO_ORDER_<AGENT>_<NN>.md`. The highest number for your name is your c
 | `KIRO_ORDER_CODEX_02.md` | Codex | 10-unit bar, pip slots, charge speed, charge table |
 | `KIRO_ORDER_CODEX_03.md` | Codex | Tenant art and systems. Tenant parts done; pip pickup and Capacitor Module art still open |
 | `KIRO_ORDER_CODEX_04.md` | Codex | **Read PART 0 first** (verdict on the CODEX 03 handoff and the new rules), then bus stop NPC idle cycles |
+| `KIRO_ORDER_CODEX_05.md` | Codex | **Plain colour-matched building kit, the tenant as a small figure in the window, a 16-second smooth fan** (replaces tasks 1 and 2 of CODEX 03) |
 | `KIRO_ORDER_AKI_26.md` | Aki | Builder tools (merged) |
 | `KIRO_ORDER_AKI_27.md` | Aki | Vertical Level 1 draft (merged; superseded by 28) |
 | `KIRO_ORDER_AKI_28.md` | Aki | Rebuild the vertical draft from the current Level 1; check the Builder |
