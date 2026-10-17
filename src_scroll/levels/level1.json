@@ -3661,6 +3661,56 @@
       "h": 256
     },
     {
+      "src": "assets/objects/night-city-props/beacon-top/beacon_top.png",
+      "x": 3141,
+      "y": 271,
+      "w": 128,
+      "h": 96
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_v.png",
+      "x": 760,
+      "y": 239,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_v.png",
+      "x": 760,
+      "y": 271,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_v.png",
+      "x": 760,
+      "y": 303,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_corner.png",
+      "x": 760,
+      "y": 207,
+      "w": 32,
+      "h": 32,
+      "rotation": 90
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 792,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
+      "src": "assets/objects/night-city-props/light-cable/cable_straight_h.png",
+      "x": 824,
+      "y": 207,
+      "w": 32,
+      "h": 32
+    },
+    {
       "src": "assets/objects/night-city-props/ladder/ladder.png",
       "x": 128,
       "y": 384,

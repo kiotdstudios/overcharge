@@ -16,6 +16,31 @@ sec('THE PYLON STAYS');
   ok(pylon.length === 1, 'exactly one relay pylon is placed', `${pylon.length}`);
 }
 
+sec('THE BEACON SITS ON THE GATEHOUSE ROOF (AKI_26 #6)');
+{
+  const beacon = d.decorations.filter(x => /beacon-top\/beacon_top\.png$/.test(x.src));
+  ok(beacon.length === 1, 'exactly one beacon-top is placed', `${beacon.length}`);
+  const gate = d.gates.find(g => g.isExit);
+  const b = beacon[0];
+  ok(Math.abs(b.x - gate.x) < 200, 'the beacon sits near the exit gate', `beacon x ${b.x}, gate x ${gate.x}`);
+  const roofBuildings = d.decorations.filter(x => /filler_wall_04/.test(x.src) && Math.abs(x.x - b.x) < 150);
+  ok(roofBuildings.length > 0, 'there is a gatehouse roof under the beacon', `${roofBuildings.length} roof pieces nearby`);
+  if (roofBuildings.length > 0) {
+    const roofTop = Math.min(...roofBuildings.map(r => r.y));
+    ok(b.y + b.h === roofTop, 'the beacon sits flush on the roof top (no float, no sink)', `beacon bottom ${b.y + b.h}, roof top ${roofTop}`);
+  }
+}
+
+sec('THE LIGHT CABLE CLIMBS FROM THE PYLON (AKI_26 #5)');
+{
+  const cables = d.decorations.filter(x => /light-cable\//.test(x.src));
+  ok(cables.length === 6, 'the pylon-side cable climb is placed (3 straight-v + 1 corner + 2 straight-h)', `${cables.length}`);
+  const corner = cables.find(x => /cable_corner/.test(x.src));
+  ok(corner && corner.rotation === 90, 'the corner piece is rotated to bend the climb into a rightward run', corner ? `rotation ${corner.rotation}` : 'missing');
+  const pylon = d.decorations.find(x => /relay-pylon\/pylon\.png$/.test(x.src));
+  ok(cables.every(c => Math.abs(c.x - pylon.x) < 300), 'the whole cable run is near the pylon it climbs from', cables.map(c => c.x).join(','));
+}
+
 sec('THE SCRAPPED ROOM IS GONE');
 {
   ok(!d.decorations.some(x => /secret-room/.test(x.src)), 'no secret-room props');
