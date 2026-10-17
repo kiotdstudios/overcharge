@@ -11,7 +11,7 @@
 // `this._cooldownT -= dt * 1000` against millisecond timers) — a frame tick
 // here is 0.016, not 16.
 import fs from 'node:fs';
-import { Npc } from '../src_scroll/npc.js';
+import { Npc, computeBubbleDurationMs } from '../src_scroll/npc.js';
 
 const R = process.cwd();
 let pass = 0, fail = 0;
@@ -71,9 +71,11 @@ sec('proximity enter-trigger — fires once on the outside\u2192inside transitio
 
 sec('cooldown — measured from bubble END, not bubble START');
 {
-  // durationMs has a 500ms FLOOR (clampDuration) — asking for 200 silently
-  // becomes 500. Use values that already respect the floor so the test's
-  // own math matches what the runtime actually schedules.
+  // durationMs has a 500ms FLOOR (clampDuration), but the REAL bubble timer
+  // is max(that floor, a reading-speed estimate for the actual line text) —
+  // see computeBubbleDurationMs(). "one" is short enough that the read-speed
+  // floor (not the 500ms authored floor) wins; derive the real number
+  // instead of guessing, so this test tracks the formula instead of fighting it.
   const npc = makeNpc({ cooldownMs: 500, durationMs: 500 });
   npc.update(0.016, far);
   npc.update(0.016, inside);     // trigger #1 (line "one")
@@ -81,7 +83,8 @@ sec('cooldown — measured from bubble END, not bubble START');
   npc.update(0.016, far);        // leave
   npc.update(0.016, inside);     // re-enter immediately — should be refused (cooldown + duration still running)
   ok(npc._bubbleText === 'one', 'immediate re-entry during cooldown does not advance the line', npc._bubbleText);
-  tick(npc, far, 1.1);           // clear duration (500ms) + cooldown (500ms) + the ~32ms already spent above
+  const realBubbleMs = computeBubbleDurationMs('one', 500);
+  tick(npc, far, (500 + realBubbleMs) / 1000 + 0.1); // clear cooldown (500ms) + the real bubble time, plus slack
   npc.update(0.016, inside);
   ok(npc._bubbleText === 'two', 'after duration+cooldown fully elapse, re-entry fires the NEXT line (sequential rotation)', npc._bubbleText);
 }
@@ -99,13 +102,16 @@ sec('oncePerLevel — overrides cooldown entirely, never retriggers this session
 
 sec('sequential line rotation wraps at the end');
 {
-  // Same durationMs floor applies: cooldownMs:0 + durationMs clamped to 500
-  // means 500ms must elapse between triggers, not 10ms.
+  // cooldownMs:0 + durationMs:10 (clamped to the 500ms floor) — but the
+  // REAL gate between triggers is the longest line's read-speed-estimated
+  // bubble time (computeBubbleDurationMs), not the 500ms authored floor.
+  // "three" is the longest of the three lines, so size the wait off that.
   const npc = makeNpc({ cooldownMs: 0, durationMs: 10 });
+  const maxRealBubbleMs = computeBubbleDurationMs('three', 10);
   const seen = [];
   for (let i = 0; i < 4; i++) {
     npc.update(0.016, far);
-    tick(npc, far, 0.6);
+    tick(npc, far, maxRealBubbleMs / 1000 + 0.1);
     npc.update(0.016, inside);
     seen.push(npc._bubbleText);
   }
@@ -221,6 +227,30 @@ sec('ambient idle<->smoke state machine (Order 23) — no dialogue, no manifest 
   const noSeed1 = new Npc({ id: 'worker_q', assetId: 'x', x: 0, y: 0, ambient: { smokeAssetId: 's' } });
   const noSeed2 = new Npc({ id: 'worker_z', assetId: 'x', x: 0, y: 0, ambient: { smokeAssetId: 's' } });
   ok(noSeed1._ambTimerMs !== noSeed2._ambTimerMs, 'omitted seed falls back to a hash of the id, so differently-named NPCs still desync');
+}
+
+sec('computeBubbleDurationMs — Chief: "duration on mechanic text goes away too quick cant read it"');
+{
+  // Pure logic, no Npc instance needed — isolate the formula from the
+  // trigger/cooldown plumbing so a future retune only has to reason about
+  // this block, not re-derive every timing test above.
+  ok(computeBubbleDurationMs('one', 500) > 500,
+    'a short string on a short authored duration still gets a real reading-time floor, not just the 500ms clamp',
+    computeBubbleDurationMs('one', 500));
+  const shortLine = computeBubbleDurationMs('hi', 3500);
+  ok(shortLine === 3500,
+    'a very short line never gets SHORTER than whatever was authored — the formula only ever extends, never cuts, a duration',
+    shortLine);
+  const long61 = computeBubbleDurationMs('x'.repeat(61), 3000);
+  ok(long61 > 4000 && long61 < 6000,
+    'level1\'s longest real line (61 chars) at the old 3000ms authored duration now reads for 4-6s, not 3s',
+    long61);
+  ok(computeBubbleDurationMs('x'.repeat(61), 3000) > computeBubbleDurationMs('hi', 3000),
+    'a longer line gets more time on screen than a shorter one given the same authored duration');
+  const huge = computeBubbleDurationMs('x'.repeat(2000), 3000);
+  ok(huge === 30000, 'the formula still respects the 30000ms hard ceiling for a pathologically long line', huge);
+  ok(computeBubbleDurationMs('', 3000) === 3000,
+    'empty text never divides by zero or goes negative, just falls back to the authored duration', computeBubbleDurationMs('', 3000));
 }
 
 console.log(`\nRESULTS: ${pass} passed, ${fail} failed`);

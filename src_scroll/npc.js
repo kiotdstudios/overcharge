@@ -36,6 +36,25 @@ function clampDuration(ms) {
   return Math.max(MIN_DURATION_MS, Math.min(MAX_DURATION_MS, n));
 }
 
+// Chief: "duration on mechanic text goes away too quick cant read it" — a
+// flat authored durationMs (most level1 lines: 3000-3500ms) was outrun by
+// the actual line length (most lines run 50-60 characters / 10-12 words,
+// which needs more like 4.5-5s at a comfortable reading pace, not 3-3.5s).
+// Rather than hand-retune every NPC's durationMs by feel, the REAL bubble
+// time is now whichever is longer: the authored durationMs (still respected
+// as-is for short lines, and still the only thing short test strings like
+// "one"/"two" exercise) or a reading-speed estimate — a fixed reaction/
+// notice buffer plus a per-character read rate. ~15 characters/second is a
+// generous (slower-than-average) reading pace chosen because the player's
+// attention is split with movement/combat, not just reading a static page.
+const BUBBLE_READ_REACT_MS    = 900; // time to notice the bubble before reading starts
+const BUBBLE_READ_MS_PER_CHAR = 65;  // ~15.4 chars/sec — comfortable mid-action reading pace
+
+export function computeBubbleDurationMs(text, configuredMs) {
+  const readMs = BUBBLE_READ_REACT_MS + String(text || '').length * BUBBLE_READ_MS_PER_CHAR;
+  return Math.max(clampDuration(configuredMs), Math.min(MAX_DURATION_MS, readMs));
+}
+
 // Stable fallback seed when a level author omits `ambient.seed`: a cheap
 // string hash of the NPC's own id, so two differently-named NPCs placed at
 // the same instant never roll identical dwell timers.
@@ -291,10 +310,10 @@ export class Npc {
       : (this._lineIdx % lines.length);
     this._bubbleText = lines[idx].text;
     if (this.dialogue.selectionMode !== 'random') this._lineIdx = (this._lineIdx + 1) % lines.length;
-    this._bubbleT   = this.dialogue.durationMs;
-    this._cooldownT = this.dialogue.cooldownMs + this.dialogue.durationMs;
+    this._bubbleT   = computeBubbleDurationMs(this._bubbleText, this.dialogue.durationMs);
+    this._cooldownT = this.dialogue.cooldownMs + this._bubbleT;
     this._triggeredOnce = true;
-    if (this.greetingAssetId) this._greetT = this.dialogue.durationMs;
+    if (this.greetingAssetId) this._greetT = this._bubbleT;
     this._greetStartedAt = this._clock;
   }
 
@@ -304,8 +323,8 @@ export class Npc {
   previewBubble(text) {
     this._bubbleText = (typeof text === 'string' && text.length) ? text
       : (this.dialogue.lines[0] && this.dialogue.lines[0].text) || '';
-    this._bubbleT = this.dialogue.durationMs;
-    if (this.greetingAssetId) this._greetT = this.dialogue.durationMs;
+    this._bubbleT = computeBubbleDurationMs(this._bubbleText, this.dialogue.durationMs);
+    if (this.greetingAssetId) this._greetT = this._bubbleT;
     this._greetStartedAt = this._clock;
   }
 
