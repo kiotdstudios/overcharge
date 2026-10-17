@@ -32,7 +32,15 @@ const juice = createJuice({
   reducedMotion: !!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
 });
 const sfx = createAudio({ enabled: _fxParams.get('audio') !== 'off' });
-const achievements = createAchievements();
+// TESTING BUILD — Chief (2026-10-17): "the achievement needs to reset each
+// time i refresh until i finish the game and publish it" — he's sending this
+// link out to testers and wants every tester to see the unlock on their own
+// playthrough instead of it getting stuck earned after someone else's visit
+// (achievements persist per-browser via localStorage, so without this it
+// would only ever unlock once per machine, forever). Flip this to false the
+// moment the finished game actually ships, to restore normal persistence.
+const _TESTING_RESET_ACHIEVEMENTS = true;
+const achievements = createAchievements({ resetOnLoad: _TESTING_RESET_ACHIEVEMENTS });
 juice.on(sfx.handle);
 window.addEventListener('keydown', () => sfx.unlock(), { once: true });
 

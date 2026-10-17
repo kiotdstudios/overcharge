@@ -7,14 +7,19 @@ export const ACHIEVEMENTS = Object.freeze([
 
 export const ACHIEVEMENT_STORAGE_KEY = 'overcharge.achievements.v1';
 
-export function createAchievements({ storage, search = globalThis.location?.search || '', catalogue = ACHIEVEMENTS } = {}) {
+export function createAchievements({ storage, search = globalThis.location?.search || '', catalogue = ACHIEVEMENTS, resetOnLoad = false } = {}) {
   if (storage === undefined) {
     try { storage = globalThis.localStorage; } catch { storage = null; }
   }
   const mode = new URLSearchParams(search).get('achievements');
   const disabled = mode === 'off';
-  // ?achievements=reset forgets what was earned, so an Easter egg can be tested again.
-  if (mode === 'reset') { try { storage?.removeItem(ACHIEVEMENT_STORAGE_KEY); } catch { /* blocked storage */ } }
+  // ?achievements=reset forgets what was earned, so an Easter egg can be
+  // tested again. resetOnLoad does the same thing unconditionally, on every
+  // single construction (i.e. every page load) rather than needing the query
+  // param — see main.js's _TESTING_RESET_ACHIEVEMENTS: Chief wants testers to
+  // see the unlock every time they replay during the pre-release testing
+  // phase, instead of it getting stuck earned after their first visit.
+  if (mode === 'reset' || resetOnLoad) { try { storage?.removeItem(ACHIEVEMENT_STORAGE_KEY); } catch { /* blocked storage */ } }
   const byId = new Map(catalogue.map(a => [a.id, a]));
   let saved = [];
   if (!disabled) {
