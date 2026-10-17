@@ -514,7 +514,15 @@ genSeedCopy?.addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(v); genStatus.textContent = `Copied seed ${v}`; }
   catch { genStatus.textContent = `Seed: ${v} (clipboard unavailable)`; }
 });
-btnSave?.addEventListener('click', async () => {
+// Chief: Ctrl+S used to call Persistence.saveCurrentLevel() directly, a
+// completely different path from the SAVE button — it never even checked
+// for a GitHub token, so a remote collaborator with a token set (the
+// cross-machine Builder->GitHub workflow) who reflexively hit Ctrl+S got a
+// silent local-only blob download instead of a real publish, with nothing
+// in the UI explaining why the keyboard shortcut behaved differently from
+// the button right next to it. Both now funnel through this one function,
+// so Ctrl+S and clicking SAVE are always exactly the same operation.
+async function performSave() {
   const ghStatus = document.getElementById('gh-pub-status');
 
   // If a GitHub token is set, push directly to GitHub — no local folder needed.
@@ -564,7 +572,8 @@ btnSave?.addEventListener('click', async () => {
     try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
   }
   _updateFolderDisplay();
-});
+}
+btnSave?.addEventListener('click', performSave);
 // ── COMMIT & PUSH TO GITHUB ────────────────────────────────────────────────
 // HONEST SCOPE (Order 005 doctrine: never fake success). The Builder is a static
 // page — it CANNOT run git. So this button does the part it genuinely can, then
@@ -1089,12 +1098,7 @@ window.addEventListener('keydown', async (e) => {
     if (e.key === 'd' || e.key === 'D') { e.preventDefault(); Clipboard.duplicate(); return; }
     if (e.key === 's' || e.key === 'S') {
       e.preventDefault();
-      const r = await Persistence.saveCurrentLevel();
-      showSaveFlash(r);
-      if (r && r.ok) await SnapUI.snapshotOnSaveIfChanged();
-      if (r.ok) {
-        try { state.availableLevels = await Persistence.discoverLevels(); refreshLevelSelect(); } catch {}
-      }
+      await performSave();
       return;
     }
     if (e.key === 'a' || e.key === 'A') {

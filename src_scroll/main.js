@@ -287,13 +287,15 @@ function _update(dt) {
       }
 
       // Dev shortcuts
-      // Dev keys (F2 skip, P +charge) work only in dev mode (localhost or ?dev=1), never in a shipped build.
-      if (_DEV_MODE && Input.pressed('F2')) advanceLevel();
+      // Chief: "f2 and p dont work as dev keys anymore put them back" — these
+      // two were briefly gated behind _DEV_MODE (localhost/?dev=1 only); back
+      // to working in every build, same as before that change.
+      if (Input.pressed('F2')) advanceLevel();
 
       // Dev P now feeds energy through the SAME rule the game uses
       // (fill bar first, roll to pip when bar tops out). No shortcut
       // that bypasses the charge model.
-      if (_DEV_MODE && Input.pressed('KeyP')) player.giveEnergy(2);
+      if (Input.pressed('KeyP')) player.giveEnergy(2);
 
       // Fall off level → respawn at last checkpoint (not a full game over).
       // _respawn() restores the full snapshot: level state + player
@@ -393,7 +395,7 @@ function _drawScrollGame() {
   // World-anchored prompts belong INSIDE the camera transform — they position
   // themselves on world objects, so drawing them in screen space offset them by
   // camX. Screen-space HUD (charge meter, banner, pips) stays in drawHUD().
-  drawWorldPrompts(ctx, player, t);
+  drawWorldPrompts(ctx, player, t, level._lastBubbleRects);
   ctx.restore();
 }
 
@@ -405,8 +407,8 @@ function _drawDevBar() {
   ctx.textAlign = 'center';
   const attacks = `${level.abilities.melee ? '   K MELEE' : ''}${level.abilities.bolt ? '   L BOLT' : ''}`;
   const controls = `\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   \u2193/S DUCK   E ABSORB   SPACE CHARGE${attacks}`;
-  const devHints = !_DEV_MODE ? '' : (_DEV_LEVELS.length > 1
-    ? '   [F2] skip   [[] PREV   []] NEXT' : '   [F2] skip   [P] +charge');
+  const devHints = _DEV_MODE && _DEV_LEVELS.length > 1
+    ? '   [F2] skip   [[] PREV   []] NEXT' : '   [F2] skip   [P] +charge';
   ctx.fillText(controls + devHints, viewW() / 2, 13);
 }
 

@@ -8174,6 +8174,19 @@
   ],
   "npcs": [
     {
+      "id": "npc_graffiti_artist_01",
+      "assetId": "npc_graffiti_artist",
+      "x": 1000,
+      "y": 480,
+      "facing": "right",
+      "scale": 0.8,
+      "patrol": {
+        "rangePx": 0,
+        "speedPxPerSec": 0,
+        "turnPauseSec": 0
+      }
+    },
+    {
       "id": "npc_smoke_break_worker_a",
       "assetId": "npc_smoke_break_worker_a",
       "x": 1392,
