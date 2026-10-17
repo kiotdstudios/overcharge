@@ -6,7 +6,7 @@ import { ElectricalSource, PowerGate, Switch, PipPickup } from './electricity.js
 import { SkySentry, WheelDrone } from './city-drones.js';
 import { DrainEnemy, PatrolEnemy, Checkpoint, MovingPlatform, Crate, Chest } from './entities.js';
 import { animationFor, framesFor, phaseFor, frameAt } from './deco-anim.js';
-import { Npc } from './npc.js';
+import { Npc, drawNpcBubbles } from './npc.js';
 import { StreetLitter } from './street-litter.js';
 
 export const CLIMBABLE_LADDER_SRC = 'assets/objects/night-city-props/ladder/ladder.png';
@@ -444,7 +444,12 @@ export class Level {
     for (const e    of this.enemies)  e.draw(ctx);
     // NPCs draw last so their speech bubbles float above everything else
     // (platforms, crates, other entities) exactly like Chief would expect text
-    // readability to work.
+    // readability to work. Sprites first, then a second pass for bubbles —
+    // drawNpcBubbles() needs every NPC's on-screen anchor already known so it
+    // can stack any two bubbles that would otherwise land on top of each
+    // other (e.g. the smoke-break pair, only 46px apart) instead of letting
+    // the later one draw over the earlier one.
     for (const npc  of this.npcs)     npc.draw(ctx, viewport);
+    drawNpcBubbles(ctx, this.npcs, viewport);
   }
 }

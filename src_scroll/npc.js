@@ -333,13 +333,17 @@ export class Npc {
 
   draw(ctx, viewport) {
     const img = this._currentFrame();
-    if (!img || !img.complete || !img.naturalWidth) return;
+    if (!img || !img.complete || !img.naturalWidth) { this._lastGeom = null; return; }
     const asset = this._sprites?.ambient?.asset;
     const slot = this._frameSlot;
     const frameIndex = slot?.frames ? slot.frames.indexOf(img) : 0;
     const frameFootY = slot?.frameFootY?.[frameIndex];
     const g = npcGeometry(asset || { frame_width: img.naturalWidth, frame_height: img.naturalHeight },
       this.x, this.y, this.scale, this.facing, frameFootY);
+    // Stashed for drawNpcBubbles(): the second pass that draws every NPC's
+    // speech bubble AFTER every NPC's sprite, so overlap-avoidance can see
+    // every active bubble's real on-screen anchor before any of them render.
+    this._lastGeom = g;
     ctx.save();
     ctx.imageSmoothingEnabled = false;
     if (this.facing === 'left') {
@@ -350,24 +354,33 @@ export class Npc {
       ctx.drawImage(img, g.drawX, g.drawY, g.drawW, g.drawH);
     }
     ctx.restore();
-
-    if (this._bubbleT > 0 && this._bubbleText) {
-      drawSpeechBubble(ctx, this.x, g.visible.y, this._bubbleText, viewport);
-    }
   }
 }
 
 // ── Speech bubble rendering ────────────────────────────────────────────────
-// Pixel-art border, high-contrast dark fill, off-white text, small tail
-// pointer, floats above the NPC's head, clamps to the canvas (viewport) so it
-// never gets cut off at screen edges. Drawn in the SAME transformed context
-// Level.draw() already uses for every other world-space entity, so it tracks
-// the NPC through camera scroll with no extra wiring.
+// Sci-fi panel treatment (double border + corner brackets + header strip +
+// cyan glow), off-white text, small tail pointer, floats above the NPC's
+// head, clamps to the canvas (viewport) so it never gets cut off at screen
+// edges. Drawn in the SAME transformed context Level.draw() already uses for
+// every other world-space entity, so it tracks the NPC through camera scroll
+// with no extra wiring.
+//
+// Two NPCs close enough together that their bubbles would land on the same
+// patch of screen (the smoke-break pair are 46px apart) no longer draw on
+// top of one another: drawNpcBubbles() below runs AFTER every NPC's sprite
+// is drawn, in a second pass, and stacks any bubble that would overlap an
+// already-placed one straight above it. A level with only one bubble ever
+// active at a time (nearly every level) gets lift=0 and is pixel-identical
+// to before.
 const BUBBLE_FONT       = '12px monospace';
 const BUBBLE_PAD        = 8;
 const BUBBLE_LINE_H     = 15;
 const BUBBLE_MAX_WIDTH  = 220;
 const BUBBLE_MAX_LINES  = 6;
+const BUBBLE_FILL       = '#0a0a16';
+const BUBBLE_BORDER_DIM = '#2a4a56';
+const BUBBLE_ACCENT     = '#8fe3ff';
+const BUBBLE_TEXT       = '#f4f4f0';
 
 function wrapText(ctx, text, maxWidth) {
   const words = String(text).split(/\s+/);
@@ -386,18 +399,22 @@ function wrapText(ctx, text, maxWidth) {
   return lines.slice(0, BUBBLE_MAX_LINES);
 }
 
-export function drawSpeechBubble(ctx, anchorX, topY, text, viewport) {
-  ctx.save();
+// Pure sizing — no position, no drawing — so drawNpcBubbles() can measure
+// every active bubble up front and resolve overlaps before anything renders.
+function measureBubble(ctx, text) {
   ctx.font = BUBBLE_FONT;
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
   const lines = wrapText(ctx, text, BUBBLE_MAX_WIDTH - BUBBLE_PAD * 2);
   const textW = Math.max(1, ...lines.map(l => ctx.measureText(l).width));
   const w = Math.min(BUBBLE_MAX_WIDTH, textW + BUBBLE_PAD * 2);
   const h = lines.length * BUBBLE_LINE_H + BUBBLE_PAD * 2;
+  return { lines, w, h };
+}
 
+// `liftExtra` raises the bubble further above its normal spot — used only by
+// drawNpcBubbles() to stack a colliding bubble clear of an already-placed one.
+function positionBubble(anchorX, topY, w, h, viewport, liftExtra = 0) {
   let bx = anchorX - w / 2;
-  let by = topY - h - 14; // 14px gap + tail above the sprite
+  let by = topY - h - 14 - liftExtra; // 14px gap + tail above the sprite, plus any stacking lift
   // Clamp to the viewport in SCREEN space. Level.draw() is called with a
   // camera-translated ctx, so viewport (if given) is expressed in the same
   // world-space coords already translated onto screen; callers that do not
@@ -406,30 +423,98 @@ export function drawSpeechBubble(ctx, anchorX, topY, text, viewport) {
     bx = Math.max(viewport.x + 4, Math.min(bx, viewport.x + viewport.w - w - 4));
     by = Math.max(viewport.y + 4, by);
   }
+  return { bx, by };
+}
 
-  ctx.fillStyle = '#0a0a14';
-  ctx.strokeStyle = '#8fe3ff';
-  ctx.lineWidth = 2;
+function rectsOverlap(a, b) {
+  return a.bx < b.bx + b.w && a.bx + a.w > b.bx && a.by < b.by + b.h && a.by + a.h > b.by;
+}
+
+export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra = 0) {
+  ctx.save();
+  const { lines, w, h } = measureBubble(ctx, text);
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  const { bx, by } = positionBubble(anchorX, topY, w, h, viewport, liftExtra);
+  const bxr = Math.round(bx), byr = Math.round(by), wr = Math.round(w), hr = Math.round(h);
+
+  // Base panel, lifted off the background with a soft cyan glow instead of
+  // sitting flush as a flat fill.
+  ctx.shadowColor = BUBBLE_ACCENT;
+  ctx.shadowBlur = 7;
+  ctx.fillStyle = BUBBLE_FILL;
   ctx.beginPath();
-  ctx.rect(Math.round(bx), Math.round(by), Math.round(w), Math.round(h));
+  ctx.rect(bxr, byr, wr, hr);
   ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Double border reads as a built panel rather than a plain outlined box:
+  // a dim outer frame, a bright inset frame.
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = BUBBLE_BORDER_DIM;
+  ctx.beginPath();
+  ctx.rect(bxr + 0.5, byr + 0.5, wr - 1, hr - 1);
   ctx.stroke();
+  ctx.strokeStyle = BUBBLE_ACCENT;
+  ctx.beginPath();
+  ctx.rect(bxr + 3, byr + 3, wr - 6, hr - 6);
+  ctx.stroke();
+
+  // Header strip + corner brackets — small HUD chrome details, same family
+  // as the energy HUD's corner tabs, so the box reads as a designed UI
+  // element instead of a flat rectangle.
+  ctx.fillStyle = BUBBLE_ACCENT;
+  ctx.beginPath();
+  ctx.rect(bxr + 3, byr + 3, wr - 6, 2);
+  ctx.fill();
+  const tab = 6;
+  for (const [cx, cy] of [[bxr, byr], [bxr + wr - tab, byr], [bxr, byr + hr - tab], [bxr + wr - tab, byr + hr - tab]]) {
+    ctx.beginPath(); ctx.rect(cx, cy, tab, 2); ctx.fill();
+    ctx.beginPath(); ctx.rect(cx, cy, 2, tab); ctx.fill();
+  }
 
   // Tail pointer, centred under the bubble, pointing at the anchor.
-  const tailX = Math.max(bx + 10, Math.min(anchorX, bx + w - 10));
+  const tailX = Math.max(bxr + 10, Math.min(anchorX, bxr + wr - 10));
   ctx.beginPath();
-  ctx.moveTo(tailX - 6, by + h);
-  ctx.lineTo(tailX + 6, by + h);
-  ctx.lineTo(tailX, by + h + 10);
+  ctx.moveTo(tailX - 6, byr + hr);
+  ctx.lineTo(tailX + 6, byr + hr);
+  ctx.lineTo(tailX, byr + hr + 10);
   ctx.closePath();
-  ctx.fillStyle = '#0a0a14';
+  ctx.fillStyle = BUBBLE_FILL;
   ctx.fill();
-  ctx.strokeStyle = '#8fe3ff';
+  ctx.strokeStyle = BUBBLE_ACCENT;
+  ctx.lineWidth = 1;
   ctx.stroke();
 
-  ctx.fillStyle = '#f4f4f0';
+  ctx.fillStyle = BUBBLE_TEXT;
   lines.forEach((line, i) => {
-    ctx.fillText(line, Math.round(bx + BUBBLE_PAD), Math.round(by + BUBBLE_PAD + i * BUBBLE_LINE_H));
+    ctx.fillText(line, bxr + BUBBLE_PAD, byr + BUBBLE_PAD + i * BUBBLE_LINE_H);
   });
   ctx.restore();
+}
+
+// Second render pass for all of a level's NPCs: called by Level.draw() AFTER
+// every npc.draw() this frame, so every active bubble's real anchor
+// (npc._lastGeom, set by draw()) is known before any bubble renders. Walks
+// NPCs in array order; each bubble that would overlap an already-placed one
+// stacks straight above it (bubble height + 10px gap) instead of drawing on
+// top. Bounded to 8 stacking attempts so a pathological cluster of NPCs can
+// never loop — it just stacks as high as it gets and draws anyway.
+export function drawNpcBubbles(ctx, npcs, viewport) {
+  const placed = [];
+  for (const npc of npcs) {
+    if (!(npc._bubbleT > 0 && npc._bubbleText) || !npc._lastGeom) continue;
+    const anchorX = npc.x, topY = npc._lastGeom.visible.y;
+    ctx.save();
+    const measured = measureBubble(ctx, npc._bubbleText);
+    ctx.restore();
+    let lift = 0;
+    for (let guard = 0; guard < 8; guard++) {
+      const pos = positionBubble(anchorX, topY, measured.w, measured.h, viewport, lift);
+      const rect = { bx: pos.bx, by: pos.by, w: measured.w, h: measured.h };
+      if (!placed.some(r => rectsOverlap(rect, r))) { placed.push(rect); break; }
+      lift += measured.h + 16; // extra room so the tail + glow of the stacked bubble clear the one below
+    }
+    drawSpeechBubble(ctx, anchorX, topY, npc._bubbleText, viewport, lift);
+  }
 }
