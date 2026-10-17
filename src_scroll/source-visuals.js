@@ -7,10 +7,16 @@ const images = new Map();
 function image(path) {
   if (!images.has(path)) {
     const img = new Image();
-    img.addEventListener('load', () => {
-      if (typeof window !== 'undefined' && window.dispatchEvent)
-        window.dispatchEvent(new Event('_editorRepaint'));
-    });
+    // Some Node test mocks for Image are minimal (no addEventListener) because
+    // their suites never used to trigger a real load callback. Stay defensive
+    // so eager preloading (added for the HVAC flicker fix below) can't crash a
+    // suite that only cares about geometry/data, never actual rendering.
+    if (typeof img.addEventListener === 'function') {
+      img.addEventListener('load', () => {
+        if (typeof window !== 'undefined' && window.dispatchEvent)
+          window.dispatchEvent(new Event('_editorRepaint'));
+      });
+    }
     img.src = path;
     images.set(path, img);
   }
@@ -129,6 +135,23 @@ export function drawStreetlightPool(ctx, source) {
   ctx.restore();
 }
 
+// Nine authored frames (8 fan phases + 1 stopped/dark) share one HVAC cabinet.
+// Fetch all nine together, the moment this module loads, instead of lazily one
+// at a time as the fan phase first reaches each index. Lazy per-frame fetching
+// is what read as a blink/flash the first time an HVAC unit ever appeared on
+// screen: each not-yet-requested frame drew nothing until its own network
+// request finished, so the unit flickered in and out as the fan spun through
+// frames whose images hadn't been asked for yet.
+const HVAC_FRAME_COUNT = 9;
+const hvacFramePaths = Array.from({ length: HVAC_FRAME_COUNT }, (_, i) =>
+  `assets/objects/night-city-props/hvac/${String(i).padStart(2, '0')}.png`);
+// Only eager-preload when a real (or mocked) Image constructor exists. Several
+// Node test suites import this module transitively without ever installing an
+// Image mock, because they never render anything — they must not pay for, or
+// crash on, a constructor that isn't there. In that case drawHvac() below just
+// falls back to its original per-draw lazy image() lookup, unchanged from before.
+const hvacFrames = typeof Image !== 'undefined' ? hvacFramePaths.map(image) : null;
+
 export function drawHvac(ctx, source) {
   const b = sourceBox(source);
   // powered is only defined on live ElectricalSource objects; the Builder passes plain data.
@@ -138,10 +161,18 @@ export function drawHvac(ctx, source) {
   const phase = ((source._fanPhase || 0) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
   const frame = drained && (source._fanSpeed || 0) < 0.05
     ? 8 : Math.floor(phase * 8 / (Math.PI * 2)) % 8;
-  const img = image(`assets/objects/night-city-props/hvac/${String(frame).padStart(2, '0')}.png`);
+  const img = hvacFrames ? hvacFrames[frame] : image(hvacFramePaths[frame]);
   ctx.save();
   ctx.imageSmoothingEnabled = false;
-  if (img.complete && img.naturalWidth) ctx.drawImage(img, b.dX, b.dY, b.dW, b.dH);
+  if (img.complete && img.naturalWidth) {
+    ctx.drawImage(img, b.dX, b.dY, b.dW, b.dH);
+    source._hvacLastFrame = frame;
+  } else if (hvacFrames && source._hvacLastFrame !== undefined) {
+    // That one frame is still loading (e.g. a slow connection on the very first
+    // paint) — hold the last frame that *did* paint instead of drawing nothing,
+    // so there is still no visible blink even in that edge case.
+    ctx.drawImage(hvacFrames[source._hvacLastFrame], b.dX, b.dY, b.dW, b.dH);
+  }
   ctx.restore();
 }
 
