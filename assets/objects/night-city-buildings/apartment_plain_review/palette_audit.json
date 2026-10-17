@@ -1,0 +1,74 @@
+[
+  {
+    "panel": "wall_01.png",
+    "wall_mean_rgb": [
+      23.2,
+      27.1,
+      75.7
+    ],
+    "blue_dominant_pct": 99.6
+  },
+  {
+    "panel": "wall_02.png",
+    "wall_mean_rgb": [
+      23.9,
+      27.1,
+      76.2
+    ],
+    "blue_dominant_pct": 99.3
+  },
+  {
+    "panel": "wall_03.png",
+    "wall_mean_rgb": [
+      25.0,
+      27.7,
+      78.5
+    ],
+    "blue_dominant_pct": 99.5
+  },
+  {
+    "panel": "wall_04.png",
+    "wall_mean_rgb": [
+      23.8,
+      27.1,
+      76.9
+    ],
+    "blue_dominant_pct": 99.1
+  },
+  {
+    "panel": "wall_05.png",
+    "wall_mean_rgb": [
+      24.3,
+      27.2,
+      77.9
+    ],
+    "blue_dominant_pct": 99.8
+  },
+  {
+    "panel": "wall_06.png",
+    "wall_mean_rgb": [
+      24.6,
+      27.0,
+      77.1
+    ],
+    "blue_dominant_pct": 99.4
+  },
+  {
+    "panel": "wall_07.png",
+    "wall_mean_rgb": [
+      24.7,
+      26.9,
+      76.7
+    ],
+    "blue_dominant_pct": 99.6
+  },
+  {
+    "panel": "wall_08.png",
+    "wall_mean_rgb": [
+      23.9,
+      26.8,
+      76.3
+    ],
+    "blue_dominant_pct": 99.3
+  }
+]
