@@ -1220,7 +1220,7 @@
     },
     {
       "id": "source_hvac",
-      "path": "assets/tilesets/purple_rooftop/props/hvac_a.png",
+      "path": "assets/objects/night-city-props/hvac/00.png",
       "category": "electrical",
       "tags": [
         "electric",
@@ -1230,14 +1230,14 @@
         "spawn",
         "placement"
       ],
-      "frame_width": 66,
-      "frame_height": 52,
-      "frame_count": 1,
-      "fps": null,
+      "frame_width": 78,
+      "frame_height": 78,
+      "frame_count": 9,
+      "fps": 8,
       "directions": null,
-      "loop": false,
+      "loop": true,
       "spawnsKind": "source-hvac",
-      "notes": "Palette entry for the HVAC powered source. Clicking enters spawn mode â€” sets pendingSpawn:{kind:'source-hvac'}. Places an ElectricalSource with kind:'hvac', charge:4. Art: hvac_a.png (66x52) anchored so unit base lands on the tile floor. Fan animation driven by _fanSpeed/_fanPhase in electricity.js. Appears under the HVAC quick-filter in the asset browser.",
+      "notes": "Night City HVAC powered source. Eight authored spinning-fan frames and one stopped drained frame. Clicking places an ElectricalSource with kind hvac and charge 4. Art stays grounded on the rooftop tile; fan speed follows charge state.",
       "generation": {
         "eligible": false,
         "ineligible_reason": "Puzzle-critical electrical object â€” requires scripted placement by level designer"

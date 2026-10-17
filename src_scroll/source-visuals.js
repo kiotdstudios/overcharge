@@ -32,7 +32,9 @@ export function sourceBox(source) {
   }
   if (source.kind === 'light') return { dX: source.x - 10, dY: source.y - 60, dW: 48, dH: 88 };
   return source.kind === 'hvac'
-    ? { dX: source.x + 14 - 33, dY: source.y + 28 - 52, dW: 66, dH: 52 }
+    // The new square frames have a small transparent base margin. Keep the visible
+    // feet on the hitbox bottom so existing rooftop placements remain grounded.
+    ? { dX: source.x + 14 - 39, dY: source.y + 28 - 78 + 4, dW: 78, dH: 78 }
     : { dX: source.x - 18, dY: source.y - 34, dW: 64, dH: 64 };
 }
 
@@ -129,34 +131,17 @@ export function drawStreetlightPool(ctx, source) {
 
 export function drawHvac(ctx, source) {
   const b = sourceBox(source);
-  const img = image('assets/tilesets/purple_rooftop/props/hvac_a.png');
-  // powered is only defined on live ElectricalSource objects; the Builder passes plain data, so fall back to drained.
+  // powered is only defined on live ElectricalSource objects; the Builder passes plain data.
   const drained = source.powered === undefined ? (source.drained ?? source.charge <= 0) : !source.powered;
+  // Eight authored fan phases share one cabinet; the ninth is a stopped, dark
+  // unit. The existing fan phase eases to a halt as the source loses charge.
+  const phase = ((source._fanPhase || 0) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  const frame = drained && (source._fanSpeed || 0) < 0.05
+    ? 8 : Math.floor(phase * 8 / (Math.PI * 2)) % 8;
+  const img = image(`assets/objects/night-city-props/hvac/${String(frame).padStart(2, '0')}.png`);
   ctx.save();
   ctx.imageSmoothingEnabled = false;
   if (img.complete && img.naturalWidth) ctx.drawImage(img, b.dX, b.dY, b.dW, b.dH);
-  else { ctx.fillStyle = '#343348'; ctx.fillRect(b.dX, b.dY, b.dW, b.dH); }
-  // Fan spokes rotate while active.
-  ctx.strokeStyle = drained ? '#494963' : '#8b9faa';
-  ctx.lineWidth = 1;
-  for (const fy of [12, 38]) {
-    ctx.save();
-    ctx.translate(b.dX + 12, b.dY + fy);
-    ctx.rotate(source._fanPhase || 0);
-    for (let i = 0; i < 3; i++) {
-      ctx.rotate(Math.PI * 2 / 3);
-      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(5, 2); ctx.stroke();
-    }
-    ctx.restore();
-  }
-  // Power indicator LED.
-  ctx.fillStyle = drained ? '#526173' : '#8fffe0';
-  ctx.shadowColor = '#60edc3'; ctx.shadowBlur = drained ? 0 : 7;
-  ctx.fillRect(b.dX + 54, b.dY + 8, 4, 4);
-  ctx.shadowBlur = 0;
-  // Service socket.
-  ctx.strokeStyle = '#8da4ac'; ctx.strokeRect(b.dX + 48, b.dY + 33, 10, 10);
-  ctx.fillStyle = '#8da4ac'; ctx.fillRect(b.dX + 51, b.dY + 36, 2, 4);
   ctx.restore();
 }
 
