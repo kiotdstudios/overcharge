@@ -17,7 +17,7 @@ Start again from **today's** `src_scroll/levels/level1.json` (not from your old 
 - the lamps at 3, the exit at 8, the street, the NPCs and every decoration Chief placed;
 - the tenant sequence exactly as placed (building, tenant, AC under her window). It is the "second level above the spawn" Chief described; your vertical build should lead the player up the ladder to it, then onward and up toward the exit;
 - the pylon, with the lit cable you drew running from it toward the exit.
-Do not add charged objects of your own (Chief is adding the market vending machine and one more prop himself). **Every route must finish from zero charge** with whatever is in the level: use `OVERCHARGE_Level1_Charge_Economy.html` (Desktop) and run `_dev/completability.mjs` and `_dev/reach.mjs`; report the numbers and any route that cannot finish.
+Do not add charged objects of your own (Chief is adding the market vending machine and one more prop himself). **Every route must finish from zero charge** with whatever is in the level: use `docs/design/OVERCHARGE_Level1_Charge_Economy.html` and run `_dev/completability.mjs` and `_dev/reach.mjs`; report the numbers and any route that cannot finish.
 Update `_dev/aki27_draft.mjs` to the new facts and take it **out of the skip list** in `_dev/run_all.mjs`.
 
 ## Task 2: the Builder shows the tenant sequence correctly

@@ -393,7 +393,7 @@ CONFIRMED by Chief: a **new 4-panel apartment building** made to fit this job; a
   fence."* There is no switch on the AC.
 - **Both ways (CONFIRMED, Chief rounds 15 and 15b):** the AC is an **ordinary charged HVAC prop**, capacity **4** (charge table 3.9), placed **uncharged**. **It takes its whole 4
   to turn on** (Chief round 15c: "ac unit takes 4 charge"); 3 of 4 leaves it off, and zapping even a little out turns it off. No switch. Charge it with Space, zap it with E. **The tenant is relieved while it is on and gets hot again when it is off, but the achievement stays** ("let her suffer").
-- **Economy (round 15; computed on the Desktop page `OVERCHARGE_Level1_Charge_Economy.html`):** Level 1's three lamps are 3 each (9). Chief adds a 24/7 market with a
+- **Economy (round 15; computed on the page `docs/design/OVERCHARGE_Level1_Charge_Economy.html`):** Level 1's three lamps are 3 each (9). Chief adds a 24/7 market with a
   vending machine (2) where the streetlamp woman walks (total 11), and "one more prop" (Kiro suggests the fuse box, 4, total 15). One lamp (3) is **not** enough for the
   AC (4), so the player needs two sources before the AC can be turned on. **Trap to avoid:** with 11 only, an AC left on leaves 7, one short of the exit's 8
   (the player can zap it back, so nobody is stuck for good). A total of **12 or more** removes it. **Also:** the free pip is gone (9 < 10); 11 gives 1 pip + 1.
@@ -682,7 +682,7 @@ Ordered by dependency. "Content" means authored in the Builder (Chief). "Runtime
 | 45 | **Charge table** in one place in code; Builder defaults per object kind (GAME_DESIGN_V2 3.9) | Runtime + Builder | none | CONFIRMED round 11 (CODEX 02 task 4, AKI 26 addendum) |
 | 46 | **Q**: a pip pays the gate's 8, the other 2 returns to the bar (already built by Codex Phase A; add the edge-case tests) | Runtime + test | none | CONFIRMED round 12 (CODEX 02 task 2) |
 | 47 | **Charge speed: slow when empty, faster when full**, both directions, 1.2 to 3 units/s | Runtime + test | 40 | CONFIRMED round 11 (CODEX 02 task 3) |
-| 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are on the Desktop |
+| 48 | Review pages for Chief (Capacitor Module, Aki's Part 2 art); Aki's branch merged after review | Review | none | Kiro; pages are in `docs/reference/review-pages/` |
 | 49 | **Redo failed art**: window NPC (both animations), **NEW 4-panel apartment for the tenant sequence** (tiles match rooftops), pip pickup, Capacitor Module to match concept #3, **small wall-plate switch art** | Art (Codex) | Chief's reference sheet | CONFIRMED round 13, revised round 14 (CODEX 03 tasks 1 to 5) |
 | 50 | **Relay pylon in Level 1** (the secret-room preview was removed in round 14) | Content (Kiro, by Chief's order) | none | **DONE**, `_dev/level1_pylon.mjs` 12/0 |
 | 51 | **Tenant sequence runtime** (plate Switch is now fence-only): reactive tenant lines and relieved animation, AC on effects, **achievements system** (automatic unlock "GOOD NEIGHBOR") | Runtime (Codex) | 49 not required | CONFIRMED round 14 (CODEX 03 tasks 3, 6, 7, 8). Replaces the hatch art and barrier-link tasks, which are dropped |

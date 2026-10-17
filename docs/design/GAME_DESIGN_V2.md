@@ -747,7 +747,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 81. **The player charges the AC directly, like any other charged object. A switch is only for powering down a fence** (Chief, round 14b). So the AC has no switch,
     no wall panel is needed for it, and the small wall-plate switch (item 76) is now a fence-gate control only. The AC takes its full capacity of 3; the level's
     spare drops from 4 to 1 if the player does not take it back (the lamp total stays 12).
-82. **Chief asked for a charge economy page on the Desktop:** `OVERCHARGE_Level1_Charge_Economy.html`, with the rules, the Level 1 ledger, computed routes, a playable
+82. **Chief asked for a charge economy page:** `docs/design/OVERCHARGE_Level1_Charge_Economy.html` (also kept on his Desktop; rebuilt from `_dev/tools/economy/`), with the rules, the Level 1 ledger, computed routes, a playable
     simulator and the charge table. It reproduces the document's numbers (first lamp 2.6 s, three lamps 6.6 s, ending 1 pip + 2).
 83. **Street litter must be the front-most object** (it draws over lamps, NPCs and the hero) **and must never sink into a rooftop tile** (Chief, round 14b). Done.
 ### CONFIRMED by Chief (round 15, 2026-10-16: new economy values)
@@ -759,7 +759,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     stays** ("she gets hot again but since player got achievement I guess he can move on and let her suffer"). Closes the open question in item F.
 87. **Consequence Chief should see (derived):** with only the lamps and the vending machine (11), an AC left on strands the player at 7 (the exit needs 8). They can
     zap it back, so nobody is trapped, but the extra prop (total 12 or more) removes the trap. Also the **free pip is gone**: three lamps of 3 make 9, below one
-    full 10 bar. The economy page (`OVERCHARGE_Level1_Charge_Economy.html` on the Desktop) shows every route.
+    full 10 bar. The economy page (`docs/design/OVERCHARGE_Level1_Charge_Economy.html`) shows every route.
 88. **Codex 04 (new order):** longer animation cycles for the two bus stop NPCs (`docs/orders/KIRO_ORDER_CODEX_04.md`).
 ### CONFIRMED by Chief (round 15b, 2026-10-16: review of Codex's handoff)
 89. **No wall switch for the AC, and no new switch style anywhere** ("i dont want that at all"). The AC works as an ordinary Night City charged prop: Space charges it, E zaps it, and it turns on at its full 4.
@@ -767,6 +767,8 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
 91. **Codex must run the CURRENT game** and capture real screenshots from it; his review composites showed an older iteration. Written into `docs/orders/KIRO_ORDER_CODEX_04.md` PART 0.
 92. **The apartment, the tenant and the AC are placed in Level 1 and available in the Builder** for testing: apartment panels and the window tenant are in the asset palette, Aki's reactive-NPC fields and the Uncharged checkbox are merged. (Consequence found: with the AC on at any charge, the tenant costs about 1 charge; open question on the economy page.)
 93. **The AC takes 4 (round 15c, Chief: "on at any charge?? no i thought we established ac unit takes 4 charge").** It is on only at full capacity; the tenant costs the full 4. Kiro had wrongly dropped Codex's full-power rule in round 15b and restored it. Item 92's note about a 1-charge tenant is withdrawn.
+94. **The vending machine holds 2 charge (Chief, round 16).** The value 4 that appeared on it in `level1.json` came from the Builder when the QuickMart was placed (an older default), not from a decision; it is set to 2 in the file. **Wording rule for these documents: "the Nth object" is never used for charge. Every charge number is the charge that object holds.** Level 1 now holds lamps 3 + 3 + 3 and the vending machine 2 = 11, and the AC (4, starts off) is a spend. With 11, an AC left on leaves 7, one short of the exit, so one more charged prop is still needed (open question G).
+95. **All review documents live in the repository** so every agent has them: `docs/design/` (economy page, roadmap PDF) and `docs/reference/review-pages/` (Capacitor Module and Aki Part 2 art reviews).
 80. **Card line restored.** Codex's Phase A merge had reverted the Level 1 stage 1 line to "Absorb power from street lamp";
     Kiro put "Try absorbing power from a street lamp" back in both places in `ui.js`.
 
@@ -863,7 +865,7 @@ card-versus-world pairing and string placement in 8; the bar cost marker in 8.3;
     one must be built. (see `LEVEL_DESIGN_V2`)
 
 ### OPEN questions (need Chief), round 12
-A. **Emblem in the Capacitor Module's pulse:** steady or softening? Chief reviews the Desktop page first. (3.8)
+A. **Emblem in the Capacitor Module's pulse:** steady or softening? Chief reviews the page first (`docs/reference/review-pages/OVERCHARGE_Review_Capacitor_Module.html`). (3.8)
 B. **Charge table numbers** (3.9): confirm or edit, especially the AC unit (3) and the lift (2).
 C. **Charge-speed floor:** is 40% (1.2 units/s empty, 3 full) the right feel? Tune in play. (3.3)
 D. ~~Is the poster itself the achievement?~~ **Closed round 14:** no poster. The achievement is awarded automatically when the tenant is relieved, so a small achievements system (toast, sound, saved list) is needed (CODEX 03 task 8).

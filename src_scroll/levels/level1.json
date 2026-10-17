@@ -3333,7 +3333,7 @@
       "x": 2035,
       "y": 292,
       "label": "VEND",
-      "charge": 4,
+      "charge": 2,
       "kind": "prop",
       "sprite": "assets/objects/night-city-props/vending-machine/",
       "frames": 8,
