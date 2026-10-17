@@ -358,14 +358,14 @@ function _render() {
       break;
     case STATES.PLAYING:
       _drawScrollGame();
-      drawHUD(ctx, player, level, t);
+      if (drawHUD(ctx, player, level, t)) sfx.play('achievement');   // onboarding objective ticked: same chime as an achievement
       achievements.draw(ctx, viewW());
       _drawDevBar();
       _drawCpFlash();
       break;
     case STATES.LEVEL_COMPLETE:
       _drawScrollGame();
-      drawHUD(ctx, player, level, t);
+      if (drawHUD(ctx, player, level, t)) sfx.play('achievement');
       if (completeTimer >= EXIT_REVEAL_SECONDS)
         drawLevelComplete(ctx, level, completeTimer - EXIT_REVEAL_SECONDS, t);
       break;
