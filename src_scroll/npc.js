@@ -379,8 +379,20 @@ const BUBBLE_MAX_WIDTH  = 220;
 const BUBBLE_MAX_LINES  = 6;
 const BUBBLE_FILL       = '#0a0a16';
 const BUBBLE_BORDER_DIM = '#2a4a56';
-const BUBBLE_ACCENT     = '#8fe3ff';
+export const BUBBLE_ACCENT = '#8fe3ff';
 const BUBBLE_TEXT       = '#f4f4f0';
+// Chief: "if two people are talking close by they should have different
+// color boxes". drawNpcBubbles() below only reaches past index 0 when two or
+// more NPCs have an active bubble in the SAME frame — a single NPC talking
+// (by far the common case) always keeps the original cyan, so this is purely
+// additive. Order matters: index 0 is BUBBLE_ACCENT itself, so going from one
+// speaker to two never changes the first speaker's existing color.
+export const BUBBLE_ACCENT_PALETTE = Object.freeze([
+  BUBBLE_ACCENT, // cyan   — 1st simultaneous speaker (same as the solo color)
+  '#b981f3',     // violet — 2nd simultaneous speaker
+  '#ffb454',     // amber  — 3rd simultaneous speaker
+  '#6cf2a3',     // mint   — 4th+ simultaneous speaker
+]);
 
 function wrapText(ctx, text, maxWidth) {
   const words = String(text).split(/\s+/);
@@ -430,7 +442,7 @@ function rectsOverlap(a, b) {
   return a.bx < b.bx + b.w && a.bx + a.w > b.bx && a.by < b.by + b.h && a.by + a.h > b.by;
 }
 
-export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra = 0) {
+export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra = 0, accent = BUBBLE_ACCENT) {
   ctx.save();
   const { lines, w, h } = measureBubble(ctx, text);
   ctx.textAlign = 'left';
@@ -438,9 +450,9 @@ export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra =
   const { bx, by } = positionBubble(anchorX, topY, w, h, viewport, liftExtra);
   const bxr = Math.round(bx), byr = Math.round(by), wr = Math.round(w), hr = Math.round(h);
 
-  // Base panel, lifted off the background with a soft cyan glow instead of
-  // sitting flush as a flat fill.
-  ctx.shadowColor = BUBBLE_ACCENT;
+  // Base panel, lifted off the background with a soft glow (in this
+  // speaker's accent color) instead of sitting flush as a flat fill.
+  ctx.shadowColor = accent;
   ctx.shadowBlur = 7;
   ctx.fillStyle = BUBBLE_FILL;
   ctx.beginPath();
@@ -449,13 +461,14 @@ export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra =
   ctx.shadowBlur = 0;
 
   // Double border reads as a built panel rather than a plain outlined box:
-  // a dim outer frame, a bright inset frame.
+  // a dim neutral outer frame (same for every speaker), a bright inset frame
+  // in this speaker's accent.
   ctx.lineWidth = 1;
   ctx.strokeStyle = BUBBLE_BORDER_DIM;
   ctx.beginPath();
   ctx.rect(bxr + 0.5, byr + 0.5, wr - 1, hr - 1);
   ctx.stroke();
-  ctx.strokeStyle = BUBBLE_ACCENT;
+  ctx.strokeStyle = accent;
   ctx.beginPath();
   ctx.rect(bxr + 3, byr + 3, wr - 6, hr - 6);
   ctx.stroke();
@@ -463,7 +476,7 @@ export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra =
   // Header strip + corner brackets — small HUD chrome details, same family
   // as the energy HUD's corner tabs, so the box reads as a designed UI
   // element instead of a flat rectangle.
-  ctx.fillStyle = BUBBLE_ACCENT;
+  ctx.fillStyle = accent;
   ctx.beginPath();
   ctx.rect(bxr + 3, byr + 3, wr - 6, 2);
   ctx.fill();
@@ -482,7 +495,7 @@ export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra =
   ctx.closePath();
   ctx.fillStyle = BUBBLE_FILL;
   ctx.fill();
-  ctx.strokeStyle = BUBBLE_ACCENT;
+  ctx.strokeStyle = accent;
   ctx.lineWidth = 1;
   ctx.stroke();
 
@@ -500,11 +513,16 @@ export function drawSpeechBubble(ctx, anchorX, topY, text, viewport, liftExtra =
 // stacks straight above it (bubble height + 10px gap) instead of drawing on
 // top. Bounded to 8 stacking attempts so a pathological cluster of NPCs can
 // never loop — it just stacks as high as it gets and draws anyway.
+// A lone speaker always renders in the default cyan accent. As soon as 2+
+// NPCs are talking in the same frame, each gets a distinct accent color
+// from BUBBLE_ACCENT_PALETTE (by speaking-order index) so nearby overlapping
+// conversations stay visually distinguishable even when they're stacked.
 export function drawNpcBubbles(ctx, npcs, viewport) {
+  const active = npcs.filter(npc => npc._bubbleT > 0 && npc._bubbleText && npc._lastGeom);
   const placed = [];
-  for (const npc of npcs) {
-    if (!(npc._bubbleT > 0 && npc._bubbleText) || !npc._lastGeom) continue;
+  active.forEach((npc, i) => {
     const anchorX = npc.x, topY = npc._lastGeom.visible.y;
+    const accent = active.length > 1 ? BUBBLE_ACCENT_PALETTE[i % BUBBLE_ACCENT_PALETTE.length] : BUBBLE_ACCENT;
     ctx.save();
     const measured = measureBubble(ctx, npc._bubbleText);
     ctx.restore();
@@ -515,8 +533,8 @@ export function drawNpcBubbles(ctx, npcs, viewport) {
       if (!placed.some(r => rectsOverlap(rect, r))) { placed.push(rect); break; }
       lift += measured.h + 16; // extra room so the tail + glow of the stacked bubble clear the one below
     }
-    drawSpeechBubble(ctx, anchorX, topY, npc._bubbleText, viewport, lift);
-  }
+    drawSpeechBubble(ctx, anchorX, topY, npc._bubbleText, viewport, lift, accent);
+  });
   // Returned so other screen-space systems that float their own text near a
   // world object (ui.js's "[E] ABSORB" etc.) can steer clear of wherever a
   // bubble actually landed this frame — see Level.draw()/drawWorldPrompts().

@@ -4,9 +4,12 @@
 // drawNpcBubbles()'s stacking fix in src_scroll/npc.js and the new restyle's
 // backward-compatibility guarantee (a single active bubble renders exactly
 // where it always did — lift only ever kicks in once a real collision would
-// happen).
+// happen). Also covers the follow-up ask: "if two people are talking close
+// by they should have different color boxes" — each simultaneously-active
+// bubble gets a distinct accent from BUBBLE_ACCENT_PALETTE, while a lone
+// speaker always keeps the original cyan.
 import fs from 'node:fs';
-import { Npc, drawSpeechBubble, drawNpcBubbles } from '../src_scroll/npc.js';
+import { Npc, drawSpeechBubble, drawNpcBubbles, BUBBLE_ACCENT, BUBBLE_ACCENT_PALETTE } from '../src_scroll/npc.js';
 
 let passed = 0;
 function check(value, label, extra) {
@@ -23,11 +26,16 @@ function makeCtx() {
   let curr = null;
   return {
     bubbles,
+    shadowColor: null,
     save() { curr = null; },
     restore() {},
     measureText(s) { return { width: s.length * 7 }; },
     beginPath() {},
-    rect(x, y, w, h) { if (!curr) { curr = { x, y, w, h }; bubbles.push(curr); } },
+    // The FIRST rect() call after each save() is always the base panel (see
+    // drawSpeechBubble), and ctx.shadowColor is set to this call's `accent`
+    // right before it — so stashing shadowColor here captures the color
+    // this specific bubble was drawn with, one entry per bubble.
+    rect(x, y, w, h) { if (!curr) { curr = { x, y, w, h, accent: this.shadowColor }; bubbles.push(curr); } },
     fill() {}, stroke() {}, moveTo() {}, lineTo() {}, closePath() {}, fillText() {},
   };
 }
@@ -55,6 +63,14 @@ check(Math.abs(wa.x - wb.x) < 220, 'the two workers are close enough on x to hav
   check(ctx.bubbles.length === 2, 'both active bubbles were drawn', ctx.bubbles.length);
   check(!overlaps(ctx.bubbles[0], ctx.bubbles[1]),
     'the two simultaneously-active bubbles no longer overlap on screen', ctx.bubbles);
+  // Chief: "if two people are talking close by they should have different
+  // color boxes" — two NPCs talking in the same frame must render in two
+  // different accent colors, in palette order.
+  check(ctx.bubbles[0].accent !== ctx.bubbles[1].accent,
+    'two simultaneously-active bubbles render in two different accent colors', ctx.bubbles.map(b => b.accent));
+  check(ctx.bubbles[0].accent === BUBBLE_ACCENT_PALETTE[0] && ctx.bubbles[1].accent === BUBBLE_ACCENT_PALETTE[1],
+    'the two colors are assigned in speaking-order from BUBBLE_ACCENT_PALETTE',
+    { expected: [BUBBLE_ACCENT_PALETTE[0], BUBBLE_ACCENT_PALETTE[1]], got: ctx.bubbles.map(b => b.accent) });
 }
 
 // A lone active bubble (the overwhelming majority of levels: one NPC talking
@@ -75,6 +91,9 @@ check(Math.abs(wa.x - wb.x) < 220, 'the two workers are close enough on x to hav
   check(JSON.stringify(viaPass.bubbles[0]) === JSON.stringify(direct.bubbles[0]),
     'a lone bubble through drawNpcBubbles lands pixel-identical to calling drawSpeechBubble directly (zero lift, zero regression)',
     { viaPass: viaPass.bubbles[0], direct: direct.bubbles[0] });
+  check(viaPass.bubbles[0].accent === BUBBLE_ACCENT,
+    'a lone active bubble keeps the original cyan accent (color-splitting only kicks in at 2+ simultaneous speakers)',
+    viaPass.bubbles[0].accent);
 }
 
 // Three-way cluster: make sure the stacking loop handles more than a pair —
@@ -96,6 +115,34 @@ check(Math.abs(wa.x - wb.x) < 220, 'the two workers are close enough on x to hav
     for (let j = i + 1; j < ctx.bubbles.length; j++)
       if (overlaps(ctx.bubbles[i], ctx.bubbles[j])) clean = false;
   check(clean, 'a three-NPC cluster stacks every bubble clear of every other one', ctx.bubbles);
+  const accents = ctx.bubbles.map(b => b.accent);
+  check(new Set(accents).size === 3, 'a three-NPC cluster gets three distinct accent colors, not just two', accents);
+  check(JSON.stringify(accents) === JSON.stringify(BUBBLE_ACCENT_PALETTE.slice(0, 3)),
+    'the three colors follow BUBBLE_ACCENT_PALETTE in speaking order',
+    { expected: BUBBLE_ACCENT_PALETTE.slice(0, 3), got: accents });
+}
+
+// A 5th simultaneous speaker (more NPCs than palette entries) must wrap
+// around to BUBBLE_ACCENT_PALETTE[0] rather than crash or render `undefined`.
+{
+  const npcs = [0, 1, 2, 3, 4].map(i => {
+    const n = new Npc(wa);
+    n.x = 1392 + i * 20;
+    n._lastGeom = { visible: { y: 352 } };
+    n._bubbleT = 1000;
+    n._bubbleText = `worker ${i} says something short`;
+    return n;
+  });
+  const ctx = makeCtx();
+  drawNpcBubbles(ctx, npcs, null);
+  check(ctx.bubbles.length === 5, 'all five simultaneous bubbles were drawn', ctx.bubbles.length);
+  const accents = ctx.bubbles.map(b => b.accent);
+  check(accents[4] === BUBBLE_ACCENT_PALETTE[0],
+    'a 5th simultaneous speaker wraps around and reuses the 1st palette color instead of breaking',
+    accents);
+  check(accents.every(a => typeof a === 'string' && a.length > 0),
+    'every one of the five bubbles has a real, defined accent color (no undefined/NaN leaks)',
+    accents);
 }
 
 console.log(`\nRESULTS: ${passed} passed, 0 failed`);
