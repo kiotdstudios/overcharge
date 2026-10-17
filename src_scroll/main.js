@@ -11,7 +11,7 @@ import { Level }  from './level.js';
 import { init as bgInit, update as bgUpdate } from './background.js';
 import { loadDecoAnimations } from './deco-anim.js';
 import { Player } from './player.js';
-import { drawHUD, drawWorldPrompts, drawLevelComplete, drawTitleScreen, drawGameOver } from './ui.js';
+import { drawHUD, drawWorldPrompts, drawLevelComplete, drawTitleScreen, drawGameOver, showEasterEggCard } from './ui.js';
 import { W, H, C, MAX_CHARGE, MAX_BANKED_PIPS, AC_HUM_RADIUS } from './constants.js';
 import { initViewport, viewW, viewH } from './viewport.js';
 import { maxCamY, camYForSpawn, nextCamY } from './camera.js';
@@ -23,7 +23,7 @@ import { createAchievements } from './achievements.js';
 
 window.addEventListener('keydown', unlockFootsteps, { once: true });
 
-// Feedback layer (docs/GAME_DESIGN_V2.md section 9). It only listens to the game, so ?juice=off
+// Feedback layer (docs/design/GAME_DESIGN_V2.md section 9). It only listens to the game, so ?juice=off
 // removes the particles, shake and hit-stop, and ?audio=off removes the synthesised sound,
 // leaving the game exactly as before. prefers-reduced-motion turns shake and hit-stop off.
 const _fxParams = new URLSearchParams(globalThis.location?.search || '');
@@ -255,7 +255,10 @@ function _update(dt) {
         if (npc._justRelieved && npc.linkedObjectId) achievements.unlock('good_neighbor');
       }
       const shown = achievements.update(dt);
-      if (shown) sfx.play('achievement');
+      if (shown) {
+        if (shown.egg) { sfx.play('egg-complete'); showEasterEggCard(shown, t, shown.seconds); }
+        else sfx.play('achievement');
+      }
       {
         // Closest powered AC unit wins: the hum fades with distance instead of
         // snapping on/off, so walking away is heard, not just toggled.

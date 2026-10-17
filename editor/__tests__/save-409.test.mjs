@@ -1,4 +1,4 @@
-// Mocked-fetch test for pushLevelToGitHub — verifies AKI_SAVE_409_HANDOFF.md
+// Mocked-fetch test for pushLevelToGitHub — verifies docs/archive/reports/AKI_SAVE_409_HANDOFF.md
 // checklist items 2, 3, 4, 5 without touching a real GitHub token or repo.
 // Run: node editor/__tests__/save-409.test.mjs
 

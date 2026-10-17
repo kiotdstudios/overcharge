@@ -1,7 +1,8 @@
 // Small, non-blocking achievement ledger. Gameplay remains authoritative even
 // when persistence is unavailable or the display is disabled for tests.
 export const ACHIEVEMENTS = Object.freeze([
-  { id: 'good_neighbor', title: 'GOOD NEIGHBOR', text: 'Restore power for the tenant.' },
+  // egg: true = an Easter egg. It is shown as the objective-style card for `seconds` (6 to 9), not as the small toast.
+  { id: 'good_neighbor', title: 'GOOD NEIGHBOR', text: 'Restore power for the tenant.', egg: true, seconds: 8 },
 ]);
 
 export const ACHIEVEMENT_STORAGE_KEY = 'overcharge.achievements.v1';
@@ -10,7 +11,10 @@ export function createAchievements({ storage, search = globalThis.location?.sear
   if (storage === undefined) {
     try { storage = globalThis.localStorage; } catch { storage = null; }
   }
-  const disabled = new URLSearchParams(search).get('achievements') === 'off';
+  const mode = new URLSearchParams(search).get('achievements');
+  const disabled = mode === 'off';
+  // ?achievements=reset forgets what was earned, so an Easter egg can be tested again.
+  if (mode === 'reset') { try { storage?.removeItem(ACHIEVEMENT_STORAGE_KEY); } catch { /* blocked storage */ } }
   const byId = new Map(catalogue.map(a => [a.id, a]));
   let saved = [];
   if (!disabled) {
@@ -38,7 +42,7 @@ export function createAchievements({ storage, search = globalThis.location?.sear
     remaining -= dt;
     if ((!current || remaining <= 0) && queue.length) {
       current = queue.shift();
-      remaining = 3;
+      remaining = current.seconds || 3;
       return current;
     }
     if (remaining <= 0) current = null;
@@ -46,7 +50,7 @@ export function createAchievements({ storage, search = globalThis.location?.sear
   }
 
   function draw(ctx, width) {
-    if (!current || disabled) return;
+    if (!current || disabled || current.egg) return;   // Easter eggs draw as the top-right card (ui.js)
     const w = Math.min(300, width - 20), x = Math.round((width - w) / 2), y = 25;
     ctx.save();
     ctx.fillStyle = '#0b1121';

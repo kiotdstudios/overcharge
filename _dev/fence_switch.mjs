@@ -1,5 +1,5 @@
 // ORDER FENCE_SHORT_CIRCUIT — powered fence + short-circuit wall switch.
-// Semantics ratified in docs/KIRO_RULING_FENCE_V1.md (F1-F11, all RATIFIED).
+// Semantics ratified in docs/rulings/KIRO_RULING_FENCE_V1.md (F1-F11, all RATIFIED).
 //
 // The frame-identity assertions here are the point of this suite: frame_000 is
 // the REST POSE in both packs, so a live fence must never draw it and the switch

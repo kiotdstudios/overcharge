@@ -236,11 +236,12 @@ sec('END-TO-END — real gravity, real Level, real Player down a real 36-row lev
 
   // Chief 18:39: sections are added ABOVE only, the existing floor stays the bottom, and
   // the spawn moves to the top so the player traverses DOWN.
-  const ADDED = 18, cols = L1.cols, dy = ADDED * 32;
+  // Level 1 keeps growing in the Builder (Chief), so pad it to the 36 rows this test needs instead of adding a fixed 18.
+  const cols = L1.cols, ADDED = 36 - L1.tiles.length / cols, dy = ADDED * 32;
   const def = JSON.parse(JSON.stringify(L1));
   def.tiles = new Array(ADDED*cols).fill(0).concat(L1.tiles);
   if (Array.isArray(L1.tileRotations)) def.tileRotations = new Array(ADDED*cols).fill(0).concat(L1.tileRotations);
-  def.playerStart = { x:L1.playerStart.x, y:96 };
+  def.playerStart = { x:700, y:96 };   // clear air above the street step: Chief's second-level roof now covers the old spawn column
   for (const k of ['sources','gates','switches','checkpoints','platforms','enemies','decorations','chests','crates'])
     if (Array.isArray(def[k])) def[k] = def[k].map(o => ({ ...o, y:(o.y ?? 0) + dy }));
 

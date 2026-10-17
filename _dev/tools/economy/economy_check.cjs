@@ -1,0 +1,33 @@
+const E = require('./economy_sim.js');
+const near = (a, b, e) => Math.abs(a - b) <= e;
+let bad = 0; const t = (c, m) => { console.log((c ? 'ok   ' : 'FAIL ') + m); if (!c) bad++; };
+const A = (id) => ['absorb', id];
+let s = E.fresh({ vend: 2 });
+t(E.total(s) === 11, 'lamps 3+3+3 and vending 2 = ' + E.total(s) + ' (expect 11)');
+t(E.total(E.fresh()) === 11, 'the level holds 11: lamps 9 + vending machine 2');
+let real = E.runRoute([A('lamp1'), A('lamp2'), ['chargeAC'], A('lamp3'), A('vend'), ['payExit']]);
+t(!real.done && real.achievement, 'with only 11, filling the AC and leaving it on strands the player (that is why one more prop is needed)');
+t(E.total(E.fresh({ fuse: true, vend: 2 })) === 15, 'with a fuse box 4 = 15');
+s = E.fresh({ vend: 2 }); E.actions.absorb(s, 'lamp1');
+t(near(s.t, 1.8, 0.3), 'first 3-unit lamp takes ' + s.t.toFixed(2) + ' s');
+// the exact numbers the page shows
+const show = (name, steps, opts) => { const r = E.runRoute(steps, Object.assign({ vend: 2 }, opts || {})); console.log('     ' + name + ': done=' + r.done + ' t=' + r.t.toFixed(1) + ' usable=' + E.usable(r).toFixed(2) + ' pips=' + r.pips + ' bar=' + r.bar.toFixed(2) + ' ac=' + r.ac.toFixed(2) + ' tenant=' + r.tenant + ' ach=' + r.achievement); return r; };
+let a = show('A lamps only, space', [A('lamp1'), A('lamp2'), A('lamp3'), ['payExit']]);
+t(a.done && near(E.usable(a), 1, 0.01), 'three lamps alone (9) pay the exit and leave 1');
+let b = show('B lamps+vend, Q', [A('lamp1'), A('lamp2'), A('lamp3'), A('vend'), ['pipExit']]);
+t(b.done && near(E.usable(b), 3, 0.01), 'lamps + vending (11), exit by Q, leaves 3');
+let c = show('C AC left on, no fuse', [A('lamp1'), A('lamp2'), ['chargeAC'], A('lamp3'), A('vend'), ['payExit']]);
+t(!c.done && near(c.gate, 7, 0.05), 'WITHOUT a 12th unit the AC left on strands the player: the exit reaches 7 of 8 and stops');
+let d = show('D AC left on, with fuse', [A('lamp1'), A('lamp2'), ['chargeAC'], A('lamp3'), A('vend'), A('fuse'), ['payExit']], { fuse: true, vend: 2 });
+t(d.done && near(E.usable(d), 3, 0.05) && d.achievement, 'with a fuse box the AC can stay on and the player still finishes with 3');
+let e = show('E zap it back', [A('lamp1'), A('lamp2'), ['chargeAC'], ['zapAC'], A('lamp3'), A('vend'), ['payExit']]);
+t(e.done && e.achievement && e.tenant === 'hot again', 'zapping the AC back: tenant hot again, achievement kept, level finishes');
+// low route without lamp 3
+let f = show('F low route: lamp1, lamp2, vend', [A('lamp1'), A('lamp2'), A('vend'), ['payExit']]);
+t(f.done && near(E.usable(f), 0, 0.01), 'lamp 1 + lamp 2 + vending machine = exactly 8');
+let g = show('G low route, no vending', [A('lamp1'), A('lamp2'), ['payExit']]);
+t(!g.done, 'lamp 1 + lamp 2 alone (6) cannot pay the exit');
+let h = show('H AC given only 3, left', [A('lamp1'),A('lamp2'),['chargeAC',3],A('lamp3'),A('vend'),['payExit']]);
+t(h.done && !h.achievement && h.tenant === 'hot' && near(h.ac, 3, 0.05), '3 of 4 in the AC: tenant NOT relieved, no achievement, exit still opens (exactly 8 left)');
+console.log(bad ? 'FAILED ' + bad : 'ALL OK');
+process.exit(bad ? 1 : 0);

@@ -6,7 +6,7 @@
 //
 // This suite changes nothing. It drives the REAL Player and REAL Level through
 // Level.update with SPACE held (via the same input listeners the browser uses) and
-// records the observed energy state, so docs/GAME_DESIGN_V2.md can state facts.
+// records the observed energy state, so docs/design/GAME_DESIGN_V2.md can state facts.
 //
 // Existing _dev/energy_authority.mjs covers the authority API row by row. What it
 // does not cover, and this does:

@@ -259,7 +259,7 @@ export function boundingRect(kind, ref) {
   // Both switch styles use the same art size, so one bounding rect covers all.
   // Runtime hitbox (22x22) is untouched — this only affects selection and move handle.
   if (kind === 'switch')     return { x: ref.x - 17, y: ref.y - 34, w: 56, h: 56 };
-  // Checkpoint: x = CENTRE, y = standing-ground line (documented in LEVEL_SCHEMA.md).
+  // Checkpoint: x = CENTRE, y = standing-ground line (documented in docs/reference/LEVEL_SCHEMA.md).
   // The box wraps the VISIBLE SIGN, not the old 22x22 trigger dot that used to sit
   // at its base (Chief 2026-09-12: "checkpoint box anchored to the bottom of the
   // sprite"). Derived from the same measured art bbox the renderer uses —
@@ -278,7 +278,7 @@ export function boundingRect(kind, ref) {
   if (kind === 'crate')    return { x: ref.x, y: ref.y, w: ref.w || 32, h: ref.h || 32 };
   // Chest: x,y = top-left of the runtime 32x32 hitbox.
   if (kind === 'chest')    return { x: ref.x, y: ref.y, w: 32, h: 32 };
-  // NPC: x,y = FEET anchor (bottom-centre), not top-left — see LEVEL_SCHEMA.md
+  // NPC: x,y = FEET anchor (bottom-centre), not top-left — see docs/reference/LEVEL_SCHEMA.md
   // "NPC" section. ORDER 23: selection must hit the visible sprite silhouette,
   // not a generic placeholder box, so overlapping clicks resolve to whichever
   // NPC's actual art is on top. Resolve real size from the manifest entry

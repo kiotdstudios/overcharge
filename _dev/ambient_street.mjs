@@ -18,12 +18,13 @@ assert(walking>0,'walking should emit footfalls');
 assert(running>walking,`running cadence ${running} should exceed walking ${walking}`);
 sprites.update(1/60,false,true,false,false,false,false,0);
 assert.equal(sprites.footfall,false,'idle is silent');
-assert(exposedRoof(level,54,10),'fixture rooftop is exposed');
+const R0=level.rows-18;   // Level 1 grows in the Builder
+assert(exposedRoof(level,54,10+R0),'fixture rooftop is exposed');
 const litter=new StreetLitter();
-litter.pieces=[{x:1740,y:320,row:10,direction:1,speed:20,age:0,kind:0,phase:0,angle:0,lift:0,done:false}];
+litter.pieces=[{x:1740,y:320+R0*32,row:10+R0,direction:1,speed:20,age:0,kind:0,phase:0,angle:0,lift:0,done:false}];
 litter.nextSpawn=999;
 litter.update(.25,level,{x:1740},800);
-assert.equal(litter.pieces[0].y,320,'litter stays grounded');
+assert.equal(litter.pieces[0].y,320+R0*32,'litter stays grounded');
 assert(litter.pieces[0].x>1740,'gust moves litter across rooftop');
 assert(litter.pieces[0].lift>0,'paper lifts in the gust');
 assert(litter.pieces[0].angle>0,'paper tumbles in the gust');

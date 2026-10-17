@@ -65,7 +65,8 @@ const liveSubj = gitOk('log', '-1', '--format=%s', LIVE_REF);
 
 // ── order files on the live line (the only authoritative source) ─────────────
 const docFiles = gitOk('ls-tree', '-r', '--name-only', LIVE_REF, '--', 'docs/')
-  .split('\n').map(s => s.trim()).filter(Boolean);
+  .split('\n').map(s => s.trim()).filter(Boolean)
+  .filter(f => !f.startsWith('docs/archive/'));   // round 15c: archived orders must never look like the newest directive
 
 // A directive is not only a KIRO_ORDER_*. Answers docs and review docs carry
 // binding instructions too — ANSWERS_ORCHA_01 is what Orcha actually built Q5/Q7
@@ -209,7 +210,7 @@ L.push('**Agents —** on wake, read this one file instead of scanning `docs/`:'
 L.push('');
 L.push('```');
 L.push('git fetch origin');
-L.push(`git show ${LIVE_REF}:docs/AGENT_BOARD.md`);
+L.push(`git show ${LIVE_REF}:docs/orders/AGENT_BOARD.md`);
 L.push('```');
 L.push('');
 L.push('Your row names your current order and the exact command to read it. If **State** says');
@@ -269,8 +270,8 @@ if (LIVE_MODE) {
 }
 
 if (WRITE) {
-  fs.mkdirSync(path.join(REPO, 'docs'), { recursive: true });
-  fs.writeFileSync(path.join(REPO, 'docs', 'AGENT_BOARD.md'), md, 'utf8');
-  fs.writeFileSync(path.join(REPO, 'docs', 'agent_board.json'), JSON.stringify(json, null, 2) + '\n', 'utf8');
-  console.error('[board] wrote docs/AGENT_BOARD.md and docs/agent_board.json');
+  fs.mkdirSync(path.join(REPO, 'docs', 'orders'), { recursive: true });
+  fs.writeFileSync(path.join(REPO, 'docs', 'orders', 'AGENT_BOARD.md'), md, 'utf8');
+  fs.writeFileSync(path.join(REPO, 'docs', 'orders', 'agent_board.json'), JSON.stringify(json, null, 2) + '\n', 'utf8');
+  console.error('[board] wrote docs/orders/AGENT_BOARD.md and docs/orders/agent_board.json');
 }

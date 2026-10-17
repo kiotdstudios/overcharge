@@ -4,7 +4,7 @@ import base64
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PAGE = ROOT / "docs/OVERCHARGE_Electric_City_Palette.html"
+PAGE = ROOT / "docs/reference/OVERCHARGE_Electric_City_Palette.html"
 ASSETS = ROOT / "assets/objects/night-city-props/pipes"
 START = "  <!-- PIPE_PALETTE_START -->"
 END = "  <!-- PIPE_PALETTE_END -->"

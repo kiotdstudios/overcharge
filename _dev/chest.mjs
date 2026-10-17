@@ -1,4 +1,4 @@
-// CHEST v1 — ORCHA_CHEST_V1_SEMANTICS.md + CHIEF_RULING_CHEST_PIP_RESERVE.md
+// CHEST v1 — docs/reference/ORCHA_CHEST_V1_SEMANTICS.md + docs/rulings/CHIEF_RULING_CHEST_PIP_RESERVE.md
 //
 // Driven through Level.update(dt, player) wherever behaviour is involved, NOT by
 // poking the class. ORCHA 15: "if it only passes at the class level it does not

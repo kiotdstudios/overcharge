@@ -21,7 +21,7 @@ cd C:\Users\diepowel\Documents\GitHub\overcharge
 node _kiro/agent_board.mjs --write
 ```
 
-`docs/AGENT_BOARD.md` is **derived from git**, so it cannot drift. It gives, per agent: branch
+`docs/archive/reports/AGENT_BOARD.md` is **derived from git**, so it cannot drift. It gives, per agent: branch
 head, commits behind live, unmerged commits awaiting gate, files changed, newest directive with
 the exact `git show` to read it, and whether a report was filed.
 

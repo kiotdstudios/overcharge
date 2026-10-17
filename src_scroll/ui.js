@@ -12,7 +12,8 @@ export function drawHUD(ctx, player, level, t) {
   _drawPlayerAvatar(ctx);
   drawEnergyHUD(ctx, player, t, { x: safeInsetX() + 84, y: 22 });
   _drawLevelBanner(ctx, level, t);
-  _drawLevelOneObjective(ctx, player, level, t);
+  if (_easterEggActive(level, t)) _drawEasterEggCard(ctx, t);
+  else _drawLevelOneObjective(ctx, player, level, t);
   if (level.cols > 25) _drawProgressBar(ctx, player, level);
 }
 
@@ -1031,4 +1032,133 @@ export function drawGameOver(ctx, t, player = null) {
   ctx.font        = '16px monospace';
   ctx.fillText('[R] Retry  [SPACE] Title', viewW() / 2, 300);
   ctx.globalAlpha = 1;
+}
+
+// ── Easter egg complete card (Chief, 2026-10-16) ───────────────────────────────
+// "should be a card like the objective top right, so the objective would be replaced by the easter egg
+// completion animation for at least 6 to 9 seconds." A finished Easter egg takes over the objective card's
+// place for 8 seconds with a small version of the level complete strike: lightning into the card, a flash,
+// pixel sparks, a scanline reveal, a charged circuit line, a pulsing glow, a checked box. Then the objective
+// charges back in. Everything is derived from the game clock `t`, so pause and frame rate are respected.
+const EGG_SECONDS = 8;
+let _egg = null;
+export function showEasterEggCard(card, t, seconds = EGG_SECONDS) {
+  _egg = { title: String(card?.title || 'EASTER EGG'), text: String(card?.text || ''), at: t,
+    seconds: Math.min(9, Math.max(6, Number(seconds) || EGG_SECONDS)) };
+}
+export function clearEasterEggCard() { _egg = null; }
+export function easterEggCardState(t) {
+  if (!_egg) return { active: false, ended: false };
+  const age = t - _egg.at;
+  if (age < 0) return { active: false, ended: false };
+  if (age >= _egg.seconds) return { active: false, ended: true };
+  return { active: true, ended: false, age, left: _egg.seconds - age, seconds: _egg.seconds, card: _egg };
+}
+function _easterEggActive(level, t) {
+  const s = easterEggCardState(t);
+  if (s.active) return true;
+  if (s.ended) { _egg = null; _objectivePresentations.delete(level); }   // the objective charges back in
+  return false;
+}
+function _drawEasterEggCard(ctx, t) {
+  const s = easterEggCardState(t);
+  if (!s.active) return;
+  const { age, left, card } = s;
+  const reduced = !!(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  const w = 302, h = 82;
+  const x = viewW() - safeInsetX() - w - 16, y = 51;
+  const cx = Math.round(x + w / 2), cy = Math.round(y + h / 2);
+  const fade = Math.min(1, left / 0.6);
+  const reveal = reduced ? 1 : Math.min(1, Math.max(0, (age - 0.28) / 0.55));
+  const pulse = reduced ? 0.7 : 0.65 + 0.35 * Math.sin(age * 5);
+  ctx.save();
+  ctx.globalAlpha = fade;
+  // 1. The strike: a bolt from the top of the screen into the card, a cyan-white flash, radiating pixel sparks.
+  if (!reduced && age < 0.9) {
+    if (age >= 0.04 && age < 0.34) {
+      const end = Math.min(1, (age - 0.04) / 0.16);
+      const pts = [[cx - 30, 0], [cx - 18, 14], [cx + 4, 26], [cx - 6, 38], [cx + 12, 46], [cx, cy]];
+      const n = Math.max(1, Math.ceil(end * (pts.length - 1)));
+      ctx.strokeStyle = '#39cfff'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i <= n; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.stroke();
+      ctx.strokeStyle = '#ebffff'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    const fa = age - 0.2;
+    if (fa >= 0 && fa < 0.5) {
+      const p = fa / 0.5;
+      ctx.fillStyle = `rgba(220,250,255,${(1 - p) * 0.16})`;
+      ctx.fillRect(0, 0, viewW(), H);
+      for (let i = 0; i < 22; i++) {
+        const a = i * 2.39996, d = (14 + (i % 5) * 8) * (0.3 + p * 2.6);
+        ctx.fillStyle = i % 3 ? '#ffd36a' : (i % 2 ? '#45dfff' : '#d94aff');
+        ctx.fillRect(Math.round(cx + Math.cos(a) * d), Math.round(cy + Math.sin(a) * d), i % 4 ? 4 : 6, i % 4 ? 2 : 3);
+      }
+    }
+  }
+  // 2. The card, revealed in broken scanline bands like the level complete card.
+  if (reveal > 0) {
+    ctx.beginPath();
+    if (reveal < 1) {
+      for (let b = 0; b < 12; b++) {
+        if (reveal >= (b * 5 % 12) / 12) {
+          const shift = Math.round((1 - reveal) * ((b * 7 % 5) - 2) * 7);
+          ctx.rect(x + shift, y + b * h / 12, w, h / 12 + 1);
+        }
+      }
+    } else ctx.rect(x, y, w, h);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(8, 6, 22, 0.94)';
+    ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = '#d9a63f'; ctx.fillRect(x, y, 3, h);
+    ctx.fillStyle = '#4a2f7c'; ctx.fillRect(x + 3, y + h - 2, w - 3, 2);
+    ctx.strokeStyle = `rgba(255,207,106,${0.35 + 0.35 * pulse})`; ctx.lineWidth = 1;
+    ctx.strokeRect(x + 3.5, y + 0.5, w - 4, h - 1);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#ffcf6a'; ctx.font = 'bold 8px monospace';
+    ctx.fillText('EASTER EGG COMPLETE', x + 13, y + 13, 170);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#7de6ff';
+    ctx.fillText('CIRCUIT CLOSED', x + w - 10, y + 13, 110);
+    // the charged circuit line with a travelling pulse
+    ctx.textAlign = 'left';
+    ctx.strokeStyle = '#44ddff'; ctx.lineWidth = 2;
+    if (!reduced) { ctx.shadowColor = '#44ddff'; ctx.shadowBlur = 5 + 6 * pulse; }
+    ctx.beginPath(); ctx.moveTo(x + 13, y + 20); ctx.lineTo(x + w - 10, y + 20); ctx.stroke();
+    ctx.shadowBlur = 0;
+    if (!reduced) {
+      const px = x + 13 + ((age * 0.55) % 1) * (w - 23);
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(Math.round(px) - 2, y + 18, 5, 4);
+    }
+    // the diamond (filled this time) and the achievement name
+    const dx = x + 21, dy = y + 40, r = 7 + (reduced ? 0 : 1.5 * Math.sin(age * 6));
+    ctx.fillStyle = '#ffcf6a';
+    ctx.beginPath(); ctx.moveTo(dx, dy - r); ctx.lineTo(dx + r, dy); ctx.lineTo(dx, dy + r); ctx.lineTo(dx - r, dy); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#2a1840'; ctx.fillRect(dx - 1, dy - 3, 2, 4); ctx.fillRect(dx - 1, dy + 2, 2, 2);
+    if (!reduced) { ctx.shadowColor = '#cc44ff'; ctx.shadowBlur = 10 * pulse; }
+    ctx.fillStyle = '#f4ecff'; ctx.font = 'bold italic 16px monospace';
+    ctx.fillText(card.title, x + 40, y + 46, w - 52);
+    ctx.shadowBlur = 0;
+    // the checked box and the achievement text
+    const bx = x + 41, by = y + 56;
+    ctx.strokeStyle = '#44ddff'; ctx.lineWidth = 1; ctx.strokeRect(bx + 0.5, by + 0.5, 11, 11);
+    ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(bx + 2, by + 6); ctx.lineTo(bx + 5, by + 9); ctx.lineTo(bx + 10, by + 2); ctx.stroke();
+    ctx.fillStyle = '#9fe4ee'; ctx.font = '10px monospace';
+    ctx.fillText(card.text, x + 59, y + 66, w - 70);
+    // time left, as a thin bar
+    ctx.fillStyle = 'rgba(255,207,106,0.55)';
+    ctx.fillRect(x + 3, y + h - 3, Math.round((w - 3) * Math.max(0, left / s.seconds)), 1);
+    // pixel sparks pop off the box once, like the objective check
+    const sa = age - 0.95;
+    if (!reduced && sa >= 0 && sa < 0.55) {
+      const dist = 5 + sa * 31;
+      ctx.globalAlpha = fade * (1 - sa / 0.55);
+      for (let i = 0; i < 8; i++) {
+        const a = i * Math.PI / 4;
+        ctx.fillStyle = i % 2 ? '#ffcf6a' : '#44ddff';
+        ctx.fillRect(Math.round(bx + 6 + Math.cos(a) * dist), Math.round(by + 6 + Math.sin(a) * dist), 3, 3);
+      }
+    }
+  }
+  ctx.restore();
 }

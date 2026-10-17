@@ -1,6 +1,6 @@
 // AKI 27 TASK 3 — "default charges from one table".
 //
-// Order (docs/KIRO_ORDER_AKI_27.md): "When Codex adds CHARGE_TABLE to
+// Order (docs/orders/KIRO_ORDER_AKI_27.md): "When Codex adds CHARGE_TABLE to
 // constants.js (CODEX 02 task 4), make the Builder palette and inspector
 // defaults read it. Until then, use the numbers in section 3.9."
 //
@@ -66,7 +66,7 @@ const R = process.cwd();
 const mainSrc  = fs.readFileSync(path.join(R, 'editor/main.js'), 'utf8');
 const helperSrc = fs.readFileSync(path.join(R, 'editor/charge-defaults.js'), 'utf8');
 const constSrc = fs.readFileSync(path.join(R, 'src_scroll/constants.js'), 'utf8');
-const designMd = fs.readFileSync(path.join(R, 'docs/GAME_DESIGN_V2.md'), 'utf8');
+const designMd = fs.readFileSync(path.join(R, 'docs/design/GAME_DESIGN_V2.md'), 'utf8');
 const manifest = JSON.parse(fs.readFileSync(path.join(R, 'assets/ASSET_MANIFEST.json'), 'utf8'));
 
 const M = await import('../editor/charge-defaults.js');
@@ -88,7 +88,7 @@ for (const line of sec39.split('\n')) {
   const m = /^\|\s*\*{0,2}([^|*]+?)\*{0,2}\s*\|\s*\*{0,2}(\d+)\*{0,2}\s*\|/.exec(line.trim());
   if (m && !/^object$/i.test(m[1].trim())) docRows.set(m[1].trim().toLowerCase(), Number(m[2]));
 }
-ok(sec39.length > 0, 'section 3.9 found in docs/GAME_DESIGN_V2.md');
+ok(sec39.length > 0, 'section 3.9 found in docs/design/GAME_DESIGN_V2.md');
 ok(docRows.size === 12, 'all 12 object rows parsed from the 3.9 table', `${docRows.size} rows`);
 const docCharges = new Set(docRows.values());
 ok([...docCharges].every(v => [1,2,3,4,8,10].includes(v)),

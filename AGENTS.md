@@ -1,4 +1,10 @@
 # OVERCHARGE agent guidance
+## Read first (every agent, every session)
+- **The game design is one file: `docs/design/GAME_DESIGN_V2.md`; the levels are `docs/design/LEVEL_DESIGN_V2.md`.** Nothing else is a design document. The root README, anything in `docs/archive/`, and any PDF are old and wrong. `docs/README.md` is the index.
+- **Your work order is the highest-numbered file for your name in `docs/orders/`** (for example `KIRO_ORDER_CODEX_04.md`). Do not follow anything in `docs/archive/`. If an order and the design document disagree, stop and ask Kiro.
+- **Run the current game before you show or design anything.** Check out `agent/orcha-gameplay` (or rebase onto it), serve the repo root, play Level 1, and capture real screenshots from that build. Never composite images and never reuse screenshots from an older iteration.
+- **Level files are Chief's.** Edit `src_scroll/levels/*.json` only with a written order that names the file; log it in `docs/orders/KIRO_STANDING_CHIEF_OWNS_LEVEL_FILES.md`.
+- Moved a file and cannot find it? `docs/MOVED.md` maps every old path to its new one.
 
 ## Publishing and verification
 - Before geometry fixes, establish the intended playable route and test that outcome, not merely the selected collision rule. A passing collision test does not prove a level route is usable. For cross-machine differences, obtain actual browser URLs and loaded-level sources before attributing them to local Git branches.

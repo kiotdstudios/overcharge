@@ -1,6 +1,6 @@
 // juice.js - the shared feedback layer: particles, screen shake and hit-stop.
 //
-// Design rules (docs/GAME_DESIGN_V2.md section 9):
+// Design rules (docs/design/GAME_DESIGN_V2.md section 9):
 //  * It only LISTENS. It never changes player, level or physics state, so switching it off
 //    (?juice=off) leaves the game exactly as it was.
 //  * It derives events by watching state each frame (observe), so it needs no hooks inside

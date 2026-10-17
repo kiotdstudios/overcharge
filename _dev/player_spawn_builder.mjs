@@ -23,6 +23,7 @@ check(Tools.placeAssetAt({id:'player_spawn',category:'player'},119,390),'edge pl
 check(state.level.playerStart.x===128 && state.level.playerStart.y===418,'support is checked beneath snapped player centre');
 const saved=JSON.parse(fs.readFileSync('src_scroll/levels/level1.json','utf8'));
 const p=new Player(saved.playerStart.x,saved.playerStart.y);
-check(p.y+p.h===480,'NEON RISE spawn feet sit on rooftop surface');
-check(saved.tiles[15*saved.cols+Math.floor(p.cx/32)]>=10,'roof supports saved spawn');
+const feetRow=Math.floor((p.y+p.h)/32);   // Level 1 grows in the Builder, so no hard-coded row
+check(p.y+p.h===feetRow*32,'NEON RISE spawn feet sit exactly on a tile surface');
+check(saved.tiles[feetRow*saved.cols+Math.floor(p.cx/32)]>=10,'roof supports saved spawn');
 console.log(`RESULTS: ${count} passed, 0 failed`);

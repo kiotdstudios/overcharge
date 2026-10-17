@@ -55,7 +55,7 @@ scheduled delete --name "Task Name Here"
 | Git executable | `C:/Users/diepowel/AppData/Local/Programs/Git/cmd/git.exe` |
 | Orcha's branch | `origin/agent/orcha-gameplay` |
 | Aki's branch | `agent/aki-editor` |
-| Kiro order files | `docs/KIRO_ORDER_AKI_*.md` / `docs/KIRO_ORDER_ORCHA_*.md` |
+| Kiro order files | `docs/orders/KIRO_ORDER_AKI_*.md` / `docs/orders/KIRO_ORDER_ORCHA_*.md` / `docs/orders/KIRO_ORDER_CODEX_*.md` |
 
 ---
 

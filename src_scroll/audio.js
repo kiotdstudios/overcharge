@@ -93,6 +93,11 @@ export function createAudio(opts = {}) {
     'source-dry': () => { tone({ type: 'sine', f0: 240, f1: 55, dur: 0.38, vol: 0.14 }); noise({ filter: 'bandpass', f0: 1800, f1: 300, dur: 0.25, vol: 0.06, q: 4 }); },
     hurt: () => { tone({ type: 'sawtooth', f0: 220, f1: 70, dur: 0.22, vol: 0.12 }); noise({ filter: 'bandpass', f0: 2200, f1: 500, dur: 0.18, vol: 0.1, q: 2 }); },
     'relay-click': () => noise({ filter: 'highpass', f0: 3000, dur: 0.025, vol: 0.08 }),
+    'egg-complete': () => {
+      [392, 523, 659, 784, 1047].forEach((f, i) => tone({ type: 'triangle', f0: f, dur: 0.3, vol: 0.08, at: i * 0.12 }));
+      [523, 659, 784].forEach(f => tone({ type: 'sine', f0: f, dur: 1.6, vol: 0.05, at: 0.7 }));
+      noise({ filter: 'highpass', f0: 4000, dur: 0.5, vol: 0.05 });
+    },
     achievement: () => [523, 659, 880].forEach((f, i) =>
       tone({ type: 'triangle', f0: f, dur: 0.24, vol: 0.075, at: i * 0.11 })),
   };
