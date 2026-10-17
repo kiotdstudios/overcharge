@@ -17,6 +17,7 @@ import { spawnSync } from 'node:child_process';
 // Deliberate exclusions, each with a reason. An empty reason is not allowed.
 const SKIP = {
   'run_all.mjs':     'this runner',
+  'order23_taskb_acceptance.mjs': 'Playwright browser harness (Builder NPC inspector); needs the playwright package + chromium and args: node _dev/order23_taskb_acceptance.mjs <repo> <port>. Last run 22/0 on 2026-10-17',
   'tile_grammar.mjs':'RETIRED by Chief ruling 2026-09-19 — asserts a rule that was deleted',
   'level1_city_dress.mjs': 'snapshot of the 2026-10-06 dress pass; superseded by Chief Builder redesign of level1 (exit moved 1984->3136, building packs replaced)',
   'level1_gate_rooftop.mjs': 'superseded by Chief Builder redesign of level1 (exit moved 1984->3136, building packs replaced)',

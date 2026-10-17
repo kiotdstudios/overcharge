@@ -9,8 +9,10 @@ const asset = manifest.assets.find(a => a.id === 'npc_streetlamp_woman');
 const npc = level.npcs.find(n => n.assetId === asset.id);
 assert.ok(asset && npc);
 const g = npcGeometry(asset, npc.x, npc.y, npc.scale, npc.facing);
-assert.ok(Math.abs(g.visible.h - 70) < .001, 'visible figure is 70 world px high');
-assert.ok(g.visible.h > HERO_SIZE * .8 && g.visible.h < HERO_SIZE * 1.15);
+// NPC height is the manifest's displayHeightPx (60 since the NPC size ruling; it was 70 on 2026-10-12).
+assert.equal(asset.displayHeightPx, 60, 'streetlamp woman is a 60 px NPC');
+assert.ok(Math.abs(g.visible.h - asset.displayHeightPx) < .001, 'visible figure is displayHeightPx world px high');
+assert.ok(g.visible.h > HERO_SIZE * .7 && g.visible.h < HERO_SIZE * 1.15, 'NPC stays in proportion to the hero');
 assert.ok(Math.abs(g.visible.y + g.visible.h - npc.y) < .001, 'shoes meet feet anchor');
 assert.ok(Math.abs(g.visible.x + g.visible.w / 2 - npc.x) < .001, 'figure centered on anchor');
 assert.ok(Math.abs(g.drawW / g.drawH - 1) < .001, 'source canvas stays uniformly scaled');
