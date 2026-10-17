@@ -58,6 +58,33 @@
       114
     ]
   },
+  "tenantWindow_right_end": {
+    "glass": {
+      "x": 38,
+      "y": 44,
+      "w": 56,
+      "h": 64
+    },
+    "sillTopLineY": 108,
+    "lintel": [
+      32,
+      36,
+      99,
+      43
+    ],
+    "sill": [
+      30,
+      108,
+      101,
+      114
+    ],
+    "frameOuter": [
+      30,
+      36,
+      101,
+      114
+    ]
+  },
   "gain_wall_01": "1.117,1.079,0.863",
   "gain_wall_02": "1.139,1.088,0.877",
   "gain_wall_03": "1.078,1.05,0.844",
@@ -69,5 +96,6 @@
   "gain_wall_tenant": "1.13,1.098,0.87",
   "gain_left_end": "1.357,1.043,0.737",
   "gain_left_end_tenant": "1.358,1.044,0.739",
-  "gain_right_end": "1.361,1.017,0.73"
+  "gain_right_end": "1.361,1.017,0.73",
+  "gain_right_end_tenant": "1.364,1.023,0.734"
 }

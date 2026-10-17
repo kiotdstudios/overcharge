@@ -90,6 +90,7 @@ const out = await page.evaluate(async () => {
   }
   const mt = makeTenant(W.wall_04, 52); W.wall_tenant = mt.T; info.tenantWindow_wall = mt.box;
   const lt = makeTenant(W.left_end, 74); W.left_end_tenant = lt.T; info.tenantWindow_left_end = lt.box;
+  const rt = makeTenant(W.right_end, 38); W.right_end_tenant = rt.T; info.tenantWindow_right_end = rt.box;
 
   // ---- 4. colour: grade the brick toward the street wall (27,31,69), leave lit-window pixels alone
   const protectedPx = p => p[0] > 90 && p[0] > p[2];                       // warm glow / warm interior
@@ -104,7 +105,7 @@ const out = await page.evaluate(async () => {
     info['gain_' + name] = gain.map(v => +v.toFixed(3)).join(',');
   };
   const final = {};
-  const order = ['wall_01','wall_02','wall_03','wall_04','wall_05','wall_06','wall_07','wall_08','wall_tenant','left_end','left_end_tenant','right_end'];
+  const order = ['wall_01','wall_02','wall_03','wall_04','wall_05','wall_06','wall_07','wall_08','wall_tenant','left_end','left_end_tenant','right_end','right_end_tenant'];
   for (const n of order) { final[n] = clone(W[n]); grade(final[n], n); }
   // ---- 5. audit
   const hueOf = (r, g, b) => { const mx = Math.max(r,g,b), mn = Math.min(r,g,b), d = mx - mn; if (!d) return 0; let h; if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; return (h * 60 + 360) % 360; };
@@ -137,7 +138,7 @@ const out = await page.evaluate(async () => {
   return result;
 });
 const save = async (path, url) => writeFile(path, Buffer.from(url.split(',')[1], 'base64'));
-for (const [n, u] of Object.entries(out.files)) await save(DEST + (n === 'wall_tenant' ? 'wall_tenant_window' : n === 'left_end_tenant' ? 'left_end_tenant_window' : n) + '.png', u);
+for (const [n, u] of Object.entries(out.files)) await save(DEST + (n === 'wall_tenant' ? 'wall_tenant_window' : n === 'left_end_tenant' ? 'left_end_tenant_window' : n === 'right_end_tenant' ? 'right_end_tenant_window' : n) + '.png', u);
 for (const [n, u] of Object.entries(out.previews)) await save(DEST + 'previews/' + n + '.png', u);
 await writeFile(DEST + 'palette_audit.json', JSON.stringify({ target: { mean_rgb: [27, 31, 69], blue_dominant_pct_min: 95, hue: [230, 242], rule: 'brick mean within 8 of target per channel; warm < 8% of opaque pixels' }, panels: out.audit }, null, 2));
 await writeFile(DEST + 'build_info.json', JSON.stringify(out.info, null, 2));

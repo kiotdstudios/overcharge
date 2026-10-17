@@ -48,7 +48,7 @@ sec('THE LADDERS ARE REAL AND THEY CHAIN UP TO THE APARTMENT ROOF');
     held([]); run(p, lv, [], 0.3);
     ok(p.grounded && Math.abs(p.y + p.h - lad.y) < 2, 'and the hero stays standing there', `feet ${(p.y + p.h).toFixed(1)}`);
   }
-  run(p, lv, ['ArrowRight'], 6, () => ac.inRange(p.cx, p.cy));
+  run(p, lv, [ac.x < p.x ? 'ArrowLeft' : 'ArrowRight'], 12, () => ac.inRange(p.cx, p.cy));   // the AC is at the far left of the roof (Chief, round 20), so the hero runs left
   ok(ac.inRange(p.cx, p.cy), 'from the top ladder the hero walks to the AC unit and is in range of it', `x ${p.x.toFixed(0)}, feet ${(p.y + p.h).toFixed(0)}`);
 }
 

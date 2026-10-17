@@ -3716,6 +3716,31 @@
       }
     },
     {
+      "id": "building_nc_apt_plain_right_end_tenant_window",
+      "name": "Night City plain apartment - Right end cap - tenant window (56 x 64 opening)",
+      "path": "assets/objects/night-city-buildings/apartment_plain/right_end_tenant_window.png",
+      "category": "decoration",
+      "tags": [
+        "night_city_props",
+        "building",
+        "apartment",
+        "plain",
+        "scenery",
+        "noncolliding"
+      ],
+      "frame_width": 128,
+      "frame_height": 256,
+      "frame_count": 1,
+      "notes": "Right end with the tenant window: glass opening 56 x 64 at x 38, y 44 (panel x 38 to 93); the sill top line is y 108. The ladder runs beside it, so a tenant here is passed on the climb. Plain kit: no ladders, pipes, AC or props baked in; brick colour matched to the street wall (27, 31, 69). 128 px wide, 256 px tall. Placeable visual dressing only.",
+      "family": "nc_building_wall",
+      "trim": {
+        "x": 0,
+        "y": 0.0352,
+        "w": 1,
+        "h": 0.9648
+      }
+    },
+    {
       "id": "building_nc_tenant_wall",
       "name": "Night City Tenant apartment - wall bay (vent, pipe, fuse box)",
       "path": "assets/objects/night-city-buildings/apartment_tenant/tenant_wall.png",
