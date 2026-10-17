@@ -2455,3 +2455,33 @@ Find the Level 1 walls in PixelLab and make a 9-tile set (grass-block layout) fr
 - Movement retune with before and after (work items 5, 6, 20): not started, waits on Chief's go.
 - Audio ambience and charged-object reactions; Level 1 music needs assets.
 - PixelLab key was pasted in chat and shown in a screenshot: Chief should rotate it.
+
+## Round 19: CODEX 04 integrated, CODEX 05 finished (plain apartment kit and a new tenant)
+
+### Chief's answers
+"Do 1 to 3 and make it a cute African American girl, curly hair." (1: register the bus stop loops with in-game proof. 2: fix the building. 3: new tenant.)
+
+### CODEX 04, bus stop loops: DONE
+- Merged `codex/orders04-05` (review files only, merged clean). Registered both NPCs on the 48-frame, 6 fps, 8.0 s loops (`homeless-idle-loop/`, `backpack-idle-loop/`; the old 5-frame folders stay on disk for rollback). Trim now from Codex's union boxes (the commuter's is wider, so she draws about 4% smaller). `_dev/bus_stop_idle.mjs` rewritten to read the manifest (8 s minimum, feet 123 on every frame, frames in order).
+- Real-game proof: Level 1 loaded through the Builder test path with the hero at the bus stop, five screenshots over 6 s, cropped into `docs/reference/bus_stop_loops_ingame_proof.png`. Poses change between shots (hand to mouth, phone checks), feet planted.
+
+### CODEX 05 Task 1, plain apartment kit: DONE (Kiro finished Codex's review set)
+- Codex's own report failed it. I fixed four things: brick courses were 1 px off between two groups of panels from y 119 down (rows re-mapped onto shared course lines), the 3 px purple and black outline columns at panel edges (replaced with the brick beside them), colour (graded to the street wall: every panel measures (27, 31, 69), 99.7 to 100% blue-dominant, hue 234 to 235 against 236), and the tenant window (drawn at exactly 56 x 64).
+- `assets/objects/night-city-buildings/apartment_plain/`: `wall_01..08`, `wall_tenant_window`, `left_end`, `left_end_tenant_window`, `right_end`. 12 pieces registered as Builder decorations (`building_nc_apt_plain_*`, family `nc_building_wall`). Tenant window: glass x 52 to 107 (wall bay) or x 74 to 129 (left end), y 44 to 107; **sill top line y 108**. Warm pixels 7.5% (limit 8%). README and `palette_audit.json` inside; generator in `_dev/tools/apartment_plain/`.
+- Real-game proof at 1x and 2x: `docs/reference/apartment_plain_ingame_1x.png`, `_2x.png`.
+
+### CODEX 05 Task 2, the tenant: DONE (new character, PixelLab)
+- A cute young adult woman, big natural curly hair, hoop earring, black tank top, paper fan, leaning on the sill. `assets/sprites/npc-window-tenant-v3/` (128 x 128 frames): hot loop 208 frames at 12 fps (17.3 s), relieved 41 frames at 10 fps (4.1 s), relaxed idle 24 frames at 8 fps (3.0 s). She is 46 px tall (street NPCs 60), 51.8 px at her widest, inside the 56 px glass.
+- Engine: new `poweredIdleAssetId` in `npc.js`. After the relief clip ends, the relaxed idle loop plays while the AC stays on (read from the NPC's manifest asset if the level does not name it, so `level1.json` needs no change); the Builder carries the field. Registered `npc_window_tenant` (new art), `npc_window_tenant_relieved`, `npc_window_tenant_idle`.
+- Tests: `tenant_sequence.mjs` updated (35 passed, now checks smooth hot motion, relief clip, idle loop, back to hot), new `tenant_art_v3.mjs` (18 passed). Suite: 3043 passed, 0 failed across 78 suites.
+- Real-game proof: she stands in the left-end window next to the hero, hot, relieved and relaxed (`docs/reference/tenant_v3/ingame_*_3x.png`), contact sheets on dark and light, and GIFs at game speed.
+
+### Frame checks, said plainly
+- Hot: biggest step 43.6% of opaque pixels, 4 steps above 35%, loop seam 0%. Relieved: biggest 54.9%, **7 steps above the 35% line**, all in two runs of four steady steps while the large pale fan crosses the frame (no isolated spike, no colour or position jump). Idle: biggest 32.1%, seam 2.7%.
+- The hot cycle repeats content: two unique sweeps and their reverses, with one second rests on the key pose. Four more sweeps were tried and not used (a red colour cast, a jumpy first frame, a painted-in night sky, and one clean one that moves too fast).
+
+### NOT done: placing her in Level 1
+`level1.json` is Chief's file and no written order names it, so I did NOT edit it. The exact change, proven in the running game through the Builder test path: replace the three grey `apartment_tenant` panels with `left_end_tenant_window` (x 1, y 126), a plain bay such as `wall_06` (x 193, y 126) and `right_end` (x 351, y 126); move `NPC_TENANT` to x 102, y 234. Say the word and I'll apply it and log it.
+
+### PixelLab
+80 generations spent this round (about 850 of 2000 left): key pose 6, relaxed pose 6, clips A, B, C, D, relieved 6 each, idle 3, a second idle 3, the spare neck-fanning clip 6, plus cancelled and rejected retries. Two jobs stalled for over 30 minutes and I cancelled them. The service was slow and unreliable for a while. Gallery IDs: key `a7a5888f`, relaxed `c454da51`, A `15e21a3a`, C `c2027ad7`, relieved `e778fa78`, idle `421f6316`, spare neck-fanning `168d1cf8`.

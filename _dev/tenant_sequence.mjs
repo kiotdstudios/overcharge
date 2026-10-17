@@ -116,16 +116,19 @@ sec('THE RIGHT CLIP IS ON SCREEN (real manifest, real frame files)');
   const p = heroAtAc(lv);
   run(p, lv, [], 0.5);
   const clip = () => { const img = npc._currentFrame(); return img ? String(img.src) : 'none'; };
-  ok(/npc-window-tenant\/complaining\/\d\d\.png$/.test(clip()), 'while the AC is off she plays the hot, fanning clip', clip().split('/').slice(-2).join('/'));
+  ok(/npc-window-tenant-v3\/hot\/\d{3}\.png$/.test(clip()), 'while the AC is off she plays the hot, fanning clip', clip().split('/').slice(-2).join('/'));
   const frames = new Set(); for (let i = 0; i < 90; i++) { step(p, lv); frames.add(clip()); }
-  ok(frames.size === 6 && [...frames].every(s => /complaining/.test(s)), 'and it loops through all six frames', `${frames.size} distinct`);
+  ok(frames.size >= 17 && [...frames].every(s => /\/hot\//.test(s)), 'and it moves smoothly: a new frame about every 1/12 s (1.5 s shows 17 or more distinct frames)', `${frames.size} distinct`);
   p.giveEnergy(6); held(['Space']);
   for (let i = 0; i < 60 * 8 && ac.charge < 4 - 1e-6; i++) step(p, lv);
   held([]); for (let i = 0; i < 70; i++) step(p, lv);
-  ok(/npc-window-tenant\/relieved\/05\.png$/.test(clip()), 'once the AC is on she plays the relief clip once and holds its last frame', clip().split('/').slice(-2).join('/'));
+  ok(/npc-window-tenant-v3\/relieved\/\d{3}\.png$/.test(clip()), 'once the AC is on she plays the relief clip', clip().split('/').slice(-2).join('/'));
+  { const reliefSec = 41 / 10; const idleSeen = new Set(); for (let i = 0; i < Math.round((reliefSec + 0.4) * 60); i++) step(p, lv);
+    for (let i = 0; i < 60 * 2; i++) { step(p, lv); idleSeen.add(clip()); }
+    ok([...idleSeen].every(s => /npc-window-tenant-v3\/idle\/\d{3}\.png$/.test(s)) && idleSeen.size >= 10, 'when the relief clip ends she moves on to the relaxed idle loop (and keeps moving)', `${idleSeen.size} distinct idle frames in 2 s`); }
   held(['KeyE']); for (let i = 0; i < 60 * 8 && !ac.drained; i++) step(p, lv); held([]);
   for (let i = 0; i < 5; i++) step(p, lv);
-  ok(/complaining/.test(clip()), 'zap the AC and she is back to fanning herself', clip().split('/').slice(-2).join('/'));
+  ok(/npc-window-tenant-v3\/hot\//.test(clip()), 'zap the AC and she is back to fanning herself', clip().split('/').slice(-2).join('/'));
   const bubble = npc._bubbleText;
   ok(/thank God/.test(bubble || ''), 'she spoke her relieved line when the AC came on (and it is cleared when it goes off)', JSON.stringify(bubble) + ', bubble timer ' + npc._bubbleT);
 }

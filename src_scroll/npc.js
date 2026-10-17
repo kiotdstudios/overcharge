@@ -55,6 +55,7 @@ export class Npc {
     this.greetingAssetId = def.greetingAssetId || null;
     this.walkAssetId     = def.walkAssetId || null;
     this.poweredAssetId  = def.poweredAssetId || null;
+    this.poweredIdleAssetId = def.poweredIdleAssetId || null;   // loop that follows the one-shot powered (relief) clip
     this.linkedObjectId  = def.linkedObjectId || null;
     this.x               = Number(def.x) || 0;   // feet anchor, world px (bottom-centre)
     this.y               = Number(def.y) || 0;   // ground line the feet rest on
@@ -157,6 +158,10 @@ export class Npc {
     const walk     = this.walkAssetId ? assetById(this.walkAssetId) : null;
     const smoke    = this.ambient && this.ambient.smokeAssetId ? assetById(this.ambient.smokeAssetId) : null;
     const powered  = this.poweredAssetId ? assetById(this.poweredAssetId) : null;
+    // The placed NPC may name the relaxed loop itself; otherwise it comes from the NPC's own manifest asset
+    // (so a level saved before this field existed still gets the idle loop).
+    const poweredIdleId = this.poweredIdleAssetId || (ambient && ambient.poweredIdleAssetId) || null;
+    const poweredIdle = poweredIdleId ? assetById(poweredIdleId) : null;
     if (!ambient) return null; // manifest not loaded yet, or unknown id — retry next frame
     const anim = {
       ambient:  { asset: ambient,  frames: null, img: null },
@@ -164,8 +169,9 @@ export class Npc {
       walk: walk ? { asset: walk, frames: null, img: null } : null,
       smoke:    smoke    ? { asset: smoke,    frames: null, img: null } : null,
       powered:  powered  ? { asset: powered,  frames: null, img: null } : null,
+      poweredIdle: poweredIdle ? { asset: poweredIdle, frames: null, img: null } : null,
     };
-    for (const key of ['ambient', 'greeting', 'walk', 'smoke', 'powered']) {
+    for (const key of ['ambient', 'greeting', 'walk', 'smoke', 'powered', 'poweredIdle']) {
       const slot = anim[key];
       if (!slot) continue;
       const a = slot.asset;
@@ -312,18 +318,21 @@ export class Npc {
   _currentFrame() {
     const sprites = this._resolveSprites();
     if (!sprites) return null;
-    const usePowered = this._powered && sprites.powered;
-    const useGreeting = !usePowered && this._greetT > 0 && sprites.greeting;
-    const useWalk = !useGreeting && this._walking && sprites.walk;
+    // Once the one-shot relief clip has finished, a looping relaxed idle takes over (if the asset names one).
+    const reliefLen = (sprites.powered && sprites.powered.frames) ? sprites.powered.frames.length / (sprites.powered.fps || 8) : 0;
+    const usePoweredIdle = !!(this._powered && sprites.powered && sprites.poweredIdle && sprites.poweredIdle.frames && this._reliefClock >= reliefLen);
+    const usePowered = this._powered && sprites.powered && !usePoweredIdle;
+    const useGreeting = !usePowered && !usePoweredIdle && this._greetT > 0 && sprites.greeting;
+    const useWalk = !usePoweredIdle && !useGreeting && this._walking && sprites.walk;
     const useSmoke = !useGreeting && !useWalk && this.ambient && this._ambState === 'smoke' && sprites.smoke;
-    const slot = usePowered ? sprites.powered : useGreeting ? sprites.greeting : useWalk ? sprites.walk : (useSmoke ? sprites.smoke : sprites.ambient);
+    const slot = usePoweredIdle ? sprites.poweredIdle : usePowered ? sprites.powered : useGreeting ? sprites.greeting : useWalk ? sprites.walk : (useSmoke ? sprites.smoke : sprites.ambient);
     this._frameSlot = slot;
     // The one-shot smoke clip is timed from its own elapsed counter (resets to
     // 0 the instant the state machine enters 'smoke'), never from this._clock,
     // so it always starts at frame 0 regardless of how long the NPC has existed.
     const stepPx = Number(slot.asset?.walkFrameStepPx);
     const walkTime = stepPx > 0 ? this._walkDistance / (stepPx * slot.fps) : this._walkClock;
-    const t = usePowered ? this._reliefClock : useGreeting ? this._clock - this._greetStartedAt : useWalk ? walkTime : useSmoke ? this._smokeElapsed / 1000 : this._clock;
+    const t = usePoweredIdle ? this._reliefClock - reliefLen : usePowered ? this._reliefClock : useGreeting ? this._clock - this._greetStartedAt : useWalk ? walkTime : useSmoke ? this._smokeElapsed / 1000 : this._clock;
     if (slot.frames) {
       const fake = { frames: slot.frames, fps: slot.fps, loop: (usePowered || useGreeting || useSmoke) ? false : slot.loop, phase: 0 };
       return frameAt(fake, t);

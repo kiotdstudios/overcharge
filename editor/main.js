@@ -1807,6 +1807,7 @@ function _doSpawn(e, canvas) {
       greetingAssetId: (asset.raw && asset.raw.greetingAssetId) || null,
       walkAssetId: (asset.raw && asset.raw.walkAssetId) || null,
       poweredAssetId: (asset.raw && asset.raw.poweredAssetId) || null,
+      poweredIdleAssetId: (asset.raw && asset.raw.poweredIdleAssetId) || null,
       x: px, y: py, facing: 'right',
       patrol: { rangePx: 0, speedPxPerSec: 22, turnPauseSec: 0.55 },
       dialogue: {
@@ -2113,6 +2114,7 @@ function _renderNpcInspector(ref) {
       ref.greetingAssetId = item?.raw?.greetingAssetId || null;
       ref.walkAssetId = item?.raw?.walkAssetId || null;
       ref.poweredAssetId = item?.raw?.poweredAssetId || null;
+      ref.poweredIdleAssetId = item?.raw?.poweredIdleAssetId || null;
       commit();
     });
     $('npc-x').addEventListener('change', (e) => { ref.x = Number(e.target.value); commit(); });

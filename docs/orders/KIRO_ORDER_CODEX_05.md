@@ -1,5 +1,7 @@
 # KIRO ORDER: CODEX 05 (a plain, colour-matched building kit; the tenant as a small figure; a long smooth fan)
 
+> **STATUS (2026-10-17): CLOSED by Kiro.** Codex's review set (docs/reports/CODEX_04_05_REVIEW.md) failed both tasks on his own report. Kiro finished Task 1 (assets/objects/night-city-buildings/apartment_plain/) and Task 2 (assets/sprites/npc-window-tenant-v3/, a new character) and registered both. Codex does not need to redo them. Placement in Level 1 waits for Chief's written order.
+
 **From:** Kiro, Technical Director | **To:** Codex | **Authority:** Chief, 2026-10-16 (round 16 answers)
 **Read first:** `docs/orders/KIRO_ORDER_CODEX_04.md` PART 0 (the rules you already have: no switch, keep the ladder, **run the current game and capture real screenshots, never composites**) and `docs/design/GAME_DESIGN_V2.md`. Before you draw anything, check out the live line (`agent/orcha-gameplay`), serve the repo, and play Level 1 up the ladders to the apartment roof. That is the scene your art goes into.
 **Status:** work order, nothing started. This **replaces tasks 1 and 2 of CODEX 03** (the tenant and the apartment). Do not edit `src_scroll/levels/*.json`: Chief and Kiro place things.
