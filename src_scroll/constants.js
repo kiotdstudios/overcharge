@@ -79,7 +79,11 @@ export const STUN_DURATION    = 0.75; // seconds player input is frozen on enemy
 export const STUN_COOLDOWN    = 1.2;  // minimum time between hits from same enemy
 
 // Banked charge pips
-export const MAX_BANKED_PIPS = 5;  // max pips player can hold
+export const MAX_BANKED_PIPS = 5;  // max pips player can hold (global ceiling; CODEX 02 enforcement pending)
+// Display/forward-compat only for now: the HUD only draws pip slots the player actually has, so it
+// does not show four empty "locked" circles on a fresh save. The live banking cap stays MAX_BANKED_PIPS
+// until CODEX 02 (docs/orders/KIRO_ORDER_CODEX_02.md) wires real capacity upgrades to this same field.
+export const START_PIP_SLOTS = 1;
 
 // Player attack
 export const ATTACK_RADIUS   = 65;   // px — melee swing reach

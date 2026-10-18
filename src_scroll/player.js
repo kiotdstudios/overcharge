@@ -1,7 +1,7 @@
 // Player: movement, jumping, absorb (E) / charge (SPACE) / attack (K), charge meter
 import {
   TILE, COLS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
-  PLAYER_W, PLAYER_H, PLAYER_DUCK_H, MAX_CHARGE, MAX_BANKED_PIPS, ABSORB_RATE, DISCHARGE_RATE, chargeTransferRate, C,
+  PLAYER_W, PLAYER_H, PLAYER_DUCK_H, MAX_CHARGE, MAX_BANKED_PIPS, START_PIP_SLOTS, ABSORB_RATE, DISCHARGE_RATE, chargeTransferRate, C,
   RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS,
   PROJECTILE_CHARGE_COST
 } from './constants.js';
@@ -86,6 +86,7 @@ export class Player {
 
     // Banked charge pips
     this.bankedPips  = 0;
+    this.pipSlots    = START_PIP_SLOTS;  // unlocked bank capacity; HUD-only until CODEX 02's capacity upgrades
     this._pipBankFx  = 0;  // flash when a pip is banked
     this._pipSpendFx = 0;  // flash when a pip is spent
     this._pipSurgeT = 0;

@@ -1,11 +1,14 @@
-import { MAX_CHARGE, MAX_BANKED_PIPS } from './constants.js';
+import { MAX_CHARGE, MAX_BANKED_PIPS, START_PIP_SLOTS } from './constants.js';
 
 // Presentation only: the player remains the authority for charge and banking.
-export function pipPulse(count, t, reduced = false) {
-  count = Math.max(0, Math.min(MAX_BANKED_PIPS, Math.floor(count || 0)));
-  const strength = count / MAX_BANKED_PIPS;
+// slots is the number of pip icons to animate against (the player's unlocked capacity,
+// never fewer than what is actually banked -- see drawEnergyHUD).
+export function pipPulse(count, slots, t, reduced = false) {
+  slots = Math.max(1, Math.min(MAX_BANKED_PIPS, Math.floor(slots || MAX_BANKED_PIPS)));
+  count = Math.max(0, Math.min(slots, Math.floor(count || 0)));
+  const strength = count / slots;
   const wave = reduced ? 0.5 : (1 - Math.cos(t * Math.PI * 2 * (0.45 + strength * 0.65))) / 2;
-  return { count, wave, glow: count ? 3 + strength * 5 + wave * (3 + strength * 15) : 0,
+  return { count, slots, wave, glow: count ? 3 + strength * 5 + wave * (3 + strength * 15) : 0,
     alpha: count ? 0.82 + wave * 0.18 : 0 };
 }
 
@@ -96,64 +99,140 @@ function loadSprites() {
   }
 }
 
+// A small rounded-corner icon badge, like the mockup's HUD rows: a dark inset square with a
+// bright 1px frame and a glyph drawn in it. The breathe parameter is the ambient idle animation
+// (see drawEnergyHUD) -- a slow, low-amplitude glow so the whole panel never looks static.
+function drawBadge(ctx, x, y, size, color, glyph, breathe) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(5,4,14,0.9)';
+  ctx.fillRect(x, y, size, size);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.shadowColor = color;
+  ctx.shadowBlur = 2 + breathe * 3;
+  ctx.strokeRect(x + .5, y + .5, size - 1, size - 1);
+  ctx.fillStyle = color;
+  glyph(ctx, x, y, size);
+  ctx.restore();
+}
+const _lightningGlyph = (ctx, x, y, s) => {
+  ctx.beginPath();
+  ctx.moveTo(x + s * .58, y + s * .14); ctx.lineTo(x + s * .32, y + s * .54); ctx.lineTo(x + s * .5, y + s * .54);
+  ctx.lineTo(x + s * .42, y + s * .86); ctx.lineTo(x + s * .72, y + s * .42); ctx.lineTo(x + s * .52, y + s * .42);
+  ctx.closePath(); ctx.fill();
+};
+const _batteryGlyph = (ctx, x, y, s) => {
+  ctx.fillRect(x + s * .2, y + s * .3, s * .6, s * .42);
+  ctx.fillRect(x + s * .36, y + s * .18, s * .28, s * .12);
+};
+
+// Thin L-shaped corner accents, like the mockup's rounded-frame boxes, instead of a flat side tab.
+function drawCornerAccents(ctx, x, y, w, h, color, len = 9) {
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+  const corners = [[x, y, 1, 1], [x + w, y, -1, 1], [x, y + h, 1, -1], [x + w, y + h, -1, -1]];
+  for (const [cx, cy, dx, dy] of corners) {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy + dy * len); ctx.lineTo(cx, cy); ctx.lineTo(cx + dx * len, cy);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
 export function drawEnergyHUD(ctx, player, t, { x = 84, y = 22, reducedMotion = false } = {}) {
   loadSprites();
   const reduced = reducedMotion || globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const p = pipPulse(player.bankedPips, t, reduced);
+  // Only draw as many pip slots as the player can actually use -- never the full MAX_BANKED_PIPS set
+  // of locked circles on a fresh save (Chief: "don't include pip UI if the player doesn't have it").
+  // Never fewer than what is actually banked, so a pip the economy already produced is never hidden.
+  const slots = Math.min(MAX_BANKED_PIPS, Math.max(player.pipSlots || START_PIP_SLOTS, player.bankedPips, 1));
+  const p = pipPulse(player.bankedPips, slots, t, reduced);
   const fill = Math.max(0, Math.min(1, player.charge / MAX_CHARGE));
   const colors = chargeColors(fill);
+
+  // The box's own width tracks its content: one unlocked slot reads as a small, tight panel; more
+  // slots (future capacity upgrades) grow it. This is the "more dynamic" ask -- the frame is a function
+  // of what the player has, not a fixed five-slot plate.
+  const barW = 220;
+  const pipsW = (slots - 1) * 52 + 60;
+  const contentW = Math.max(barW, pipsW);
+  const boxW = contentW + 34;
+  const boxH = 94;
+
+  // A slow, low-amplitude ambient breathe -- the panel never sits perfectly still, even at rest.
+  const breathe = reduced ? 0.5 : (1 - Math.cos(t * Math.PI * 2 * 0.18)) / 2;
+
   ctx.save(); ctx.translate(Math.round(x), Math.round(y));
   ctx.imageSmoothingEnabled = false;
-  ctx.fillStyle = '#0b0819'; ctx.fillRect(-6, 0, 326, 86);
-  ctx.strokeStyle = '#45325f'; ctx.lineWidth = 1; ctx.strokeRect(-5.5, .5, 325, 85);
-  ctx.fillStyle = '#9951d0'; ctx.fillRect(-6, 0, 3, 12); ctx.fillRect(317, 74, 3, 12);
-  for (let i = 0; i < MAX_BANKED_PIPS; i++) {
+
+  ctx.fillStyle = '#0b0819'; ctx.fillRect(-6, 0, boxW, boxH);
+  ctx.strokeStyle = '#45325f'; ctx.lineWidth = 1; ctx.strokeRect(-5.5, .5, boxW - 1, boxH - 1);
+  ctx.globalAlpha = 0.55 + breathe * 0.45;
+  drawCornerAccents(ctx, -5.5, .5, boxW - 1, boxH - 1, '#5fd7ea');
+  ctx.globalAlpha = 1;
+
+  // ── Row 1: CHARGE (on top, per Chief's order) ──────────────────────────────
+  const row1Y = 6;
+  drawBadge(ctx, -2, row1Y, 20, player.absorbing ? colors.bright : '#5fd7ea', _lightningGlyph, breathe);
+  ctx.font = '8px monospace'; ctx.textAlign = 'left';
+  ctx.fillStyle = player.absorbing ? colors.edge : '#a99abd';
+  ctx.fillText(player.absorbing ? 'ABSORBING' : 'CHARGE', 24, row1Y + 7);
+  const barY = row1Y + 11, barH = 13;
+  ctx.fillStyle = '#20182f'; ctx.fillRect(24, barY, contentW - 24, barH);
+  const width = Math.round((contentW - 24) * fill);
+  if (width > 0) {
+    ctx.shadowColor = colors.bright; ctx.shadowBlur = player.absorbing ? (reduced ? 8 : 10 + 4 * Math.sin(t * 4) ** 2) : 3;
+    ctx.fillStyle = colors.body; ctx.fillRect(24, barY, width, barH);
+    ctx.fillStyle = colors.bright; ctx.fillRect(24, barY, width, 5);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = colors.edge; ctx.fillRect(24, barY, width, 2);
+    ctx.fillRect(24 + Math.max(0, width - 2), barY, Math.min(2, width), barH);
+    if (player.absorbing && !reduced) {
+      ctx.shadowColor = colors.bright; ctx.shadowBlur = 6;
+      sparkLine(ctx, 24 + Math.max(0, width - 22), barY + 7, Math.min(22, width), Math.floor(t * 12), 3, colors.edge);
+      ctx.shadowBlur = 0;
+    }
+  }
+  ctx.fillStyle = '#0b0819';
+  for (let i = 1; i < MAX_CHARGE; i++) ctx.fillRect(24 + Math.round((contentW - 24) * i / MAX_CHARGE), barY, 2, barH);
+  ctx.font = '8px monospace'; ctx.textAlign = 'right'; ctx.fillStyle = player.absorbing ? colors.edge : '#a99abd';
+  ctx.fillText(`${Math.floor(fill * MAX_CHARGE)} / ${MAX_CHARGE}`, contentW, row1Y + 7);
+
+  // ── Row 2: BANK (below, only the slots the player actually has) ───────────
+  const row2Y = row1Y + barH + 18;
+  drawBadge(ctx, -2, row2Y, 20, p.count ? '#ac75ef' : '#5fd7ea', _batteryGlyph, breathe);
+  ctx.font = '8px monospace'; ctx.textAlign = 'left';
+  ctx.fillStyle = p.count === slots ? '#71b3c2' : '#8c7caa';
+  ctx.fillText(p.count === slots ? 'FULL' : 'BANK', 24, row2Y + 7);
+  ctx.font = 'bold 10px monospace'; ctx.textAlign = 'right';
+  ctx.fillStyle = p.count ? '#d5c5ef' : '#8c7caa'; ctx.fillText(`${p.count} / ${slots}`, contentW, row2Y + 7);
+
+  const pipTop = row2Y + 14;
+  ctx.save(); ctx.translate(24, pipTop);
+  for (let i = 0; i < slots; i++) {
     const filled = i < p.count, image = sprites?.[filled ? 'charged' : 'empty'];
     const size = filled ? 83 : 65, bottom = filled ? 69 : 60;
-    const dw = Math.round(size * .72), dx = i * 52 + 24 - Math.floor(dw / 2);
-    const dy = 44 - Math.round(bottom * .72);
+    const dw = Math.round(size * .58), dx = i * 52 + 12 - Math.floor(dw / 2);
+    const dy = 34 - Math.round(bottom * .58);
     ctx.save();
     ctx.globalAlpha = filled ? p.alpha : .8;
     const bank = !reduced && i === p.count - 1 ? Math.min(1, Math.max(0, player._pipBankFx || 0) * 2) : 0;
     ctx.shadowColor = '#9951d0'; ctx.shadowBlur = filled ? p.glow + bank * 10 : 0;
     if (image) ctx.drawImage(image, dx, dy, dw, dw);
     else {
-      ctx.fillStyle = filled ? '#9951d0' : '#241d3d'; ctx.fillRect(i * 52 + 10, 12, 28, 28);
-      ctx.fillStyle = filled ? '#d5ebf4' : '#4b3c69'; ctx.fillRect(i * 52 + 21, 18, 6, 16);
+      ctx.fillStyle = filled ? '#9951d0' : '#241d3d'; ctx.fillRect(i * 52, 0, 24, 24);
+      ctx.fillStyle = filled ? '#d5ebf4' : '#4b3c69'; ctx.fillRect(i * 52 + 9, 5, 6, 14);
     }
     ctx.restore();
-    ctx.fillStyle = filled ? '#71b3c2' : '#322546'; ctx.fillRect(i * 52 + 17, 46, 14, 2);
+    ctx.fillStyle = filled ? '#71b3c2' : '#322546'; ctx.fillRect(i * 52 + 5, 36, 14, 2);
   }
   drawElectricity(ctx, p.count, t, reduced);
-  ctx.font = 'bold 10px monospace'; ctx.textAlign = 'left';
-  ctx.fillStyle = p.count ? '#d5c5ef' : '#8c7caa'; ctx.fillText(`${p.count} / ${MAX_BANKED_PIPS}`, 267, 24);
-  ctx.font = '8px monospace'; ctx.fillStyle = p.count === MAX_BANKED_PIPS ? '#71b3c2' : '#8c7caa';
-  ctx.fillText(p.count === MAX_BANKED_PIPS ? 'FULL' : 'BANK', 267, 38);
-  // Current charge, rather than reserve count, controls the cyan-to-violet blend.
-  ctx.fillStyle = '#20182f'; ctx.fillRect(0, 54, 308, 14);
-  const width = Math.round(308 * fill);
-  if (width > 0) {
-    ctx.shadowColor = colors.bright; ctx.shadowBlur = player.absorbing ? (reduced ? 8 : 10 + 4 * Math.sin(t * 4) ** 2) : 3;
-    ctx.fillStyle = colors.body; ctx.fillRect(0, 54, width, 14);
-    ctx.fillStyle = colors.bright; ctx.fillRect(0, 54, width, 6);
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = colors.edge; ctx.fillRect(0, 54, width, 2);
-    ctx.fillRect(Math.max(0, width - 2), 54, Math.min(2, width), 14);
-    if (player.absorbing && !reduced) {
-      ctx.shadowColor = colors.bright; ctx.shadowBlur = 6;
-      sparkLine(ctx, Math.max(0, width - 22), 61, Math.min(22, width), Math.floor(t * 12), 3, colors.edge);
-      ctx.shadowBlur = 0;
-    }
-  }
-  ctx.fillStyle = '#0b0819';
-  for (let i = 1; i < MAX_CHARGE; i++) ctx.fillRect(Math.round(308 * i / MAX_CHARGE), 54, 2, 14);
-  ctx.font = '8px monospace'; ctx.fillStyle = player.absorbing ? colors.edge : '#a99abd';
-  ctx.fillText(player.absorbing ? 'ABSORBING' : 'CHARGE', 0, 79);
-  ctx.textAlign = 'right'; ctx.fillText(`${Math.floor(fill * MAX_CHARGE)} / ${MAX_CHARGE}`, 308, 79);
+  ctx.restore();
+
   // Spending draws a restrained edge accent, never a full-panel flash.
   if (!reduced && player._pipSpendFx > 0) {
     ctx.globalAlpha = Math.min(.7, player._pipSpendFx * 2);
-    ctx.strokeStyle = '#71b3c2'; ctx.strokeRect(-4.5, 1.5, 323, 83);
+    ctx.strokeStyle = '#71b3c2'; ctx.strokeRect(-4.5, 1.5, boxW - 2, boxH - 2);
   }
   ctx.restore();
 }
