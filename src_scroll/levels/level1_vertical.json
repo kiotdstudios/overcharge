@@ -4914,8 +4914,8 @@
       "kind": "prop",
       "sprite": "assets/objects/night-city-props/vending-machine/",
       "frames": 8,
-      "artW": 128,
-      "artH": 128,
+      "artW": 64,
+      "artH": 64,
       "uncharged": true
     },
     {

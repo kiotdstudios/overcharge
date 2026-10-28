@@ -4717,9 +4717,9 @@
     {
       "src": "assets/objects/night-city-props/bus-stop/shelter.png",
       "x": 2603,
-      "y": 905,
-      "w": 320,
-      "h": 192,
+      "y": 943,
+      "w": 256,
+      "h": 154,
       "snap": 1,
       "tileLayer": "front"
     },
@@ -4838,8 +4838,8 @@
       "kind": "prop",
       "sprite": "assets/objects/night-city-props/vending-machine/",
       "frames": 8,
-      "artW": 128,
-      "artH": 128
+      "artW": 64,
+      "artH": 64
     }
   ],
   "gates": [
