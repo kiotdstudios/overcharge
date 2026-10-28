@@ -13942,6 +13942,7 @@
       "x": 256,
       "y": 1088,
       "facing": "right",
+      "scale": 0.5455,
       "patrol": {
         "rangePx": 0,
         "speedPxPerSec": 22,

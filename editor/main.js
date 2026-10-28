@@ -1820,6 +1820,14 @@ function _doSpawn(e, canvas) {
         durationMs: 3500, lines: [], selectionMode: 'sequential',
       },
     };
+    // Size parity with Level 1: art with no displayHeightPx (the 176px smoke-break workers) would
+    // otherwise place at full 176px canvas scale, ~2x the hero. Level 1 authors these at 0.5455
+    // (96px canvas); apply the same 96px canvas for any such tall canvas. Assets that declare
+    // displayHeightPx already self-normalise and are left alone.
+    const _rawH = Number(asset.raw && (asset.raw.frame_height || asset.raw.height));
+    if (!(Number(asset.raw && asset.raw.displayHeightPx) > 0) && _rawH > 128) {
+      obj.scale = Math.round((96 / _rawH) * 10000) / 10000;
+    }
     arr = L.npcs || (L.npcs = []); arrLabel = 'add_npc';
   } else if (kind === 'player-start') {
     // playerStart is a single {x,y} field on the level root, not an array entry.
