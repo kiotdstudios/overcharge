@@ -129,7 +129,9 @@ let player = null;
 export function mechanicsSnapshot() {
   if (_TEST_LEVEL?.name !== 'HERO MECHANICS QA' || !player) return null;
   return { x: player.x, y: player.y, grounded: player.grounded, animation: player._sprites.state,
-    ladder: !!player._ladder, climbing: !!player._ledgeClimb, grappling: !!player._grapple };
+    ladder: !!player._ladder, climbing: !!player._ledgeClimb, grappling: !!player._grapple,
+    charge: player.usableEnergy, vx: player.vx, vy: player.vy,
+    chargeSprinting: player.chargeSprinting, chargeJumpCount: player.chargeJumpCount };
 }
 let t      = 0;
 let completeTimer = 0;
@@ -423,7 +425,7 @@ function _drawDevBar() {
   ctx.font      = '10px monospace';
   ctx.textAlign = 'center';
   const attacks = `${level.abilities.melee ? '   K MELEE' : ''}${level.abilities.bolt ? '   L BOLT' : ''}`;
-  const controls = `\u2190\u2192 MOVE   SHIFT RUN   G GRAPPLE   \u2191/W JUMP   \u2193/S DUCK   E ABSORB   SPACE CHARGE${attacks}`;
+  const controls = `\u2190\u2192 MOVE   SHIFT RUN   F+MOVE 2X   F+JUMP +2 TILES   G GRAPPLE   \u2191/W JUMP   \u2193/S DUCK   E ABSORB   SPACE CHARGE${attacks}`;
   const devHints = _DEV_MODE && _DEV_LEVELS.length > 1
     ? '   [F2] skip   [[] PREV   []] NEXT' : '   [F2] skip   [P] +charge';
   ctx.fillText(controls + devHints, viewW() / 2, 13);

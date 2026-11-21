@@ -2,7 +2,9 @@
 import {
   TILE, COLS, GRAVITY, PLAYER_SPEED, JUMP_FORCE,
   PLAYER_W, PLAYER_H, PLAYER_DUCK_H, MAX_CHARGE, MAX_BANKED_PIPS, START_PIP_SLOTS, ABSORB_RATE, DISCHARGE_RATE, chargeTransferRate, C,
-  RUN_MULTIPLIER, STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS,
+  RUN_MULTIPLIER, CHARGE_SPRINT_MULTIPLIER, CHARGE_SPRINT_COST_PER_SECOND,
+  CHARGE_JUMP_FORCE, CHARGE_JUMP_COST,
+  STUN_DURATION, ATTACK_RADIUS, ATTACK_COOLDOWN, INTERACT_RADIUS,
   PROJECTILE_CHARGE_COST
 } from './constants.js';
 import * as Input from './input.js';
@@ -117,6 +119,8 @@ export class Player {
     this._sprintSquash    = 0;     // >0: squash-and-stretch timer on sprint kick-in
     this._afterImages     = [];    // [{sx, sy, alpha}] ghost copies drawn behind player
     this._afterImageTimer = 0;     // time since last ghost was captured
+    this.chargeSprinting = false;  // read by the foot-spark feedback layer
+    this.chargeJumpCount = 0;      // increments only when a paid jump launches
 
     // Discharge state
     this.discharging       = false;
@@ -159,7 +163,14 @@ export class Player {
 
     this._updateContext(level);       // context first — nearDevice/Enemy known before input
     this._handleMovement(dt, level);
+    const movementStartX = this.x;
     this._applyPhysics(dt, level);
+    // Charge only for distance actually traveled, so pushing into a wall is free.
+    if (this.chargeSprinting && dt > 0) {
+      const fraction = Math.min(1, Math.abs(this.x - movementStartX) /
+        (PLAYER_SPEED * CHARGE_SPRINT_MULTIPLIER * dt));
+      if (fraction > 0) this.spendEnergy(CHARGE_SPRINT_COST_PER_SECOND * dt * fraction);
+    }
     this._updateAbsorb(dt, level);    // hold E near source  → absorb
     this._updateAttack(dt, level);    // K melee; L charged projectile
     this._updateBolts(dt, level);     // advance + cull live bolts
@@ -395,6 +406,7 @@ export class Player {
 
   // ── Movement & jump ──────────────────────────
   _handleMovement(dt, level) {
+    this.chargeSprinting = false;
     // Stunned: bleed off velocity, ignore all input
     if (this._stunTime > 0) {
       this._ladder = null;
@@ -472,8 +484,11 @@ export class Player {
     else if (!down) this._standIfClear(level);
 
     const shift      = Input.heldAny('ShiftLeft', 'ShiftRight');
+    const charged    = Input.held('KeyF');
     const wasRampedUp = this._sprintRamp > 0.6;
-    this.running      = !this.ducking && shift && (left || right);
+    this.chargeSprinting = !this.ducking && charged && (left !== right) &&
+      this.canAfford(CHARGE_SPRINT_COST_PER_SECOND * dt);
+    this.running      = !this.ducking && (shift || this.chargeSprinting) && (left || right);
 
     // Smooth acceleration: reaches full sprint in ~0.14s, slides out in ~0.25s
     const rampTarget = this.running ? 1 : 0;
@@ -486,7 +501,8 @@ export class Player {
       this._sprintSquash = 0.14;
     }
 
-    const speed = PLAYER_SPEED * (1 + (RUN_MULTIPLIER - 1) * this._sprintRamp);
+    const speed = PLAYER_SPEED * (this.chargeSprinting ? CHARGE_SPRINT_MULTIPLIER :
+      1 + (RUN_MULTIPLIER - 1) * this._sprintRamp);
 
     if (this.ducking) { this.vx *= 0.75; if (Math.abs(this.vx) < 5) this.vx = 0; }
     else if (left)  { this.vx = -speed; this._facingRight = false; }
@@ -498,7 +514,12 @@ export class Player {
     this._jumpBuf = Math.max(0, this._jumpBuf - dt);
 
     if (this._jumpBuf > 0 && (this.grounded || this._coyote > 0)) {
-      this.vy        = JUMP_FORCE;
+      const chargeJump = charged && this.canAfford(CHARGE_JUMP_COST);
+      if (chargeJump) {
+        this.spendEnergy(CHARGE_JUMP_COST);
+        this.chargeJumpCount++;
+      }
+      this.vy        = chargeJump ? CHARGE_JUMP_FORCE : JUMP_FORCE;
       this.grounded  = false;
       this._coyote   = 0;
       this._jumpBuf  = 0;

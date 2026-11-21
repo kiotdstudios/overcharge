@@ -363,7 +363,15 @@ Rules:
 5. Reclaiming is always possible (two-way), so there is no "permanent cost"; the real constraint is the
    stranding rule in section 3.5 (every charged object must stay reachable by two-way paths).
 
-### 3.10 Moves that cost charge (CONCEPT, later; not in Level 1)
+### 3.10 Moves that cost charge (Charge Sprint/Jump built; later upgrades conceptual)
+**2026-11-21 implementation update (Chief's direct request):** Charge Sprint and Charge Jump
+are now built from the first level. Hold F with left/right for 2x walking speed; it costs
+0.25 charge per second of actual movement. Hold F while pressing Up/W for a jump whose
+peak is two 32px tiles above the ordinary jump; it costs 0.5 charge once at launch.
+Both use `spendEnergy()` and create short pixel lightning effects at the feet. Shift
+continues to provide the original free 1.7x run. These are initial tuning values.
+The older statements below about *future* offensive upgrades are historical context.
+
 Chief (round 12): instead of a special move that spends a whole pip, the player will **learn or upgrade the
 projectile, or get new moves, each stronger and costing more charge to use.**
 - **Today:** the bolt (L) costs 0.25 charge and its combat role starts in Level 3 (hidden in Level 1).
@@ -434,7 +442,11 @@ and 18 rows) and will be regenerated after the retune.
   - *Camera*: the X axis is hard-locked to the player today. Add a smoothed look-ahead in the facing
     direction. Leave the Y axis unsmoothed, because the death-plane logic in `camera.js` depends on it.
 
-### 4.4 New movement abilities (CONFIRMED round 2 as real abilities; NOT BUILT)
+### 4.4 New movement abilities (charged moves built; double jump still planned)
+**2026-11-21 update:** Charged Sprint and Charged Jump are built; the older double-jump
+unlock discussion below refers to a separate, still-unbuilt ability. Charge Jump is
+one boosted jump from the ground, not a second jump in midair.
+
 - **CONFIRMED (round 2).** **Ducking and double jump are real abilities, so each needs animation art.**
 - **CONFIRMED (round 2).** **Double jump is unlockable, at least for now.** It is not available from the
   first frame. **Round 4 (Chief, "maybe Level 5 or something after the tutorial levels"):** the unlock

@@ -70,6 +70,11 @@ export const C = {
 
 // Movement multipliers
 export const RUN_MULTIPLIER = 1.7;  // Shift held — sprint speed factor
+export const CHARGE_SPRINT_MULTIPLIER = 2; // Hold F + direction; relative to walking speed
+export const CHARGE_SPRINT_COST_PER_SECOND = 0.25;
+export const CHARGE_JUMP_COST = 0.5;
+// Add exactly two 32px grid blocks to the ordinary jump's theoretical peak.
+export const CHARGE_JUMP_FORCE = -Math.sqrt(JUMP_FORCE ** 2 + 2 * GRAVITY * 2 * TILE);
 export const WALK_FPS       = 4;    // idle/walk animation fps
 export const RUN_FPS        = 11;   // run animation fps
 

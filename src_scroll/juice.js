@@ -95,6 +95,31 @@ export function createJuice(opts = {}) {
     burst({ x, y, n, colors: COLORS.spark, speed: 90, spread: Math.PI, angle: dirAngle, life: 0.3, drag: 0.88 });
   }
 
+  function chargeJump(x, y) {
+    // Two low, outward-moving pixel waves plus a crackle at the launch feet.
+    burst({ x, y: y - 3, n: 12, colors: COLORS.spark, speed: 105,
+      spread: Math.PI * 0.85, angle: -Math.PI / 2, life: 0.32, size: 2 });
+    for (const side of [-1, 1]) {
+      for (let i = 0; i < count(5); i++) {
+        add({ x: x + side * i * 3, y: y - (i % 2) * 2,
+          vx: side * (72 + i * 8), vy: -5 - i * 2, life: 0.22 + i * 0.02,
+          max: 0.34, size: 2, kind: 'wave', direction: side,
+          color: pick(COLORS.spark), gravity: 0, drag: 0.96 });
+      }
+    }
+  }
+
+  function chargeSprint(x, y, direction) {
+    // Short stepped bolts trail behind the moving feet; no smooth glow overlay.
+    for (let i = 0; i < count(5); i++) {
+      add({ x: x - direction * range(1, 12), y: y - range(1, 9),
+        vx: -direction * range(38, 105), vy: -range(5, 35),
+        life: range(0.13, 0.28), max: 0.28, size: i % 3 === 0 ? 3 : 2,
+        kind: 'bolt', direction: -direction,
+        color: pick(COLORS.spark), gravity: 35, drag: 0.9 });
+    }
+  }
+
   // A stream of sparks travelling from `from` to `to` (absorb: object -> hero, charge: hero -> object).
   function stream(from, to, rate = 1, colors = COLORS.spark) {
     const dx = to.x - from.x, dy = to.y - from.y, len = Math.hypot(dx, dy) || 1;
@@ -170,7 +195,18 @@ export function createJuice(opts = {}) {
       ctx.globalAlpha = Math.min(1, k * 1.6);
       ctx.fillStyle = p.color;
       const s = Math.max(1, Math.round(p.size * (0.5 + 0.5 * k)));
-      ctx.fillRect(Math.round(p.x - s / 2), Math.round(p.y - s / 2), s, s);
+      const px = Math.round(p.x), py = Math.round(p.y);
+      if (p.kind === 'bolt') {
+        // Three connected, hard-edged steps read as a tiny lightning bolt at game scale.
+        ctx.fillRect(px, py, 2, 2);
+        ctx.fillRect(px + p.direction * 2, py - 2, 3, 2);
+        ctx.fillRect(px + p.direction * 4, py - 4, 2, 3);
+      } else if (p.kind === 'wave') {
+        ctx.fillRect(px, py, 6, 2);
+        ctx.fillRect(px + p.direction * 4, py - 2, 3, 2);
+      } else {
+        ctx.fillRect(Math.round(p.x - s / 2), Math.round(p.y - s / 2), s, s);
+      }
     }
     ctx.restore();
   }
@@ -195,12 +231,23 @@ export function createJuice(opts = {}) {
       stopLoops();                       // a new level must never inherit the last level's hum
       s = state.seen = { level, grounded: !!player.grounded, vy: player.vy || 0, hurt: player._hurtFlash || 0,
                          laddered: !!player._ladder, gates: new Map(), cps: new Map(), chests: new Map(),
-                         drained: new Map(), streamT: 0, acT: 0, peakFall: 0, absorbOn: false, chargeOn: false, absorbRate: 0, chargeRate: 0 };
+                         drained: new Map(), streamT: 0, sprintT: 0, acT: 0, peakFall: 0,
+                         chargeJumpCount: 0,
+                         absorbOn: false, chargeOn: false, absorbRate: 0, chargeRate: 0 };
     }
     // landing / jumping
     if (!player.grounded) s.peakFall = Math.max(s.peakFall, player.vy || 0);
     if (player.grounded && !s.grounded) { landing(feetX, feetY, Math.max(s.vy, s.peakFall)); s.peakFall = 0; }
     if (!player.grounded && s.grounded && (player.vy || 0) < -150) jump(feetX, feetY);
+    if ((player.chargeJumpCount || 0) !== s.chargeJumpCount) {
+      chargeJump(feetX, feetY);
+      s.chargeJumpCount = player.chargeJumpCount || 0;
+    }
+    s.sprintT -= dt;
+    if (player.chargeSprinting && Math.abs(player.vx || 0) > 1 && s.sprintT <= 0) {
+      chargeSprint(feetX, feetY, Math.sign(player.vx));
+      s.sprintT = 0.055;
+    }
     s.grounded = !!player.grounded;
     s.vy = player.vy || 0;
     // hurt
@@ -260,7 +307,8 @@ export function createJuice(opts = {}) {
 
   return {
     // effects
-    dust, landing, jump, sparks, stream, burst, gateBurst, checkpointBurst, chestBurst, dryPuff, hurt, shake, hitStop,
+    dust, landing, jump, sparks, chargeJump, chargeSprint, stream, burst,
+    gateBurst, checkpointBurst, chestBurst, dryPuff, hurt, shake, hitStop,
     // loop
     update, draw, observe, frozen, shakeOffset,
     // control
