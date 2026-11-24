@@ -4510,6 +4510,17 @@
   },
   "decorations": [
     {
+      "src": "assets/objects/night-city-buildings/warehouse/warehouse_closed_bay.png",
+      "x": 2830,
+      "y": 847,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "tileLayer": "front",
+      "family": "nc_building_wall",
+      "rotation": 0
+    },
+    {
       "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_bot3.png",
       "x": 1157,
       "y": 847,
@@ -4532,30 +4543,33 @@
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_03.png",
       "x": 1778,
-      "y": 847,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
-      "x": 1874,
       "y": 848,
       "w": 128,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall",
-      "rotation": 0
+      "tileLayer": "back"
     },
     {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
-      "x": 2453,
-      "y": 847,
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
+      "x": 1874,
+      "y": 849,
       "w": 128,
       "h": 256,
       "snap": 1,
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "rotation": 0,
+      "tileLayer": "back"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_02.png",
+      "x": 2448,
+      "y": 848,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "tileLayer": "back"
     },
     {
       "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_bot1.png",
@@ -4614,40 +4628,35 @@
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
-      "x": 2163,
-      "y": 847,
+      "x": 2160,
+      "y": 956,
       "w": 128,
       "h": 256,
       "snap": 1,
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "flipX": true,
+      "tileLayer": "back"
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
-      "x": 2356,
-      "y": 847,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_01.png",
-      "x": 2068,
-      "y": 847,
-      "w": 128,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_03.png",
-      "x": 2261,
+      "x": 2352,
       "y": 848,
       "w": 128,
       "h": 256,
       "snap": 1,
       "family": "nc_building_wall",
-      "flipX": true
+      "tileLayer": "back"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_03.png",
+      "x": 2256,
+      "y": 848,
+      "w": 128,
+      "h": 256,
+      "snap": 1,
+      "family": "nc_building_wall",
+      "flipX": true,
+      "tileLayer": "back"
     },
     {
       "src": "assets/objects/night-city-props/street-litter/cup.png",
@@ -4678,18 +4687,8 @@
     },
     {
       "src": "assets/objects/night-city-buildings/warehouse/warehouse_open_bay.png",
-      "x": 3708,
-      "y": 846,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "tileLayer": "back",
-      "family": "nc_building_wall"
-    },
-    {
-      "src": "assets/objects/night-city-buildings/warehouse/warehouse_closed_bay.png",
-      "x": 3848,
-      "y": 849,
+      "x": 3757,
+      "y": 845,
       "w": 160,
       "h": 256,
       "snap": 1,
@@ -4698,7 +4697,7 @@
     },
     {
       "src": "assets/objects/night-city-props/bus-stop/shelter.png",
-      "x": 2558,
+      "x": 2564,
       "y": 939,
       "w": 256,
       "h": 154,
@@ -4716,35 +4715,28 @@
       "family": "nc_building_wall"
     },
     {
-      "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top2.png",
-      "x": 855,
-      "y": 845,
-      "w": 160,
-      "h": 256,
-      "snap": 1,
-      "family": "nc_building_wall"
-    },
-    {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
       "x": 1970,
-      "y": 848,
+      "y": 849,
       "w": 128,
       "h": 256,
       "snap": 1,
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "tileLayer": "back"
     },
     {
       "src": "assets/objects/night-city-buildings/filler_wall/filler_wall_04.png",
       "x": 2062,
-      "y": 848,
+      "y": 956,
       "w": 128,
       "h": 256,
       "snap": 1,
-      "family": "nc_building_wall"
+      "family": "nc_building_wall",
+      "tileLayer": "back"
     },
     {
       "src": "assets/objects/night-city-buildings/apartment_plain/wall_08.png",
-      "x": 2566,
+      "x": 2561,
       "y": 832,
       "w": 160,
       "h": 256,
@@ -4780,6 +4772,56 @@
       "h": 256,
       "snap": 1,
       "tileLayer": "back",
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/convenience_store/store_wall_bay.png",
+      "x": 2697,
+      "y": 886,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "tileLayer": "back",
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/coffee_bar/front_bay.png",
+      "x": 3633,
+      "y": 876,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "tileLayer": "back",
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/convenience_store/store_left.png",
+      "x": 3882,
+      "y": 893,
+      "w": 192,
+      "h": 256,
+      "snap": 1,
+      "tileLayer": "back",
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top4.png",
+      "x": 809,
+      "y": 903,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "tileLayer": "back",
+      "family": "nc_building_wall"
+    },
+    {
+      "src": "assets/objects/night-city-buildings/abandoned_apartment/abandoned_top2.png",
+      "x": 863,
+      "y": 848,
+      "w": 160,
+      "h": 256,
+      "snap": 1,
+      "tileLayer": "front",
       "family": "nc_building_wall"
     }
   ],
